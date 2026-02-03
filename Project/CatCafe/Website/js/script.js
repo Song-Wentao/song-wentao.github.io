@@ -49,7 +49,7 @@
         }
 
         // Home Cat update
-        fetch("/data/adoption.json")
+        fetch("/Project/CatCafe/Website/data/adoption.json")
         .then(response => response.json())
         .then(cats => {
             const grid = document.getElementById("HomeCatsGrid");
@@ -88,7 +88,7 @@
 
 
         // Adoption Cat update
-        fetch("/data/adoption.json")
+        fetch("/Project/CatCafe/Website/data/adoption.json")
           .then(response => response.json())
           .then(cats => {
             const grid = document.getElementById("catsGrid");
@@ -124,7 +124,7 @@
 
 
         // Stories update
-        fetch("/data/stories.json")
+        fetch("/Project/CatCafe/Website/data/stories.json")
           .then(res => res.json())
           .then(stories => {
 
