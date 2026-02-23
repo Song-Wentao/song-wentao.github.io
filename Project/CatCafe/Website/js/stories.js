@@ -23,7 +23,7 @@ fetch("/Project/CatCafe/Website/data/stories.json")
             <span>❤️ ${featuredStory.category}</span>
             </div>
             <p>${featuredStory.excerpt}</p>
-            <button class="btn btn-primary">Read Full Story →</button>
+            <button class="btn btn-1">Read Full Story →</button>
         </div>
         `;
     }

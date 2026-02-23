@@ -24,7 +24,7 @@ function homeCatUpdate() {
 
     catsData
     .filter(cat => cat.status === "available") // only available cats
-    .slice(0, 5)                               // max 4
+    .slice(0, 4)                               // max 4
     .forEach(cat => {
         const card = document.createElement("div");
         card.className = "adoption-cat-card";
