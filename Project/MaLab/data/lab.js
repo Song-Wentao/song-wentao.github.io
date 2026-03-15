@@ -48,7 +48,7 @@ const LAB = {
     name:   "Dr. Yonggang Ma, PhD",
     title:  "Assistant Professor",
     photo:  "img/Ma.jpg",
-    bio:    "Dr. Ma received his PhD from Peking Union Medical College and completed postdoctoral training at UCSF. He joined UMS in 2015. His work focuses on the biophysics of cardiac calcium signaling and arrhythmia mechanisms. He teaches graduate physiology and mentors students at all career stages.",
+    bio:    "Dr. Ma received his PhD from Peking Union Medical College and completed postdoctoral training at UT Health SA and UMMC. He joined USF in 2018 and established this lab in 2022. His current work focuses on the regulation of both innate and adaptive immune responses in ischemic heart failure.",
     email:  "yma4@usf.edu",
     scholar: "https://www.researchgate.net/profile/Yonggang-Ma-4",
     cv:     "#"
@@ -68,12 +68,43 @@ const LAB = {
 
   // ── Publications ─────────────────────────────────────────
   publications: [
+    { year: 2025, 
+      authors: "Madison D. Cooper and Yonggang Ma",    
+      title: "Inherited burdens: the cardiac cost of parental obesity in offspring following myocardial infarction",           
+      journal: "American Journal of Physiology - Heart and Circulatory Physiology ", 
+      volume: "329:1, H91-93",           
+      pdf: "data/publications/2025.pdf", highlight: true },
+    { year: 2025, 
+      authors: "Rebecca Patrick, Briana D. Pando, Clement Yang, Alexandra Aponte, Fang Wang, Tom Ewing, Yonggang Ma, Sarah Y. Yuan, Mack H. Wu",    
+      title: "Focal adhesion kinase mediates microvascular leakage and endothelial barrier dysfunction in ischemia-reperfusion injury",           
+      journal: "Microvascular Research", 
+      volume: "159: 104791",           
+      pdf: "", highlight: false  },      
+    { year: 2025, 
+      authors: "Madison D. Cooper and Yonggang Ma",    
+      title: "Inherited burdens: the cardiac cost of parental obesity in offspring following myocardial infarction",           
+      journal: "American Journal of Physiology - Heart and Circulatory Physiology ", 
+      volume: "329:1, H91-J93",           
+      pdf: "", highlight: false },
+    { year: 2025, 
+      authors: "Gabriel Araujo Grilo, Jeremias Munoz Jr., Dae Hyun Lee, Shahriare Hossain, Yonggang Ma, Vasundhara Kain, Merry L. Lindsey, and Ganesh V. Halade",    
+      title: "Macro- and microinjury define the heart failure progression after permanent coronary ligation or ischemia-reperfusion in young healthy mice",           
+      journal: "American Journal of Physiology - Heart and Circulatory Physiology ", 
+      volume: "329:2, H521-H533",           
+      pdf: "", highlight: false  },
     { year: 2024, 
       authors: "Shane DX, Konovalova DM, Rajendran H, Yuan SY, Ma Y",    
       title: "Glucocorticoids impair T lymphopoiesis after myocardial infarction",           
       journal: "American Journal of Physiology - Heart and Circulatory Physiology ", 
       volume: "H533-H544",           
-      pdf: "data/publications/2024.pdf", highlight: true  },
+      pdf: "data/publications/2024.pdf", highlight: false  },      
+    { year: 2024, 
+      authors: "Shane DX, Konovalova DM, Rajendran H, Yuan SY, Ma Y",    
+      title: "Microbiome-Immune Interplay in Aging Brains: A Pilot Investigation from the MiaGB Cohort",           
+      journal: "Alzheimer's Dement", 
+      volume: "20: e090734",           
+      pdf: "", highlight: false  },
+
     { year: 2023, 
       authors: "Ma Y, Kemp SS, Yang X, Wu MH, Yuan SY",      
       title: "Cellular mechanisms underlying the impairment of macrophage efferocytosis", 
@@ -120,8 +151,8 @@ const LAB = {
   // ── Projects ─────────────────────────────────────────────
   projects: [
     {
-      status: "Active", funding: "NIH R01 HL145623",
-      title: "RyR2 Regulation & Arrhythmia",
+      status: "Active", funding: "National Institutes of Health",
+      title: "T Lymphopenia in Ischemic Heart Failure",
       summary: "The ryanodine receptor (RyR2) is the primary calcium release channel of the sarcoplasmic reticulum. Aberrant RyR2 activity underlies multiple forms of inherited and acquired arrhythmia, including CPVT and atrial fibrillation. We investigate how post-translational modifications, accessory proteins, and local lipid environments modulate RyR2 gating.",
       approaches: ["Planar lipid bilayer electrophysiology", "Single-molecule FRET imaging", "CRISPR-Cas9 knock-in mouse models", "Cryo-EM structural analysis (collaboration)"]
     },
@@ -144,13 +175,13 @@ const LAB = {
 
   positions: [
     {
-      type: "Postdoctoral Fellows", icon: "🎓", open: true,
+      type: "Postdoctoral Fellows", icon: "🎓", open: false,
       description: "We are actively recruiting postdoctoral scientists with expertise in electrophysiology, cell biology, structural biology, or computational biophysics. Candidates should have (or be completing) a PhD in a relevant field. Strong publication record and independent thinking are valued.",
-      how: "Send a CV, brief research statement (1–2 pages), and contact information for three references to chenlab@ums.edu with the subject line: 'Postdoc Application – [Your Name]'."
+      how: "Send a CV, brief research statement (1–2 pages), and contact information for three references to yma4@usf.edu with the subject line: 'Postdoc Application – [Your Name]'."
     },
     {
       type: "PhD Students", icon: "🧪", open: false,
-      description: "Prospective PhD students should apply through the UMS Biophysics or Physiology PhD Programs. Rotation students are welcome year-round. We look for intellectual curiosity, resilience, and a passion for cardiac biology.",
+      description: "Prospective PhD students should apply through the USF PhD Programs. Rotation students are welcome year-round. We look for intellectual curiosity, resilience, and a passion for cardiac biology.",
       how: "Apply to the UMS graduate programs and indicate interest in the Ma Lab during your application. Rotation requests can be sent directly to Dr. Ma."
     },
     {
@@ -165,11 +196,4 @@ const LAB = {
     }
   ],
 
-  values: [
-    "Rigorous, reproducible science",
-    "Open and collaborative culture",
-    "Work-life balance & mental health",
-    "Mentorship at every stage",
-    "Commitment to diversity, equity & inclusion"
-  ]
 };
