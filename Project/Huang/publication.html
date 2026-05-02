@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publications · Shuli Huang</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/navbar.css"/>
+  <link rel="stylesheet" href="css/publications.css"/>  
+
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <h1 class="page-title">Publications</h1>
+      <p class="page-sub">Peer-reviewed articles.</p>
+    </div>
+  </div>
+
+  <main>
+    <section class="content-section">
+      <div class="pub-note">
+        For a complete list visit <a href="https://scholar.google.com/citations?user=8bUj260AAAAJ&hl=en" target="_blank">Google Scholar</a>.
+        Featured articles are highlighted.
+      </div>
+
+      <!-- Filter buttons (populated by JS) -->
+      <div class="filter-bar" id="filterBar">
+        <span class="filter-label">Filter by year:</span>
+      </div>
+
+      <!-- Publications list (populated by JS) -->
+      <div id="pubList"></div>
+    </section>
+  </main>
+
+  <script src="data/lab.js"></script>
+  <script src="js/utils.js"></script>
+  <script>
+    injectNavbar('publications');
+    injectFooter();
+
+    // Group pubs by year
+    const byYear = {};
+    LAB.publications.forEach(p => {
+      if (!byYear[p.year]) byYear[p.year] = [];
+      byYear[p.year].push(p);
+    });
+    const years = Object.keys(byYear).sort((a,b) => b - a);
+
+    // Filter buttons
+    const filterBar = document.getElementById('filterBar');
+    const allBtn = el('button', 'filter-btn active');
+    allBtn.textContent = 'All';
+    allBtn.dataset.year = 'all';
+    filterBar.appendChild(allBtn);
+    years.forEach(y => {
+      const btn = el('button', 'filter-btn');
+      btn.textContent = y;
+      btn.dataset.year = y;
+      filterBar.appendChild(btn);
+    });
+
+    filterBar.addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const year = btn.dataset.year;
+      document.querySelectorAll('.pub-year-group').forEach(g => {
+        g.classList.toggle('hidden', year !== 'all' && g.dataset.year !== year);
+      });
+    });
+
+    // Render pubs
+    const pubList = document.getElementById('pubList');
+    let delay = 0;
+    years.forEach(year => {
+      const group = el('div', 'pub-year-group');
+      group.dataset.year = year;
+      const lbl = el('div', 'pub-year-label');
+      lbl.textContent = year;
+      group.appendChild(lbl);
+
+      byYear[year].forEach(pub => {
+        const card = el('div', pub.highlight ? 'pub-card highlight' : 'pub-card');
+        card.style.animationDelay = `${delay++ * 0.045}s`;
+        card.innerHTML = `
+          ${pub.highlight ? '<span class="pub-featured"><span class="badge badge-accent">Featured</span></span>' : ''}
+          <div class="pub-title">${pub.title}</div>
+          <div class="pub-authors">${pub.authors}</div>
+          <div class="pub-journal"><em>${pub.journal}</em><span class="pub-vol">${pub.volume}</span></div>
+          <div class="pub-actions">
+            <a href="${pub.pdf}" class="pub-btn" target="_blank">PDF</a>
+          </div>`;
+        group.appendChild(card);
+      });
+      pubList.appendChild(group);
+    });
+  </script>
+</body>
+</html>
