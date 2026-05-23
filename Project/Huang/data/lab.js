@@ -15,6 +15,8 @@ const LAB = {
 
   // ── About ─────────────────────────────────────────────────
   tagline: "Decoding the language of the beating heart.",
+  photo:"img/Huang.jpg",
+  photoAlt:"Dr. Shuli Huang, PhD",
   mission: "I am a cardiovascular physiologist with expertise in neuroendocrinology and immunology. My research uses rodent models to define neuroendocrine mechanisms underlying stress-responsive social behavior, focusing on oxytocinergic and vasopressinergic regulation of aggression and their cardiovascular and neuroendocrine consequences. In parallel, I investigate myocardial infarction–induced ischemic heart failure, examining how innate and adaptive immune cells regulate post-infarction cardiac repair and remodeling, with emphasis on T cell lymphopenia, age-related thymic involution, and innate immune memory.",
 
   highlights: [
