@@ -84,12 +84,15 @@ function renderCard(s) {
   const grid = document.getElementById('storiesGrid');
   if (!grid) return;
 
+  // Look up the badge class; fall back to badge-community
+  const badgeClass = BADGE_MAP[s.categoryClass.toLowerCase()] || BADGE_MAP['']; 
+
   const card = document.createElement('div');
   card.className = 'story-card';
   card.innerHTML = `
     <div class="story-img">
       <img src="${s.image}" alt="${s.title}">
-      <div class="story-cat-badge badge">${s.category}</div>
+      <div class="story-cat-badge ${badgeClass}" || 'badge-community'">${s.category}</div>
     </div>
     <div class="story-content">
       <div class="story-date">&#x1F4C5; ${s.date}</div>
