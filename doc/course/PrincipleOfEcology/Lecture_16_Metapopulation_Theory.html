@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 16: Metapopulation Theory</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 16",
+    "title": "Metapopulation Theory",
+    "sub": "Populations of populations: colonization, extinction, and persistence across fragmented landscapes",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Ch. 6–7"
+  },
+  {
+    "type": "section",
+    "tag": "Recap · Lecture 15",
+    "title": "Dispersal and Migration",
+    "sub": "Why individuals leave, where they go, and what it costs them"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Key Ideas from Lecture 15",
+    "items": [
+      "Dispersal: movement of individuals away from their origin, potentially altering spatial population structure",
+      "Costs of dispersal: energetic expenditure, predation risk, mortality in transit, loss of local knowledge",
+      "Benefits of dispersal: escape from kin competition, inbreeding avoidance, colonization of new habitat, tracking resources",
+      "Dispersal kernels describe the probability distribution of dispersal distances — typically leptokurtic (fat-tailed)",
+      "Case studies: wildebeest migration (resource tracking in the Serengeti) and monarch butterfly migration (multi-generational, photoperiod/temperature cued)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap → Today",
+    "title": "From Individual Movement to Population Networks",
+    "items": [
+      "Lecture 15 asked: why and how do individuals move between patches?",
+      "Lecture 16 asks: what happens to a set of populations connected by that movement?",
+      "Dispersal is the mechanistic link — without it, isolated patches simply blink out one by one",
+      "With dispersal, a network of local populations can persist even though no single patch is permanently occupied",
+      "This shift in scale — from individual to population of populations — is the foundation of metapopulation theory"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "The Metapopulation Concept",
+    "sub": "A population of populations occupying discrete habitat patches"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definition",
+    "title": "What Is a Metapopulation?",
+    "term": "Metapopulation",
+    "def": "A set of local populations, occupying discrete habitat patches, that are linked by the dispersal of individuals — such that local extinctions can be balanced by recolonization from other patches.",
+    "bullets": [
+      "Coined by Richard Levins (1969, 1970) in the context of pest control on agricultural patches",
+      "Requires: (1) discrete, distinguishable habitat patches, (2) local populations subject to extinction, (3) dispersal connecting patches, (4) some asynchrony in local dynamics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Patches Matter",
+    "title": "Habitat as a Patchwork, Not a Continuum",
+    "items": [
+      "Real landscapes are rarely uniform — suitable habitat occurs as discrete, spatially separated patches embedded in a matrix of unsuitable habitat",
+      "Each patch can support a local population with its own birth, death, immigration, and emigration rates",
+      "Local populations can go extinct due to demographic stochasticity, environmental disturbance, or resource failure",
+      "Empty patches can be recolonized by dispersers from occupied patches — the regional population persists even as local ones flicker on and off",
+      "The unit of interest shifts from the individual patch to the network of patches as a whole"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Spatial Population Structures",
+    "title": "Metapopulation vs. Mainland-Island Model",
+    "left": {
+      "h": "Classical (Levins) Metapopulation",
+      "body": "All patches are similar in size and quality. Every patch is equally likely to go extinct and equally capable of contributing colonists. No single patch dominates dynamics — persistence is a property of the whole network."
+    },
+    "right": {
+      "h": "Mainland-Island Model",
+      "body": "One large, low-extinction-risk 'mainland' population continually supplies colonists to smaller, extinction-prone 'island' patches. Persistence of islands depends heavily on proximity to, and output from, the mainland."
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Patch Properties",
+    "title": "What Defines a Habitat Patch?",
+    "cards": [
+      {
+        "h": "Size",
+        "p": "Larger patches support larger local populations with lower extinction risk"
+      },
+      {
+        "h": "Isolation",
+        "p": "Distance from other occupied patches determines colonization probability"
+      },
+      {
+        "h": "Quality",
+        "p": "Resource availability and microhabitat conditions affect local population growth"
+      },
+      {
+        "h": "Connectivity",
+        "p": "Corridors, stepping-stones, or matrix permeability shape realized dispersal"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Levins' Original Model",
+    "sub": "A simple patch-occupancy formulation of metapopulation dynamics"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Levins Equation",
+    "title": "Levins' Metapopulation Model (1969)",
+    "term": "dP/dt = cP(1 − P) − eP",
+    "def": "Describes the rate of change in the proportion of habitat patches occupied, P, as a balance between colonization of empty patches and extinction of occupied ones.",
+    "bullets": [
+      "P = proportion of habitat patches currently occupied (0 ≤ P ≤ 1)",
+      "c = colonization rate coefficient — per-patch rate at which occupied patches generate successful colonists",
+      "e = extinction rate coefficient — per-patch probability of local extinction per unit time",
+      "(1 − P) = proportion of patches that are empty and therefore available for colonization",
+      "cP(1−P) = colonization term; eP = extinction term"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Equation",
+    "title": "Why the Terms Take This Form",
+    "items": [
+      "Colonization requires both a source of colonists (occupied patches, proportion P) and an available destination (empty patches, proportion 1−P) — hence the product P(1−P)",
+      "This makes colonization a saturating process: it is fastest at intermediate occupancy and zero when all patches are occupied or all are empty",
+      "Extinction is modeled as simply proportional to P — each occupied patch has an independent, constant per-time-step risk e of going locally extinct",
+      "No explicit space: patches are treated as identical and equally accessible (a 'mean-field' assumption)",
+      "Note the structural resemblance to logistic growth — but here P is patch occupancy, not population density"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Opposing Processes",
+    "title": "Colonization vs. Extinction",
+    "left": {
+      "h": "Colonization (cP(1−P))",
+      "body": "Driven by dispersal from occupied patches. Increases with more occupied source patches, higher per-capita dispersal success, shorter inter-patch distances, and more empty patches available to receive colonists."
+    },
+    "right": {
+      "h": "Extinction (eP)",
+      "body": "Driven by local population processes: demographic stochasticity, environmental variability, small patch size, poor patch quality, and catastrophes. Increases with more occupied patches at risk and higher per-patch vulnerability."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Assumptions",
+    "title": "Simplifying Assumptions of the Basic Levins Model",
+    "items": [
+      "Infinite number of patches, all identical in size and quality",
+      "No explicit spatial structure — all patches are equally accessible to colonists ('panmictic' patch network)",
+      "Within-patch dynamics are ignored — patches are simply 'occupied' or 'empty'",
+      "Colonization and extinction rates (c, e) are constant, not density- or distance-dependent",
+      "No time lags in colonization or extinction processes"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Solving the Model",
+    "title": "Equilibrium Patch Occupancy",
+    "term": "P* = 1 − e/c",
+    "def": "Setting dP/dt = 0 and solving for P gives the equilibrium proportion of occupied patches, representing a stable balance between colonization and extinction.",
+    "bullets": [
+      "Derived from cP(1−P) = eP → c(1−P) = e → P = 1 − e/c",
+      "P* is a stable equilibrium: if P < P*, colonization exceeds extinction and P rises; if P > P*, extinction dominates and P falls",
+      "Persistence of the metapopulation requires c > e (otherwise P* ≤ 0, and the network trends toward regional extinction)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Equilibrium",
+    "title": "What Determines P*?",
+    "items": [
+      "Higher colonization rate (c) relative to extinction rate (e) → higher equilibrium occupancy",
+      "As e approaches c, P* approaches zero — the metapopulation is on the brink of regional extinction even though no single event caused it",
+      "Crucially, even at equilibrium, patches are constantly blinking on and off — turnover is a defining feature, not a failure of the system",
+      "A 'healthy' metapopulation is not one where every patch is occupied, but one where colonization reliably outpaces extinction across the network",
+      "This has direct implications for conservation: management should target c and e, not just current occupancy"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Managing the Balance",
+    "title": "Factors Affecting Colonization vs. Extinction Rates",
+    "headers": [
+      "Factor",
+      "Effect on Colonization (c)",
+      "Effect on Extinction (e)"
+    ],
+    "rows": [
+      [
+        "Patch size",
+        "Little direct effect",
+        "Larger patches → lower e (larger local populations)"
+      ],
+      [
+        "Inter-patch distance",
+        "Shorter distances → higher c",
+        "Little direct effect"
+      ],
+      [
+        "Patch quality",
+        "Little direct effect",
+        "Higher quality → lower e"
+      ],
+      [
+        "Number of occupied neighbors",
+        "More neighbors → higher c",
+        "Can lower e via rescue effect"
+      ],
+      [
+        "Habitat fragmentation",
+        "Reduces c (isolation)",
+        "Increases e (smaller, lower-quality patches)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "The Rescue Effect",
+    "sub": "When immigration prevents local extinction, not just reverses it"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Refining the Model",
+    "title": "The Rescue Effect",
+    "term": "Rescue Effect",
+    "def": "The reduction in a local population's extinction probability caused by continued immigration from other occupied patches — immigrants supplement declining populations before they disappear entirely, not just recolonize empty ones.",
+    "bullets": [
+      "Proposed by Brown & Kodric-Brown (1977) as an extension to island biogeography and metapopulation theory",
+      "Implies extinction rate e should itself depend on P: e effectively decreases as more patches are occupied (more potential rescuers)",
+      "Modifies Levins' model to something like dP/dt = cP(1−P) − eP(1−P), coupling both terms to occupancy"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences",
+    "title": "Why the Rescue Effect Matters",
+    "items": [
+      "Without rescue, immigration only matters for empty patches (colonization); with rescue, it also matters for occupied patches",
+      "Highly connected patch networks can be more resilient than the basic Levins model predicts, because near-extinct populations get topped up by immigrants",
+      "Isolated patches lose this buffer — they experience the 'raw' extinction rate e with no rescue",
+      "This is one reason habitat corridors and stepping-stone patches are valued in conservation planning — they don't just enable colonization, they prevent extinction",
+      "The rescue effect blurs the sharp local-extinction/recolonization dynamic of the classical model into a more continuous process"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Model Comparison",
+    "title": "Classical Levins vs. Rescue-Effect Model",
+    "left": {
+      "h": "Classical Levins Model",
+      "body": "eP — extinction rate is constant per occupied patch, independent of the surrounding patch network. Isolation has no effect on a patch's own extinction risk."
+    },
+    "right": {
+      "h": "Rescue-Effect Model",
+      "body": "eP(1−P) — extinction rate declines as regional occupancy rises. Well-connected patches in a highly occupied network are effectively buffered against extinction by immigrant input."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Patch Quality and Habitat Fragmentation",
+    "sub": "Real landscapes are neither infinite nor uniform"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the Simple Model",
+    "title": "Patch Quality Shapes Local Dynamics",
+    "items": [
+      "Real patches differ in size, resource availability, microclimate, and successional stage — not just 'occupied' or 'empty'",
+      "Larger, higher-quality patches typically support larger local populations, which have lower demographic stochastic extinction risk",
+      "Patch quality can change over time (succession, disturbance, management), making some patches transient habitat",
+      "Hanski's incidence function models extended Levins' framework to account for patch area and isolation explicitly, predicting occupancy probability per patch rather than a single regional P"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Fragmentation Consequences",
+    "title": "How Habitat Fragmentation Alters Metapopulations",
+    "cards": [
+      {
+        "h": "Reduced Patch Size",
+        "p": "Smaller remaining patches support smaller populations, raising local extinction probability"
+      },
+      {
+        "h": "Increased Isolation",
+        "p": "Greater distances between patches lower colonization rates and dispersal success"
+      },
+      {
+        "h": "Matrix Hostility",
+        "p": "Inhospitable surrounding land use increases dispersal mortality, effectively raising isolation"
+      },
+      {
+        "h": "Reduced Total Habitat",
+        "p": "Fewer patches overall lowers the number of potential colonization sources"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Extinction Thresholds",
+    "title": "Fragmentation and Metapopulation Persistence",
+    "items": [
+      "As fragmentation reduces c and increases e, the equilibrium P* = 1 − e/c declines toward zero",
+      "Below a critical threshold of habitat amount/connectivity, c falls below e and the entire metapopulation trends to extinction — even if suitable patches still exist",
+      "This 'extinction threshold' can produce a time-delayed collapse: the metapopulation may appear stable for years before crossing the threshold ('extinction debt')",
+      "Fragmentation effects are often nonlinear — a metapopulation can withstand substantial habitat loss until connectivity drops critically, then collapse rapidly",
+      "Conservation implication: maintaining connectivity (not just total habitat area) is critical to metapopulation persistence"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Landscape Change",
+    "title": "Effects of Habitat Fragmentation on Metapopulation Parameters",
+    "headers": [
+      "Parameter",
+      "Before Fragmentation",
+      "After Fragmentation"
+    ],
+    "rows": [
+      [
+        "Patch number",
+        "Few, large patches",
+        "Many, small patches"
+      ],
+      [
+        "Colonization rate (c)",
+        "High (short distances)",
+        "Low (long distances, hostile matrix)"
+      ],
+      [
+        "Extinction rate (e)",
+        "Low (large populations)",
+        "High (small, isolated populations)"
+      ],
+      [
+        "Equilibrium occupancy (P*)",
+        "Near 1",
+        "Approaches 0 (may fall below extinction threshold)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Source-Sink Dynamics",
+    "sub": "Not all patches are created equal: Pulliam's model"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Pulliam 1988",
+    "title": "Source-Sink Dynamics",
+    "term": "Source-Sink Model",
+    "def": "A framework in which habitat patches differ qualitatively in their contribution to population growth: sources have positive local growth (births + immigration > deaths + emigration) and export surplus individuals, while sinks have negative local growth and depend on immigration to persist.",
+    "bullets": [
+      "Proposed by H. Ronald Pulliam (1988) as a refinement of simple patch-occupancy thinking",
+      "Sink populations can appear stable or even abundant while being demographic 'traps' sustained entirely by immigration",
+      "Distinguishes habitat quality (source vs. sink) from mere occupancy (present vs. absent) — occupancy alone can be a misleading indicator of habitat quality"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Patch Types",
+    "title": "Source Patches vs. Sink Patches",
+    "left": {
+      "h": "Source Patches",
+      "body": "Local reproductive success exceeds local mortality (r > 0 in isolation). Populations produce a surplus of individuals that emigrate to other patches, including sinks. Typically higher-quality habitat."
+    },
+    "right": {
+      "h": "Sink Patches",
+      "body": "Local reproductive success is less than local mortality (r < 0 in isolation). Populations would go extinct without continual immigration from source patches. Often lower-quality or marginal habitat."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Implications",
+    "title": "Why Source-Sink Dynamics Matter",
+    "items": [
+      "A patch with a large, persistent population is not necessarily good habitat — it may be a sink maintained by immigration from elsewhere",
+      "Removing or degrading source patches can cause collapse in seemingly healthy sink populations, with a time lag that obscures the true cause",
+      "Organisms may preferentially settle in sinks if they misjudge habitat cues ('ecological traps') — a special, human-exacerbated case of sink habitat",
+      "Effective conservation requires identifying which patches are sources and protecting them preferentially, rather than relying on occupancy or local abundance alone",
+      "Source-sink dynamics add a demographic dimension to the purely presence/absence logic of the basic Levins model"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Case Study I",
+    "sub": "The Glanville fritillary butterfly, Åland Islands, Finland"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study System",
+    "title": "Ilkka Hanski and the Glanville Fritillary",
+    "items": [
+      "Melitaea cinxia (Glanville fritillary) studied since the early 1990s across the Åland Islands, Finland, by Ilkka Hanski and colleagues",
+      "Larval host plants (Plantago lanceolata, Veronica spicata) occur in ~4,000 discrete dry meadow patches across the archipelago",
+      "Every patch has been surveyed annually for occupancy — one of the most complete empirical metapopulation datasets in ecology",
+      "Became the model empirical system for testing and extending Levins-type theory in a real landscape"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Empirical Metapopulation",
+    "title": "Glanville Fritillary Metapopulation",
+    "term": "Melitaea cinxia Metapopulation",
+    "def": "A large, well-studied network of local butterfly populations occupying meadow patches, characterized by frequent local extinctions and recolonizations tracked over decades — used to empirically parameterize and validate metapopulation models.",
+    "bullets": [
+      "Annual local extinction rates of individual patches are substantial (often 10–20%), offset by comparable colonization of empty patches",
+      "Patch area and isolation both strongly predict occupancy, consistent with Hanski's incidence function model"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Findings",
+    "title": "Key Results from the Åland Study",
+    "items": [
+      "Occupancy of a patch is well predicted by its area (larger = lower extinction risk) and its isolation from occupied neighbors (closer = higher colonization probability) — the core predictions of patch-based metapopulation theory",
+      "Extensive turnover: many patches occupied in one year are empty the next, and vice versa, yet the regional metapopulation persists",
+      "Evidence for the rescue effect: patches near many occupied neighbors have lower extinction rates than equally sized, more isolated patches",
+      "Genetic and behavioral studies linked dispersal propensity to specific traits (e.g., variation in the Pgi metabolic gene) affecting flight performance and colonization ability",
+      "Demonstrated that metapopulation persistence depends on the whole patch network configuration, not just aggregate habitat area"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Research Trajectory",
+    "title": "Hanski's Glanville Fritillary Research Program",
+    "items": [
+      {
+        "y": "1991",
+        "t": "Long-term annual patch survey begins across ~4,000 meadow patches in the Åland Islands"
+      },
+      {
+        "y": "1994",
+        "t": "Hanski develops the incidence function model, linking patch area and isolation to occupancy probability"
+      },
+      {
+        "y": "1998",
+        "t": "Empirical demonstration of extinction threshold and metapopulation capacity of fragmented landscapes"
+      },
+      {
+        "y": "2004",
+        "t": "Discovery of the Pgi gene's link to dispersal ability and colonization success"
+      },
+      {
+        "y": "2011",
+        "t": "Hanski awarded the Crafoord Prize for contributions to metapopulation ecology"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Case Study II",
+    "sub": "Northern spotted owl and old-growth forest fragmentation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study System",
+    "title": "Northern Spotted Owl (Strix occidentalis caurina)",
+    "items": [
+      "Old-growth-dependent species in the Pacific Northwest of North America, occupying remnant patches of mature coniferous forest",
+      "Extensive logging through the 20th century fragmented old-growth forest into isolated patches embedded in a matrix of young, unsuitable forest",
+      "Became a landmark case in applying metapopulation and source-sink theory to endangered species conservation and forest policy in the 1980s–1990s",
+      "Territory occupancy and reproductive success vary strongly with patch size and degree of surrounding fragmentation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Conservation Findings",
+    "title": "Fragmentation Effects on Spotted Owl Persistence",
+    "cards": [
+      {
+        "h": "Patch Isolation",
+        "p": "Increased distances between old-growth fragments reduced dispersal success of juvenile owls"
+      },
+      {
+        "h": "Source-Sink Structure",
+        "p": "Some fragmented territories functioned as demographic sinks, sustained by immigration from larger source patches"
+      },
+      {
+        "h": "Extinction Debt",
+        "p": "Populations persisted for years after fragmentation before local extinctions became apparent"
+      },
+      {
+        "h": "Habitat Threshold",
+        "p": "Modeling suggested a minimum threshold of old-growth cover needed to maintain regional persistence"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Landmark Systems",
+    "title": "Glanville Fritillary vs. Spotted Owl Metapopulations",
+    "headers": [
+      "Feature",
+      "Glanville Fritillary",
+      "Northern Spotted Owl"
+    ],
+    "rows": [
+      [
+        "Habitat patches",
+        "Dry meadows (Åland Islands)",
+        "Old-growth forest fragments"
+      ],
+      [
+        "Primary driver of fragmentation",
+        "Natural patchiness of host plant habitat",
+        "Anthropogenic logging"
+      ],
+      [
+        "Key model applied",
+        "Levins / incidence function model",
+        "Source-sink and habitat threshold models"
+      ],
+      [
+        "Turnover rate",
+        "High (annual local extinctions common)",
+        "Low (long-lived territorial species)"
+      ],
+      [
+        "Conservation outcome",
+        "Basis for empirical metapopulation theory",
+        "Basis for U.S. old-growth forest policy (Northwest Forest Plan)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Ecology",
+    "title": "Conservation Applications of Metapopulation Theory",
+    "items": [
+      "Reserve design: prioritize maintaining or restoring connectivity between patches, not just total protected area",
+      "Identify and protect source patches preferentially, since their loss can silently collapse dependent sink populations",
+      "Corridors and stepping-stone patches can raise colonization rate (c) and, via the rescue effect, lower effective extinction rate (e)",
+      "Recognize extinction debt: apparent current stability does not guarantee long-term persistence if connectivity has already fallen below threshold",
+      "Metapopulation and source-sink frameworks now underpin species recovery plans, reserve network design, and reintroduction planning worldwide"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Scales of Population Structure",
+    "title": "From Individual to Regional Population",
+    "levels": [
+      {
+        "label": "Individual organism",
+        "color": "#1b4332",
+        "width": "220px"
+      },
+      {
+        "label": "Local population (single patch)",
+        "color": "#2d6a4f",
+        "width": "320px"
+      },
+      {
+        "label": "Metapopulation (patch network)",
+        "color": "#40916c",
+        "width": "420px"
+      },
+      {
+        "label": "Regional / landscape population",
+        "color": "#74c69d",
+        "width": "520px"
+      }
+    ],
+    "footnote": "Each level emerges from processes occurring at the level below it: dispersal links individuals to local populations, and local extinction/colonization links local populations into metapopulations."
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On Fragmented Landscapes",
+    "quote": "A species may persist in a region for a long time even though no single local population is permanent, simply because the pattern of extinctions and colonizations balances out across the landscape.",
+    "attrib": "Paraphrased from Ilkka Hanski, Metapopulation Ecology (1999)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Critical Perspective",
+    "title": "Limitations of the Levins Model",
+    "items": [
+      "Assumes an infinite, homogeneous set of patches — unrealistic for most real landscapes with finite, variable patches",
+      "Ignores explicit spatial arrangement — treats all patches as equally accessible regardless of actual distance ('mean-field' simplification)",
+      "Does not incorporate within-patch population dynamics (age structure, density dependence) — patches are simply occupied or empty",
+      "Constant c and e parameters ignore patch quality variation and environmental stochasticity",
+      "Later models (incidence function model, spatially realistic metapopulation models, source-sink models) relax these assumptions but require far more data to parameterize"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Lecture 16 Summary",
+    "items": [
+      "A metapopulation is a population of local populations linked by dispersal across discrete habitat patches",
+      "Levins' model (dP/dt = cP(1−P) − eP) captures the balance of colonization and extinction, with equilibrium occupancy P* = 1 − e/c",
+      "The rescue effect shows immigration can prevent, not just reverse, local extinction — favoring connected patch networks",
+      "Habitat fragmentation reduces colonization and raises extinction, potentially pushing metapopulations below a persistence threshold",
+      "Source-sink dynamics (Pulliam 1988) show that occupancy alone is a poor proxy for habitat quality — some populated patches are demographic sinks",
+      "The Glanville fritillary and spotted owl case studies ground these models in real, data-rich empirical systems with direct conservation relevance"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Before Next Class",
+    "title": "Preview: Lecture 17",
+    "sub": "Intraspecific Competition I — Mechanisms & Density Dependence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "What to Prepare for Lecture 17",
+    "items": [
+      "We shift scale again — from populations distributed across patches to interactions among individuals within a single population",
+      "Topics: mechanisms of intraspecific competition (exploitation vs. interference), density-dependent birth and death rates, and self-thinning",
+      "Review the concept of carrying capacity (K) and the logistic growth model from earlier lectures, since density dependence formalizes it mechanistically",
+      "Consider how patch-level local population regulation (density dependence) interacts with the metapopulation processes just covered — extinction risk in small patches is partly a density-dependence problem",
+      "Read Begon & Townsend Ch. 5 (Intraspecific Competition) before class"
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question",
+    "title": "If a Habitat Patch Looks Healthy, Is It Actually Good Habitat?",
+    "sub": "Using source-sink theory, explain how a fragmented landscape could contain apparently thriving populations that are, in fact, demographic sinks — and what this means for how we measure conservation success.",
+    "footnote": "Come prepared to discuss in small groups at the start of Lecture 17"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 16 · Metapopulation Theory</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

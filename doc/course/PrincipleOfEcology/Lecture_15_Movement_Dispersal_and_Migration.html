@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 15: Movement, Dispersal, and Migration</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Principles of Ecology · Lecture 15",
+    "title": "Movement, Dispersal, and Migration",
+    "sub": "From foraging steps to continental journeys: how and why organisms move across space",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed. — Ch. 6"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off: Life History Theory II",
+    "sub": "Lecture 14 — aging, pace of life, and plasticity"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 14",
+    "title": "Key Ideas from Life History Theory II",
+    "items": [
+      "r-selected vs. K-selected life histories sit along a fast–slow continuum of pace of life",
+      "Senescence is not programmed decay but a byproduct of declining selection with age",
+      "Mutation accumulation theory: late-acting deleterious mutations escape selection's reach",
+      "Antagonistic pleiotropy: genes boosting early fitness can carry costs late in life (e.g., George Williams)",
+      "Disposable soma theory: finite resources force a trade-off between somatic repair and reproduction",
+      "Phenotypic plasticity: a single genotype producing different phenotypes across environments",
+      "Case study: Daphnia produce defensive 'helmets' and spines only when predator kairomones are present"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Bridging the Gap",
+    "title": "From 'How Long to Live' to 'Where to Live'",
+    "left": {
+      "h": "Lecture 14 asked",
+      "body": "How should an organism allocate limited resources between growth, reproduction, and survival over its lifetime?"
+    },
+    "right": {
+      "h": "Lecture 15 asks",
+      "body": "Once an individual exists, where should it be? Movement decisions — from a foraging step to a continental migration — are as central to fitness as any life-history trait."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part I",
+    "title": "Defining the Vocabulary of Movement",
+    "sub": "Not all movement is created equal"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Movement as a Continuum",
+    "term": "Movement",
+    "def": "Any change in the spatial location of an organism, ranging from a single foraging step to a transcontinental flight.",
+    "bullets": [
+      "Ecologists distinguish movement types by function, scale, and return behavior",
+      "The same species can show several movement types at different life stages",
+      "Understanding which type is occurring is essential before asking 'why'"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Movement Type 1",
+    "title": "Everyday Movement",
+    "term": "Foraging (Station-Keeping) Movement",
+    "def": "Routine, small-scale movement within a home range to find food, mates, or shelter, with no lasting change in the individual's area of residence.",
+    "bullets": [
+      "Occurs on a daily or hourly timescale",
+      "Optimal foraging theory (Lecture 8) governs these decisions",
+      "Does not shift the individual's long-term home range"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Movement Type 2",
+    "title": "One-Way, Permanent Relocation",
+    "term": "Dispersal",
+    "def": "The one-way movement of an individual (or its propagules) away from its point of origin to a new location where it may settle and reproduce.",
+    "bullets": [
+      "Typically a single event, not repeated seasonally",
+      "Occurs at a particular life stage (e.g., before first breeding, or seed release)",
+      "Distinguishes an individual's natal site from its eventual breeding site"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Movement Type 3",
+    "title": "Round-Trip, Often Seasonal Movement",
+    "term": "Migration",
+    "def": "The regular, often seasonal, two-way movement of individuals or populations between distinct geographic areas, typically to track favorable conditions.",
+    "bullets": [
+      "Usually round-trip: outward and return legs",
+      "Often synchronized across a population by an environmental cue",
+      "Distinguished from dispersal by its repeated, predictable nature"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Distinguishing the Three",
+    "title": "Movement, Dispersal, and Migration Compared",
+    "headers": [
+      "Feature",
+      "Foraging Movement",
+      "Dispersal",
+      "Migration"
+    ],
+    "rows": [
+      [
+        "Directionality",
+        "Multi-directional, local",
+        "One-way, away from origin",
+        "Round-trip (outbound + return)"
+      ],
+      [
+        "Timescale",
+        "Continuous, daily",
+        "Usually once per life stage",
+        "Seasonal, often annual"
+      ],
+      [
+        "Spatial scale",
+        "Within home range",
+        "Home range to new home range",
+        "Can span thousands of km"
+      ],
+      [
+        "Typical trigger",
+        "Resource depletion, hunger",
+        "Overcrowding, maturity, inbreeding risk",
+        "Photoperiod, temperature, resource seasonality"
+      ],
+      [
+        "Population-level pattern",
+        "No net shift",
+        "Gene flow between populations",
+        "Synchronized mass movement"
+      ]
+    ],
+    "footnote": "Boundaries can blur — e.g., partial migrants and nomadic foragers — but the categories organize the ecological questions we ask."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Note on Scale",
+    "title": "Why the Distinction Matters",
+    "items": [
+      "Foraging movement shapes home range size and territory economics",
+      "Dispersal shapes gene flow, population genetic structure, and colonization of new habitat",
+      "Migration shapes seasonal resource tracking and can synchronize whole ecosystems (e.g., nutrient pulses)",
+      "Conservation and management strategies differ sharply depending on which type of movement is limiting a population"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part II",
+    "title": "Dispersal: Types and Terminology",
+    "sub": "Natal vs. breeding dispersal"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Kinds of Dispersal",
+    "title": "Natal Dispersal vs. Breeding Dispersal",
+    "headers": [
+      "Feature",
+      "Natal Dispersal",
+      "Breeding Dispersal"
+    ],
+    "rows": [
+      [
+        "Definition",
+        "Movement from birth site to first breeding site",
+        "Movement between successive breeding sites"
+      ],
+      [
+        "Timing",
+        "Once, before first reproduction",
+        "Can occur repeatedly across a lifetime"
+      ],
+      [
+        "Typical distance",
+        "Often longer",
+        "Often shorter"
+      ],
+      [
+        "Common driver",
+        "Avoiding inbreeding and kin competition",
+        "Improving mate quality, territory quality, or breeding success"
+      ],
+      [
+        "Example taxa",
+        "Juvenile birds, dispersing mammal offspring",
+        "Adult birds re-nesting after a failed attempt"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Natal Dispersal",
+    "title": "Why Juveniles Leave Home",
+    "items": [
+      "Most vertebrates show sex-biased natal dispersal: one sex disperses farther than the other",
+      "In birds, females typically disperse farther; in mammals, males typically disperse farther",
+      "This asymmetry reduces the chance that close relatives of the same sex compete or interbreed",
+      "Natal dispersal distance is often measured as a probability distribution, not a fixed value"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part III",
+    "title": "Why Disperse? Costs and Benefits",
+    "sub": "Dispersal is a risky but sometimes necessary strategy"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The Benefit Side",
+    "title": "Why Dispersal Can Be Favored by Selection",
+    "cards": [
+      {
+        "h": "Inbreeding Avoidance",
+        "p": "Moving away from close relatives reduces the risk of mating with kin and suffering inbreeding depression in offspring."
+      },
+      {
+        "h": "Kin Competition Avoidance",
+        "p": "Staying near relatives means competing with them for the same limited resources; dispersal spreads out this competition."
+      },
+      {
+        "h": "Escaping Local Crowding",
+        "p": "High local density depresses resource availability and reproductive success, favoring emigration to less crowded sites."
+      },
+      {
+        "h": "Colonizing New Habitat",
+        "p": "Dispersal allows exploitation of newly available or higher-quality habitat patches before competitors arrive."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The Cost Side",
+    "title": "Why Dispersal Is Risky",
+    "cards": [
+      {
+        "h": "Mortality Risk",
+        "p": "Moving through unfamiliar terrain exposes individuals to predators, exhaustion, and unsuitable habitat — dispersal mortality is often very high."
+      },
+      {
+        "h": "Energetic Cost",
+        "p": "Movement, especially over long distances, consumes energy reserves that could otherwise fund growth or reproduction."
+      },
+      {
+        "h": "Uncertainty of Settlement",
+        "p": "A disperser may fail to find a suitable new site, arriving at a patch already saturated or of poor quality."
+      },
+      {
+        "h": "Loss of Local Knowledge",
+        "p": "Individuals leave behind familiarity with local resources, predators, and social relationships built up at the natal site."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Balance",
+    "title": "Dispersal as a Cost-Benefit Trade-off",
+    "left": {
+      "h": "Favors dispersal",
+      "body": "High local relatedness, high local density, declining local habitat quality, strong inbreeding depression in the population."
+    },
+    "right": {
+      "h": "Favors philopatry (staying)",
+      "body": "High mortality risk during transit, scarce open habitat elsewhere, benefits of cooperating with kin (e.g., cooperative breeding), strong site familiarity advantages."
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Staying Put",
+    "term": "Philopatry",
+    "def": "The tendency of an individual to remain in, or return to, its natal area or home range rather than dispersing.",
+    "bullets": [
+      "The evolutionary alternative to dispersal",
+      "Favored when local benefits (kin cooperation, familiarity) outweigh dispersal's costs",
+      "Many species show a mix: some individuals disperse, others are philopatric"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part IV",
+    "title": "Dispersal Kernels",
+    "sub": "Quantifying how far individuals move"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Quantitative Tool",
+    "title": "The Distance Distribution",
+    "term": "Dispersal Kernel",
+    "def": "A probability distribution describing the likelihood that an individual (or propagule) disperses a given distance from its point of origin.",
+    "bullets": [
+      "Plots probability of dispersal (y-axis) against distance (x-axis)",
+      "Summarizes dispersal at the population level, not just for one individual",
+      "Essential input for models of gene flow, range expansion, and metapopulation connectivity (preview of Lecture 16)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Shape Matters",
+    "title": "Common Features of Dispersal Kernels",
+    "items": [
+      "Most kernels are leptokurtic: a high peak near the origin plus a 'fat tail' of rare long-distance dispersers",
+      "The majority of individuals or seeds settle close to their origin — most dispersal is local",
+      "A small fraction travel disproportionately far — these long-distance events matter greatly for colonization",
+      "Fat tails are notoriously hard to measure because rare long-distance events are undersampled by typical field methods",
+      "Kernel shape differs by dispersal mode: wind-dispersed seeds, animal-carried seeds, and walking/flying animals each show distinct patterns"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Applied Consequence",
+    "title": "Why the Tail of the Kernel Matters",
+    "left": {
+      "h": "Short-distance dispersal",
+      "body": "Maintains local population structure, generates fine-scale genetic clustering, and is the dominant, well-sampled mode of most kernels."
+    },
+    "right": {
+      "h": "Long-distance (tail) dispersal",
+      "body": "Drives colonization of new patches, range expansion under climate change, and connectivity between distant metapopulation patches — disproportionately important despite being rare."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part V",
+    "title": "Density-Dependent Dispersal",
+    "sub": "When crowding triggers emigration"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Dispersal Tied to Local Conditions",
+    "term": "Density-Dependent Dispersal",
+    "def": "A pattern in which the probability or rate of an individual dispersing increases (or, less commonly, decreases) with local population density.",
+    "bullets": [
+      "Positive density dependence: emigration rate rises as density rises — the common pattern",
+      "Driven by increased competition for food, mates, or space at high density",
+      "Acts as a population-regulating mechanism by redistributing individuals across the landscape"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanisms",
+    "title": "How Density Triggers Emigration",
+    "items": [
+      "Direct resource depletion at high density reduces individual condition, prompting departure",
+      "Behavioral interference (aggression, crowding stress) can trigger dispersal independent of resource levels",
+      "Some species show condition-dependent dispersal: only individuals in poor condition, or conversely only the fittest, disperse",
+      "Density-dependent dispersal can stabilize local population dynamics by exporting 'excess' individuals to less crowded patches"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part VI",
+    "title": "Migration as a Distinct Phenomenon",
+    "sub": "Seasonal, cued, and often round-trip"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Defining Features",
+    "title": "What Sets Migration Apart from Dispersal",
+    "items": [
+      "Migration is typically round-trip: individuals return to (or near) their point of origin",
+      "Migration is usually seasonal and repeated across an individual's lifetime, unlike the one-off nature of dispersal",
+      "Migratory movement is synchronized across many individuals in a population, often triggered by the same environmental cue",
+      "Migration functions to track favorable conditions in space (food, climate, breeding sites) as they shift through the year"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Callback: Lecture 6",
+    "title": "The Timing Cue",
+    "term": "Photoperiod as a Migration Trigger",
+    "def": "The changing length of daylight across the year, used by many organisms as a reliable, predictable cue to initiate physiological and behavioral changes, including migration.",
+    "bullets": [
+      "Covered in Lecture 6 as a key abiotic environmental signal",
+      "Photoperiod is a more reliable predictor of seasonal change than temperature, which can fluctuate unpredictably day to day",
+      "Triggers hormonal changes (e.g., in birds, changes in reproductive and thyroid hormones) that prime individuals for migratory restlessness ('Zugunruhe')"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Movement Strategies Compared",
+    "title": "Dispersal vs. Migration — Function",
+    "left": {
+      "h": "Dispersal function",
+      "body": "Redistributes individuals in space, typically once, to reduce competition/inbreeding or to colonize new habitat. Outcome: a new home range."
+    },
+    "right": {
+      "h": "Migration function",
+      "body": "Tracks seasonally shifting resources or climate conditions, repeatedly, across an individual's life. Outcome: return to origin, then repeat next season."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "The Serengeti Wildebeest Migration",
+    "sub": "The largest overland migration on Earth"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study",
+    "title": "Wildebeest (Connochaetes taurinus) in the Serengeti-Mara Ecosystem",
+    "items": [
+      "Roughly 1.2–1.5 million wildebeest migrate in an annual circuit of roughly 800 km across the Serengeti-Mara ecosystem",
+      "Movement tracks the seasonal rainfall gradient, following the growth of fresh, nutrient-rich grasses",
+      "Dry season concentrates herds in the north (Mara region); wet season draws them south onto the short-grass plains for calving",
+      "Rainfall patterns, not photoperiod, are the dominant proximate cue near the equator, where day length varies little year-round",
+      "The migration synchronizes calving: roughly 80% of calves are born within a few weeks on the nutrient-rich southern plains",
+      "This mass movement structures the entire ecosystem: grazing pressure, nutrient cycling, and predator populations (lion, hyena) all track the herd"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Ecosystem-Level Impact",
+    "quote": "The wildebeest migration is not simply an animal movement — it is an ecosystem process that shapes vegetation, nutrient cycling, and predator populations across the entire Serengeti-Mara landscape.",
+    "attrib": "Adapted from Begon & Townsend, Ecology: From Individuals to Ecosystems"
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "The Monarch Butterfly Migration",
+    "sub": "A journey no single individual completes alone"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study",
+    "title": "Monarch Butterfly (Danaus plexippus) Multi-Generational Migration",
+    "items": [
+      "Eastern North American monarchs migrate up to ~4,000 km each autumn to overwintering sites in central Mexico's oyamel fir forests",
+      "The southward autumn migration is completed by a single long-lived 'super generation' that can survive 6–8 months, far longer than summer generations",
+      "The return journey north in spring takes three to four successive generations, each flying part of the route before breeding and dying",
+      "No individual monarch completes the full round trip — direction and timing must be inherited or derived from innate, not learned, cues",
+      "Monarchs use a time-compensated sun compass integrated with an internal circadian clock to maintain a consistent southward bearing",
+      "Population declines linked to milkweed habitat loss (larval host plant) and deforestation at Mexican overwintering sites are major conservation concerns"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Remarkable Fact",
+    "quote": "No monarch that migrates south has ever made the journey before, and none that completes the full round trip north will have been alive for the entire journey — the migratory route itself must be innately encoded, not learned.",
+    "attrib": "Summary of monarch migration research"
+  },
+  {
+    "type": "section",
+    "tag": "Part VII",
+    "title": "Partial Migration",
+    "sub": "When only some individuals migrate"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "A Mixed Strategy Within One Population",
+    "term": "Partial Migration",
+    "def": "A pattern in which only a fraction of a population migrates each season, while the remainder stays resident year-round.",
+    "bullets": [
+      "Common in many bird and fish populations (e.g., European blackbirds, some trout and salmon populations)",
+      "Migratory and resident individuals can coexist as alternative strategies within the same population",
+      "The proportion migrating can shift with age, sex, body condition, or dominance status"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Explaining Partial Migration",
+    "title": "Why Not Everyone Migrates",
+    "items": [
+      "Dominant, high-condition individuals may be able to secure enough resources to survive locally year-round, avoiding migration's costs and risks",
+      "Subordinate or lower-condition individuals may migrate to escape competition or harsh local conditions they cannot otherwise survive",
+      "Partial migration can be viewed as a conditional strategy: individuals 'choose' the tactic that maximizes their fitness given their condition and social status",
+      "Because both strategies persist in the same population, partial migration suggests the costs and benefits of migrating versus staying are, on average, roughly balanced"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part VIII",
+    "title": "How Do They Find Their Way?",
+    "sub": "An overview of navigation mechanisms"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Navigation Toolkit",
+    "title": "How Migrants Find Their Way",
+    "cards": [
+      {
+        "h": "Magnetic Compass",
+        "p": "Many birds, sea turtles, and some fish sense the Earth's magnetic field to maintain a consistent heading, even under overcast skies."
+      },
+      {
+        "h": "Sun Compass",
+        "p": "Diurnal migrants (including monarch butterflies) use the sun's position, corrected for time of day via an internal circadian clock."
+      },
+      {
+        "h": "Star Compass",
+        "p": "Some nocturnal migratory birds orient using the pattern of stars around the celestial pole, learned during development."
+      },
+      {
+        "h": "Olfactory Cues",
+        "p": "Some species, notably salmon, use dissolved chemical cues imprinted from their natal stream to navigate home over great distances."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Brief Overview",
+    "title": "Navigation Is Often Multi-Modal",
+    "items": [
+      "Most migrating species do not rely on a single cue but integrate multiple redundant systems (magnetic, celestial, olfactory, landmark)",
+      "Redundancy provides robustness: if one cue is obscured (e.g., overcast skies block sun/star compasses), another can compensate",
+      "Young, first-time migrants often rely more on innate cues (e.g., magnetic compass, star patterns), while experienced migrants can incorporate learned landmarks",
+      "Salmon are a classic example of olfactory natal homing: imprinting on stream-specific chemical signatures as juveniles allows precise return years later to spawn"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "Natal Dispersal in Birds and Mammals",
+    "sub": "Applying the concepts to real populations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study",
+    "title": "Sex-Biased Natal Dispersal in Practice",
+    "items": [
+      "In most bird species, females disperse farther from the natal site than males — males often remain closer to defend or inherit territories",
+      "In most mammal species, the pattern reverses: males disperse farther, reducing the chance of mating with female relatives who remain philopatric",
+      "Great tits (Parus major), a long-studied model system, show measurable dispersal distance distributions consistent with a leptokurtic kernel",
+      "In lions (Panthera leo), young males are typically evicted from the natal pride around sexual maturity, dispersing to seek new prides — a clear inbreeding-avoidance mechanism",
+      "These sex-biased patterns are a direct, testable prediction of the inbreeding avoidance and kin competition hypotheses covered earlier in this lecture"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "Same Selective Pressures, Different Solutions",
+    "left": {
+      "h": "Dispersal solves",
+      "body": "A local problem: too many relatives, too much local competition, or declining local habitat quality — solved by a one-way move."
+    },
+    "right": {
+      "h": "Migration solves",
+      "body": "A seasonal problem: resources or climate at one location are not favorable year-round — solved by a repeated round trip that tracks conditions in time."
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Organizing the Concepts",
+    "title": "From Local Movement to Continental Migration",
+    "levels": [
+      {
+        "label": "Foraging movement — daily, within home range",
+        "color": "#8a9a5b",
+        "width": "620px"
+      },
+      {
+        "label": "Natal & breeding dispersal — one-way, life-stage triggered",
+        "color": "#c9a24b",
+        "width": "520px"
+      },
+      {
+        "label": "Partial migration — mixed strategy within a population",
+        "color": "#b5835a",
+        "width": "420px"
+      },
+      {
+        "label": "Full seasonal migration — round-trip, population-synchronized",
+        "color": "#7a5c3e",
+        "width": "320px"
+      }
+    ],
+    "footnote": "Width narrows with spatial and temporal scale, from everyday local movement up to synchronized continental migration."
+  },
+  {
+    "type": "term",
+    "eyebrow": "Consolidating Terms",
+    "title": "Return to the Core Distinction",
+    "term": "Movement Ecology Summary",
+    "def": "Foraging movement, dispersal, and migration form a nested hierarchy of spatial behaviors distinguished chiefly by directionality, periodicity, and spatial scale.",
+    "bullets": [
+      "Foraging: local, continuous, no lasting relocation",
+      "Dispersal: one-way, life-stage triggered, permanent relocation",
+      "Migration: round-trip, seasonal, population-synchronized"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Population Consequences",
+    "title": "Why This Chapter Matters for Population Ecology",
+    "items": [
+      "Dispersal is the process that links spatially separated populations into a metapopulation (previewed next lecture)",
+      "Density-dependent dispersal contributes to population regulation, connecting back to Lecture 14's life-history framework",
+      "Migration allows populations to persist in seasonal environments that would otherwise be uninhabitable year-round",
+      "Both dispersal and migration influence genetic structure, local adaptation, and a species' capacity to respond to environmental change"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Quick Review",
+    "title": "Check Your Understanding",
+    "cards": [
+      {
+        "h": "Movement vs. Dispersal",
+        "p": "What distinguishes routine foraging movement from true dispersal?"
+      },
+      {
+        "h": "Kernel Shape",
+        "p": "Why are most dispersal kernels leptokurtic, and why does the tail matter disproportionately?"
+      },
+      {
+        "h": "Wildebeest Cue",
+        "p": "Why is rainfall, not photoperiod, the dominant migratory cue near the equator?"
+      },
+      {
+        "h": "Partial Migration",
+        "p": "Why might dominant individuals be more likely to remain resident than subordinates?"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 16 — Metapopulation Theory",
+    "left": {
+      "h": "Today's foundation",
+      "body": "Dispersal connects spatially distinct populations — moving individuals (and their genes) between patches of suitable habitat."
+    },
+    "right": {
+      "h": "Next lecture's question",
+      "body": "If a species exists as a network of local populations linked by dispersal, how do we model the dynamics of the whole network — colonization, extinction, and persistence — rather than just one population?"
+    }
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question",
+    "title": "If Dispersal Is So Costly, Why Does It Persist?",
+    "sub": "Consider inbreeding avoidance, kin competition, and stochastic environmental variation — which pressure do you think dominates, and does the answer differ between plants and animals?",
+    "footnote": "Bring your reasoning to next class — we will connect it directly to metapopulation persistence in Lecture 16"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 15 · Movement, Dispersal & Migration</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

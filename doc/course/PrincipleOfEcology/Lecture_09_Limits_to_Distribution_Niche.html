@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 9: Limits to Distribution — The Niche</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 9",
+    "title": "Limits to Distribution: Putting Conditions & Resources Together",
+    "sub": "Synthesizing Chapters 2–3: from single factors to the niche, from the niche to the map",
+    "footnote": "Building directly on Lecture 8 (Resources II: competition for and partitioning of resources) — today we ask how conditions AND resources jointly set the boundaries of where a species can live."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 8",
+    "title": "Where We Left Off: Resources II",
+    "items": [
+      "Resources are <b>consumed</b> and can be depleted — unlike conditions (temperature, pH), which are not used up",
+      "Intraspecific and interspecific competition for resources shapes distribution and abundance",
+      "Resource partitioning allows coexistence; Gause's competitive exclusion principle sets a limit",
+      "We treated resources largely in isolation from the physical conditions covered in Lecture 7"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Roadmap",
+    "title": "From Factors to the Whole Organism's Envelope",
+    "items": [
+      "<b>The niche concept</b>: combining conditions and resources into one framework (Hutchinson)",
+      "<b>Fundamental vs. realized niche</b> — and why the realized niche is almost always smaller",
+      "<b>Range limits</b>: abiotic vs. biotic control of distribution edges",
+      "<b>Transplant experiments</b> as the diagnostic tool for testing what limits a species",
+      "<b>Species distribution models (SDMs)</b> and climate envelopes — predicting range from niche",
+      "Close: synthesis of the entire <b>Individuals</b> block (Lectures 1–9) before we move to Populations"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "The Niche Concept",
+    "sub": "Combining conditions and resources into a single, formal idea"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Historical Roots",
+    "title": "Before Hutchinson: Two Views of the Niche",
+    "term": "Niche (early usage)",
+    "def": "Grinnell (1917) treated the niche as a species' habitat/role defined largely by abiotic conditions and place; Elton (1927) emphasized the niche as a species' functional role in the community — its 'profession,' especially trophic position.",
+    "bullets": [
+      "Neither definition alone captures both conditions and resources together",
+      "Both are precursors to a more rigorous, quantitative formulation"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Hutchinson's Niche",
+    "term": "n-Dimensional Hypervolume",
+    "def": "G. Evelyn Hutchinson (1957) defined the niche as an n-dimensional hypervolume: a region in an abstract space whose axes are every environmental variable relevant to the species (temperature, humidity, pH, prey size, nest-site height, etc.), bounded by the values that permit the species to survive and reproduce.",
+    "bullets": [
+      "Each axis is a condition or a resource — the niche formally unifies Chapters 2 and 3",
+      "With n variables, the niche is an n-dimensional volume, not a single point or line",
+      "A species' position and breadth on each axis together define its ecological requirements"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Unpacking the Hypervolume",
+    "title": "What Counts as a Niche Dimension?",
+    "items": [
+      "<b>Condition axes</b>: temperature range, moisture, salinity, pH, oxygen concentration",
+      "<b>Resource axes</b>: prey size range, food types, nutrient concentrations, light intensity for photosynthesis",
+      "<b>Structural axes</b>: nest height, substrate type, burrow depth",
+      "In practice we can only visualize 2–3 axes at once, but the full niche may involve dozens of dimensions",
+      "Every axis has tolerance limits — recall Lecture 7's Law of Tolerance (Shelford) for single conditions"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition 1 of 2",
+    "title": "The Fundamental Niche",
+    "term": "Fundamental Niche",
+    "def": "The full n-dimensional hypervolume of conditions and resources within which a species COULD survive and reproduce indefinitely, in the absence of competitors, predators, and other negative biotic interactions.",
+    "bullets": [
+      "Defined by the species' own physiology and resource requirements alone",
+      "Essentially the answer to: 'where could this species live if it were the only species on Earth?'",
+      "Measured via physiological tolerance experiments, growth chamber studies, or single-species transplants"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition 2 of 2",
+    "title": "The Realized Niche",
+    "term": "Realized Niche",
+    "def": "The portion of the fundamental niche that a species ACTUALLY occupies once competitors, predators, parasites, and other biotic interactions are taken into account.",
+    "bullets": [
+      "Always a subset (equal to or smaller than) the fundamental niche — never larger",
+      "Reflects the real world, where species do not live in biotic isolation",
+      "This is what field distribution surveys actually measure — not the fundamental niche"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Core Distinction",
+    "title": "Fundamental Niche vs. Realized Niche",
+    "headers": [
+      "Fundamental Niche",
+      "Realized Niche"
+    ],
+    "rows": [
+      [
+        "Set by physiology/tolerance alone",
+        "Set by physiology AND biotic interactions"
+      ],
+      [
+        "Measured in absence of competitors/predators",
+        "Observed in the presence of the full community"
+      ],
+      [
+        "Potential range of conditions/resources",
+        "Actual range of conditions/resources used"
+      ],
+      [
+        "Larger or equal in extent",
+        "Smaller or equal in extent"
+      ],
+      [
+        "Estimated experimentally (lab, transplant)",
+        "Estimated by field observation/survey"
+      ]
+    ],
+    "footnote": "The realized niche can never exceed the fundamental niche — biotic interactions only subtract, they cannot add tolerance a species doesn't physiologically have."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism",
+    "title": "Why Is the Realized Niche Smaller?",
+    "items": [
+      "<b>Interspecific competition</b> excludes a species from part of its fundamental niche where a superior competitor dominates (competitive exclusion, Lecture 8)",
+      "<b>Predation</b> can exclude prey from otherwise suitable habitat by imposing unsustainable mortality",
+      "<b>Parasitism and disease</b> can restrict realized distribution even where conditions are physiologically tolerable",
+      "<b>Dispersal limitation</b> can also prevent occupation of suitable but unreachable habitat (not a biotic exclusion per se, but a further constraint)"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Mechanisms",
+    "title": "How Biotic Interactions Carve Out the Realized Niche",
+    "cards": [
+      {
+        "h": "Competition",
+        "p": "A superior competitor pushes a species out of the shared portion of niche space (Gause; Connell's barnacles below)."
+      },
+      {
+        "h": "Predation",
+        "p": "Heavy predation pressure can exclude prey from otherwise tolerable habitat, shrinking the realized range."
+      },
+      {
+        "h": "Parasitism/Disease",
+        "p": "Pathogen pressure can restrict a host to a narrower zone than physiology alone would predict."
+      },
+      {
+        "h": "Dispersal limits",
+        "p": "Suitable but geographically inaccessible habitat is never colonized, so it never appears in the realized niche."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Foundational Idea",
+    "quote": "The niche is thus defined as the set of biotic and abiotic conditions in which a species is able to persist and maintain stable population sizes — a region of an abstract, multidimensional hyperspace.",
+    "attrib": "paraphrased from G. E. Hutchinson, 1957"
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Range Limits",
+    "sub": "What actually sets the edge of a species' geographic distribution?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Question",
+    "title": "Why Does a Species' Range Stop Where It Does?",
+    "items": [
+      "Every distribution has an edge — northern/southern limit, upper/lower altitudinal limit, depth limit in water",
+      "Range edges can be set by <b>abiotic</b> factors (conditions/resources directly) or by <b>biotic</b> factors (competitors, predators, mutualists)",
+      "Often abiotic factors set the 'outer' physiological limit while biotic factors set a tighter 'inner' limit — this is exactly the fundamental vs. realized niche distinction applied geographically",
+      "Determining which is operating requires more than mapping — it requires experiments"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Kinds of Range Edges",
+    "title": "Abiotic vs. Biotic Limitation of Range Boundaries",
+    "headers": [
+      "Abiotic Limitation",
+      "Biotic Limitation"
+    ],
+    "rows": [
+      [
+        "Edge coincides with a physical tolerance threshold (e.g., minimum winter temperature)",
+        "Edge occurs well inside the physiologically tolerable zone"
+      ],
+      [
+        "Species fails to survive/reproduce if physically transplanted beyond edge",
+        "Species survives and reproduces if transplanted beyond edge, absent the interactor"
+      ],
+      [
+        "Classic pattern at high-latitude/high-altitude, physically harsh limits",
+        "Classic pattern at low-latitude/benign limits, where competitors/predators are more numerous"
+      ],
+      [
+        "Example: many trees' northern treeline set by growing-season temperature",
+        "Example: barnacle lower shore limit set by predation/competition, not physiology"
+      ]
+    ],
+    "footnote": "A widely cited generalization (not a universal rule): abiotic factors more often limit ranges at harsh/high-latitude edges; biotic factors more often limit ranges at benign/low-latitude edges."
+  },
+  {
+    "type": "term",
+    "eyebrow": "Example",
+    "title": "Abiotic Range Limitation",
+    "term": "Physiological (Abiotic) Edge",
+    "def": "A range boundary that occurs precisely where a physical condition crosses a tolerance threshold, so that the species genuinely cannot survive beyond it regardless of the biotic community present.",
+    "bullets": [
+      "Example: distribution limits of many ectotherms tracking minimum temperature isotherms",
+      "Example: high-altitude treelines coinciding with growing-season length/temperature",
+      "Diagnostic test: transplanting individuals beyond the edge causes death or reproductive failure even with competitors removed"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Example",
+    "title": "Biotic Range Limitation",
+    "term": "Interaction-Set (Biotic) Edge",
+    "def": "A range boundary that occurs well within the zone of physiological tolerance, because a competitor, predator, or other interactor excludes the species from that part of its fundamental niche.",
+    "bullets": [
+      "Example: the lower intertidal limit of the barnacle Chthamalus stellatus, set by competition, not physiology",
+      "Diagnostic test: removing the interactor (experimentally) allows the species to persist beyond its normal edge"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Classic Case Study",
+    "title": "Connell's Barnacles: A Textbook Diagnostic",
+    "items": [
+      "Two barnacle species on Scottish shores: <b>Chthamalus stellatus</b> (upper intertidal) and <b>Semibalanus (Balanus) balanoides</b> (lower intertidal)",
+      "Chthamalus larvae settle throughout the intertidal zone, including the lower shore — so its fundamental niche extends further down than its realized distribution",
+      "In the lower zone, faster-growing Semibalanus smothers and undercuts Chthamalus, competitively excluding it",
+      "Semibalanus, in turn, is limited on the upper shore mainly by desiccation/temperature tolerance — an abiotic limit",
+      "Result: one species (Chthamalus) shows a biotically-set lower edge; the other (Semibalanus) shows an abiotically-set upper edge — in the same system"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case Study Detail",
+    "title": "Connell (1961): Removal Experiment Design",
+    "left": {
+      "h": "The Manipulation",
+      "body": "Connell marked patches of rock in the lower shore zone where Chthamalus larvae had settled. In experimental plots he physically removed Semibalanus individuals growing nearby; in control plots he left Semibalanus in place."
+    },
+    "right": {
+      "h": "The Result",
+      "body": "Where Semibalanus was removed, Chthamalus survived well into the lower shore — demonstrating its fundamental niche includes that zone. Where Semibalanus remained, Chthamalus was smothered and died out — demonstrating competitive exclusion sets its realized (upper-shore-only) distribution."
+    },
+    "footnote": "This is the direct experimental proof of the fundamental/realized niche distinction: same species, same physical conditions, different outcome depending only on presence of the competitor."
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Transplant Experiments",
+    "sub": "The core experimental tool for diagnosing what limits a distribution"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Method",
+    "title": "The Transplant Experiment",
+    "term": "Transplant Experiment",
+    "def": "An experiment in which individuals of a species are deliberately moved beyond their normal range edge (or into a novel site), sometimes with competitors/predators manipulated, to determine whether abiotic conditions, biotic interactions, or dispersal limitation set the observed distribution.",
+    "bullets": [
+      "The single most direct way to distinguish fundamental from realized niche in the field",
+      "Can be done reciprocally (species A moved into B's site and vice versa) or unidirectionally"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Experimental Logic",
+    "title": "How Transplant Experiments Diagnose Range Limits",
+    "items": [
+      "<b>Step 1</b>: Identify the current range edge and the candidate limiting factor(s)",
+      "<b>Step 2</b>: Transplant individuals beyond the edge, into habitat that appears physically similar but is unoccupied",
+      "<b>Step 3</b>: Monitor survival, growth, and reproduction — compare to individuals left at/inside the normal range",
+      "<b>Interpretation</b>: if transplants fail to survive/reproduce → abiotic limitation (or a factor not yet identified); if transplants succeed → the species is <b>absent for other reasons</b> (biotic exclusion or dispersal limitation, not physiology)",
+      "Adding a further treatment — removing potential competitors/predators at the transplant site — can distinguish biotic exclusion from simple dispersal limitation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Examples",
+    "title": "Transplant Experiments Across Systems",
+    "cards": [
+      {
+        "h": "Alpine plants",
+        "p": "Species from low elevation transplanted upslope beyond their natural limit often die from cold/frost exposure — abiotic limitation at the upper edge."
+      },
+      {
+        "h": "Salt marsh plants",
+        "p": "Reciprocal transplants of Spartina species across marsh elevation zones show competitive exclusion sets the landward/seaward boundaries, not physiological tolerance alone."
+      },
+      {
+        "h": "Barnacles (Connell)",
+        "p": "Chthamalus transplanted/protected in the low shore zone survives, showing its lower limit is biotic (competition), not abiotic."
+      },
+      {
+        "h": "Rocky intertidal seaweeds",
+        "p": "Transplants combined with grazer exclusion cages reveal grazing pressure, not desiccation, sets certain lower distributional limits."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Refinement",
+    "title": "Reciprocal Transplant Experiments",
+    "items": [
+      "Individuals from population A are moved to site B, and individuals from population B are moved to site A, with local 'home' controls at each site",
+      "Tests for local adaptation: if 'home' individuals consistently outperform 'away' individuals, populations have diverged genetically (ecotypic differentiation)",
+      "Distinguishes phenotypic plasticity from genetic adaptation to local conditions — relevant when interpreting apparent niche differences between populations",
+      "Complements range-edge transplants by testing within-range variation, not just presence/absence at the boundary"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Related Concept",
+    "title": "Ecotypes and Clinal Variation",
+    "term": "Ecotype",
+    "def": "A genetically distinct population within a species that is adapted to its local environmental conditions, often forming as a continuous gradient (cline) across an environmental gradient such as latitude or altitude.",
+    "bullets": [
+      "Explains why the 'same' species can show different fundamental niches in different parts of its range",
+      "A caution when interpreting SDMs and climate envelopes built from range-wide occurrence data (next section) — the modeled niche may blur real intraspecific variation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Species Distribution Models",
+    "sub": "Scaling the niche concept up to predict maps"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Species Distribution Models (SDMs)",
+    "term": "Species Distribution Model",
+    "def": "A statistical or mechanistic model that relates known occurrence records of a species to environmental variables (climate, soil, land cover) at those locations, in order to predict the probability of occurrence across a broader geographic area — including places never surveyed.",
+    "bullets": [
+      "Also called habitat suitability models or (for climate-only versions) climate envelope models",
+      "Widely used in conservation biology, invasive species risk assessment, and climate change forecasting"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "How They Work",
+    "title": "The Correlative Approach",
+    "items": [
+      "Compile occurrence records (museum specimens, surveys, citizen science) for the focal species",
+      "Extract environmental variable values (mean temperature, precipitation, seasonality, soil type) at each occurrence point",
+      "Fit a statistical relationship between occurrence and the environmental variables — the model effectively reconstructs an approximation of the realized niche in environmental space",
+      "Project that relationship onto a map, or onto future/novel climate data, to predict suitability elsewhere or elsewhen",
+      "Common algorithms: generalized linear/additive models, MaxEnt, random forests, and simple climate envelope (bioclimatic) approaches"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Specific Type",
+    "title": "Climate Envelope Models",
+    "term": "Climate Envelope (Bioclimatic) Model",
+    "def": "A type of SDM that uses only climatic variables (e.g., temperature and precipitation extremes/means) at known occurrence sites to define a multidimensional 'climate envelope,' then maps all locations — present or future — that fall within that envelope as potentially suitable.",
+    "bullets": [
+      "Conceptually a direct, simplified, mappable version of Hutchinson's niche hypervolume, but built from climate variables and occurrence data only",
+      "Frequently used to project range shifts under future climate change scenarios"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Critical Thinking",
+    "title": "Key Assumptions of Climate Envelope Models",
+    "items": [
+      "<b>Equilibrium assumption</b>: the species' current distribution already reflects its full realized niche relative to climate — i.e., it occupies all currently suitable areas and no unsuitable ones",
+      "<b>No biotic interactions</b>: competitors, predators, mutualists, and pathogens are held constant or ignored, even though these can shift independently under climate change",
+      "<b>No dispersal limitation</b>: the species is assumed able to reach and colonize all newly suitable areas as climate shifts (rarely true, especially for slow-dispersing or fragmented-habitat species)",
+      "<b>Niche conservatism</b>: the species' climatic niche is assumed not to evolve over the projection timeframe",
+      "Static land use: current land cover/habitat availability is often assumed unchanged even decades into the future"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Assumption vs. Reality",
+    "title": "Where Climate Envelope Models Can Go Wrong",
+    "headers": [
+      "Model Assumption",
+      "Ecological Reality"
+    ],
+    "rows": [
+      [
+        "Distribution = fundamental niche (equilibrium)",
+        "Distribution = realized niche; often narrower due to competitors/predators (Connell's barnacles)"
+      ],
+      [
+        "Biotic interactions ignored or fixed",
+        "Competitors, prey, and pathogens shift ranges too, and at different rates"
+      ],
+      [
+        "Unlimited/instant dispersal to new suitable habitat",
+        "Real dispersal is limited by distance, corridors, and barriers (roads, fragmentation, oceans)"
+      ],
+      [
+        "Niche is fixed over the projection period",
+        "Local adaptation/evolution can shift tolerances (ecotypes, Lecture 9 above)"
+      ]
+    ],
+    "footnote": "Because SDMs are built from realized-niche data, they systematically risk under- or over-predicting the true (fundamental) potential range — always state this caveat when reporting projections."
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Limitations Summary",
+    "title": "Four Reasons to Treat SDM Output with Caution",
+    "cards": [
+      {
+        "h": "Correlative, not causal",
+        "p": "SDMs describe statistical association between occurrence and climate, not the mechanism — they don't prove which variable is actually limiting."
+      },
+      {
+        "h": "Realized ≠ fundamental",
+        "p": "Built from realized-niche data, so competitive/predatory exclusion in the source range is baked into the 'suitable' definition."
+      },
+      {
+        "h": "Extrapolation risk",
+        "p": "Projecting onto novel climate combinations (no analog today) forces the model outside the data it was trained on."
+      },
+      {
+        "h": "No dynamics",
+        "p": "Static snapshots miss dispersal lags, evolutionary responses, and interaction network changes through time."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Applications",
+    "sub": "Why this matters beyond the classroom"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Application 1",
+    "title": "Invasive Species Risk Assessment",
+    "items": [
+      "SDMs built from a species' native range climate envelope can flag regions elsewhere in the world with matching climate as high invasion risk",
+      "Used routinely for agricultural pests, weeds, and disease vectors before/after introduction",
+      "Caveat: the invader's realized niche in its native range (constrained by native competitors/predators) may understate its potential range abroad, where those enemies are absent — this is a known driver of invasion success (enemy release)",
+      "So climate envelope models can under-predict invasive potential precisely because they are built on realized, not fundamental, niches"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Application 2",
+    "title": "Conservation Planning Under Climate Change",
+    "items": [
+      "SDMs project where a threatened species' suitable climate will be located in future decades, informing reserve design and assisted migration decisions",
+      "Corridors and connectivity planning aim to address the dispersal-limitation assumption directly",
+      "Overlaying multiple species' projected envelopes helps anticipate future community composition and identify climate refugia",
+      "Model uncertainty must be communicated to policymakers — a single 'predicted range' map can convey false precision"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "Polar Bears and a Contracting Range",
+    "sub": "Conditions, resources, and a distribution model in one system"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case Study",
+    "title": "Polar Bear (Ursus maritimus) Range Contraction",
+    "term": "Sea-Ice-Dependent Range",
+    "def": "Polar bears rely on sea ice as a platform to hunt their primary resource, ice seals; their realized distribution closely tracks seasonal sea-ice extent across the Arctic, making them an unusually direct case where a resource-access constraint (not simple temperature tolerance) defines the range.",
+    "bullets": [
+      "Illustrates that 'climate' variables in an SDM can act as proxies for resource access, not just direct physiological tolerance",
+      "A useful check on the abiotic/biotic dichotomy: sea ice is an abiotic condition, but its ecological effect operates through resource (prey) accessibility"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism",
+    "title": "Why Polar Bear Range Is Contracting",
+    "items": [
+      "Arctic sea ice extent and duration have declined markedly with warming, reducing the platform bears need to hunt seals",
+      "Bears forced onto land for longer ice-free periods have reduced access to their primary resource, leading to nutritional stress and lower reproductive success",
+      "This is fundamentally a <b>resource-access</b> problem layered on an abiotic driver (temperature → ice loss), tying together Lectures 7 (conditions), 8 (resources), and 9 (the combined niche)",
+      "Southern range edges (e.g., Hudson Bay populations) are contracting fastest, consistent with a climate-driven mechanism rather than a purely biotic one"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Modeling the Case",
+    "title": "Polar Bears as an SDM/Climate Envelope Example",
+    "left": {
+      "h": "What the Model Does",
+      "body": "Climate envelope models for polar bears typically use sea-ice extent, duration of the ice-free season, and temperature as predictor variables, fitted to current denning and hunting locations, then projected onto future sea-ice forecasts to predict range contraction and possible local extirpation."
+    },
+    "right": {
+      "h": "Where the Assumptions Strain",
+      "body": "The equilibrium assumption is questionable if current range already reflects historical ice loss (a moving baseline). Biotic interactions (competition with grizzly bears expanding north, changing seal distributions) are excluded. Dispersal is not truly unlimited across fragmented, shrinking ice."
+    },
+    "footnote": "Polar bears show why climate envelope projections are used cautiously by conservation bodies (e.g., IUCN Red List assessments) alongside independent physiological and demographic data, not in isolation."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Take-Home Lessons",
+    "title": "What Polar Bears Teach Us About the Whole Lecture",
+    "items": [
+      "A range limit can be simultaneously abiotic (ice-forming temperature) and resource-based (seal accessibility) — conditions and resources are not always separable in practice",
+      "SDM projections for this species are influential for policy (e.g., threatened species listings) precisely because the mechanism is well understood, which strengthens confidence in the model despite its general limitations",
+      "Demonstrates the value of combining correlative SDMs with mechanistic, physiological, and behavioral data — exactly the synthesis this course has been building toward"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Closing the Individuals Block",
+    "sub": "Lectures 1–9: how a single organism's biology sets the map"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Course So Far",
+    "title": "The Individuals Block, Lecture by Lecture",
+    "items": [
+      {
+        "y": "L1–2",
+        "t": "Introduction to ecology; levels of organization from individual to biosphere"
+      },
+      {
+        "y": "L3–4",
+        "t": "Physiological ecology: temperature, water, and energy balance in individual organisms"
+      },
+      {
+        "y": "L5",
+        "t": "Life-history responses to conditions; adaptation and acclimation"
+      },
+      {
+        "y": "L6–7",
+        "t": "Conditions I & II: tolerance limits, the Law of Tolerance, physical/chemical constraints on survival"
+      },
+      {
+        "y": "L8",
+        "t": "Resources II: consumable resources, intraspecific and interspecific competition"
+      },
+      {
+        "y": "L9 (today)",
+        "t": "Synthesis: the niche, range limits, transplant experiments, and distribution models"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Big Ideas",
+    "title": "What the Individuals Block Established",
+    "items": [
+      "An individual's distribution and performance are governed jointly by <b>conditions</b> (not consumed, e.g., temperature) and <b>resources</b> (consumed, e.g., food, light, nutrients)",
+      "Tolerance limits for conditions define physiological boundaries (Shelford's Law of Tolerance, Lectures 6–7)",
+      "Competition for resources (Lecture 8) restricts realized use of otherwise tolerable habitat",
+      "The niche (today) is the formal, unifying framework: fundamental niche = physiology alone; realized niche = physiology filtered through biotic interactions",
+      "Distribution maps are the visible, spatial expression of niche limits — and can be modeled (SDMs) but only imperfectly, because they are built from realized-niche data"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Where We're Headed",
+    "title": "From the Individual Upward: The Hierarchy of Ecology",
+    "levels": [
+      {
+        "label": "Ecosystems",
+        "color": "#2f6f4f",
+        "width": "200px"
+      },
+      {
+        "label": "Communities",
+        "color": "#3f8f63",
+        "width": "260px"
+      },
+      {
+        "label": "Populations — starting Lecture 10",
+        "color": "#57ab7c",
+        "width": "320px"
+      },
+      {
+        "label": "Individuals — Lectures 1–9 (complete)",
+        "color": "#8fcaa8",
+        "width": "400px"
+      }
+    ],
+    "footnote": "Everything after today aggregates individuals into groups: populations (abundance, births, deaths, growth) → communities (interacting species) → ecosystems (energy and nutrient flow)."
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Shift Ahead",
+    "title": "Individuals vs. Populations: A Change in Focus",
+    "headers": [
+      "Individuals Block (L1–9, done)",
+      "Populations Block (L10+, starting next)"
+    ],
+    "rows": [
+      [
+        "Unit of study: single organism",
+        "Unit of study: group of conspecifics in a place"
+      ],
+      [
+        "Key variables: tolerance, resource use, niche",
+        "Key variables: birth rate, death rate, age structure, growth rate"
+      ],
+      [
+        "Key tool: physiological experiments, transplants",
+        "Key tool: life tables, survivorship curves, demographic models"
+      ],
+      [
+        "Question: can this organism survive/reproduce here?",
+        "Question: will this population grow, shrink, or persist here?"
+      ]
+    ],
+    "footnote": "The niche concept from today doesn't disappear — it sets the geographic 'stage' on which population dynamics (next block) actually play out."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Bridge",
+    "title": "Why the Niche Matters for Population Ecology",
+    "items": [
+      "A population can only grow where individuals fall within their realized niche — today's concepts define the spatial/environmental limits of population processes to come",
+      "Range contraction (e.g., polar bears) is ultimately a population-level outcome (declining birth rates, rising death rates at the edge) driven by individual-level niche mismatch",
+      "Life tables (Lecture 10) will quantify survival and reproduction the same way transplant experiments do qualitatively — by tracking individuals through conditions and resources over time",
+      "Understanding fundamental vs. realized niche will help explain why populations sometimes fail to occupy all 'suitable' modeled habitat — a direct link to SDM limitations discussed today"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preparing for Life Tables and Survivorship Curves",
+    "left": {
+      "h": "Reading",
+      "body": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Chapter 4 (Life, Death, and Life Histories) through the sections on life tables and survivorship curve types (I, II, III). Review the definitions of cohort vs. static life tables before class."
+    },
+    "right": {
+      "h": "Think About",
+      "body": "Using the polar bear case study: if sea ice loss is reducing an individual's realized niche (resource access), what specific demographic rates (birth, death, at what ages) would you expect to change first — and how would that show up in a life table?"
+    },
+    "footnote": "Lecture 10 opens Block 2: Populations, starting with life tables and survivorship curves — the first quantitative tools for tracking birth and death through a population's structure."
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question",
+    "title": "If a Species' Realized Niche Is Always Smaller Than Its Fundamental Niche, Can We Ever Truly Measure the Fundamental Niche in the Field?",
+    "sub": "Consider: transplant experiments remove some biotic interactions but rarely all of them. What would a complete removal experiment require — and is it ethically or logistically possible?",
+    "footnote": "Bring your answer to the start of Lecture 10."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 9 · The Niche</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 28: Decomposers — Principles of Ecology</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 28",
+    "title": "Decomposers",
+    "sub": "The detritus-based food web and the decomposer subsystem",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Ch. 11"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "From Disease to Decomposition",
+    "items": [
+      "Lecture 27 examined <b>parasites and pathogens</b> as consumers that exploit living hosts — the SIR model, R0, herd immunity, and the chytrid fungus case study.",
+      "Parasitism is one branch of consumer ecology: an organism that feeds on another <b>living</b> organism, usually without immediately killing it.",
+      "Today we turn to a different consumer pathway entirely — organisms that feed not on the living, but on the <b>dead</b>.",
+      "Every year, the vast majority of net primary production on Earth is <b>not</b> eaten alive by herbivores — it dies first, becomes detritus, and is consumed by a separate guild of organisms.",
+      "This is the <b>decomposer subsystem</b>: as important to ecosystem function as the grazing food chain, and in most ecosystems, quantitatively more important."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Decomposers Matter",
+    "title": "Today's Roadmap",
+    "items": [
+      "Define <b>detritus</b>, <b>detritivore</b>, and <b>decomposer</b>, and distinguish this pathway from herbivory and predation.",
+      "Trace the physical and chemical stages of litter breakdown: leaching, fragmentation, catabolism.",
+      "Examine how litter chemistry — <b>C:N ratio</b>, <b>lignin</b>, <b>polyphenols</b> — controls decomposition rate.",
+      "Contrast <b>immobilization</b> and <b>mineralization</b> of nitrogen during decomposition.",
+      "Compare the roles of <b>fungi</b> and <b>bacteria</b>, and decomposition rates across biomes.",
+      "Cover the litter bag method, earthworms as ecosystem engineers, coarse woody debris, and the brown vs. green food web concept."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part I",
+    "title": "Detritus and Detritivory",
+    "sub": "Defining the decomposer pathway"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Detritus",
+    "term": "Detritus",
+    "def": "Dead organic matter — plant litter (leaves, wood, roots), dead animals, feces, and other non-living organic material — that serves as an energy and nutrient source for detritivores and decomposers.",
+    "bullets": [
+      "Includes above-ground litter (leaf fall, dead wood), below-ground litter (dead roots, root exudates), and animal-derived material (carcasses, feces, exuviae).",
+      "Detritus is chemically and physically heterogeneous — unlike a live leaf being grazed, a fallen leaf is already changing as microbes colonize it."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Detritivore",
+    "term": "Detritivore",
+    "def": "An organism that consumes detritus directly, ingesting particulate dead organic matter along with the microorganisms living on it.",
+    "bullets": [
+      "Examples: earthworms, woodlice (isopods), millipedes, many soil mites and collembola, dung beetles, some crustaceans.",
+      "Detritivores rarely digest the structural plant material itself efficiently — much of their nutrition may come from the microbial biomass coating the detritus, not the detritus itself."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Decomposer",
+    "term": "Decomposer",
+    "def": "An organism — chiefly fungi and bacteria — that breaks down dead organic matter biochemically via extracellular enzyme secretion and absorptive nutrition, rather than ingestion.",
+    "bullets": [
+      "Decomposers (saprotrophs) release digestive enzymes into the substrate and absorb the resulting simple molecules — the opposite feeding mode from ingestion-then-digestion.",
+      "Fungi and bacteria are responsible for the majority of detrital mass loss in most terrestrial ecosystems; detritivores mainly fragment and condition the material for them."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Consumer Pathways",
+    "title": "Three Ways to Be a Consumer",
+    "headers": [
+      "Pathway",
+      "Resource",
+      "Feeding mode",
+      "Example"
+    ],
+    "rows": [
+      [
+        "Herbivory",
+        "Living plant tissue",
+        "Ingestion of live material",
+        "Aphid, grasshopper"
+      ],
+      [
+        "Predation / Parasitism",
+        "Living animal tissue",
+        "Ingestion or absorption from a live host",
+        "Wolf, tapeworm"
+      ],
+      [
+        "Detritivory / Decomposition",
+        "Dead organic matter (detritus)",
+        "Ingestion (detritivores) or extracellular digestion + absorption (decomposers)",
+        "Earthworm; Penicillium fungus"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Distinct Pathway",
+    "title": "How the Decomposer Pathway Differs",
+    "items": [
+      "Herbivores and predators generally reduce the fitness or abundance of the individual resource organism they attack while it is alive; detritivores and decomposers act only <b>after</b> death.",
+      "The resource pool (standing detritus) is not being actively defended — dead tissue has no chemical or behavioral counter-strategy against consumption, unlike living prey or plants.",
+      "Because detritus quality changes over time (via leaching and microbial colonization), the resource itself is a moving target — very different from a herbivore's static plant tissue.",
+      "The decomposer subsystem recycles the nutrients (N, P, K, etc.) locked up in dead organic matter, making them available again for primary production — a role the grazing food chain does not perform on its own."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part II",
+    "title": "The Decomposition Process",
+    "sub": "From fresh litter to humus"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Litter Breakdown",
+    "title": "Three Overlapping Stages of Decomposition",
+    "items": [
+      {
+        "y": "Stage 1",
+        "t": "Leaching — soluble compounds (sugars, amino acids, phenolics, mineral ions) are washed out of the litter by water within days to weeks of death."
+      },
+      {
+        "y": "Stage 2",
+        "t": "Fragmentation — detritivores and physical/mechanical forces (freeze-thaw, wetting-drying) break litter into smaller particles, increasing surface area."
+      },
+      {
+        "y": "Stage 3",
+        "t": "Catabolism — microbial (fungal and bacterial) enzymatic breakdown of the remaining structural compounds (cellulose, hemicellulose, lignin), releasing CO2 and mineral nutrients."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Stage 1",
+    "title": "Leaching",
+    "items": [
+      "The first and fastest stage: rainfall and dew dissolve and physically remove soluble compounds from the litter surface.",
+      "Can remove 10–30% of initial dry mass within the first few weeks, even before any microbial activity begins.",
+      "Leached compounds (simple sugars, amino acids) become immediately available to soil microbes and can stimulate microbial colonization of the remaining litter.",
+      "Leaching is purely physical/chemical — it requires no living organism, though it interacts closely with microbial and detritivore activity that follows."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Stage 2",
+    "title": "Fragmentation",
+    "items": [
+      "Detritivores physically shred litter as they feed, and physical agents (freeze-thaw cycling, wetting-drying, wind abrasion) contribute too.",
+      "Fragmentation dramatically increases the surface-area-to-volume ratio of the litter, exposing far more substrate to microbial enzymatic attack.",
+      "Detritivore gut passage often inoculates the fragments with fungal spores and bacteria, further accelerating subsequent microbial breakdown.",
+      "Fragmentation does not itself require much chemical breakdown — a millipede shredding a leaf gains most of its nutrition from the microbial biomass already colonizing it, not from digesting the leaf's cellulose."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Stage 3",
+    "title": "Catabolism",
+    "items": [
+      "The slow, rate-limiting stage: enzymatic breakdown of structural carbohydrates (cellulose, hemicellulose) and, most slowly, lignin.",
+      "Carried out almost entirely by fungi and bacteria secreting extracellular hydrolytic and oxidative enzymes.",
+      "Releases CO2 to the atmosphere (microbial respiration) and mineral nutrients (N, P, S) to the soil solution — the process that ultimately drives nutrient cycling.",
+      "Catabolism can take from months (labile, low-lignin litter) to many decades (lignin-rich wood) to reach completion."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Fragmentation Agents",
+    "title": "Physical vs. Biological Fragmentation",
+    "left": {
+      "h": "Physical / Abiotic",
+      "body": "Freeze-thaw cycling cracks cell walls; repeated wetting and drying causes swelling and shrinkage stress; wind and rain abrasion; trampling by large animals. Important in cold and seasonally dry climates where biological activity is limited."
+    },
+    "right": {
+      "h": "Biological / Detritivore-driven",
+      "body": "Chewing, shredding, and comminution by macro- and meso-detritivores (earthworms, millipedes, isopods, termites, oribatid mites). Dominant in warm, moist, biologically active soils, and typically far faster than purely physical fragmentation."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part III",
+    "title": "Chemical Controls on Decomposition Rate",
+    "sub": "Why some litter rots fast and some rots slow"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Litter Chemistry",
+    "title": "Not All Detritus Is Equal",
+    "items": [
+      "Decomposition rate varies enormously among litter types — a nitrogen-rich legume leaf can lose 50% of its mass in weeks; a pine needle or oak leaf may take years.",
+      "Three chemical properties of the substrate exert the strongest control on decomposition rate: the <b>carbon:nitrogen (C:N) ratio</b>, <b>lignin content</b>, and <b>polyphenol (tannin) content</b>.",
+      "These properties determine both how attractive the litter is to microbial decomposers and how physically/chemically resistant it is to enzymatic attack.",
+      "Litter chemistry interacts with climate (temperature, moisture) to set the realized decomposition rate in any given ecosystem — a theme we return to when comparing biomes."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "C:N Ratio",
+    "term": "Carbon:Nitrogen (C:N) Ratio",
+    "def": "The ratio of carbon mass to nitrogen mass in a given tissue or substrate; a measure of nutrient concentration relative to structural (mostly carbon-based) material.",
+    "bullets": [
+      "Microbial decomposers need nitrogen to synthesize their own proteins and enzymes; substrate with too little N relative to C limits microbial growth.",
+      "Fresh plant litter typically has C:N ratios from ~20:1 (nutrient-rich leaves) to over 100:1 (woody material); microbial tissue itself is much richer, around 8:1."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "C:N Ratio and Decomposition",
+    "title": "Why C:N Ratio Predicts Decomposition Speed",
+    "items": [
+      "Low C:N litter (nitrogen-rich, e.g. legume leaves, young grass) decomposes quickly — microbes have ample N to build biomass and don't need to scavenge it elsewhere.",
+      "High C:N litter (nitrogen-poor, e.g. straw, wood, mature conifer needles) decomposes slowly — microbial growth is nitrogen-limited even though carbon (energy) is abundant.",
+      "As decomposition proceeds, microbes respire away carbon as CO2 while retaining nitrogen in their biomass, so the C:N ratio of the remaining litter progressively falls.",
+      "This single ratio is one of the best simple predictors of litter decomposition rate across a huge range of plant species and ecosystems."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Lignin",
+    "term": "Lignin",
+    "def": "A complex, highly cross-linked aromatic polymer that provides structural rigidity to plant cell walls; chemically resistant to most microbial enzymes.",
+    "bullets": [
+      "Only a specialized subset of fungi (notably white-rot basidiomycetes) can substantially degrade lignin, using oxidative enzymes such as lignin peroxidase and laccase.",
+      "Woody tissues and mature leaves are lignin-rich; young leaves and herbaceous tissue are lignin-poor."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lignin's Role",
+    "title": "Lignin as a Decomposition Brake",
+    "items": [
+      "Lignin is not just slow to decompose itself — it physically encrusts cellulose and hemicellulose, protecting them from enzymatic attack ('the lignin shield').",
+      "The <b>lignin:N ratio</b> is often a better predictor of long-term decomposition rate than C:N alone, because it captures both the nutrient limitation and the structural recalcitrance of the litter.",
+      "High-lignin litter (conifer needles, tropical hardwood leaves, wood) decomposes slowly regardless of climate, because the rate-limiting step is enzymatic access, not just microbial nutrient supply.",
+      "As easily-degraded compounds are consumed first, the relative proportion of lignin in the remaining litter increases over time — decomposition slows as it proceeds ('the lignin effect')."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Polyphenols",
+    "term": "Polyphenols (Tannins)",
+    "def": "Secondary plant compounds — including condensed and hydrolyzable tannins — that bind proteins and inhibit microbial and detritivore enzyme activity.",
+    "bullets": [
+      "Originally evolved largely as anti-herbivore defenses, but they persist in dead tissue and continue to deter decomposers.",
+      "Tannins can bind to nitrogen compounds, forming complexes that are resistant to microbial breakdown — effectively locking nitrogen away from mineralization."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Polyphenols' Role",
+    "title": "Chemical Defense After Death",
+    "items": [
+      "High polyphenol litter (e.g. heather, some oak species, tea, eucalyptus) decomposes slowly because tannins denature the extracellular enzymes microbes rely on.",
+      "Tannin-protein complexes formed in litter and soil can persist for a long time, contributing to the buildup of recalcitrant soil organic matter (raw humus, mor).",
+      "Ecosystems dominated by high-tannin, high-lignin plants (e.g. heathlands, boreal conifer forests) show characteristically slow nutrient cycling and thick surface litter/humus layers.",
+      "The combination of low N, high lignin, and high polyphenols defines classic 'poor quality' litter — and these traits are often correlated, since resource-poor habitats favor slow-growing plants with strong chemical defenses."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Litter Quality",
+    "title": "High-Quality vs. Low-Quality Litter",
+    "headers": [
+      "Trait",
+      "High-quality litter",
+      "Low-quality litter"
+    ],
+    "rows": [
+      [
+        "C:N ratio",
+        "Low (~15–25:1)",
+        "High (>50:1, up to >200:1 for wood)"
+      ],
+      [
+        "Lignin content",
+        "Low",
+        "High"
+      ],
+      [
+        "Polyphenol content",
+        "Low",
+        "High"
+      ],
+      [
+        "Example",
+        "Legume leaves, young grass",
+        "Pine needles, heather, wood"
+      ],
+      [
+        "Decomposition rate",
+        "Fast (weeks–months)",
+        "Slow (years–decades)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part IV",
+    "title": "Nitrogen Dynamics During Decomposition",
+    "sub": "Immobilization vs. mineralization"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Mineralization",
+    "term": "Mineralization",
+    "def": "The conversion of organic nitrogen (or other nutrients) into inorganic forms (e.g. NH4+, then NO3– via nitrification) that are directly available for plant uptake.",
+    "bullets": [
+      "Net mineralization occurs when microbial nitrogen demand is satisfied and excess N is released as microbes respire carbon and turn over.",
+      "Mineralization is the step that ultimately returns nutrients from detritus back into the available pool for primary producers — closing the nutrient cycle."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Immobilization",
+    "term": "Immobilization",
+    "def": "The uptake of inorganic nitrogen from the soil solution by decomposer microbes, incorporating it into microbial biomass and thereby making it temporarily unavailable to plants.",
+    "bullets": [
+      "Occurs when litter C:N ratio is high — microbes need more N than the substrate supplies, so they scavenge additional inorganic N from the surrounding soil.",
+      "This can create short-term competition between microbes and plant roots for the same limited nitrogen pool."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Nitrogen Fate",
+    "title": "Immobilization vs. Mineralization",
+    "headers": [
+      "Feature",
+      "Immobilization",
+      "Mineralization"
+    ],
+    "rows": [
+      [
+        "Direction of N flow",
+        "Inorganic N → microbial biomass",
+        "Organic N → inorganic N"
+      ],
+      [
+        "Typical trigger",
+        "High substrate C:N (>25–30:1)",
+        "Low substrate C:N (<25:1)"
+      ],
+      [
+        "Effect on available soil N",
+        "Decreases (net N drawdown)",
+        "Increases (net N release)"
+      ],
+      [
+        "Effect on plants",
+        "Can induce short-term N competition/deficiency",
+        "Supplies N for uptake and growth"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Critical C:N Ratio",
+    "title": "Why Roughly 25:1 Is the Tipping Point",
+    "items": [
+      "Soil microbial biomass has a C:N ratio around 8:1 and microbial growth efficiency is roughly 30–40%, meaning microbes need enough N to build new biomass from the carbon they metabolize.",
+      "When substrate C:N exceeds roughly 25–30:1, microbial demand for N outstrips the supply in the litter itself, so microbes immobilize additional inorganic N from the soil — net mineralization is negative (net immobilization).",
+      "When substrate C:N falls below this threshold, microbial N demand is fully met by the litter, and any surplus N is excreted/released — net mineralization is positive.",
+      "As decomposition proceeds and carbon is respired away, the C:N ratio of the remaining material steadily declines, so a single cohort of litter typically shifts from net immobilization early on to net mineralization later — this has direct implications for when nutrients become available to plants after litterfall or crop residue incorporation."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part V",
+    "title": "Fungi and Bacteria: The Primary Decomposers",
+    "sub": "Division of labor in the microbial world"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Microbial Decomposers",
+    "title": "Fungi vs. Bacteria as Decomposers",
+    "headers": [
+      "Feature",
+      "Fungi",
+      "Bacteria"
+    ],
+    "rows": [
+      [
+        "Growth form",
+        "Filamentous hyphae, can bridge nutrient-poor gaps",
+        "Unicellular, require a continuous moist film"
+      ],
+      [
+        "Substrate specialization",
+        "Cellulose, hemicellulose, and (select taxa) lignin",
+        "Simple sugars, amino acids, and other labile compounds"
+      ],
+      [
+        "Optimal conditions",
+        "Tolerate lower pH, lower moisture, higher C:N substrates",
+        "Favor near-neutral pH, high moisture, N-rich substrates"
+      ],
+      [
+        "Dominant habitat",
+        "Acidic, well-aerated soils; forest litter and wood",
+        "Neutral/alkaline soils; aquatic sediments; fresh, labile litter"
+      ],
+      [
+        "Nutrient economy",
+        "Efficient N conservation, low biomass turnover",
+        "Higher N demand relative to biomass, rapid turnover"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Successional Replacement",
+    "title": "Microbial Succession on Decomposing Litter",
+    "items": [
+      "Decomposer communities on a single piece of litter change predictably over time — a process called <b>microbial succession</b>, analogous to plant succession.",
+      "Early colonizers ('sugar fungi' and fast-growing bacteria) exploit the leached, labile sugars and amino acids available immediately after litterfall.",
+      "As labile compounds are exhausted, they are replaced by cellulose-decomposing fungi and bacteria that attack the structural carbohydrates.",
+      "Finally, specialized lignin-degrading fungi (notably white-rot basidiomycetes) dominate the latest stages, attacking the most recalcitrant compounds that remain.",
+      "This successional replacement reflects each group's enzymatic toolkit being matched to the substrate available at that stage of decay."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Substrate Specialization",
+    "title": "Not All Decomposers Do the Same Job",
+    "items": [
+      "'Sugar fungi' (e.g. many Mucorales, yeasts) rapidly consume simple, soluble compounds but cannot touch cellulose or lignin.",
+      "Cellulolytic fungi and bacteria secrete cellulase enzyme complexes that hydrolyze cellulose into glucose units.",
+      "<b>White-rot fungi</b> (Basidiomycota) are the primary organisms capable of substantially degrading lignin, using peroxidase and laccase enzymes — they are essential for wood decay and are unique among decomposers in this capacity.",
+      "<b>Brown-rot fungi</b> degrade cellulose and hemicellulose but leave lignin largely intact, producing the characteristic brown, cubically-cracked residue seen in decaying conifer wood.",
+      "This division of labor means full decomposition of complex litter requires a succession of different specialists, not any single organism."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part VI",
+    "title": "Decomposition Across Biomes",
+    "sub": "Climate and litter quality interact"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Biome Comparison",
+    "title": "Decomposition Rates Across Biomes",
+    "headers": [
+      "Biome",
+      "Typical litter quality",
+      "Climate conditions",
+      "Approx. time to ~95% mass loss"
+    ],
+    "rows": [
+      [
+        "Tropical rainforest",
+        "Variable; often high lignin/tannin despite warmth",
+        "Warm, consistently moist year-round",
+        "~1–2 years"
+      ],
+      [
+        "Temperate forest",
+        "Moderate C:N, moderate lignin",
+        "Warm summers, cold winters; seasonal moisture",
+        "~4–7 years"
+      ],
+      [
+        "Boreal / Tundra",
+        "Low quality (high lignin, high phenolics, e.g. conifer needles, mosses)",
+        "Cold, often waterlogged or frozen much of the year",
+        "Decades to centuries"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Climate Controls",
+    "title": "Temperature and Moisture as Master Controls",
+    "items": [
+      "Decomposition is fundamentally an enzymatic process, so it follows an approximately exponential response to temperature (like a Q10 relationship) up to a thermal optimum, then declines.",
+      "Moisture is equally critical: decomposer enzymes function in aqueous films, so decomposition is severely limited in both very dry (desert) and waterlogged/anoxic (peat, some wetland) conditions.",
+      "The combination of high temperature and high moisture in tropical rainforests generally supports the fastest decomposition rates found on Earth — litter can be processed within a single year.",
+      "Cold temperatures in tundra and boreal systems, often combined with waterlogging (permafrost-impeded drainage), sharply restrict microbial activity, allowing organic matter (peat) to accumulate over centuries to millennia."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Litter Quality Controls",
+    "title": "Why Litter Quality Can Override Climate",
+    "items": [
+      "Tropical rainforest litter, despite favorable climate, is often surprisingly lignin- and tannin-rich (a defense against intense year-round herbivory), which can slow decomposition relative to what climate alone would predict.",
+      "Boreal conifer needles and ericaceous shrub litter (e.g. heather, Sphagnum moss) combine low N, high lignin, and high phenolic content with cold climate — a 'double whammy' that produces the thick raw humus layers (mor) characteristic of boreal and tundra soils.",
+      "In contrast, temperate deciduous forest litter, or grassland litter, is often intermediate in quality, giving intermediate decomposition rates even where climate is moderate.",
+      "This is why comparative studies (e.g. reciprocal litter transplant experiments) show that both <b>where</b> litter decomposes (climate) and <b>what</b> is decomposing (litter chemistry) must be considered together."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "Fast vs. Slow Decomposition Systems",
+    "left": {
+      "h": "Fast-Cycling Systems",
+      "body": "Warm, moist climate + high-quality litter (low C:N, low lignin, low tannin). Thin or absent litter layer because material is processed quickly. Nutrients cycle rapidly; soil organic matter turnover is fast. Typical of tropical forests and fertile grasslands."
+    },
+    "right": {
+      "h": "Slow-Cycling Systems",
+      "body": "Cold or dry climate + low-quality litter (high C:N, high lignin, high tannin). Thick accumulated litter/humus layer because inputs exceed decomposition. Nutrients cycle slowly, often limiting primary production. Typical of boreal forests, tundra, and heathlands."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part VII",
+    "title": "Methods: The Litter Bag Technique",
+    "sub": "How ecologists actually measure decomposition"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Experimental Design",
+    "title": "The Litter Bag Method",
+    "items": [
+      "A standard, weighed quantity of air-dried litter (leaves, needles, or wood) is placed inside a mesh bag and pinned or placed on (or buried in) the soil surface in the field.",
+      "Mesh size is a deliberate experimental variable: fine mesh (<1 mm) excludes most macro-detritivores, allowing only microbial decomposition; coarse mesh (several mm to cm) allows detritivores full access.",
+      "Replicate bags are retrieved at successive time points (e.g. 1, 3, 6, 12, 24 months), oven-dried, and re-weighed to calculate percent mass remaining over time.",
+      "Chemical subsamples (C, N, lignin content) are often taken at each retrieval to track how litter chemistry changes as decomposition proceeds — directly testing the immobilization/mineralization dynamic."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What Litter Bags Measure",
+    "title": "Interpreting Litter Bag Data",
+    "items": [
+      "Mass loss over time is typically fit to a negative exponential decay model, M(t) = M0 × e^(–kt), yielding a decomposition rate constant <b>k</b> that allows direct comparison across litter types, sites, and treatments.",
+      "Comparing fine- vs. coarse-mesh bags at the same site isolates the contribution of detritivores (mesofauna and macrofauna) to overall mass loss, separate from purely microbial decomposition.",
+      "Reciprocal transplant designs (litter type A and B placed at both site X and site Y) let researchers statistically separate the effects of litter quality from the effects of climate/site conditions.",
+      "This simple, low-cost, field-deployable method is the workhorse technique behind most published decomposition-rate data, including the biome comparisons discussed above."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limitations",
+    "title": "What Litter Bags Get Wrong",
+    "items": [
+      "The mesh bag itself is an artificial microhabitat — it can restrict fragment loss (litter that breaks into pieces small enough to fall through the mesh is scored as 'decomposed' when it may simply be relocated), inflating apparent mass loss.",
+      "Bags can alter moisture and temperature microclimate relative to the surrounding litter, and exclude larger detritivores like earthworms unless coarse mesh is used, potentially underestimating true field decomposition rates.",
+      "Bagged litter cannot move or become buried the way natural litter does, so it may not fully replicate natural fragmentation and incorporation into deeper soil layers.",
+      "Despite these caveats, the litter bag method remains the field standard because it is simple, replicable, low-cost, and allows direct comparison across an enormous range of published studies."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part VIII",
+    "title": "Soil Fauna and Earthworms as Ecosystem Engineers",
+    "sub": "Detritivores that reshape the physical environment"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Soil Fauna Diversity",
+    "title": "A Hierarchy of Soil Detritivores",
+    "items": [
+      "<b>Microfauna</b> (<0.2 mm): protozoa, nematodes — feed largely on bacteria and fungi, regulating microbial populations and turnover.",
+      "<b>Mesofauna</b> (0.2–2 mm): mites (Acari), springtails (Collembola) — graze on fungi and fragment litter, opening it to further microbial attack.",
+      "<b>Macrofauna</b> (>2 mm): earthworms, millipedes, woodlice, termites, beetle larvae — the major physical fragmenters and, in the case of earthworms and termites, major movers of soil itself.",
+      "Among all soil detritivores, <b>earthworms</b> stand out for their disproportionate impact on soil physical structure — earning them the label 'ecosystem engineers,' organisms that physically modify habitat in ways that affect many other species."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Historical Note",
+    "quote": "It may be doubted whether there are many other animals which have played so important a part in the history of the world, as have these lowly organized creatures.",
+    "attrib": "Charles Darwin, The Formation of Vegetable Mould through the Action of Worms, 1881"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Darwin's Earthworm Studies",
+    "title": "A 40-Year Study, Darwin's Last Book",
+    "items": [
+      {
+        "y": "1837",
+        "t": "Darwin presents his first paper on earthworms to the Geological Society, noting how worm-worked soil buries stones and archaeological objects over time."
+      },
+      {
+        "y": "1840s–1870s",
+        "t": "Darwin periodically re-measures marker stones placed on pasture at his home, Down House, tracking the rate at which earthworm castings bury them."
+      },
+      {
+        "y": "1881",
+        "t": "Darwin publishes 'The Formation of Vegetable Mould through the Action of Worms,' his final book, estimating earthworms move many tons of soil per acre annually and quantifying their role in soil formation."
+      },
+      {
+        "y": "20th century",
+        "t": "Subsequent ecological research (e.g. Lee 1985, Edwards & Bohlen) formalizes earthworms as 'ecosystem engineers,' confirming and extending Darwin's original observations with modern soil science methods."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Earthworm Effects",
+    "title": "How Earthworms Reshape Soil",
+    "items": [
+      "<b>Ingestion and casting</b>: earthworms ingest soil and organic matter together, mixing and homogenizing them; casts deposited at the surface or below ground concentrate nutrients in plant-available form.",
+      "<b>Burrowing</b>: permanent and temporary burrows increase soil porosity, water infiltration, and aeration, and create channels that plant roots preferentially follow.",
+      "<b>Bioturbation</b>: earthworms continuously move soil vertically, burying surface litter and slowly turning over the soil profile — Darwin's 'vegetable mould' formation.",
+      "<b>Nutrient cycling</b>: gut passage accelerates microbial decomposition of ingested organic matter, and casts are hotspots of microbial activity and mineralized nutrients relative to bulk soil.",
+      "Earthworm effects cascade to plant productivity, soil microbial community composition, and even other soil fauna abundance — a textbook case of a single functional group engineering an entire habitat."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part IX",
+    "title": "Coarse Woody Debris",
+    "sub": "The slowest, longest-lived detrital pool"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coarse Woody Debris (CWD)",
+    "title": "Fallen Logs and Standing Dead Wood",
+    "items": [
+      "Coarse woody debris includes fallen logs, large branches, and standing dead trees (snags) above a minimum diameter threshold (commonly ≥10 cm).",
+      "CWD decomposes extremely slowly relative to leaf litter, owing to its very high C:N ratio, high lignin content, and low surface-area-to-volume ratio — decomposition of a large log can take decades to over a century.",
+      "Because of this slow turnover, CWD represents a major, long-term carbon and nutrient storage pool in forest ecosystems, sometimes comprising 10–20% or more of total above-ground biomass in old-growth forests.",
+      "Decomposition of large logs typically proceeds through recognized stages (from intact bark and wood, through fragmenting wood colonized by fungi, to a soft, soil-incorporated humus stage), each hosting a different community of specialist organisms."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ecological Roles",
+    "title": "Why Coarse Woody Debris Matters",
+    "items": [
+      "<b>Wildlife habitat</b>: snags and logs provide nesting cavities, cover, and foraging substrate for birds, small mammals, amphibians, and invertebrates — some species (e.g. many woodpeckers, salamanders) are obligate users of CWD.",
+      "<b>Microhabitat for decomposers</b>: fungi (including many wood-specific white-rot and brown-rot species) and wood-boring insects colonize CWD in successional stages, and the moist interior of decaying logs buffers against surface temperature and moisture extremes.",
+      "<b>Nutrient and carbon reservoir</b>: slow, steady release of nutrients from CWD provides a long-term, buffered nutrient supply to the forest floor, distinct from the pulse-and-decline dynamics of leaf litter.",
+      "<b>Nurse log function</b>: in many forest types (e.g. Pacific Northwest conifer forests), decaying logs serve as elevated, less-competitive germination sites ('nurse logs') for tree seedlings.",
+      "Management implications: removal of CWD (e.g. through intensive logging or 'clean' forestry practices) can significantly reduce habitat value and long-term nutrient supply in managed forests."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part X",
+    "title": "The Decomposer Food Web",
+    "sub": "Connecting brown and green"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Decomposer Subsystem Structure",
+    "title": "A Biomass Pyramid Within the Brown Food Web",
+    "levels": [
+      {
+        "label": "Top predators of the brown web (e.g. centipedes, predatory mites)",
+        "color": "#8a5a3c",
+        "width": "220px"
+      },
+      {
+        "label": "Secondary consumers (predatory nematodes, some mesofauna)",
+        "color": "#a97c50",
+        "width": "340px"
+      },
+      {
+        "label": "Primary detritivores (earthworms, isopods, collembola, mites)",
+        "color": "#c9a26a",
+        "width": "460px"
+      },
+      {
+        "label": "Detritus + decomposer microbes (fungi and bacteria on dead organic matter)",
+        "color": "#e4c98f",
+        "width": "580px"
+      }
+    ],
+    "footnote": "Unlike the green (grazer) food web, the brown food web's energetic base is dead organic matter, not living primary producers."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Brown vs. Green",
+    "title": "Two Interlinked Food Webs in Every Ecosystem",
+    "items": [
+      "Ecologists distinguish the <b>green food web</b> (grazer-based: living plants → herbivores → predators) from the <b>brown food web</b> (detritus-based: dead organic matter → detritivores/decomposers → their predators).",
+      "In most terrestrial and many aquatic ecosystems, more energy flows through the brown pathway than the green — a majority of net primary production dies before being eaten alive.",
+      "The two webs are not separate: they are linked by common predators that forage across both (e.g. birds and spiders eating both herbivorous and detritivorous insects), by nutrients mineralized in the brown web fueling plant growth that feeds the green web, and by dead herbivores/predators themselves entering the detrital pool.",
+      "This coupling means that changes in one subsystem (e.g. reduced litter inputs, altered detritivore communities) can propagate to affect the other — decomposer and grazer food webs must be understood as a single, integrated ecosystem, not two independent systems."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis",
+    "title": "Why the Decomposer Subsystem Matters",
+    "cards": [
+      {
+        "h": "Nutrient Recycling",
+        "p": "Decomposition is the process that returns nutrients locked in dead organic matter to forms available for primary production — without it, nutrient cycles would grind to a halt."
+      },
+      {
+        "h": "Carbon Cycling",
+        "p": "Decomposer respiration is a major global CO2 flux; the balance between litter inputs and decomposition rate determines whether ecosystems are net carbon sources or sinks."
+      },
+      {
+        "h": "Habitat Structure",
+        "p": "Earthworm bioturbation and coarse woody debris physically engineer soil structure and forest microhabitat, shaping conditions for countless other species."
+      },
+      {
+        "h": "Food Web Foundation",
+        "p": "The brown food web channels the majority of ecosystem energy flow in most biomes, and is tightly coupled to the green (grazer-based) food web via shared predators and nutrient flows."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Looking Ahead to Lecture 29",
+    "left": {
+      "h": "Today: Decomposers",
+      "body": "We covered detritus and the decomposer pathway; leaching, fragmentation, and catabolism; C:N ratio, lignin, and polyphenols as chemical controls; immobilization vs. mineralization of nitrogen; fungal and bacterial roles and succession; biome comparisons; the litter bag method; earthworms as ecosystem engineers; coarse woody debris; and the brown vs. green food web."
+    },
+    "right": {
+      "h": "Next: Mutualism",
+      "body": "Lecture 29 turns to positive (+,+) interspecific interactions — mutualism and its relatives, commensalism and amensalism. We'll examine pollination, mycorrhizae, nitrogen-fixing symbioses, and the evolutionary stability of cooperation between species, including the 'cheater problem.'"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Questions",
+    "title": "For Next Class — Think About",
+    "items": [
+      "Why might tropical rainforest litter decompose more slowly than its warm, wet climate alone would predict? What does this tell you about the relative importance of climate vs. litter chemistry as controls on decomposition?",
+      "A farmer tills nitrogen-poor crop residue (straw, C:N ~80:1) into a field before planting. Based on immobilization/mineralization dynamics, what would you predict happens to soil nitrogen availability for the young crop in the following weeks — and how might the farmer manage around this?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Questions",
+    "title": "For Next Class — Consider Also",
+    "items": [
+      "If you removed all earthworms from a temperate forest soil, what changes would you predict in litter accumulation, soil structure, and nutrient availability over the following decade? How would you test this experimentally?",
+      "Coarse woody debris is often removed in intensively managed forests for tidiness or fire risk reduction. What ecological trade-offs does this management choice involve, given CWD's roles in nutrient storage, carbon storage, and wildlife habitat?"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Principles of Ecology · BIOL 3XX</span>
+        <span>Lecture 28 — Decomposers</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 4: Temperature as an Environmental Condition</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 4",
+    "title": "Temperature as an Environmental Condition",
+    "sub": "Thermal biology, ectotherms and endotherms, and the rules that link body form to climate",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Chapter 2"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off",
+    "sub": "From testing ideas to testing organisms against their environment"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 3",
+    "title": "Scientific Method in Ecology",
+    "items": [
+      "Ecology proceeds by <b>observation → hypothesis → prediction → test</b>, using both field experiments and natural comparisons",
+      "We distinguished <b>manipulative experiments</b> (controlled treatments) from <b>natural/comparative experiments</b> (space-for-time or gradient studies)",
+      "Confounding variables and pseudoreplication were flagged as major threats to valid inference in field ecology",
+      "Today we apply that same testing mindset: temperature hypotheses (Bergmann's, Allen's rules) are testable, falsifiable claims — not just patterns"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 1",
+    "title": "Conditions vs. Resources — Why It Matters Today",
+    "items": [
+      "A <b>resource</b> is consumed and can be depleted by an organism (e.g., food, water, light for photosynthesis, nutrients)",
+      "A <b>condition</b> is a physicochemical feature of the environment that is not consumed but modifies how organisms function — temperature, pH, salinity, humidity",
+      "Organisms cannot 'use up' temperature; instead they must <b>tolerate, avoid, or regulate against</b> it",
+      "Temperature is the paradigm case of a condition: it constrains rates of biological processes everywhere on Earth, from Antarctic soils to hydrothermal vents"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Why Temperature Matters to Life",
+    "sub": "The biochemical and biophysical basis of thermal sensitivity"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Foundational concept",
+    "title": "Temperature and Molecular Kinetics",
+    "term": "Temperature",
+    "def": "A measure of the average kinetic energy of molecules in a system; in biology, it governs the rate of virtually all biochemical reactions because reaction rate depends on molecular collision frequency and energy.",
+    "bullets": [
+      "Enzymes are proteins whose 3-D shape (and thus catalytic activity) depends on temperature-sensitive hydrogen bonds and hydrophobic interactions",
+      "Because nearly all physiology runs through enzyme-catalyzed reactions, temperature indirectly sets the pace of growth, development, movement, and reproduction"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Mechanism",
+    "title": "Two Ways Temperature Constrains Physiology",
+    "left": {
+      "h": "Enzyme kinetics",
+      "body": "Reaction rates roughly double for every 10°C rise within an enzyme's tolerable range (the Q10 effect), but above an optimum, rising temperature denatures enzymes and rates collapse sharply."
+    },
+    "right": {
+      "h": "Membrane fluidity",
+      "body": "Cell membranes are phospholipid bilayers; low temperature makes them rigid and impairs transport proteins, while high temperature makes them too fluid and leaky, disrupting ion gradients and signaling."
+    },
+    "footnote": "Both mechanisms explain why performance is a hump-shaped, not linear, function of temperature"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Quantifying sensitivity",
+    "title": "The Q10 Coefficient",
+    "term": "Q10",
+    "def": "The factor by which a biological rate (e.g., metabolic rate, enzyme activity) increases for a 10°C rise in temperature. Most biological Q10 values fall between 2 and 3 within the normal operating range.",
+    "bullets": [
+      "A Q10 of 2 means a reaction doubles in rate for every 10°C increase",
+      "Q10 breaks down near thermal extremes, where denaturation dominates over simple kinetic acceleration",
+      "Used to compare thermal sensitivity across taxa and to correct metabolic measurements taken at different temperatures"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Scale of the challenge",
+    "title": "The Thermal Range of Life on Earth",
+    "items": [
+      "Life persists from below <b>-20°C</b> in supercooled Antarctic fish and insects to above <b>120°C</b> in hyperthermophilic archaea at hydrothermal vents",
+      "No single organism, however, can function across this whole range — each species has a much narrower <b>tolerance window</b>",
+      "Water itself constrains biology: it freezes at 0°C (forming damaging ice crystals) and most proteins denature well before 100°C",
+      "Because temperature varies enormously in space (poles to equator) and time (seasons, day/night), it is one of the strongest large-scale drivers of species distributions"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Ectotherms, Endotherms, and Body Temperature Strategies",
+    "sub": "Different solutions to the same thermodynamic problem"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Core distinction",
+    "title": "Heat Source: Ectotherm vs. Endotherm",
+    "headers": [
+      "Ectotherm",
+      "Endotherm"
+    ],
+    "rows": [
+      [
+        "Body heat derives mainly from <b>external</b> sources (sun, substrate, air/water)",
+        "Body heat derives mainly from <b>internal</b> metabolic heat production"
+      ],
+      [
+        "Includes most invertebrates, fish, amphibians, reptiles",
+        "Includes birds and mammals"
+      ],
+      [
+        "Lower metabolic rate; less food required per unit body mass",
+        "Higher metabolic rate; substantial food intake devoted to thermogenesis"
+      ],
+      [
+        "Body temperature typically tracks environmental temperature",
+        "Body temperature held relatively stable regardless of environment"
+      ]
+    ],
+    "footnote": "Ecto-/endo- describes the heat source, not whether temperature is variable — that is a separate axis"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "A second, independent axis",
+    "title": "Body Temperature Stability: Poikilotherm vs. Homeotherm",
+    "headers": [
+      "Poikilotherm",
+      "Homeotherm"
+    ],
+    "rows": [
+      [
+        "Body temperature <b>varies</b> with the environment",
+        "Body temperature is <b>held constant</b> within a narrow range"
+      ],
+      [
+        "Most ectotherms are poikilothermic (e.g., a lizard's Tb tracks ambient temperature)",
+        "Most endotherms are homeothermic (e.g., mammals near 37°C)"
+      ],
+      [
+        "Exception: many marine ectotherms live in thermally stable water and are effectively poikilothermic but with little variation",
+        "Exception: some mammals (torpor, hibernation) relax homeothermy temporarily"
+      ]
+    ],
+    "footnote": "Ectotherm/endotherm (heat source) and poikilotherm/homeotherm (stability) are not perfectly linked — treat them as separate axes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The in-between case",
+    "title": "Heterothermy",
+    "term": "Heterotherm",
+    "def": "An organism that shows characteristics of both ectothermy and endothermy — either across body regions (regional heterothermy) or across time (temporal heterothermy).",
+    "bullets": [
+      "Regional heterotherms: tuna and some sharks keep swimming muscle warmer than the surrounding water via counter-current heat exchangers, while extremities stay cooler",
+      "Temporal heterotherms: hummingbirds and bats are endothermic and homeothermic when active, but drop into torpor (a controlled, hypothermic state) to save energy when resting or food-limited",
+      "Hibernating mammals (e.g., ground squirrels) are homeothermic endotherms most of the year but become heterothermic during hibernation bouts"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Worked examples",
+    "title": "Recognizing the Categories",
+    "cards": [
+      {
+        "h": "Desert lizard",
+        "p": "Ectotherm, poikilotherm — basks on rocks to raise Tb, retreats to burrows to avoid overheating; body temperature tracks behavior and microclimate."
+      },
+      {
+        "h": "Arctic fox",
+        "p": "Endotherm, homeothermic — maintains ~38°C core temperature via metabolic heat production and heavy insulation regardless of -40°C air temperature."
+      },
+      {
+        "h": "Bluefin tuna",
+        "p": "Regional heterotherm — endothermic in swimming muscle (via rete mirabile heat exchangers) but ectothermic at the gills and skin."
+      },
+      {
+        "h": "Hibernating ground squirrel",
+        "p": "Temporal heterotherm — homeothermic endotherm in summer, allows core temperature to fall near 0°C during winter torpor bouts."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Trade-offs",
+    "title": "Costs and Benefits of Each Strategy",
+    "items": [
+      "Endothermy allows activity across a huge range of external temperatures (day/night, winter/summer) but demands 5-10× more food energy than an equivalent-sized ectotherm",
+      "Ectothermy is energetically cheap, letting ectotherms persist on far less food and reach higher population densities in resource-poor habitats",
+      "Ectotherms are constrained in activity time and geographic range by ambient temperature; many are restricted to warm seasons or low latitudes",
+      "Neither strategy is 'better' — each represents a different evolutionary solution to the same problem of enzyme temperature-sensitivity"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Physiological mechanism",
+    "title": "Redirecting Blood Flow to Manage Heat",
+    "term": "Vasomotor Response",
+    "def": "The adjustment of blood vessel diameter near the body surface — vasodilation (widening) to promote heat loss, or vasoconstriction (narrowing) to conserve heat — allowing rapid, fine-tuned control of heat exchange with the environment.",
+    "bullets": [
+      "Vasodilation increases blood flow to skin and extremities, raising surface temperature and heat loss to the environment",
+      "Vasoconstriction reduces peripheral blood flow, keeping warm blood in the core and minimizing heat loss at the skin surface",
+      "Available to both ectotherms and endotherms, but especially important for endotherms fine-tuning homeothermy without changing metabolic rate"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Physiological mechanism",
+    "title": "Recovering Heat Before It's Lost",
+    "term": "Countercurrent Heat Exchange",
+    "def": "A vascular arrangement in which warm arterial blood flowing toward an extremity runs parallel and adjacent to cool venous blood returning from it, so heat transfers directly from artery to vein before reaching the periphery, minimizing net heat loss.",
+    "bullets": [
+      "Found in the limbs of Arctic mammals and birds, and in the swimming muscles of tuna and some sharks (rete mirabile)",
+      "Lets extremities run cooler than the core without freezing tissue, while conserving core heat",
+      "A key mechanism underlying the regional heterothermy discussed above in bluefin tuna"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Thermal Performance Curves",
+    "sub": "Quantifying how performance changes with body temperature"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Central tool",
+    "title": "The Thermal Performance Curve (TPC)",
+    "term": "Thermal performance curve",
+    "def": "A plot of some measure of performance (growth rate, sprint speed, metabolic rate, fitness) as a function of body temperature; typically a left-skewed, hump-shaped curve rising gradually to a peak and falling steeply thereafter.",
+    "bullets": [
+      "The asymmetric shape reflects the underlying mechanism: gradual enzyme rate increases on the rising limb, then catastrophic protein denaturation on the falling limb",
+      "TPCs are measured directly in ectotherms (whose Tb tracks the test temperature) and are central to predicting climate-change vulnerability"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key landmarks on the curve",
+    "title": "CTmin, Topt, and CTmax",
+    "items": [
+      "<b>CTmin</b> (critical thermal minimum): the lowest body temperature at which the organism can still function (e.g., before cold-induced coma or loss of righting response)",
+      "<b>Topt</b> (thermal optimum): the temperature at which performance is maximized",
+      "<b>CTmax</b> (critical thermal maximum): the highest temperature tolerated before catastrophic failure — often much closer to Topt than CTmin is, producing the curve's characteristic asymmetry",
+      "<b>Thermal breadth</b>: the range of temperatures over which performance remains above some threshold (e.g., 80% of maximum) — a measure of how 'wide' a thermal niche the organism occupies"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "An evolutionary trade-off",
+    "title": "Thermal Specialists vs. Generalists",
+    "items": [
+      "The <b>'jack-of-all-temperatures-is-master-of-none'</b> hypothesis: broad thermal tolerance (generalists) is predicted to come at the cost of lower peak performance compared with narrow specialists",
+      "Specialists have tall, narrow TPCs with high Topt performance but steep declines outside a narrow range — favored in thermally stable environments (e.g., tropics, deep sea)",
+      "Generalists have flatter, wider TPCs with lower peak performance but tolerance of fluctuating conditions — favored in thermally variable environments (e.g., temperate zones, intertidal)",
+      "Empirical support is mixed — some taxa show the predicted trade-off clearly, others do not, making this an active area of ecological research"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Real-world TPC shifts",
+    "title": "Thermal Performance Across Latitude",
+    "cards": [
+      {
+        "h": "Tropical ectotherms",
+        "p": "Often live very close to their CTmax already; TPCs are narrow and Topt is high, leaving little thermal 'safety margin' as climates warm."
+      },
+      {
+        "h": "Temperate ectotherms",
+        "p": "Experience wide seasonal swings; TPCs tend to be broader, with more buffer between habitat temperature and CTmax."
+      },
+      {
+        "h": "Polar ectotherms",
+        "p": "Often show very low CTmax and CTmin values overall, with enzymes adapted ('cold-adapted') to function efficiently at low temperatures where warm-adapted enzymes would be sluggish."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case link forward",
+    "title": "Why TPCs Matter for Climate Change",
+    "left": {
+      "h": "The vulnerability logic",
+      "body": "Because tropical ectotherms already live near Topt/CTmax, even small warming pushes them past their optimum and toward performance collapse — unlike temperate species with more thermal buffer."
+    },
+    "right": {
+      "h": "Preview",
+      "body": "This logic underlies predicted climate-driven range shifts and local extinctions, a topic we return to in depth in Lecture 42 on species distributions under climate change."
+    },
+    "footnote": "Deutsch et al. (2008) formalized this tropical-vulnerability hypothesis using TPC data across latitudes"
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Body Size and Shape: Bergmann's and Allen's Rules",
+    "sub": "Geographic patterns linking morphology to thermal environment"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Ecogeographic rule 1",
+    "title": "Bergmann's Rule",
+    "term": "Bergmann's rule",
+    "def": "Within a widely distributed endothermic genus or species, populations in colder (higher-latitude/altitude) climates tend to have larger body size than populations in warmer climates.",
+    "bullets": [
+      "Proposed by Carl Bergmann (1847), originally framed at the level of related species within a genus, later extended to intraspecific geographic variation",
+      "The pattern is most consistently documented in birds and mammals"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Mechanism",
+    "title": "Why Size Tracks Temperature: Surface-Area-to-Volume Ratio",
+    "left": {
+      "h": "The geometry",
+      "body": "As body size increases, volume (which generates metabolic heat) grows faster than surface area (through which heat is lost). Larger bodies therefore have a lower surface-area-to-volume ratio."
+    },
+    "right": {
+      "h": "The consequence",
+      "body": "A lower SA:V ratio means relatively less heat loss per unit mass — an advantage in cold climates where retaining heat is critical, and a disadvantage in hot climates where dumping excess heat matters more."
+    },
+    "footnote": "This is a physical/geometric argument, not a claim about food availability alone"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Classic examples",
+    "title": "Bergmann's Rule in Practice",
+    "cards": [
+      {
+        "h": "Polar bear vs. sun bear",
+        "p": "Polar bears (Arctic, Ursus maritimus) are among the largest bears (~400-600 kg); sun bears (tropical Southeast Asia, Helarctos malayanus) are the smallest (~30-60 kg) — consistent with the cold-large, warm-small pattern."
+      },
+      {
+        "h": "North American deer mice",
+        "p": "Peromyscus populations at higher latitudes and altitudes show significantly larger body mass than southern/lowland populations of the same species."
+      },
+      {
+        "h": "Wolves",
+        "p": "Northern gray wolf subspecies (e.g., Canadian/Alaskan) are larger on average than southern subspecies (e.g., Arabian wolf), tracking the same latitudinal gradient."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Important caveats",
+    "title": "Limits and Critiques of Bergmann's Rule",
+    "items": [
+      "The rule was formulated for <b>endotherms</b>; it does not reliably apply to ectotherms, which regulate heat balance very differently (though some ectotherm studies show a converse or absent pattern)",
+      "Not universal even among endotherms — exceptions exist where food availability, predation risk, or resource seasonality outweigh thermoregulatory selection",
+      "Correlation is not automatically causation: alternative hypotheses include starvation resistance (larger bodies store more fat) and resource/productivity gradients",
+      "Comparisons are most reliable within closely related populations of a single species, controlling for phylogeny"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Ecogeographic rule 2",
+    "title": "Allen's Rule",
+    "term": "Allen's rule",
+    "def": "Within a widely distributed endothermic species, populations in colder climates tend to have shorter limbs, ears, tails, and other extremities relative to body size than populations in warmer climates.",
+    "bullets": [
+      "Proposed by Joel Asaph Allen (1877), extends the same SA:V logic from whole-body size (Bergmann) to the shape of appendages",
+      "Extremities are disproportionately important for heat loss because they have high surface area relative to their volume and often carry high blood flow"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The classic case study",
+    "title": "Allen's Rule: Fox Ears Across Latitude",
+    "cards": [
+      {
+        "h": "Arctic fox (Vulpes lagopus)",
+        "p": "Small, rounded ears and a compact, stocky body minimize surface area for heat loss in sub-zero Arctic winters."
+      },
+      {
+        "h": "Red fox (Vulpes vulpes)",
+        "p": "Intermediate ear size and body proportions, matching its broad temperate distribution across the Northern Hemisphere."
+      },
+      {
+        "h": "Fennec fox (Vulpes zerda)",
+        "p": "Enormous ears relative to body size, dramatically increasing surface area to dissipate heat in the hot Saharan desert; ears also aid hearing for nocturnal hunting."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond foxes",
+    "title": "Other Examples and Limits of Allen's Rule",
+    "items": [
+      "Human populations show the same statistical trend: populations from cold climates (e.g., circumpolar peoples) tend toward shorter, stockier limb proportions; populations from hot climates (e.g., East African populations) tend toward longer, more linear limbs",
+      "Rabbits and hares: desert jackrabbits have notably larger ears than snowshoe hares of cold northern forests",
+      "As with Bergmann's rule, Allen's rule is a statistical tendency across many taxa, not an inviolable law — local factors (diet, predation, locomotor demands) can override the thermal signal",
+      "Both rules illustrate a broader principle: <b>morphology evolves partly in response to thermal conditions</b>, mediated by surface-area-to-volume geometry"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Side-by-side",
+    "title": "Bergmann's Rule vs. Allen's Rule",
+    "headers": [
+      "Bergmann's Rule",
+      "Allen's Rule"
+    ],
+    "rows": [
+      [
+        "Concerns overall <b>body size</b>",
+        "Concerns <b>appendage/extremity size</b>"
+      ],
+      [
+        "Cold climates → larger body size",
+        "Cold climates → shorter, smaller extremities"
+      ],
+      [
+        "Warm climates → smaller body size",
+        "Warm climates → longer, larger extremities"
+      ],
+      [
+        "Mechanism: whole-body SA:V ratio",
+        "Mechanism: extremity SA:V ratio and blood flow"
+      ]
+    ],
+    "footnote": "Both rules share the same underlying physics: minimizing heat loss in the cold, maximizing heat dissipation in the heat"
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Responding to Temperature: Acclimation, Adaptation, and Behavior",
+    "sub": "Short-term flexibility versus long-term evolutionary change"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "A crucial distinction",
+    "title": "Acclimation vs. Adaptation",
+    "headers": [
+      "Acclimation",
+      "Adaptation"
+    ],
+    "rows": [
+      [
+        "<b>Phenotypic</b> — occurs within an individual's lifetime",
+        "<b>Genetic/evolutionary</b> — occurs across generations via natural selection"
+      ],
+      [
+        "Reversible: an individual can re-acclimate if conditions change again",
+        "Not reversible within a lifetime; fixed by genotype (though populations can evolve further)"
+      ],
+      [
+        "Example: a fish gradually shifts its enzyme isoforms and membrane lipid composition after weeks at a new temperature",
+        "Example: Antarctic icefish have evolved antifreeze glycoproteins over evolutionary time, absent in temperate relatives"
+      ],
+      [
+        "Studied experimentally by rearing organisms at different temperatures and measuring shifted thermal tolerance",
+        "Studied via comparisons among populations/species with different evolutionary histories, common-garden experiments"
+      ]
+    ],
+    "footnote": "Both processes can shift a thermal performance curve — acclimation shifts it temporarily, adaptation shifts it permanently"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism of acclimation",
+    "title": "How Acclimation Works Physiologically",
+    "term": "Acclimation",
+    "def": "A reversible physiological adjustment made by an individual organism in response to a change in its environment, distinct from acute short-term responses and from genetic adaptation.",
+    "bullets": [
+      "Cold acclimation often increases the proportion of unsaturated fatty acids in cell membranes, restoring appropriate fluidity at lower temperatures (homeoviscous adaptation)",
+      "Heat-shock proteins (HSPs) are upregulated during acclimation to warmer temperatures, helping stabilize and refold heat-stressed proteins",
+      "Acclimation can shift the entire thermal performance curve left (cold-acclimated) or right (warm-acclimated), changing CTmin, Topt, and CTmax together"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "An active strategy available mainly to ectotherms",
+    "title": "Behavioral Thermoregulation",
+    "items": [
+      "Many ectotherms actively regulate body temperature behaviorally rather than passively tracking ambient temperature — 'behavioral thermoregulation'",
+      "Basking: lizards and snakes orient toward or away from the sun, choosing microhabitats to raise or lower Tb by several degrees",
+      "Shuttling: desert insects and reptiles move between sun and shade throughout the day to stay within their thermal performance range",
+      "Postural and physiological adjustments: darkening/lightening skin color (thermal melanism), changing body orientation to the sun, panting or evaporative cooling",
+      "Behavioral thermoregulation can partly buffer organisms against unfavorable ambient temperatures, sometimes creating a 'thermal safety margin' larger than TPCs alone would predict"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A framing idea",
+    "quote": "A lizard is not simply a slave to the thermometer — by choosing where and when to be, it can hold its body temperature within a narrow, favorable range for much of the day.",
+    "attrib": "Paraphrased from classic behavioral thermoregulation studies (e.g., Cowles & Bogert 1944)"
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Temperature, Climate Change, and Ecosystem-Level Stress",
+    "sub": "Applying the concepts to a warming world"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Connecting the dots",
+    "title": "From Individual Physiology to Range Limits",
+    "items": [
+      "An organism's thermal performance curve sets hard physiological limits on where it can persist — CTmax and Topt effectively bound its geographic range along temperature gradients",
+      "As mean and extreme temperatures rise, species with narrow thermal breadth and little margin above current habitat temperature are most vulnerable to local extinction",
+      "Predicted responses include poleward and upslope range shifts, phenological shifts (earlier breeding/emergence), and — when dispersal or adaptation cannot keep pace — local extirpation",
+      "We will examine these range-shift dynamics in detail in Lecture 42, once we have built up population and community-level tools"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case study preview",
+    "title": "Coral Bleaching",
+    "term": "Coral bleaching",
+    "def": "The loss of symbiotic photosynthetic algae (zooxanthellae) from coral tissue, typically triggered by sustained water temperatures only 1-2°C above the local summer maximum, causing corals to turn white and, if prolonged, to die.",
+    "bullets": [
+      "Reef-building corals live very close to their thermal optimum already, leaving almost no thermal safety margin — a direct parallel to the tropical-ectotherm TPC vulnerability discussed earlier",
+      "Mass bleaching events (e.g., the Great Barrier Reef in 1998, 2016, 2017, 2020, 2022) have become more frequent and severe as ocean temperatures rise",
+      "This is a clear, visible illustration of how a physiological concept — thermal tolerance breadth — scales up to ecosystem-level consequences"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis",
+    "title": "Four Big Ideas From Today",
+    "cards": [
+      {
+        "h": "Temperature is a condition",
+        "p": "Not consumed, but it governs the rate of enzyme-driven physiology everywhere, via kinetics and membrane fluidity."
+      },
+      {
+        "h": "Strategy diversity",
+        "p": "Ectotherm/endotherm and poikilotherm/homeotherm are independent axes; heterotherms blend both across space or time."
+      },
+      {
+        "h": "Performance is not linear",
+        "p": "Thermal performance curves are asymmetric, with CTmin, Topt, and CTmax defining a species' thermal niche and breadth."
+      },
+      {
+        "h": "Form follows climate",
+        "p": "Bergmann's and Allen's rules link body size and appendage shape to thermal environment via surface-area-to-volume geometry."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study check",
+    "title": "Can You Explain...?",
+    "items": [
+      "Why a thermal performance curve is asymmetric (steep decline above Topt, gradual rise below it) rather than a symmetric bell curve",
+      "The difference between an ectotherm and a poikilotherm, and why bluefin tuna are a heterotherm rather than fitting neatly into either category",
+      "Why the Arctic fox's ears are smaller than the fennec fox's ears, in terms of surface-area-to-volume ratio",
+      "Why acclimation and adaptation can both shift a thermal performance curve, but only one of them is reversible within an individual's lifetime"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Key ideas in historical context",
+    "title": "Milestones in Thermal Ecology",
+    "items": [
+      {
+        "y": "1847",
+        "t": "Carl Bergmann proposes the size-latitude relationship in endotherms (Bergmann's rule)"
+      },
+      {
+        "y": "1877",
+        "t": "Joel Asaph Allen extends the logic to appendage length (Allen's rule)"
+      },
+      {
+        "y": "1944",
+        "t": "Cowles & Bogert formalize behavioral thermoregulation in reptiles"
+      },
+      {
+        "y": "1970s-80s",
+        "t": "Development of thermal performance curve methodology (CTmin/CTmax protocols) across ectotherm taxa"
+      },
+      {
+        "y": "2008",
+        "t": "Deutsch et al. link tropical ectotherms' narrow thermal safety margins to climate-change vulnerability"
+      },
+      {
+        "y": "2016-2020s",
+        "t": "Repeated mass coral bleaching events on the Great Barrier Reef illustrate thermal-tolerance limits at ecosystem scale"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applying the scientific method (Lecture 3 callback)",
+    "title": "How Would You Test Bergmann's Rule?",
+    "items": [
+      "<b>Hypothesis</b>: within a species, body mass increases with latitude due to selection for reduced heat loss",
+      "<b>Prediction</b>: a regression of mean adult body mass against latitude across populations should show a significant positive slope",
+      "<b>Test</b>: a comparative (non-manipulative) study — measure body size in museum specimens or field-caught individuals across a latitudinal gradient, controlling for sex and age",
+      "<b>Confounds to control for</b>: food availability, predation pressure, and phylogenetic relatedness among populations — exactly the kind of confound we discussed when evaluating comparative studies in Lecture 3"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Wrap-up",
+    "title": "Before Next Class",
+    "left": {
+      "h": "Reading",
+      "body": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Chapter 2, sections on water and osmotic/salinity relations. Focus on how water availability and salt balance impose constraints analogous to temperature."
+    },
+    "right": {
+      "h": "Think about",
+      "body": "Water is a resource for photosynthesis and drinking, yet water potential and salinity also act as conditions. Come prepared to discuss: can the same environmental factor be both a resource and a condition, depending on context?"
+    },
+    "footnote": "Lecture 5 preview: Water, Salinity, and pH as Conditions"
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion question",
+    "title": "If Climate Warms Faster Than Species Can Acclimate or Adapt, What Happens to Thermal Performance Curves — and to the Species That Own Them?",
+    "sub": "Think in terms of CTmax, thermal breadth, and range limits before next class",
+    "footnote": "Bring one example species to discuss — we will revisit this question in depth in Lecture 42"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 4 · Temperature</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

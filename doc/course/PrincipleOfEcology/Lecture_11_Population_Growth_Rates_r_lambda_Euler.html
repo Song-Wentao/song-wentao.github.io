@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 11: Population Growth Rates — r, λ, and the Euler Equation</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 11",
+    "title": "Population Growth Rates: r, λ, and the Euler Equation",
+    "sub": "From life tables to the intrinsic rate of natural increase",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Ch. 4"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off",
+    "sub": "Lecture 10: Life Tables and R0"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 10",
+    "title": "The Life Table Framework",
+    "items": [
+      "Age-specific survivorship <b>l_x</b>: proportion of a cohort surviving to age x",
+      "Age-specific fecundity <b>m_x</b>: average offspring produced per individual at age x",
+      "Cohort life tables track a single group of individuals born at the same time",
+      "Static life tables sample a population's age structure at one point in time"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap · Lecture 10",
+    "title": "Net Reproductive Rate",
+    "term": "R0 = Σ (l_x · m_x)",
+    "def": "The average number of offspring produced by an individual over its entire lifetime.",
+    "bullets": [
+      "R0 > 1: population growing across generations",
+      "R0 = 1: population stable across generations",
+      "R0 < 1: population declining across generations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 10",
+    "title": "Survivorship Curve Types",
+    "items": [
+      "<b>Type I</b>: high survival early and mid-life, mortality concentrated late (e.g., large mammals, humans)",
+      "<b>Type II</b>: constant mortality rate across all ages (e.g., many birds, some lizards)",
+      "<b>Type III</b>: massive early mortality, survivors then face low risk (e.g., most fish, invertebrates, plants)",
+      "Loggerhead sea turtles: Type III curve with a very long juvenile bottleneck"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 10",
+    "title": "The Loggerhead Case Study",
+    "items": [
+      "Extremely low hatchling-to-adult survival drove R0 estimates that were highly sensitive to survival assumptions",
+      "Small changes in early-stage survivorship produced large swings in R0",
+      "Key lesson: R0 tells us <b>whether</b> a population grows across generations, but not <b>how fast</b>, or <b>per unit time</b>"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Bridging the Gap",
+    "title": "R0 Is Not Enough",
+    "left": {
+      "h": "What R0 Tells Us",
+      "body": "R0 measures growth <b>per generation</b>. An R0 of 1.48 means the population grows 48% every generation — but generations can be short or long."
+    },
+    "right": {
+      "h": "What We Still Need",
+      "body": "A rate expressed <b>per unit time</b> (per year, per day) that lets us compare species with very different generation lengths and predict population size at any future date."
+    },
+    "footnote": "Today's lecture builds the bridge from R0 to a true per-capita growth rate, r."
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "The Intrinsic Rate of Natural Increase",
+    "sub": "Defining r"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Intrinsic Rate of Natural Increase",
+    "term": "r",
+    "def": "The instantaneous, per-capita rate of population increase under specified (often unlimited) conditions — births minus deaths per individual per unit time, in continuous time.",
+    "bullets": [
+      "Units: individuals per individual per unit time (e.g., year⁻¹)",
+      "Also called the 'Malthusian parameter'",
+      "Combines both birth rate and death rate into a single number"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting r",
+    "title": "What the Sign of r Means",
+    "items": [
+      "<b>r > 0</b>: population increasing exponentially",
+      "<b>r = 0</b>: population size constant (births balance deaths)",
+      "<b>r < 0</b>: population declining exponentially toward extinction",
+      "r is the fundamental currency of demography — it integrates survival and fecundity into one growth rate"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "The Finite Rate of Increase",
+    "sub": "Defining λ"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Finite Rate of Increase",
+    "term": "λ (lambda)",
+    "def": "The multiplicative factor by which a population changes over one discrete time step, typically one year or one breeding season.",
+    "bullets": [
+      "N_(t+1) = λ · N_t",
+      "λ > 1: population growing each time step",
+      "λ = 1: population stable",
+      "λ < 1 (but > 0): population declining"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Ways to Measure Growth",
+    "title": "r vs. λ at a Glance",
+    "headers": [
+      "Feature",
+      "r (intrinsic rate)",
+      "λ (finite rate)"
+    ],
+    "rows": [
+      [
+        "Time scale",
+        "Continuous / instantaneous",
+        "Discrete time steps"
+      ],
+      [
+        "Stable value when population constant",
+        "0",
+        "1"
+      ],
+      [
+        "Growing population",
+        "r > 0",
+        "λ > 1"
+      ],
+      [
+        "Declining population",
+        "r < 0",
+        "0 < λ < 1"
+      ],
+      [
+        "Typical use",
+        "Continuously breeding populations, calculus-based models",
+        "Seasonal breeders, annual census data"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting the Two",
+    "title": "The Relationship Between r and λ",
+    "left": {
+      "h": "From r to λ",
+      "body": "λ = e^r  —  exponentiate the instantaneous rate to get the per-time-step multiplier."
+    },
+    "right": {
+      "h": "From λ to r",
+      "body": "r = ln(λ)  —  take the natural log of the finite rate to recover the instantaneous rate."
+    },
+    "footnote": "These are two descriptions of the same underlying growth process, related by the exponential function."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Micro-Example",
+    "title": "Converting Between r and λ",
+    "items": [
+      "If r = 0.10 per year, then λ = e^0.10 ≈ 1.105 → population grows ~10.5% per year",
+      "If λ = 1.2 per year, then r = ln(1.2) ≈ 0.182 per year",
+      "Note: λ − 1 approximates r only when r is small (e.g., r < 0.1); for larger r they diverge noticeably"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Exponential Population Growth",
+    "sub": "Projecting N through time"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Growth Model",
+    "title": "Continuous Exponential Growth",
+    "term": "N_t = N_0 · e^(rt)",
+    "def": "Population size at time t equals the initial population size multiplied by e raised to r times t — the continuous-time analog of compound growth.",
+    "bullets": [
+      "N_0 = initial population size",
+      "r = intrinsic rate of increase",
+      "t = elapsed time",
+      "Derived from dN/dt = rN"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Discrete Analog",
+    "title": "Exponential Growth in Discrete Time",
+    "items": [
+      "For populations with distinct breeding seasons: N_(t+1) = λ · N_t",
+      "After t time steps: N_t = N_0 · λ^t",
+      "Because λ = e^r, this is algebraically identical to N_0 · e^(rt)",
+      "Choice of discrete vs. continuous form depends on the organism's life history, not on different biology"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Properties of Exponential Growth",
+    "title": "What Unlimited Growth Looks Like",
+    "cards": [
+      {
+        "h": "J-Shaped Curve",
+        "p": "Population size plotted against time traces an accelerating J-shaped curve when r > 0."
+      },
+      {
+        "h": "Constant Per-Capita Rate",
+        "p": "The proportional rate of increase (1/N)(dN/dt) = r stays constant regardless of population size."
+      },
+      {
+        "h": "No Density Dependence",
+        "p": "Exponential growth assumes unlimited resources — no crowding, competition, or resource limitation."
+      },
+      {
+        "h": "Rarely Sustained",
+        "p": "Real populations show exponential growth only briefly, e.g., colonization of new habitat or population rebound."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Doubling Time",
+    "title": "How Fast Does the Population Double?",
+    "items": [
+      "Doubling time t_d is the time needed for N to reach 2·N_0",
+      "Set 2 = e^(r·t_d), so t_d = ln(2) / r ≈ 0.693 / r",
+      "Larger r → shorter doubling time (faster growth)",
+      "Useful for quick, intuitive comparisons across species or populations"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "The Euler-Lotka Equation",
+    "sub": "Linking life tables to r"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Missing Link",
+    "title": "Why We Need a New Equation",
+    "items": [
+      "R0 comes directly from the life table, but it measures growth <b>per generation</b>, not per year",
+      "We need a formula that converts l_x and m_x data into r directly",
+      "This formula is the Euler-Lotka equation (Euler 1760; Lotka 1907, 1922)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Central Equation",
+    "title": "The Euler-Lotka Equation",
+    "term": "Σ l_x · m_x · e^(−rx) = 1",
+    "def": "Sums, across all ages x, the survivorship-weighted, fecundity-weighted contribution of each age class, discounted by e^(−rx), and sets the total equal to 1 — the value of r that balances this equation is the population's intrinsic rate of increase.",
+    "bullets": [
+      "l_x = survivorship to age x (from the life table)",
+      "m_x = fecundity at age x (from the life table)",
+      "e^(−rx) = a discounting term that down-weights late reproduction",
+      "No algebraic shortcut exists — r must be found by trial, iteration, or approximation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Equation",
+    "title": "Why the Discount Term Matters",
+    "items": [
+      "Reproducing early in life contributes more to r than reproducing late, even with the same total offspring",
+      "This is because early offspring can themselves start reproducing sooner, compounding growth",
+      "Two life tables with identical R0 can have different r if reproduction is shifted earlier or later"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Solving Euler-Lotka",
+    "title": "How r Is Actually Found",
+    "left": {
+      "h": "Exact Method",
+      "body": "Plug candidate values of r into Σ l_x·m_x·e^(−rx) and iterate (by hand, spreadsheet, or software) until the sum equals 1. This is the rigorous approach used with full life table data."
+    },
+    "right": {
+      "h": "Approximate Method",
+      "body": "When only R0 and generation time T are known, r can be estimated quickly without iteration — useful for classroom calculations and first-pass estimates."
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Shortcut Formula",
+    "title": "Approximating r from R0 and T",
+    "term": "r ≈ ln(R0) / T",
+    "def": "An approximation derived from the Euler-Lotka equation, valid when the life table's age distribution is not too skewed. T is the generation time — the mean age of parents in a stable population.",
+    "bullets": [
+      "Simple, fast, and requires only two summary numbers",
+      "Less accurate than solving the full Euler-Lotka equation, but very useful for teaching and quick estimates",
+      "Becomes less reliable when reproduction is spread very unevenly across ages"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Generation Time",
+    "title": "What Is T?",
+    "items": [
+      "Generation time T = the mean age of mothers when their offspring are born, weighted by l_x·m_x",
+      "T = Σ(x · l_x · m_x) / Σ(l_x · m_x) = Σ(x · l_x · m_x) / R0",
+      "Longer generation time slows down r for a given R0, because it takes longer for each generation's growth to register"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Worked Example",
+    "title": "Back to the Seedling Cohort",
+    "sub": "Estimating r from Lecture 10's data"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recall the Data",
+    "title": "The Seedling Cohort, Revisited",
+    "items": [
+      "Lecture 10 followed a cohort of seedlings through a life table of age-specific survivorship (l_x) and fecundity (m_x)",
+      "From that table we calculated: <b>R0 = 1.48</b>",
+      "And generation time: <b>T ≈ 2.51 years</b>",
+      "Today we ask: what is the intrinsic rate of increase, r, for this population?"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Applying the Approximation",
+    "title": "Step 1: Set Up the Calculation",
+    "left": {
+      "h": "The Formula",
+      "body": "r ≈ ln(R0) / T"
+    },
+    "right": {
+      "h": "The Values",
+      "body": "R0 = 1.48\nT = 2.51 years"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applying the Approximation",
+    "title": "Step 2: Compute ln(R0)",
+    "items": [
+      "ln(1.48) ≈ 0.392",
+      "This is the natural log of the per-generation multiplication factor",
+      "A positive value confirms the population is growing across generations, consistent with R0 > 1"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Applying the Approximation",
+    "title": "Step 3: Divide by Generation Time",
+    "term": "r ≈ 0.392 / 2.51 ≈ 0.156 year⁻¹",
+    "def": "The seedling population's estimated intrinsic rate of natural increase is approximately 0.156 per year — about 15.6% instantaneous growth per year.",
+    "bullets": [
+      "This converts a per-generation number (R0) into a per-year number (r)",
+      "r is now directly comparable to populations with very different generation times"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Converting to λ",
+    "title": "Step 4: Find the Finite Rate of Increase",
+    "items": [
+      "λ = e^r = e^0.156 ≈ 1.169",
+      "Interpretation: the seedling population grows by about 16.9% each year on the discrete (annual) time scale",
+      "Cross-check: over one generation (2.51 years), λ^2.51 should approximate R0 — 1.169^2.51 ≈ 1.48 ✓"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Applying Doubling Time",
+    "title": "Step 5: How Fast Would This Population Double?",
+    "term": "t_d = ln(2) / r ≈ 0.693 / 0.156 ≈ 4.4 years",
+    "def": "At this estimated rate, the seedling population would double in size roughly every 4.4 years if growth remained unchecked and conditions stayed constant.",
+    "bullets": [
+      "Doubling time gives a quick, intuitive sense of the pace of growth",
+      "Real seedling populations rarely sustain this rate for long due to density dependence and resource limits"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Example Summary",
+    "title": "The Seedling Cohort, By the Numbers",
+    "cards": [
+      {
+        "h": "R0 = 1.48",
+        "p": "Per-generation net reproductive rate from the life table."
+      },
+      {
+        "h": "T ≈ 2.51 yr",
+        "p": "Mean generation time, weighted by l_x·m_x."
+      },
+      {
+        "h": "r ≈ 0.156 yr⁻¹",
+        "p": "Approximated intrinsic rate of increase, ln(R0)/T."
+      },
+      {
+        "h": "λ ≈ 1.169",
+        "p": "Finite annual multiplier, e^r; doubling time ≈ 4.4 years."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Note on Precision",
+    "title": "Approximation vs. Exact Solution",
+    "items": [
+      "The ln(R0)/T shortcut assumes reproduction is not too spread out or skewed across ages",
+      "Solving the full Euler-Lotka equation, Σ l_x·m_x·e^(−rx) = 1, with the seedling's complete age-specific data would give a more precise r",
+      "For this course, the approximation is sufficient to build intuition; exact iterative solutions are typically done in spreadsheet software"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Assumptions and Limitations",
+    "sub": "Where these models break down"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Model Assumptions",
+    "title": "When Is Exponential Growth Realistic?",
+    "cards": [
+      {
+        "h": "Stable Age Structure",
+        "p": "Euler-Lotka and simple exponential models assume the population has reached a stable proportion of individuals in each age class."
+      },
+      {
+        "h": "Constant l_x and m_x",
+        "p": "Survivorship and fecundity schedules are assumed fixed over time — no environmental variation."
+      },
+      {
+        "h": "Unlimited Resources",
+        "p": "No density dependence: food, space, and mates never become limiting."
+      },
+      {
+        "h": "Closed Population",
+        "p": "No immigration or emigration affecting growth."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Real-World Caveats",
+    "title": "Why r Is a Best-Case, Not a Forecast",
+    "items": [
+      "r is often described as a population's growth potential under ideal conditions, not a guaranteed trajectory",
+      "Density-dependent factors (Lecture 12 onward: logistic growth) will curb exponential increase in real populations",
+      "Environmental stochasticity (weather, disease, resource pulses) causes l_x and m_x to fluctuate year to year",
+      "Despite these caveats, r remains essential for comparing species' intrinsic growth potential and for conservation risk assessments"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Historical Note",
+    "quote": "No plant is longer-lived than the mammoth trees of California... yet if this seed went on growing... in a few thousand years there literally would not be standing room for its progeny.",
+    "attrib": "Charles Darwin, On the Origin of Species (paraphrasing the logic later formalized by Euler and Lotka)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Matters",
+    "title": "Applications of r and λ",
+    "items": [
+      "<b>Conservation biology</b>: population viability analysis uses r to project extinction risk under different scenarios",
+      "<b>Invasive species management</b>: high r predicts rapid establishment and spread in new habitats",
+      "<b>Pest control</b>: understanding r helps time interventions to suppress population growth before it accelerates",
+      "<b>Fisheries and wildlife management</b>: sustainable harvest rates are set relative to a population's r"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Putting It Together",
+    "title": "From Life Table to Growth Rate: The Workflow",
+    "items": [
+      {
+        "y": "Step 1",
+        "t": "Collect cohort data: age-specific survivorship (l_x) and fecundity (m_x)"
+      },
+      {
+        "y": "Step 2",
+        "t": "Compute R0 = Σ(l_x·m_x), the net reproductive rate per generation"
+      },
+      {
+        "y": "Step 3",
+        "t": "Compute generation time T = Σ(x·l_x·m_x) / R0"
+      },
+      {
+        "y": "Step 4",
+        "t": "Estimate r ≈ ln(R0)/T, or solve Euler-Lotka exactly"
+      },
+      {
+        "y": "Step 5",
+        "t": "Convert to λ = e^r and project N_t = N_0·e^(rt)"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Summary Comparison",
+    "title": "R0, T, r, and λ Together",
+    "headers": [
+      "Quantity",
+      "Symbol",
+      "What It Measures",
+      "Time Basis"
+    ],
+    "rows": [
+      [
+        "Net reproductive rate",
+        "R0",
+        "Growth factor per generation",
+        "Per generation"
+      ],
+      [
+        "Generation time",
+        "T",
+        "Mean parental age at reproduction",
+        "Years"
+      ],
+      [
+        "Intrinsic rate of increase",
+        "r",
+        "Instantaneous per-capita growth rate",
+        "Continuous (per year)"
+      ],
+      [
+        "Finite rate of increase",
+        "λ",
+        "Multiplicative growth per time step",
+        "Discrete (per year/season)"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Visualizing Growth",
+    "title": "How Population Size Scales with r",
+    "levels": [
+      {
+        "label": "r = 0.05: slow growth, doubling time ≈ 14 years",
+        "color": "#a7d3a1",
+        "width": "620px"
+      },
+      {
+        "label": "r = 0.10: moderate growth, doubling time ≈ 7 years",
+        "color": "#7cba74",
+        "width": "540px"
+      },
+      {
+        "label": "r = 0.156: seedling cohort estimate, doubling time ≈ 4.4 years",
+        "color": "#4f9e46",
+        "width": "460px"
+      },
+      {
+        "label": "r = 0.30: rapid growth, doubling time ≈ 2.3 years",
+        "color": "#2b7a25",
+        "width": "390px"
+      }
+    ],
+    "footnote": "Higher r compresses doubling time dramatically — small differences in r produce large differences in long-term population trajectories."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Pitfalls",
+    "title": "Mistakes to Avoid",
+    "items": [
+      "Do not confuse R0 (per generation) with r (per year) — they use different time bases and are not interchangeable",
+      "Do not use λ − 1 as a substitute for r when r is large; use the exact relationship r = ln(λ)",
+      "Remember the Euler-Lotka approximation r ≈ ln(R0)/T is only as good as the life table data feeding it",
+      "A population can have R0 > 1 (growing per generation) yet a very small r if generation time is long"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Species Comparison",
+    "title": "Why Generation Time Matters So Much",
+    "left": {
+      "h": "Short Generation Time",
+      "body": "A bacterium or annual weed with T measured in days or months can achieve a very high r even with a modest R0, because growth compounds rapidly."
+    },
+    "right": {
+      "h": "Long Generation Time",
+      "body": "A sea turtle or elephant with T measured in decades will have a much lower r even with a large R0, because each generation's growth takes a long time to register."
+    },
+    "footnote": "This is why the loggerhead turtle case study from Lecture 10 is so sensitive to survival: long generation time makes r fragile to small changes in early survivorship."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Connecting Forward",
+    "title": "Exponential Growth Is Only the Beginning",
+    "items": [
+      "Exponential growth (constant r) describes populations with abundant resources and no density dependence",
+      "In reality, as N increases, resources become limiting and per-capita growth rate declines",
+      "This sets up the logistic growth model (later in the course), where r is modified by a carrying capacity term",
+      "But every density-dependent model still starts from the same foundation: r, the intrinsic rate of increase"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key Takeaways",
+    "title": "Lecture 11 in Four Ideas",
+    "cards": [
+      {
+        "h": "r and λ",
+        "p": "r is the continuous-time, instantaneous per-capita growth rate; λ is its discrete-time multiplicative counterpart, related by λ = e^r."
+      },
+      {
+        "h": "Exponential Growth",
+        "p": "N_t = N_0·e^(rt) describes unconstrained population growth and yields a simple doubling time, ln(2)/r."
+      },
+      {
+        "h": "Euler-Lotka Equation",
+        "p": "Σ l_x·m_x·e^(−rx) = 1 formally links life table data (l_x, m_x) to the intrinsic rate r."
+      },
+      {
+        "h": "Practical Approximation",
+        "p": "r ≈ ln(R0)/T lets us quickly estimate r from R0 and generation time, as shown with the seedling cohort (r ≈ 0.156 yr⁻¹)."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Self-Check",
+    "title": "Can You Answer These?",
+    "items": [
+      "What is the difference between r and λ, and how are they mathematically related?",
+      "Why does the Euler-Lotka equation discount later reproduction more heavily than earlier reproduction?",
+      "Given R0 = 2.0 and T = 4 years, what is the approximate r? What is the doubling time?",
+      "Why might two populations with identical R0 have very different values of r?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Before Next Class",
+    "title": "Preview: Lecture 12",
+    "sub": "Age Structure and Matrix Models"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Next Class",
+    "title": "Looking Ahead to Lecture 12",
+    "items": [
+      "We move from a single summary number (r) to tracking the full <b>age structure</b> of a population over time",
+      "Introducing the <b>Leslie matrix</b>: a matrix formulation of age-specific survival and fecundity",
+      "Learn how repeated matrix multiplication projects a population forward and reveals its <b>stable age distribution</b>",
+      "Connects directly to today's r: the dominant eigenvalue of the Leslie matrix equals λ = e^r at stable age structure"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Next Class",
+    "title": "Preparation",
+    "items": [
+      "Review today's Euler-Lotka equation and the seedling worked example — Lecture 12 revisits this same data set in matrix form",
+      "Bring a calculator or laptop capable of basic matrix multiplication",
+      "Optional: skim Begon & Townsend Ch. 4 section on age-structured population models"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Discussion",
+    "title": "If Generation Time Doubled but R0 Stayed the Same, What Happens to r — and Why Does That Matter for Long-Lived, Slow-Reproducing Species?",
+    "sub": "Bring your reasoning to next class"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 11 · Population Growth Rates</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

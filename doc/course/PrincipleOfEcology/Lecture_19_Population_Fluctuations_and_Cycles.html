@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 19: Population Fluctuations and Cycles</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Principles of Ecology · Lecture 19",
+    "title": "Population Fluctuations and Cycles",
+    "sub": "From smooth logistic growth to boom-bust dynamics, multi-year cycles, and deterministic chaos",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed. — Ch. 10, 14"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off in Lecture 18",
+    "sub": "Logistic growth, time lags, and self-thinning"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 18",
+    "title": "The Logistic Model, Briefly",
+    "items": [
+      "dN/dt = rN(1 − N/K) produces a smooth sigmoid curve approaching carrying capacity K",
+      "The (1 − N/K) term is the negative feedback of density dependence",
+      "Real populations rarely settle smoothly onto K — many oscillate instead",
+      "Time lags in the response of birth/death rates to density can turn smooth approach into oscillation",
+      "The discrete logistic map showed damped oscillations, stable limit cycles, or chaos depending on parameter values",
+      "Self-thinning law (−3/2 power rule) showed density-dependent mortality operating within cohorts"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today",
+    "title": "From Theory to Real Populations",
+    "items": [
+      "Lecture 18 showed that lags CAN generate oscillations mathematically",
+      "Today: do lags and other mechanisms actually generate the fluctuations and cycles we observe in nature?",
+      "Case studies: snowshoe hare–lynx (10-year cycle) and lemmings (3–4-year cycle)",
+      "We also examine when apparent 'cycles' are really chaos, or just noise",
+      "Finish with implications for extinction risk and conservation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Why Do Populations Fluctuate?",
+    "sub": "Two broad classes of explanation"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Causes of Fluctuation",
+    "title": "Environmental Stochasticity vs. Intrinsic Dynamics",
+    "left": {
+      "h": "Environmental Stochasticity",
+      "body": "Random, unpredictable variation in weather, resource availability, or disturbance drives births and deaths up and down. The population simply tracks a noisy environment — no internal feedback structure is required to explain the pattern."
+    },
+    "right": {
+      "h": "Intrinsic (Endogenous) Dynamics",
+      "body": "Fluctuations arise from the population's own structure: density-dependent processes, especially those with a time lag, generate oscillations even in a constant environment. The 'engine' of the cycle is internal, not external."
+    },
+    "footnote": "Most real cycles likely involve both — an external trigger acting on an internally lag-driven system"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Disentangling Causes",
+    "title": "Why This Distinction Matters",
+    "items": [
+      "Purely stochastic fluctuations are irregular and have no characteristic period",
+      "Intrinsic, lag-driven dynamics can produce regular, repeatable cycle lengths",
+      "Distinguishing the two requires long time series and, ideally, field experiments that manipulate the proposed mechanism",
+      "Many of the most famous 'cycles' in ecology became controversial precisely because both explanations fit the pattern"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Mechanism",
+    "title": "Delayed Density Dependence",
+    "term": "Delayed (Lagged) Density Dependence",
+    "def": "A population's growth rate at time t is influenced not by density at time t, but by density at some earlier time (t − lag) — for example, because a predator population takes several generations to build up, or because resource depletion effects on offspring persist for a generation.",
+    "bullets": [
+      "Contrasts with 'direct' density dependence, where growth rate responds to current density",
+      "A lag converts a stabilizing feedback into an oscillating one",
+      "The lag can arise from generation time, maturation delay, or a slowly responding natural enemy"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From Lecture 18 to Cycles",
+    "title": "How a Time Lag Generates a Cycle",
+    "items": [
+      "Population grows past its long-term equilibrium before the negative feedback 'catches up'",
+      "Overshoot triggers a delayed decline, which itself overshoots downward",
+      "The population oscillates around the equilibrium rather than settling on it",
+      "The period of the cycle is related to the length of the lag (often roughly 4–6× the lag/generation time)",
+      "Whether the oscillation damps out, forms a stable cycle, or becomes chaotic depends on the strength of the response, as seen in the discrete logistic map"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Setting the Stage",
+    "title": "Two Classic Multi-Year Cycles",
+    "items": [
+      "Snowshoe hare and Canada lynx — a ~10-year cycle across the North American boreal forest",
+      "Lemmings (and some voles) — a 3–4-year cycle across Arctic and sub-Arctic tundra",
+      "Both are among the longest continuously documented population records in ecology",
+      "Both have generated decades of competing hypotheses — ideal test cases for cause of cycles"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "The Snowshoe Hare–Canada Lynx Cycle",
+    "sub": "North America's most famous population cycle"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Data Source",
+    "title": "Hudson's Bay Company Fur Trading Records",
+    "items": [
+      "The Hudson's Bay Company traded furs across boreal Canada from the early 18th century onward",
+      "Annual pelt totals for snowshoe hare (Lepus americanus) and Canada lynx (Lynx canadensis) were recorded for commercial reasons, not science",
+      "Charles Elton (1924) first analyzed these records and identified a strikingly regular ~9–10-year periodicity",
+      "D.A. MacLulich (1937) extended and refined the analysis",
+      "Pelt numbers are a proxy for abundance/trapping effort, not a direct census — an important caveat"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Data History",
+    "title": "The Hare–Lynx Record: A Timeline",
+    "items": [
+      {
+        "y": "1670s",
+        "t": "Hudson's Bay Company chartered; fur trading begins across boreal Canada"
+      },
+      {
+        "y": "1821",
+        "t": "HBC merges with North West Company; trading records become more continuous"
+      },
+      {
+        "y": "1924",
+        "t": "Charles Elton analyzes long-run fur records, identifies ~9–10-year periodicity"
+      },
+      {
+        "y": "1937",
+        "t": "MacLulich compiles and publishes the now-classic 1845–1935 hare/lynx pelt series"
+      },
+      {
+        "y": "1980s–90s",
+        "t": "Krebs and colleagues launch the Kluane Boreal Forest Ecosystem Project to test mechanisms experimentally"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Pattern",
+    "title": "What the Cycle Looks Like",
+    "items": [
+      "Snowshoe hare numbers rise and fall roughly every 8–11 years, with peak densities up to 100–200× trough densities",
+      "Canada lynx numbers track the hare cycle closely but lag behind it by roughly 1–2 years",
+      "The lynx cycle amplitude is also large, consistent with lynx being a hare specialist",
+      "The lagged predator peak is the classic signature of a predator-prey (consumer-resource) cycle"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Competing Explanations",
+    "title": "Predator–Prey vs. Food-Limitation Hypotheses",
+    "headers": [
+      "Aspect",
+      "Predator–Prey Hypothesis",
+      "Food-Limitation Hypothesis"
+    ],
+    "rows": [
+      [
+        "Core driver",
+        "Lagged numerical/functional response of lynx (and other predators) to hare density",
+        "Hare overexploitation of winter browse (twigs, shrubs) depresses food supply"
+      ],
+      [
+        "Source of the lag",
+        "Predator population takes time to build up after prey increase",
+        "Vegetation takes several years to recover after being browsed down"
+      ],
+      [
+        "Predicted hare low phase",
+        "Driven by continued high predation pressure even as hares decline",
+        "Driven by low food quality/quantity persisting after hares decline"
+      ],
+      [
+        "Role of lynx peak lag",
+        "Central — lynx lag defines the mechanism",
+        "Incidental — lynx simply track hare abundance, not causing the cycle"
+      ],
+      [
+        "Single-factor sufficiency",
+        "Predation alone reproduced only part of the observed amplitude in experiments",
+        "Food alone reproduced only part of the observed amplitude in experiments"
+      ]
+    ],
+    "footnote": "Both mechanisms operate; neither alone fully explains the cycle's amplitude"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Experimental Test",
+    "title": "The Kluane Boreal Forest Ecosystem Project (Krebs et al.)",
+    "cards": [
+      {
+        "h": "Food Addition",
+        "p": "Supplemental food added to hare populations increased density but did not eliminate the cycle."
+      },
+      {
+        "h": "Predator Exclusion",
+        "p": "Fencing out mammalian predators increased hare survival but the cycle still occurred."
+      },
+      {
+        "h": "Food + Predator Exclusion Combined",
+        "p": "Adding food AND excluding predators together increased hare density roughly 10-fold above controls — far more than either treatment alone, revealing a synergistic effect."
+      },
+      {
+        "h": "Interpretation",
+        "p": "Predation and food limitation interact: poorly-fed hares are more vulnerable to predators, and predation risk alters hare foraging behavior, further limiting food intake."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "A Three-Trophic-Level Interaction",
+    "items": [
+      "The hare cycle cannot be reduced to a simple two-species predator-prey model",
+      "Vegetation (bottom-up), hares (mid), and predators (top-down) form an interacting three-level system",
+      "Predation risk changes hare behavior (reduced foraging), which itself lowers food intake — a non-lethal effect compounding the lethal one",
+      "This is now the textbook explanation: an interaction between delayed predation and delayed food limitation, not either factor in isolation"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On the Hare–Lynx Cycle",
+    "quote": "The snowshoe hare cycle is not caused by predation or by food shortage alone, but by the interplay between the two, mediated by changes in hare behaviour as well as hare numbers.",
+    "attrib": "Summary of findings, Krebs, Boutin, Boonstra and colleagues, Kluane Project"
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "Lemming Population Cycles",
+    "sub": "Shorter, sharper oscillations of the Arctic tundra"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Pattern",
+    "title": "The 3–4-Year Lemming Cycle",
+    "items": [
+      "Lemmings (e.g., Lemmus lemmus in Fennoscandia, Dicrostonyx and Lemmus species in North America) show regular 3–4-year density cycles",
+      "Amplitude can be extreme: densities may change by 100-fold or more between peak and trough",
+      "Peaks are sometimes associated with mass emigration ('lemming migrations'), historically mythologized as mass suicide — in reality, dispersal away from crowded, food-depleted patches",
+      "Cycle length is much shorter than the hare-lynx cycle, consistent with lemmings' short generation time and rapid reproductive rate"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Three Competing Hypotheses",
+    "title": "What Drives Lemming Cycles?",
+    "cards": [
+      {
+        "h": "Specialist Predation",
+        "p": "Small mustelids (stoats, weasels) are lemming specialists whose own numbers lag behind lemming density, generating a predator-driven cycle analogous to the hare-lynx system."
+      },
+      {
+        "h": "Food Quantity/Quality",
+        "p": "Overgrazing of tundra forage during peak years reduces both the amount and nutritional/chemical quality of available food, depressing subsequent reproduction."
+      },
+      {
+        "h": "Social Stress (Chitty Hypothesis)",
+        "p": "Intrinsic changes in behavior and physiology at high density — increased aggression and stress — reduce reproduction and survival even before food or predators become limiting."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Intrinsic Regulation Hypothesis",
+    "title": "The Chitty Hypothesis",
+    "term": "Chitty Hypothesis (Dennis Chitty, 1960)",
+    "def": "Proposes that population cycles are driven by genetically-based changes in the behavioral and physiological composition of the population itself: at high density, selection favors aggressive, stress-resistant but poorly-reproducing phenotypes, which subsequently drives the population down independent of food or predators.",
+    "bullets": [
+      "An intrinsic, self-regulating mechanism — density dependence generated 'from within' the population",
+      "Contrasts with purely extrinsic explanations (food, predators, weather)",
+      "Difficult to test conclusively; evidence for genetic/behavioral shifts across cycle phases has been mixed"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Weighing the Evidence",
+    "title": "Predation vs. Food for Lemmings",
+    "left": {
+      "h": "Support for Predation",
+      "body": "Exclusion experiments in Fennoscandia show that removing specialist predators can dampen or eliminate cycles. Specialist mustelids track lemming density with the kind of lag needed to generate cycling."
+    },
+    "right": {
+      "h": "Support for Food Limitation",
+      "body": "Peak-year lemmings show clear signs of forage depletion and reduced body condition. Some tundra plants show cycle-related shifts in defensive chemistry that could suppress lemming reproduction."
+    },
+    "footnote": "As with hares, the strongest current view is that predation and food/vegetation interact, with predation often dominant in high-Arctic sites"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Current Consensus",
+    "title": "Where the Lemming Debate Stands",
+    "items": [
+      "No single hypothesis (predation, food, or social stress) is fully sufficient on its own across all lemming systems",
+      "Specialist predator dynamics currently have the strongest experimental support in several Fennoscandian and Arctic sites",
+      "Food-quality effects and Chitty-type intrinsic changes may act as amplifiers or contributing factors rather than sole drivers",
+      "Geographic variation is real: not all lemming/vole populations cycle — cycling is more prevalent at higher latitudes, consistent with predator community differences"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Chaos in Simple Population Models",
+    "sub": "When density dependence itself produces irregular dynamics"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap from Lecture 18",
+    "title": "The Discrete Logistic Map",
+    "term": "Discrete Logistic Equation",
+    "def": "Nt+1 = Nt + rNt(1 − Nt/K), or in rescaled form xt+1 = r·xt(1 − xt) — a simple, deterministic, single-equation model with no random terms and no explicit time lag beyond the one generation implicit in the discrete time step.",
+    "bullets": [
+      "Introduced in Lecture 18 as a discrete-time analogue of the continuous logistic",
+      "Behavior depends entirely on the value of the growth-rate parameter r",
+      "Made famous as a model of 'complicated dynamics from simple rules' by Robert May (1976)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Landmark Paper",
+    "title": "May (1976), Nature: 'Simple Mathematical Models with Very Complicated Dynamics'",
+    "items": [
+      "Robert May showed that the discrete logistic map, despite being fully deterministic, can generate output that looks random",
+      "As r increases, the model passes through a sequence of qualitatively different behaviors",
+      "This was a foundational result connecting simple biological models to the mathematics of chaos theory",
+      "May argued ecologists should be cautious: irregular field data need not imply a stochastic or even a complex cause"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Dynamical Regimes",
+    "title": "Behavior of the Logistic Map as r Increases",
+    "headers": [
+      "Range of r",
+      "Dynamical Behavior",
+      "Description"
+    ],
+    "rows": [
+      [
+        "r < 2",
+        "Monotonic damping",
+        "Population approaches equilibrium K smoothly, no overshoot"
+      ],
+      [
+        "2 < r < 2.449",
+        "Damped oscillations",
+        "Population oscillates around K with decreasing amplitude, settling at equilibrium"
+      ],
+      [
+        "2.449 < r < 3",
+        "Stable 2-point cycle",
+        "Population settles into a stable oscillation alternating between two values"
+      ],
+      [
+        "3 < r < 3.57",
+        "Period-doubling cascade",
+        "Stable cycles of period 4, 8, 16... appear in rapid succession as r rises"
+      ],
+      [
+        "r > 3.57 (up to 4)",
+        "Chaos",
+        "Aperiodic, bounded fluctuations that never exactly repeat, interspersed with narrow periodic windows"
+      ]
+    ],
+    "footnote": "Boundaries approximate; the period-doubling cascade follows Feigenbaum's universal ratio"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Route to Chaos",
+    "title": "Period-Doubling Bifurcation",
+    "items": [
+      "As r increases past 3, the single stable point 'splits' into a stable 2-cycle",
+      "Further increases in r cause each branch to split again: 2 → 4 → 8 → 16 cycles, in a rapidly accelerating cascade",
+      "Beyond r ≈ 3.57, the cycle length becomes effectively infinite — the trajectory never exactly repeats: chaos",
+      "Narrow 'windows' of periodic behavior (e.g., a stable period-3 cycle near r ≈ 3.83) can reappear briefly within the chaotic region"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Deterministic Chaos",
+    "term": "Deterministic Chaos",
+    "def": "Complex, seemingly random behavior generated by a fully deterministic system with no random inputs — the same starting value always produces the same trajectory, yet the trajectory is aperiodic and extremely sensitive to the starting conditions.",
+    "bullets": [
+      "Chaos is NOT randomness — it is deterministic but practically unpredictable over the long term",
+      "Distinguishes 'looks random' from 'is random' — a crucial distinction for interpreting field data",
+      "May's result showed single-species models alone, with no environmental noise, can produce chaotic time series"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Defining Property",
+    "title": "Sensitivity to Initial Conditions",
+    "items": [
+      "In the chaotic regime, two populations starting at almost identical densities diverge exponentially in their subsequent trajectories",
+      "This makes long-term prediction practically impossible even though the underlying rule is exactly known",
+      "Sometimes called the 'butterfly effect' in the broader chaos-theory literature",
+      "Practical implication: chaotic population dynamics could look statistically identical to noisy or cyclic dynamics over short field time series"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Implications for Ecology",
+    "title": "Why May's Result Mattered",
+    "cards": [
+      {
+        "h": "Simple ≠ Predictable",
+        "p": "A single-species model with only density dependence can be fundamentally unpredictable — complexity is not required to generate complex-looking dynamics."
+      },
+      {
+        "h": "Reinterpreting Field Data",
+        "p": "Irregular population records once attributed to unmeasured environmental noise might instead reflect intrinsic chaotic dynamics."
+      },
+      {
+        "h": "High-r Species at Risk",
+        "p": "Species with high intrinsic growth rates and strong, delayed density dependence (e.g., some insects) are the best candidates for chaotic dynamics in nature."
+      },
+      {
+        "h": "Caution for Management",
+        "p": "If a population's dynamics are chaotic, short-term forecasts for harvest or conservation decisions become far less reliable."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Cycles, Chaos, or Noise?",
+    "sub": "Telling apart three sources of irregularity"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Diagnostic Problem",
+    "title": "Three Candidate Explanations for an Irregular Time Series",
+    "items": [
+      "Stable/quasi-periodic cycle: driven by delayed density dependence, with a repeatable characteristic period",
+      "Deterministic chaos: driven by strong density dependence with no delay required beyond the discrete generation step, aperiodic but bounded and sensitive to initial conditions",
+      "Environmental noise: driven by external stochastic forcing on a population with weak or no strong intrinsic feedback",
+      "All three can visually resemble each other in a short or noisy real-world time series"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Analytical Tools",
+    "title": "How Ecologists Try to Distinguish Them",
+    "items": [
+      "Spectral (Fourier) analysis: looks for a dominant, statistically significant periodicity in the time series",
+      "Autocorrelation analysis: measures how strongly density at time t predicts density at t + lag, revealing delayed density dependence",
+      "Fitting mechanistic models (e.g., discrete logistic with lag terms) to data and estimating the effective growth-rate parameter",
+      "Comparing fitted dynamics against known thresholds (e.g., May's r ranges) to judge whether cyclic or chaotic regimes are plausible",
+      "Long-term, high-resolution datasets (like the HBC fur records) are essential — short series cannot reliably distinguish these processes"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Diagnostic Signatures",
+    "title": "Cycles vs. Chaos vs. Noise: Key Differences",
+    "headers": [
+      "Feature",
+      "Cycle",
+      "Chaos",
+      "Noise"
+    ],
+    "rows": [
+      [
+        "Underlying cause",
+        "Delayed density dependence",
+        "Strong direct density dependence, high r",
+        "External stochastic forcing"
+      ],
+      [
+        "Periodicity",
+        "Regular, repeatable period",
+        "No fixed period (aperiodic)",
+        "No fixed period"
+      ],
+      [
+        "Predictability given exact model",
+        "High, in principle, indefinitely",
+        "Low beyond short horizon (sensitive to initial conditions)",
+        "Low; governed by external randomness"
+      ],
+      [
+        "Response to identical starting density",
+        "Same trajectory repeats",
+        "Trajectories diverge rapidly",
+        "Trajectories differ due to random inputs, not internal dynamics"
+      ],
+      [
+        "Classic example",
+        "Hare–lynx 10-year cycle",
+        "May's high-r logistic map",
+        "Populations tracking rainfall variability"
+      ]
+    ],
+    "footnote": "In practice, real populations often show a mix of all three processes simultaneously"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Persistent Challenge",
+    "title": "Why This Is Hard in Practice",
+    "items": [
+      "Ecological time series are typically short relative to the statistical power needed to detect chaos rigorously",
+      "Sampling error and true environmental noise are superimposed on any underlying deterministic signal",
+      "The same r value that produces a stable cycle in a model can produce chaos-like output once realistic noise is added ('noisy periodicity')",
+      "Because of this, the balance of evidence for many real cycles (hares, lemmings, some insects) still involves ongoing debate about the relative roles of lag-driven cycling, chaos, and stochastic forcing"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Fluctuations and Extinction Risk",
+    "sub": "Why the shape of variability matters for conservation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Consequences",
+    "title": "Population Viability Analysis (PVA)",
+    "items": [
+      "PVA uses models of population dynamics (including stochasticity and density dependence) to estimate the probability a population persists over a given time horizon",
+      "Fluctuating populations, even with a stable long-run average, can go extinct if a trough coincides with a bad environmental year or small population size",
+      "Cyclic populations spend part of every cycle at low density — a recurring window of vulnerability",
+      "Wildlife management for cyclic species must plan around the low phase, not just average abundance"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Applied Concept",
+    "title": "The Extinction Vortex",
+    "term": "Extinction Vortex",
+    "def": "A downward spiral in which a fluctuation-driven low population size increases vulnerability to further stochastic loss (demographic, environmental, or genetic), which in turn drives the population lower still, accelerating the decline toward extinction.",
+    "bullets": [
+      "Small population size increases the relative impact of random (demographic) variation in births and deaths",
+      "Low genetic diversity at troughs can reduce fitness (inbreeding depression), compounding the decline",
+      "Cyclic and chaotic populations are repeatedly exposed to this risk at every low phase, not just once"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Risk Factors",
+    "title": "Why Fluctuating Populations Are Especially Vulnerable",
+    "items": [
+      "Deep cycle troughs (as in hares and lemmings, which can fall 100-fold from peak) create recurring genetic bottlenecks",
+      "Chaotic dynamics add unpredictability on top of natural low phases, making risk harder to forecast and manage",
+      "Habitat fragmentation can prevent the recolonization that normally rescues cyclic populations after a trough",
+      "Climate change may alter cycle amplitude, period, or even cause 'collapse' of historically cyclic populations — documented weakening of some vole/lemming cycles in recent decades"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Conservation Implications",
+    "title": "Managing Species with Fluctuating Populations",
+    "cards": [
+      {
+        "h": "Don't Manage to the Peak",
+        "p": "Harvest quotas or habitat targets based on peak abundance overestimate a population's safe long-term capacity."
+      },
+      {
+        "h": "Protect Refugia",
+        "p": "Source populations in less-cyclic refuge habitats can buffer regional extinction risk during synchronized troughs."
+      },
+      {
+        "h": "Monitor Long-Term",
+        "p": "Short surveys can badly misjudge status; multi-decade monitoring (as with the HBC records) is needed to characterize true cycle behavior."
+      },
+      {
+        "h": "Anticipate Regime Shifts",
+        "p": "Environmental change can shift a population from a stable cycle into chaotic or dampened dynamics, altering extinction risk unpredictably."
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Trophic Context",
+    "title": "The Hare Cycle as a Three-Level Interaction",
+    "levels": [
+      {
+        "label": "Canada Lynx (specialist predator)",
+        "color": "#7c3aed",
+        "width": "260px"
+      },
+      {
+        "label": "Snowshoe Hare (herbivore)",
+        "color": "#2563eb",
+        "width": "380px"
+      },
+      {
+        "label": "Boreal Shrub & Sapling Browse (producers)",
+        "color": "#16a34a",
+        "width": "520px"
+      }
+    ],
+    "footnote": "Delayed feedback loops link all three levels — lag at each level contributes to the ~10-year period"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "What This Lecture Adds to the Logistic Model",
+    "items": [
+      "Lecture 18: time lags in a single-species model CAN mathematically generate oscillation and chaos",
+      "Lecture 19: real multi-year cycles (hare–lynx, lemmings) arise from delayed density dependence embedded in multi-trophic interactions, not a single isolated mechanism",
+      "May's logistic map shows that even a lag-free, single-species model with strong direct density dependence can produce chaos — a second, distinct route to irregularity",
+      "Distinguishing cycle, chaos, and noise requires long time series, experimental manipulation, and quantitative model-fitting — rarely resolved from pattern alone",
+      "Fluctuation itself, regardless of its cause, elevates extinction risk during low phases"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "Five Points to Remember",
+    "items": [
+      "Population fluctuations arise from both extrinsic (environmental) and intrinsic (density-dependent, lagged) causes — usually both together",
+      "The snowshoe hare–lynx cycle results from an interaction between delayed predation and delayed food limitation, not either alone",
+      "Lemming cycles remain debated among predation, food quality, and Chitty's social-stress hypothesis, with predator-driven explanations currently best supported at several sites",
+      "May (1976) showed that simple deterministic models can generate chaos — apparent randomness needs no random cause",
+      "Fluctuating populations face elevated, recurring extinction risk at each low phase, a central concern for conservation and wildlife management"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Chaos, cycles and noise can look identical in a short data set — but they imply very different biology, and very different consequences for how confidently we can predict, or manage, the future of a population.",
+    "attrib": "Course synthesis, after May (1976) and Krebs et al., Kluane Boreal Forest Ecosystem Project"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 20 — Interspecific Competition I: Theory",
+    "items": [
+      "Read the assigned chapter section on the Lotka-Volterra competition equations before class",
+      "We shift from single-species dynamics to interactions between two competing species",
+      "Key concepts to preview: competition coefficients, zero isotoclines, and the four possible outcomes of two-species competition",
+      "Think about how a species' own density-dependent regulation (Lectures 18–19) might change once a competitor is added to its environment"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Discussion",
+    "title": "Cycle, Chaos, or Coincidence?",
+    "sub": "If a 10-year hare cycle and a 4-year lemming cycle are both 'real,' what determines why some species cycle regularly, some fluctuate chaotically, and others show no periodicity at all?"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 19 · Population Fluctuations & Cycles</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

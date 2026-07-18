@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 10: Life Tables and Survivorship Curves</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "section",
+    "tag": "Block 2 · Lecture 10 of 45",
+    "title": "Block 2 Begins: Populations",
+    "sub": "Lectures 1–9 examined the individual — physiology, resource use, life-history tactics, and behavior. Block 2 scales up to groups of individuals of the same species: populations, their structure, and how they change through time."
+  },
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 10",
+    "title": "Life Tables and Survivorship Curves",
+    "sub": "Begon & Townsend, Ecology: From Individuals to Ecosystems (5th ed.), Chapter 4",
+    "footnote": "Reading for today: Chapter 4, sections 4.2–4.5"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Roadmap",
+    "title": "What We Cover Today",
+    "items": [
+      "What a <b>life table</b> is and why demographers and ecologists build them",
+      "<b>Cohort</b> vs <b>static</b> life tables — two ways to collect the same kind of data",
+      "Age-specific survivorship (<b>l_x</b>) and fecundity (<b>m_x</b>) — the two core columns",
+      "A full worked numeric example: building a life table and computing <b>R0</b>",
+      "<b>Survivorship curves</b> — Types I, II, and III, with real taxa",
+      "Case study: the loggerhead sea turtle, and why life tables matter for conservation"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Foundational concept",
+    "title": "Defining the Life Table",
+    "term": "Life table",
+    "def": "A systematic, age-structured summary of the mortality and survival schedule of a population — a tally of how many individuals in a cohort are alive at each age, and how many die in each age interval.",
+    "bullets": [
+      "Originally developed by human demographers (actuarial tables) to price life insurance",
+      "Ecologists adapted the same bookkeeping to any organism with a definable age structure",
+      "The life table is the raw material from which survivorship curves and population growth rates are built"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "Why Ecologists Build Life Tables",
+    "items": [
+      "They convert a snapshot of a population into a <b>dynamic</b> picture of birth and death rates by age",
+      "They let us ask: at which life stage does this population suffer the heaviest mortality?",
+      "They allow comparison of life-history strategies across species (e.g., oysters vs elephants)",
+      "They are the essential input for projecting future population size and growth rate (Lecture 11)",
+      "Applied uses: setting sustainable harvest quotas, prioritizing conservation actions, human actuarial science"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two methods, same goal",
+    "title": "Cohort Life Tables vs Static Life Tables",
+    "headers": [
+      "Cohort (dynamic)",
+      "Static (time-specific)"
+    ],
+    "rows": [
+      [
+        "Follows a single group of individuals born at the same time, from birth until the last one dies",
+        "Samples the age structure of a population at one point in time"
+      ],
+      [
+        "Requires longitudinal tracking — can take years or a full lifespan to complete",
+        "Faster to construct; needs only one census plus a way to age individuals"
+      ],
+      [
+        "Gives a true, unbiased age-specific mortality schedule for that cohort",
+        "Assumes the population is stationary — age structure and mortality rates are not changing over time"
+      ],
+      [
+        "Best for organisms with short lifespans or when marked individuals can be followed (e.g., annual plants, Dall sheep skulls of known-age)",
+        "Best when environment is roughly constant and individuals can be aged (e.g., horns, otoliths, tooth wear)"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Method 1",
+    "title": "The Cohort (Dynamic) Life Table",
+    "term": "Cohort life table",
+    "def": "Built by marking or otherwise identifying all individuals born within a short interval (a cohort) and recording how many remain alive at each subsequent age until none survive.",
+    "bullets": [
+      "Classic examples: Connell's study of the barnacle Balanus glandula; annual plant cohorts tracked from seed to death",
+      "Advantage: directly observed, no assumption of a stable population needed",
+      "Disadvantage: time-consuming, and conditions (weather, predators) may change during the study, confounding results across cohorts"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Method 2",
+    "title": "The Static (Time-Specific) Life Table",
+    "term": "Static life table",
+    "def": "Built from the age distribution of a population sampled at a single point in time, using the ages of individuals that died (e.g., skulls, shells, tree rings) or a cross-sectional census of living individuals.",
+    "bullets": [
+      "Classic example: Dall mountain sheep (Ovis dalli) skulls aged by horn annuli, collected by Murie and analyzed by Deevey (1947)",
+      "Assumes a <b>stationary age distribution</b>: birth rates, death rates, and total numbers roughly constant over the sampling period",
+      "If the population is actually growing or shrinking, static life tables can give a biased mortality schedule"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical constraints",
+    "title": "Choosing a Method: Data Requirements",
+    "items": [
+      "Long-lived, slow-maturing species (whales, trees, sea turtles) are rarely tractable as full cohort studies within a research career — static or partial-cohort approaches are common",
+      "Short-lived species (annual plants, many insects) are well suited to true cohort life tables completed within one field season",
+      "Sessile or site-attached organisms (barnacles, corals, trees) are easiest to follow individually over time",
+      "Mobile, cryptic, or wide-ranging animals often force reliance on indirect aging (skulls, otoliths, growth rings) — i.e., static tables"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core variable 1",
+    "title": "Age-Specific Survivorship",
+    "term": "l_x",
+    "def": "The proportion of the original cohort (of size N0, the number alive at age 0) that survives to reach the start of age x: l_x = N_x / N0. By definition, l_0 = 1.0 (or 1000 per 1000 born, depending on convention).",
+    "bullets": [
+      "l_x always declines or stays flat with age — it can never increase",
+      "The shape of l_x plotted against age (usually on a log scale) is the <b>survivorship curve</b>",
+      "Related quantity: age-specific mortality rate q_x = (N_x − N_x+1) / N_x, the fraction of age-x individuals that die before reaching age x+1"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core variable 2",
+    "title": "Age-Specific Fecundity",
+    "term": "m_x",
+    "def": "The average number of offspring (typically female offspring, in female-based demography) produced per surviving individual of age x during that age interval.",
+    "bullets": [
+      "m_x = 0 before the age of first reproduction and often after reproductive senescence",
+      "Combined with l_x, m_x lets us track not just survival but reproductive output age by age",
+      "The product l_x · m_x gives the expected number of offspring produced by an average newborn while it is of age x — the key building block for R0"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method",
+    "title": "How a Life Table Is Constructed — Step by Step",
+    "items": [
+      "1. Define the cohort (or census) and record the number alive at each age, N_x",
+      "2. Convert counts to proportions surviving: l_x = N_x / N0",
+      "3. Record the average number of offspring produced by individuals of each age: m_x",
+      "4. Multiply l_x by m_x at each age to get the age-specific contribution to lifetime reproduction",
+      "5. Sum l_x·m_x across all ages to obtain the <b>net reproductive rate, R0</b>",
+      "6. Use the same table to compute generation time and, later, the intrinsic rate of increase r (Lecture 11)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked example",
+    "title": "A Hypothetical Cohort of 500 Seedlings",
+    "left": {
+      "h": "Setup",
+      "body": "Imagine a cohort of 500 seedlings of a short-lived perennial herb, all germinating in the same spring (age x = 0). We follow this cohort every year until every individual has died, recording the number still alive (N_x) and the average seed output per surviving plant (m_x) at each age."
+    },
+    "right": {
+      "h": "Why this example",
+      "body": "This mirrors real cohort studies of annual and short-lived perennial plants, where every individual can be tagged and revisited. The same arithmetic applies unchanged to insects, fish, or vertebrates — only the field methods differ."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Raw data",
+    "title": "Step 1 — Number Surviving at Each Age (N_x)",
+    "items": [
+      "Age 0 (seedling): N0 = 500",
+      "Age 1: N1 = 400",
+      "Age 2: N2 = 200",
+      "Age 3: N3 = 100",
+      "Age 4: N4 = 40",
+      "Age 5: N5 = 0 (no individuals survive past age 4)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Step 2",
+    "title": "Age-Specific Survivorship (l_x = N_x / N0)",
+    "items": [
+      "l_0 = 500/500 = <b>1.00</b>",
+      "l_1 = 400/500 = <b>0.80</b>",
+      "l_2 = 200/500 = <b>0.40</b>",
+      "l_3 = 100/500 = <b>0.20</b>",
+      "l_4 = 40/500 = <b>0.08</b>",
+      "l_5 = 0/500 = <b>0.00</b>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Step 3",
+    "title": "Age-Specific Fecundity (m_x, Seeds per Surviving Plant)",
+    "items": [
+      "m_0 = 0 (seedlings do not reproduce)",
+      "m_1 = 0 (still juvenile, no flowering)",
+      "m_2 = 2.0 seeds per surviving plant",
+      "m_3 = 3.0 seeds per surviving plant (peak reproduction)",
+      "m_4 = 1.0 seed per surviving plant (senescent decline)",
+      "This rise-then-fall pattern in m_x is typical of iteroparous organisms with a reproductive peak in mid-life"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key summary statistic",
+    "title": "Net Reproductive Rate",
+    "term": "R0",
+    "def": "The average number of offspring produced by a single individual over its entire lifetime, accounting for the probability of surviving to each age: R0 = Σ (l_x · m_x), summed across all ages.",
+    "bullets": [
+      "R0 > 1: each individual more than replaces itself — population growing",
+      "R0 = 1: each individual exactly replaces itself — population stationary",
+      "R0 < 1: individuals fail to replace themselves — population declining",
+      "R0 measures growth <b>per generation</b>, not per unit time — that distinction matters when comparing species with very different generation times"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Step 4",
+    "title": "Computing l_x · m_x at Each Age",
+    "items": [
+      "Age 2: l_2 · m_2 = 0.40 × 2.0 = <b>0.80</b>",
+      "Age 3: l_3 · m_3 = 0.20 × 3.0 = <b>0.60</b>",
+      "Age 4: l_4 · m_4 = 0.08 × 1.0 = <b>0.08</b>",
+      "All other ages contribute 0 (either l_x = 0 or m_x = 0)",
+      "Sum: R0 = 0.80 + 0.60 + 0.08 = <b>1.48</b>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the result",
+    "title": "What R0 = 1.48 Tells Us",
+    "items": [
+      "Each individual in this cohort leaves, on average, 1.48 offspring across its lifetime",
+      "Because R0 > 1, this population is increasing across generations, under the conditions observed",
+      "R0 = 1.48 does <b>not</b> tell us how fast the population grows per year — only per generation",
+      "To get a per-year growth rate we need generation time, T, and eventually the intrinsic rate r (next lecture)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Companion statistic",
+    "title": "Generation Time",
+    "term": "T (mean generation time)",
+    "def": "The average age at which individuals in the cohort produce offspring, weighted by their reproductive contribution: T = Σ(x · l_x · m_x) / Σ(l_x · m_x) = Σ(x · l_x · m_x) / R0.",
+    "bullets": [
+      "T is the average time between when a mother is born and when her offspring are born",
+      "Species with the same R0 but very different T can have very different annual growth rates — a short T converts a modest R0 into rapid population growth"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Step 5",
+    "title": "Computing Generation Time for Our Cohort",
+    "items": [
+      "x · l_x · m_x at age 2 = 2 × 0.80 = 1.60",
+      "x · l_x · m_x at age 3 = 3 × 0.60 = 1.80",
+      "x · l_x · m_x at age 4 = 4 × 0.08 = 0.32",
+      "Sum = 1.60 + 1.80 + 0.32 = 3.72",
+      "T = 3.72 / R0 = 3.72 / 1.48 ≈ <b>2.51 years</b>"
+    ]
+  },
+  {
+    "type": "quote",
+    "quote": "The life table is nothing more than a bookkeeping device — but it is the bookkeeping that lets us see, age by age, exactly where in the life cycle a population's fate is being decided.",
+    "attrib": "Adapted from Begon & Townsend, Ecology: From Individuals to Ecosystems"
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "From Numbers to Shapes: Survivorship Curves",
+    "sub": "Plotting l_x against age turns a table of numbers into a visual signature of a species' mortality pattern."
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "The Survivorship Curve",
+    "term": "Survivorship curve",
+    "def": "A graph of the logarithm of survivorship (log l_x) against age (x), summarizing the pattern of mortality risk across the lifespan of a cohort.",
+    "bullets": [
+      "Plotting log l_x rather than l_x itself is standard practice: a straight line on this scale means a constant mortality rate at all ages",
+      "The overall shape of the curve — not the absolute numbers — is what distinguishes the classic survivorship types"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The three classic patterns",
+    "title": "Survivorship Curve Types I, II, and III",
+    "cards": [
+      {
+        "h": "Type I — Late loss",
+        "p": "Mortality is concentrated late in life; most individuals survive to old age before dying rapidly. Curve stays high, then drops steeply at the end."
+      },
+      {
+        "h": "Type II — Constant risk",
+        "p": "Mortality rate is roughly constant at all ages, producing a straight diagonal line on the log l_x plot."
+      },
+      {
+        "h": "Type III — Early loss",
+        "p": "Mortality is concentrated very early in life (e.g., as eggs, seeds, or larvae); the few survivors then face low risk. Curve drops steeply at the start, then flattens."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Contrasting extremes",
+    "title": "Type I vs Type III: Opposite Strategies",
+    "headers": [
+      "Type I (late loss)",
+      "Type III (early loss)"
+    ],
+    "rows": [
+      [
+        "Low mortality when young; risk rises sharply in old age",
+        "Very high mortality immediately after birth/hatching/germination"
+      ],
+      [
+        "Typically few offspring, high parental investment per offspring",
+        "Typically huge numbers of offspring, little investment per individual"
+      ],
+      [
+        "Example: humans in developed countries, elephants, large mammals",
+        "Example: oysters, cod, most flowering plants, many invertebrates"
+      ],
+      [
+        "Population regulation acts mainly on adults/senescence",
+        "Population regulation acts mainly on eggs, seeds, and juveniles"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Type I examples",
+    "title": "Late-Loss Survivorship in Practice",
+    "items": [
+      "Humans in low-mortality, high-resource settings — the demographic transition pushes death toward old age",
+      "Large, K-selected mammals: elephants, large ungulates, many primates",
+      "Common feature: small litter/clutch size, extended parental care, slow maturation",
+      "Deevey's (1947) Dall sheep data are a textbook near-Type-I example, with juvenile survival high and mortality concentrated in older age classes"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Type II examples",
+    "title": "Constant-Risk Survivorship in Practice",
+    "items": [
+      "Many birds — annual adult survival probability is roughly constant regardless of age, once past the vulnerable nestling stage",
+      "Some rodents and lizards approximate Type II across their adult lifespan",
+      "Hydra (studied by Deevey) is a classic near-perfect Type II organism — mortality risk essentially independent of age",
+      "Type II is somewhat idealized; real species often show a Type I or III component early in life layered onto a Type II adult phase"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Type III examples",
+    "title": "Early-Loss Survivorship in Practice",
+    "items": [
+      "Most fish: millions of eggs, extremely low survival to the juvenile stage, but adults that reach maturity survive comparatively well",
+      "Marine invertebrates with planktonic larvae: oysters, barnacles, many corals — massive larval mortality from predation and dispersal loss",
+      "Most flowering plants: enormous seed output, with germination and seedling establishment being the major bottleneck",
+      "This is the pattern also seen in our loggerhead sea turtle case study later in this lecture"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Reading the graph",
+    "title": "Why Plot log(l_x) Instead of l_x?",
+    "left": {
+      "h": "The problem with a raw scale",
+      "body": "On an untransformed (arithmetic) scale, a population that loses 50% of its members every year looks like a curve whose steepness changes constantly, making different species and different life stages hard to compare visually."
+    },
+    "right": {
+      "h": "The log-scale solution",
+      "body": "On a log(l_x) vs age plot, a <b>constant</b> mortality rate produces a straight line. Deviations from a straight line — steep early drops, flat middles, steep late drops — directly reveal where mortality risk changes across the lifespan, which is exactly what defines Types I, II, and III."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpretation skill",
+    "title": "Reading Survivorship Curves Correctly",
+    "items": [
+      "The <b>steepness</b> of the curve at a given age = the mortality rate at that age, not the total number of deaths",
+      "A curve can be steep even with few absolute deaths if the surviving cohort is already small — always check whether you're looking at l_x or raw N_x",
+      "Real species are rarely 'pure' Type I, II, or III — most show a composite shape (e.g., Type III as juveniles, shifting toward Type I or II as adults)",
+      "Comparing survivorship curves across species is a comparison of life-history <b>strategy</b>, not simply of who lives longer"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Related rate",
+    "title": "Age-Specific Mortality Rate",
+    "term": "q_x",
+    "def": "The proportion of individuals alive at the start of age interval x that die before reaching age x+1: q_x = (N_x − N_x+1) / N_x = 1 − (l_x+1 / l_x).",
+    "bullets": [
+      "q_x is a per-interval risk, whereas l_x is a cumulative survivorship — the two are complementary views of the same underlying mortality schedule",
+      "A life table can be summarized equally well by its l_x column or its q_x column; ecologists often report both"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Diagnostic tool",
+    "title": "The k-Value (Killing Power)",
+    "term": "k_x",
+    "def": "A measure of the 'killing power' of a mortality factor acting during age interval x, defined as k_x = log10(N_x) − log10(N_x+1). Because logarithms are used, k-values from successive mortality factors or age intervals are additive.",
+    "bullets": [
+      "Introduced by Varley and Gradwell for insect population studies, and widely used in <b>key-factor analysis</b>",
+      "Because k-values add, the total generational mortality K = Σ k_x, and the age interval (or mortality agent) with the largest k_x is the strongest candidate for the <b>key factor</b> driving overall population change",
+      "This lets ecologists move from 'survivorship dropped' to 'which specific mortality source is responsible'"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method",
+    "title": "Key-Factor Analysis in Practice",
+    "items": [
+      "Calculate k_x for each age interval (or, in insect studies, for each identifiable mortality agent: predation, disease, parasitism, starvation)",
+      "Plot each k_x against total generational mortality (K) across multiple years or cohorts",
+      "The mortality factor whose k_x tracks K most closely across years is identified as the <b>key factor</b> regulating the population",
+      "Classic application: Varley & Gradwell's decades-long study of the winter moth (Operophtera brumata), which identified predation on pupae and larval starvation as key factors"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked example",
+    "title": "k-Values for Our Seedling Cohort",
+    "left": {
+      "h": "Calculation",
+      "body": "Using N_x = 500, 400, 200, 100, 40 for ages 0–4: k0 = log10(500) − log10(400) = 0.097; k1 = log10(400) − log10(200) = 0.301; k2 = log10(200) − log10(100) = 0.301; k3 = log10(100) − log10(40) = 0.398."
+    },
+    "right": {
+      "h": "Interpretation",
+      "body": "The largest k-value occurs between ages 3 and 4 (k3 = 0.398), meaning that transition kills the largest <b>proportion</b> of survivors. If this pattern repeated across many cohorts and years, age 3–4 mortality would be flagged as the key factor to investigate further — perhaps late-season drought or a seed/seedling predator active at that stage."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Why This Matters Beyond the Classroom",
+    "sub": "Life tables are a working tool across wildlife management, conservation biology, human demography, and pest control."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Application 1",
+    "title": "Wildlife Management",
+    "items": [
+      "Harvest quotas (fishing, hunting) are set using life tables to estimate sustainable offtake without depleting the stock",
+      "Age-structured survivorship data reveal which age classes can absorb additional mortality and which cannot",
+      "Fisheries stock assessments routinely combine l_x, m_x, and catch data to model population trajectories under different harvest regimes"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Application 2",
+    "title": "Conservation Biology",
+    "items": [
+      "Life tables pinpoint the life stage causing a population decline — critical for endangered species where resources for intervention are limited",
+      "Stage- or age-structured population models (built directly from life table data) let managers compare the projected benefit of different interventions before committing resources",
+      "This is exactly the logic behind the sea turtle case study coming up next"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Application 3",
+    "title": "Human Demography",
+    "items": [
+      "Actuarial life tables (the original life tables) underlie life insurance pricing, pension planning, and public health policy",
+      "Human survivorship has shifted historically from closer to Type III/II patterns (high infant and childhood mortality) toward a strongly Type I pattern in most industrialized nations",
+      "Comparing life tables across countries or time periods is a standard tool for tracking public health progress and the demographic transition"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Application 4",
+    "title": "Agricultural Pest Control",
+    "items": [
+      "Key-factor analysis (using k-values) identifies which life stage of a pest is most vulnerable to natural or applied control",
+      "Targeting control efforts (pesticides, biological control agents) at the life stage with the highest natural k-value maximizes efficiency and minimizes unnecessary intervention",
+      "Historical pest life-table studies (e.g., on agricultural insects) directly shaped integrated pest management (IPM) strategy"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case study",
+    "title": "The Loggerhead Sea Turtle",
+    "sub": "A textbook example of why knowing the shape of the survivorship curve — and which stage drives it — changes conservation strategy."
+  },
+  {
+    "type": "term",
+    "eyebrow": "Background",
+    "title": "Loggerhead Sea Turtle Life History",
+    "term": "Caretta caretta",
+    "def": "A long-lived marine turtle with a life cycle spanning an egg stage, hatchling, small and large juvenile stages, subadult, and adult — the full cycle to first reproduction can take 20–30 years.",
+    "bullets": [
+      "Females lay large clutches of eggs (often 100+ eggs per nest) on natal beaches — a classic Type III-style start to life",
+      "Historically, conservation effort focused overwhelmingly on protecting nests and hatchlings on beaches, the most visible and accessible life stage"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Stage structure",
+    "title": "The Loggerhead Life Cycle, Stage by Stage",
+    "items": [
+      "Egg (in nest) — vulnerable to predation, beach erosion, poaching",
+      "Hatchling — extremely vulnerable during the crawl to the sea and early ocean dispersal",
+      "Small juvenile (oceanic) — years spent in open ocean, still high mortality",
+      "Large juvenile / subadult (benthic, coastal) — mortality drops substantially at this stage, especially from incidental capture in fishing gear (bycatch)",
+      "Adult (breeding) — relatively low annual mortality but long time to reach this stage"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The classic finding",
+    "title": "Crouse, Crowder & Caswell (1987): Which Stage Matters Most?",
+    "left": {
+      "h": "The surprising result",
+      "body": "A stage-structured demographic analysis showed that population growth rate was far more sensitive to changes in survival of <b>large juveniles and subadults</b> than to survival of eggs or hatchlings — even though eggs experience the highest raw mortality rate."
+    },
+    "right": {
+      "h": "Why nest protection alone fell short",
+      "body": "Because so few hatchlings were ever going to survive to adulthood regardless, boosting hatchling survival produced only a small increase in population growth. Reducing bycatch mortality of juveniles and subadults (e.g., via Turtle Excluder Devices, TEDs) had a much larger effect — a result only visible by combining the life table with stage-specific growth-rate sensitivity, the elasticity analysis we return to in Lecture 12."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Take-home lesson",
+    "title": "Why the Loggerhead Case Study Matters",
+    "items": [
+      "High mortality at a stage does not automatically mean that stage is the best conservation target — the life table lets you separate 'where deaths happen' from 'where intervention has the biggest demographic payoff'",
+      "This distinction (mortality rate vs demographic leverage) is precisely what elasticity and sensitivity analysis, covered in Lecture 12, formalize mathematically",
+      "The loggerhead case reshaped real-world policy: TED regulations targeting juvenile/subadult bycatch became a central conservation tool alongside beach nest protection"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Caveats",
+    "title": "Limitations of Life Tables",
+    "items": [
+      "Cohort tables require years to decades of tracking for long-lived species — often impractical within a single study",
+      "Static tables assume a stationary population (constant birth/death rates) — biased if the population is actually growing, shrinking, or subject to changing conditions",
+      "Environmental variation between years means a life table built in one year may not represent 'typical' conditions",
+      "Life tables usually track only females (for m_x), implicitly assuming a stable sex ratio and that male demography does not independently limit reproduction",
+      "Migration in and out of the study population, if unaccounted for, can be mistaken for birth or death"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Avoid these mistakes",
+    "title": "Common Interpretation Pitfalls",
+    "items": [
+      "Confusing <b>l_x</b> (cumulative survivorship from birth) with <b>q_x</b> (mortality risk within a single age interval) — they answer different questions",
+      "Assuming R0 describes annual growth — it describes growth <b>per generation</b>; two species can share an R0 but differ hugely in annual growth if their generation times differ",
+      "Treating a species as 'purely' Type I, II, or III when most real survivorship curves are composites that shift shape across life stages",
+      "Assuming the age class with the highest mortality is automatically the most important target for management — as the loggerhead case study shows, demographic leverage can lie elsewhere",
+      "Building a static life table from a population that is not actually stationary, and treating the result as unbiased"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Consolidating today's toolkit",
+    "title": "Four Concepts to Carry Forward",
+    "cards": [
+      {
+        "h": "Life table",
+        "p": "An age-structured record of survival (l_x) and reproduction (m_x), built as a cohort table or a static table."
+      },
+      {
+        "h": "R0 and generation time",
+        "p": "R0 = Σ(l_x·m_x) measures lifetime reproductive output; T converts that into a timescale."
+      },
+      {
+        "h": "Survivorship curves",
+        "p": "Type I (late loss), Type II (constant risk), Type III (early loss) — the visual signature of a species' mortality schedule."
+      },
+      {
+        "h": "k-values",
+        "p": "Additive measures of killing power that let you identify the key mortality factor driving population change."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture recap",
+    "title": "Key Takeaways",
+    "items": [
+      "A life table turns raw survival and birth counts into the two core columns, l_x and m_x, from which everything else in this lecture is derived",
+      "R0 = Σ(l_x·m_x) tells you whether a cohort is more than replacing itself; generation time T tells you over what timescale",
+      "Survivorship curve shape (log l_x vs age) reveals whether mortality is concentrated late (Type I), constant (Type II), or early (Type III) in life",
+      "k-value analysis converts 'the curve dropped' into 'here is the specific stage or factor responsible'",
+      "The loggerhead case shows that the life table is a starting point, not an endpoint — real conservation decisions require asking which stage offers the greatest demographic leverage, not just the highest mortality"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Before Next Class",
+    "left": {
+      "h": "Reading",
+      "body": "Begon & Townsend, Chapter 4, sections 4.6–4.8 (population growth from life table data) — focus especially on how R0 and generation time connect to the intrinsic rate of increase, r, and the finite rate of increase, λ."
+    },
+    "right": {
+      "h": "Think about",
+      "body": "Two populations both have R0 = 1.48. One has a generation time of 1 year; the other has a generation time of 10 years. Before next class, think through why these two populations will have very different annual growth rates despite identical lifetime reproductive output — and what quantity you would need to calculate to compare them properly."
+    }
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question — Lecture 11 Preview",
+    "title": "If Two Species Share the Same R0, Can They Ever Have the Same Population Growth Rate?",
+    "sub": "Consider a Type I species (few offspring, long generation time) and a Type III species (many offspring, short generation time) with identical R0 values. What would have to be true of their generation times for their year-to-year growth rates to converge — and is that realistic?",
+    "footnote": "Next lecture: Population Growth Rates — r, λ, and the Euler Equation"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 10 · Life Tables</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

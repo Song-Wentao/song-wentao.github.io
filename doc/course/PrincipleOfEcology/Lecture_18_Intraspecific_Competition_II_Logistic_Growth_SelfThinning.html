@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 18: Intraspecific Competition II — Logistic Growth & Self-Thinning</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX — Principles of Ecology · Lecture 18",
+    "title": "Intraspecific Competition II: Logistic Growth & Self-Thinning",
+    "sub": "From density dependence to a growth equation — and a universal rule for crowded plants",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Ch. 5"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off in Lecture 17",
+    "sub": "Intraspecific competition, density dependence, and the seeds of a model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 17 in Four Ideas",
+    "items": [
+      "Intraspecific competition: individuals of the same species compete for a shared, limiting resource.",
+      "Scramble competition shares the resource (often inefficiently) among all; contest competition allocates it unequally, so some individuals get all they need and others get none.",
+      "Exploitation competition acts indirectly through resource depletion; interference competition acts directly through aggressive encounters, territoriality, or chemical inhibition.",
+      "Density dependence: per capita birth rates fall and/or per capita death rates rise as population density (N) increases — the key negative feedback that regulates populations."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Carrying Capacity and Two Case Studies",
+    "items": [
+      "Carrying capacity, K, is the population size an environment can sustain indefinitely given its resources — the density at which births balance deaths.",
+      "We previewed self-thinning in even-aged plant stands: as individuals grow, density must fall because a fixed area cannot support more and more biomass.",
+      "We also previewed territoriality (e.g., red grouse, great tits) as a behavioral mechanism of contest competition that caps local breeding density.",
+      "Today we formalize density dependence mathematically, then return to self-thinning with a precise, testable quantitative law."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap — key term",
+    "title": "Density Dependence, Restated",
+    "term": "Density-Dependent Factor",
+    "def": "A factor whose effect on a population's per capita birth or death rate intensifies as density increases, driving the population back toward an equilibrium.",
+    "bullets": [
+      "Contrasts with density-independent factors (e.g., a frost), whose effects don't scale with N.",
+      "Density dependence is what makes a carrying capacity possible in a model.",
+      "Lecture 18's job: turn 'growth slows as N approaches K' into an explicit equation."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part I",
+    "title": "Building the Logistic Growth Equation",
+    "sub": "From exponential growth to a self-limiting model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Starting point",
+    "title": "Recall: Exponential Growth",
+    "items": [
+      "The exponential model: dN/dt = rN, where r is the intrinsic rate of natural increase.",
+      "It assumes r is constant — unlimited resources, no crowding, no density dependence.",
+      "Under exponential growth, population size explodes without bound — clearly unrealistic over the long term for any real population.",
+      "We need a term that makes r shrink toward zero as N approaches some ceiling, K."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Derivation — step 1",
+    "title": "Making r Depend on Density",
+    "left": {
+      "h": "The problem",
+      "body": "In dN/dt = rN, the per capita growth rate (dN/dt)/N is always r, no matter how crowded the population gets. We need this per capita rate to decline linearly as N rises, reaching zero exactly at N = K."
+    },
+    "right": {
+      "h": "The fix",
+      "body": "Replace the constant r with an effective rate that scales down as N approaches K: multiply r by the fraction of carrying capacity still unused, (1 − N/K). When N = 0, this term = 1 (full speed); when N = K, it = 0 (growth stops)."
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Derivation — step 2",
+    "title": "Assembling the Logistic Equation",
+    "left": {
+      "h": "Combine the pieces",
+      "body": "Multiply the exponential term rN by the density-dependent brake (1 − N/K): dN/dt = rN(1 − N/K). This is the logistic (or Verhulst) equation, first proposed by Pierre-François Verhulst in 1838 and popularized in ecology by Raymond Pearl and Lowell Reed in the 1920s."
+    },
+    "right": {
+      "h": "What it guarantees",
+      "body": "When N is small, N/K ≈ 0, so dN/dt ≈ rN — growth is nearly exponential. As N rises toward K, (1 − N/K) shrinks toward 0, so dN/dt shrinks toward 0 — growth decelerates and stops at K."
+    },
+    "footnote": "Begon & Townsend, 5th ed., eq. 5.3"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The central equation",
+    "title": "The Logistic Growth Equation",
+    "term": "dN/dt = rN(1 − N/K)",
+    "def": "The instantaneous rate of change of population size N equals the intrinsic rate of increase r, multiplied by N, multiplied by a density-dependent 'braking' term that falls linearly from 1 to 0 as N rises from 0 to K.",
+    "bullets": [
+      "N = population size (or density)",
+      "r = intrinsic (maximum, per capita) rate of increase",
+      "K = carrying capacity",
+      "(1 − N/K) = the density-dependent term, sometimes called the 'unrealized potential' or 'environmental resistance' term"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the equation",
+    "title": "What Each Term Contributes",
+    "items": [
+      "rN alone (no braking term) would reproduce pure exponential growth.",
+      "(1 − N/K) is the crucial addition: it converts a constant per capita rate into a variable one that depends on crowding.",
+      "Because (1 − N/K) is a simple linear function of N, the logistic model assumes competition intensifies smoothly and proportionally with density — no thresholds, no lags (for now).",
+      "The product rN(1 − N/K) is therefore zero at N = 0 (nothing to grow) and zero again at N = K (no room left to grow) — maximal somewhere in between."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Term spotlight",
+    "title": "r: The Intrinsic Rate of Increase",
+    "term": "Intrinsic Rate of Natural Increase (r)",
+    "def": "The maximum possible per capita growth rate of a population, achieved only when resources are unlimited and density effects are absent (i.e., when N is very small relative to K).",
+    "bullets": [
+      "Sets how fast the population climbs during the early, low-density phase.",
+      "Higher r → steeper initial rise and, as we'll see, greater potential for overshoot when time lags are added."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Term spotlight",
+    "title": "K: Carrying Capacity",
+    "term": "Carrying Capacity (K)",
+    "def": "The equilibrium population size at which dN/dt = 0 under the logistic model — where births and deaths exactly balance given the environment's resources.",
+    "bullets": [
+      "Acts as a stable ceiling: populations below K grow toward it; populations above K (if they occur) decline toward it.",
+      "K is not fixed in nature — it can shift with resource availability, climate, or habitat change."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Term spotlight",
+    "title": "(1 − N/K): The Unrealized Potential",
+    "term": "The Density-Dependent Brake",
+    "def": "The proportion of carrying capacity that remains 'unused' at a given N — effectively, the fraction of available resources not yet consumed.",
+    "bullets": [
+      "At N/K = 0.1, 90% of the growth potential is still realized.",
+      "At N/K = 0.9, only 10% remains — growth is nearly stalled.",
+      "At N/K = 1 (N = K), the brake fully engages: growth ceases."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part II",
+    "title": "The Sigmoid Growth Curve",
+    "sub": "What logistic growth looks like when plotted against time"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Shape of the curve",
+    "title": "Three Phases of Sigmoid (S-Shaped) Growth",
+    "items": [
+      "Phase 1 — near-exponential: at low N, (1 − N/K) ≈ 1, so growth accelerates almost as if unlimited.",
+      "Phase 2 — inflection: growth rate (dN/dt) reaches its maximum, then begins to decelerate as crowding effects intensify.",
+      "Phase 3 — deceleration and plateau: as N approaches K, dN/dt shrinks toward zero and the population size levels off asymptotically at K.",
+      "Plotted as N vs. t, this traces the classic S-shaped (sigmoid) curve — one of the most recognizable shapes in population ecology."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Sigmoid curve",
+    "title": "The Three Phases, Side by Side",
+    "cards": [
+      {
+        "h": "1. Acceleration",
+        "p": "N small, density effects negligible, growth rate rising — resembles exponential growth."
+      },
+      {
+        "h": "2. Inflection",
+        "p": "N = K/2, growth rate (dN/dt) is at its absolute maximum — the steepest point on the curve."
+      },
+      {
+        "h": "3. Deceleration",
+        "p": "N large, density effects dominate, growth rate falling back toward zero as N → K."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The turning point",
+    "title": "Why the Inflection Point Sits at N = K/2",
+    "items": [
+      "dN/dt = rN(1 − N/K) is a downward-opening parabola when plotted against N (not against time).",
+      "To find its maximum, take d(dN/dt)/dN and set it to zero: this yields N = K/2.",
+      "At exactly N = K/2, the population is growing faster (in absolute numbers per unit time) than at any other density.",
+      "This is why logistic-modeled populations show their steepest rise in size roughly halfway to carrying capacity."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key result",
+    "title": "Maximum Growth Rate",
+    "term": "Peak dN/dt = rK/4, occurring at N = K/2",
+    "def": "Substituting N = K/2 into dN/dt = rN(1 − N/K) gives dN/dt(max) = r(K/2)(1 − 1/2) = rK/4 — the single highest absolute growth rate the population will ever achieve under the logistic model.",
+    "bullets": [
+      "Below K/2: growth rate is increasing with N.",
+      "Above K/2: growth rate is decreasing with N, even though N itself is still rising.",
+      "This result underlies maximum sustainable yield models in fisheries and wildlife management — harvest near K/2 to maximize replacement rate."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Comparing models",
+    "title": "Exponential vs. Logistic Growth",
+    "left": {
+      "h": "Exponential: dN/dt = rN",
+      "body": "Per capita growth rate is constant at r regardless of density. N vs. t traces a J-shaped curve that accelerates indefinitely. No equilibrium; no upper bound. Realistic only for brief periods (e.g., colonization of new habitat, early lab cultures)."
+    },
+    "right": {
+      "h": "Logistic: dN/dt = rN(1 − N/K)",
+      "body": "Per capita growth rate declines linearly with N, from r at N≈0 to 0 at N=K. N vs. t traces an S-shaped (sigmoid) curve that levels off at K. Includes a stable equilibrium and captures density dependence directly."
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Side-by-side",
+    "title": "Exponential Growth vs. Logistic Growth",
+    "headers": [
+      "Feature",
+      "Exponential Model",
+      "Logistic Model"
+    ],
+    "rows": [
+      [
+        "Equation",
+        "dN/dt = rN",
+        "dN/dt = rN(1 − N/K)"
+      ],
+      [
+        "Per capita growth rate",
+        "Constant (= r)",
+        "Declines linearly with N"
+      ],
+      [
+        "Curve shape (N vs. t)",
+        "J-shaped",
+        "S-shaped (sigmoid)"
+      ],
+      [
+        "Upper limit",
+        "None",
+        "K (carrying capacity)"
+      ],
+      [
+        "Density dependence",
+        "Absent",
+        "Present, built in"
+      ],
+      [
+        "Point of max. absolute growth",
+        "Growth rate never peaks — keeps rising",
+        "N = K/2 (dN/dt = rK/4)"
+      ],
+      [
+        "Realism over long time spans",
+        "Low — unbounded",
+        "Higher — bounded, but still a simplification"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Caveat",
+    "title": "The Logistic Model Is Still a Simplification",
+    "items": [
+      "It assumes all individuals are identical (no age or stage structure).",
+      "It assumes r and K are constants, unaffected by environmental variation.",
+      "It assumes the population responds to density instantaneously, with no time lag.",
+      "Real populations violate all three assumptions to some degree — but the model remains a powerful conceptual baseline, much as F = ma is a baseline in physics."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part III",
+    "title": "A Worked Numerical Example",
+    "sub": "Tracking a population from low density toward K"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Setup",
+    "title": "Example Parameters",
+    "items": [
+      "Let r = 0.4 per unit time, K = 500 individuals, and N₀ = 10 individuals at t = 0.",
+      "We use the logistic solution: N(t) = K / [1 + ((K − N₀)/N₀) e^(−rt)].",
+      "Here (K − N₀)/N₀ = (500 − 10)/10 = 49 — this constant sets how quickly the curve rises from its starting point.",
+      "We'll compute N(t) and the instantaneous growth rate dN/dt at several time points."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Calculation walkthrough",
+    "title": "Solving for N at t = 10",
+    "items": [
+      "N(10) = 500 / [1 + 49·e^(−0.4×10)] = 500 / [1 + 49·e^(−4)].",
+      "e^(−4) ≈ 0.0183, so 49 × 0.0183 ≈ 0.897.",
+      "N(10) = 500 / (1 + 0.897) = 500 / 1.897 ≈ 263.5 individuals.",
+      "Growth rate at this point: dN/dt = rN(1 − N/K) = 0.4 × 263.5 × (1 − 263.5/500) ≈ 0.4 × 263.5 × 0.473 ≈ 49.9 individuals per unit time — close to the theoretical maximum, since N here is near K/2 = 250."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Worked example",
+    "title": "Logistic Growth: N(t) and dN/dt Across Time (r = 0.4, K = 500, N₀ = 10)",
+    "headers": [
+      "t",
+      "N(t)",
+      "N/K",
+      "dN/dt = rN(1−N/K)"
+    ],
+    "rows": [
+      [
+        "0",
+        "10.0",
+        "0.02",
+        "3.9"
+      ],
+      [
+        "5",
+        "65.5",
+        "0.13",
+        "22.8"
+      ],
+      [
+        "10",
+        "263.5",
+        "0.53",
+        "49.9 (≈ peak, near K/2)"
+      ],
+      [
+        "15",
+        "445.8",
+        "0.89",
+        "19.3"
+      ],
+      [
+        "20",
+        "491.9",
+        "0.98",
+        "3.2"
+      ],
+      [
+        "25",
+        "498.9",
+        "1.00",
+        "0.4"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the numbers",
+    "title": "What the Table Shows",
+    "items": [
+      "Between t = 0 and t = 10, N nearly doubles every few steps — the near-exponential phase.",
+      "The growth rate dN/dt peaks around t = 10, exactly where N (≈263.5) is closest to K/2 = 250 — confirming the analytical prediction.",
+      "After t = 10, N keeps rising but dN/dt collapses — the deceleration phase — until the population settles just under K = 500 by t ≈ 25–30.",
+      "Plotting N against t from this table reproduces the sigmoid curve; plotting dN/dt against N reproduces the humped parabola peaking at K/2."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Visualizing the result",
+    "title": "Two Ways to Plot the Same Data",
+    "left": {
+      "h": "N vs. t",
+      "body": "An S-shaped curve: slow start, steep climb through the middle years (around t = 5–15), then a long, flattening approach to the asymptote at N = K = 500."
+    },
+    "right": {
+      "h": "dN/dt vs. N",
+      "body": "A symmetrical hump (an inverted parabola): zero at N = 0, rising to a maximum of rK/4 = 0.4×500/4 = 50 at N = K/2 = 250, then falling back to zero as N → K."
+    },
+    "footnote": "Both panels describe the identical dynamics — one in time, one in state-space."
+  },
+  {
+    "type": "section",
+    "tag": "Part IV",
+    "title": "Time Lags in Density-Dependent Response",
+    "sub": "When populations can't react to crowding instantly"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A hidden assumption",
+    "title": "The Standard Logistic Assumes No Lag",
+    "items": [
+      "dN/dt = rN(1 − N/K) assumes the population's growth rate responds to its density right now, at time t, with zero delay.",
+      "In reality, the effects of crowding on birth and death rates often show up only after a delay — through delayed maturation, resource depletion that takes time to manifest, or reproduction based on resources sensed in a previous season.",
+      "This delay, T, is called a time lag.",
+      "Adding a time lag can change the model's behavior dramatically, even qualitatively."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Modified model",
+    "title": "The Time-Lag (Delayed) Logistic Equation",
+    "term": "dN/dt = rN(t) [1 − N(t − T)/K]",
+    "def": "Growth rate at time t depends not on the current population size, but on the population size T time units earlier — the density-dependent brake 'looks backward' by a lag T before applying its effect.",
+    "bullets": [
+      "When T = 0, this reduces to the standard logistic equation.",
+      "As T increases relative to the reproductive rate r, the smooth approach to K can be replaced by overshoot and oscillation."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discrete-time version",
+    "title": "The Discrete Logistic Map",
+    "items": [
+      "Many organisms (esp. those with discrete breeding seasons) are better modeled in discrete time steps rather than continuous time.",
+      "Discrete logistic map: N(t+1) = N(t) + rN(t)[1 − N(t)/K].",
+      "Because population size is only updated once per time step, the model effectively contains a built-in one-step lag — the correction is always based on 'last season's' density.",
+      "The behavior of this simple equation depends critically on the value of r (or, in continuous-lag models, on the product rT)."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Outcomes depend on r (or rT)",
+    "title": "From Smooth Growth to Chaos",
+    "cards": [
+      {
+        "h": "Small r / rT",
+        "p": "Population approaches K smoothly, just like the continuous logistic — damped, monotonic approach."
+      },
+      {
+        "h": "Moderate r / rT",
+        "p": "Population overshoots K, then undershoots, producing damped oscillations that gradually settle at K."
+      },
+      {
+        "h": "Larger r / rT",
+        "p": "Oscillations persist indefinitely as stable limit cycles, regularly cycling above and below K."
+      },
+      {
+        "h": "Very large r / rT",
+        "p": "Dynamics become chaotic — aperiodic, seemingly random fluctuations despite a fully deterministic equation (May 1976)."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why overshoot happens",
+    "title": "The Mechanics of Overshoot and Oscillation",
+    "items": [
+      "With a lag, the population 'doesn't know' it has already exceeded K until T time units after the fact — so it keeps growing past K.",
+      "Once the delayed feedback catches up, births crash and/or deaths spike, driving N below K.",
+      "The population then 'doesn't know' it has undershot until another lag T later, so it overcorrects upward again — and the cycle can repeat.",
+      "This is a general principle beyond population ecology: delayed negative feedback in any system (thermostats, economies, predator-prey pairs) tends to promote oscillation rather than smooth convergence."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two flavors of the model",
+    "title": "Continuous Logistic vs. Discrete/Lagged Logistic",
+    "left": {
+      "h": "Continuous, no lag",
+      "body": "dN/dt = rN(1 − N/K). Growth rate responds instantaneously to current density. Trajectory: smooth sigmoid curve, monotonic approach to K, no overshoot."
+    },
+    "right": {
+      "h": "Discrete or time-lagged",
+      "body": "N(t+1) = N(t) + rN(t)[1 − N(t)/K], or dN/dt = rN(t)[1 − N(t−T)/K]. Growth responds to a past density. Trajectory: can overshoot, oscillate, or even behave chaotically, depending on r or rT."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Preview",
+    "title": "Why This Matters Going Forward",
+    "items": [
+      "Time lags and oscillations are the conceptual bridge to Lecture 19, which covers population fluctuations and cycles in real field data (e.g., snowshoe hare–lynx, vole cycles).",
+      "Many of the boom-and-bust dynamics seen in nature are consistent with delayed density dependence rather than a smooth approach to a fixed K.",
+      "For now, the key takeaway: adding realism (a time lag) to the logistic model can convert a stable equilibrium into sustained oscillations."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part V",
+    "title": "Self-Thinning in Plant Populations",
+    "sub": "Returning to Lecture 17's case study — now with a quantitative law"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recall from Lecture 17",
+    "title": "The Self-Thinning Phenomenon",
+    "items": [
+      "In dense, even-aged plant stands (e.g., a crop or a forest plantation), individuals grow larger over time, but a fixed area of land cannot support unlimited biomass.",
+      "As mean plant size increases, the number of surviving individuals per unit area (density) must decrease — this is self-thinning, a form of contest-like intraspecific competition mediated by light, water, and nutrients.",
+      "Lecture 17 introduced this qualitatively; today we derive the quantitative relationship Yoda and colleagues discovered."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The classic law",
+    "title": "Yoda's −3/2 Power Law (Self-Thinning Rule)",
+    "term": "w̄ ∝ ρ^(−3/2), or equivalently log w̄ = log c − (3/2) log ρ",
+    "def": "In a self-thinning plant population, mean individual plant mass (w̄) is related to surviving plant density (ρ) by a power law with exponent −3/2, discovered empirically by Kazuya Yoda and colleagues (1963) across many densely sown plant species.",
+    "bullets": [
+      "Plotted on log–log axes, this relationship is a straight line with slope −3/2 — the 'self-thinning line.'",
+      "The constant c (the intercept) varies among species, but the slope of −3/2 was originally proposed as approximately universal."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Reading the plot",
+    "title": "The Self-Thinning Line on Log–Log Axes",
+    "left": {
+      "h": "Axes",
+      "body": "x-axis: log(density, plants per unit area), typically decreasing left to right as the stand ages. y-axis: log(mean plant mass), increasing left to right as survivors grow larger."
+    },
+    "right": {
+      "h": "Trajectory",
+      "body": "A growing, self-thinning population traces a path up and to the left along (or converging onto) a line of slope −3/2 — mass rising as density falls, following this predictable ratio no matter how fast growth itself proceeds."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why −3/2, not −1?",
+    "title": "A Geometric Explanation for the Exponent",
+    "items": [
+      "Plant mass scales roughly with volume, which scales with the cube of a linear dimension (e.g., stem diameter or height): mass ∝ L³.",
+      "The ground area a plant occupies (and thus limits density) scales with the square of that same linear dimension: area ∝ L², so density ∝ L⁻².",
+      "Combining these: mass ∝ L³ = (L²)^(3/2) ∝ (1/density)^(3/2) = density^(−3/2).",
+      "This simple geometric (volume vs. area) argument, though later refined, explains why the exponent is close to −3/2 rather than −1 (which would describe simple area-proportional crowding alone)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Testing the law",
+    "title": "Evidence and Generality",
+    "items": [
+      "Yoda et al. (1963) found −3/2 slopes across a wide range of herbaceous and woody plant species grown at high density.",
+      "Because both axes are on the same log-log line, the rule was proposed to be nearly independent of species, initial density, or site quality — an unusually general 'rule' in ecology.",
+      "Applications include forestry (predicting self-thinning in plantations to plan harvest/thinning schedules) and agronomy (understanding yield-density relationships in crops)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The modern refinement",
+    "title": "The −4/3 Power Law (Metabolic Scaling Refinement)",
+    "term": "Refined exponent ≈ −4/3, from metabolic scaling theory",
+    "def": "More recent analyses (West, Brown & Enquist and others, from the 1990s–2000s) argue the true self-thinning exponent should be closer to −4/3, derived from allometric scaling of metabolic rate and resource-transport networks (vascular systems) rather than simple geometric volume-vs-area packing.",
+    "bullets": [
+      "The −4/3 derivation starts from how metabolic rate scales with body mass (∝ mass^(3/4)) combined with resource-supply constraints, rather than treating plants as simple solid volumes.",
+      "Empirical re-analyses of self-thinning datasets have found exponents that cluster closer to −4/3 than −3/2 in many (though not all) species — the exact value remains actively debated."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two exponents compared",
+    "title": "Yoda's −3/2 Rule vs. the −4/3 Metabolic Refinement",
+    "headers": [
+      "Feature",
+      "−3/2 Power Law",
+      "−4/3 Power Law"
+    ],
+    "rows": [
+      [
+        "Proposed by",
+        "Yoda, Kira, Ogawa & Hozumi (1963)",
+        "West, Brown & Enquist and successors (1990s–2000s)"
+      ],
+      [
+        "Basis",
+        "Geometric similarity — volume (L³) vs. area (L²)",
+        "Metabolic scaling theory — resource transport network allometry"
+      ],
+      [
+        "Predicted slope on log(mass) vs. log(density)",
+        "−3/2 (−1.5)",
+        "−4/3 (−1.33)"
+      ],
+      [
+        "Assumed shape scaling",
+        "Plants treated as simple, isometric solids",
+        "Plants treated via fractal-like vascular branching networks"
+      ],
+      [
+        "Empirical support",
+        "Strong across many classic datasets",
+        "Better fit in several re-analyses; still debated"
+      ],
+      [
+        "Status today",
+        "Historically foundational, textbook standard",
+        "Actively discussed refinement, not a full replacement"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case studies",
+    "title": "Self-Thinning in the Field",
+    "cards": [
+      {
+        "h": "Forestry plantations",
+        "p": "Even-aged conifer stands show clear self-thinning trajectories, used operationally to time commercial thinning before density-dependent mortality wastes timber volume."
+      },
+      {
+        "h": "Agricultural crops",
+        "p": "Densely sown crops (e.g., maize, soybean) show self-thinning-like density-yield relationships relevant to optimizing sowing density for maximum yield."
+      },
+      {
+        "h": "Experimental populations",
+        "p": "Controlled-density plantings of herbs (e.g., Yoda's original work) let researchers isolate the mass-density relationship from confounding site or climate effects."
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "History of an idea",
+    "title": "Development of the Self-Thinning Rule",
+    "items": [
+      {
+        "y": "1963",
+        "t": "Yoda, Kira, Ogawa & Hozumi publish the original −3/2 power law from multi-species density experiments."
+      },
+      {
+        "y": "1970s–80s",
+        "t": "The −3/2 rule becomes a standard tool in forestry and plant population ecology; widely taught as a near-universal constant."
+      },
+      {
+        "y": "1990s",
+        "t": "Metabolic scaling theory (West, Brown & Enquist) develops general allometric scaling laws for organisms, including plants."
+      },
+      {
+        "y": "2000s",
+        "t": "Re-analyses propose a −4/3 exponent grounded in metabolic/vascular scaling, prompting debate over which value (or whether a single universal value) is correct."
+      },
+      {
+        "y": "Today",
+        "t": "Both exponents are taught; the underlying self-thinning phenomenon (mass rises as density falls in crowded plant stands) remains firmly established even as the precise slope is debated."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical implications",
+    "title": "Why the Self-Thinning Rule Matters",
+    "items": [
+      "It lets foresters and agronomists predict maximum sustainable biomass or yield at a given planting density without waiting years to observe mortality directly.",
+      "It is a rare example in ecology of a simple, broadly applicable quantitative law — comparable in spirit to allometric scaling laws elsewhere in biology.",
+      "It illustrates, concretely, how intraspecific competition (Lecture 17's theme) translates into a precise, testable numerical relationship (Lecture 18's theme)."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On self-thinning",
+    "quote": "The −3/2 power law of self-thinning is one of the few quantitative generalizations in plant population ecology that comes close to the law-like regularities familiar in the physical sciences.",
+    "attrib": "Paraphrased from the self-thinning literature following Yoda et al. (1963)"
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Bringing It Together",
+    "sub": "Two models, one theme: density dependence made quantitative"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "How the Logistic Model and Self-Thinning Connect",
+    "items": [
+      "Both describe how a population's dynamics respond to crowding — one in terms of numbers over time, the other in terms of individual size versus density.",
+      "The logistic equation captures intraspecific competition acting on population growth rate (dN/dt); self-thinning captures the same competition acting on individual growth and survival within a fixed-density stand.",
+      "Both are simplifications of messy biological reality that nonetheless capture the essential regularity: as crowding increases, something (growth rate, or size-at-density) must give."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two models, compared",
+    "title": "Logistic Growth Model vs. Self-Thinning Rule",
+    "headers": [
+      "Feature",
+      "Logistic Growth Model",
+      "Self-Thinning Rule"
+    ],
+    "rows": [
+      [
+        "What varies",
+        "Population size, N, over time",
+        "Mean individual mass vs. surviving density"
+      ],
+      [
+        "Key equation",
+        "dN/dt = rN(1 − N/K)",
+        "w̄ ∝ ρ^(−3/2) (or −4/3)"
+      ],
+      [
+        "Mechanism",
+        "Density-dependent birth/death rates",
+        "Size-dependent mortality under fixed-area crowding"
+      ],
+      [
+        "Typical organisms",
+        "Broadly applicable (animals, microbes, plants)",
+        "Especially plants and other sessile, modular organisms"
+      ],
+      [
+        "Graphical signature",
+        "Sigmoid (S-shaped) curve over time",
+        "Straight line on log(mass) vs. log(density) axes"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Summary",
+    "title": "Key Takeaways from Lecture 18",
+    "items": [
+      "The logistic equation, dN/dt = rN(1 − N/K), adds a density-dependent brake, (1 − N/K), to exponential growth, producing a sigmoid growth curve that levels off at K.",
+      "The population's absolute growth rate peaks at N = K/2, where dN/dt = rK/4.",
+      "Time lags in density-dependent response (discrete or delayed-continuous logistic models) can convert smooth approach to K into overshoot, oscillation, or even chaos.",
+      "Self-thinning plant populations follow a power law between mean mass and density — classically −3/2 (Yoda et al. 1963), more recently refined toward −4/3 by metabolic scaling arguments."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preparing for Lecture 19: Population Fluctuations and Cycles",
+    "left": {
+      "h": "Read",
+      "body": "Begon & Townsend, Ch. 5 (remaining sections) and Ch. 10 introduction on population dynamics — focus on multi-year cycles in field populations (e.g., snowshoe hare, voles, red grouse)."
+    },
+    "right": {
+      "h": "Think about",
+      "body": "Today's time-lag logistic model predicted that delayed density dependence can cause oscillation. Come prepared to discuss: what real biological mechanisms could create such a lag in a wild population?"
+    },
+    "footnote": "Lecture 19 builds directly on today's discrete/time-lag logistic material."
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question",
+    "title": "If Delay Alone Can Cause Cycles, Do We Need Predators or Weather to Explain Boom-and-Bust Populations?",
+    "sub": "Consider a single species regulated only by its own delayed density dependence — no predators, no climate variation. Could its dynamics still cycle, and what would that imply for interpreting real population cycles?",
+    "footnote": "Bring your reasoning to the start of Lecture 19"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 18 · Intraspecific Competition II</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 32: Community Structure and Assembly — Principles of Ecology</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Principles of Ecology — BIOL 3XX — Lecture 32",
+    "title": "Community Structure and Assembly",
+    "sub": "From pairwise interactions to whole-community patterns: composition, structure, and the processes that build ecological communities",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Chs. 21–23"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridge from Lecture 31",
+    "title": "From Modules to the Whole Community",
+    "items": [
+      "Lecture 31 dissected community modules — small subsystems like keystone predation, apparent competition, and trophic cascades (sea otters, urchins, kelp)",
+      "Those modules are the building blocks, but real communities contain dozens to thousands of interacting species",
+      "Today we zoom out: what does it mean to describe a community's 'structure,' and how does that structure come to exist?",
+      "Central question for the lecture: are communities assembled by deterministic rules, by chance, or some mixture of both?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Defining Community Structure",
+    "sub": "What do ecologists actually measure when they describe a community?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Four Faces of Structure",
+    "title": "Components of Community Structure",
+    "items": [
+      "Species composition — the identity and list of species present in a defined area",
+      "Relative abundance — how individuals are distributed among species (evenness vs. dominance)",
+      "Guild structure — how species are organized into groups that exploit resources in similar ways",
+      "Physical/vertical structure — the spatial arrangement of organisms, especially stratification in forests, water columns, and soils"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Structure Component 1",
+    "title": "Species Composition",
+    "term": "Species composition",
+    "def": "The particular set of species — and only those species — that occur together in a given place and time.",
+    "bullets": [
+      "The most basic descriptor of a community, often summarized as a species list or presence/absence matrix",
+      "Composition can differ sharply between otherwise similar-looking communities in different regions",
+      "Two sites can have identical species richness (number of species) yet completely different composition"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Structure Component 2",
+    "title": "Relative Abundance",
+    "term": "Relative abundance",
+    "def": "The proportional representation of each species in a community, typically summarized with rank-abundance curves or diversity indices.",
+    "bullets": [
+      "Communities are rarely 'even' — a few species are usually common and many are rare",
+      "Rank-abundance (Whittaker) plots reveal whether a community is dominated by a handful of species or more evenly distributed",
+      "Relative abundance patterns are remarkably similar in shape across very different taxa and ecosystems, hinting at general assembly processes"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Structure Component 3",
+    "title": "Guild Structure",
+    "term": "Guild structure",
+    "def": "The organization of a community into guilds — groups of species that exploit the same class of environmental resources in a similar way, regardless of taxonomic relatedness.",
+    "bullets": [
+      "Example: seed-eating guild may include birds, rodents, and ants that never interact taxonomically but compete for the same resource",
+      "Guild structure lets ecologists compare functionally analogous communities across continents (e.g., granivore guilds in North American vs. Australian deserts)",
+      "We will revisit guilds later in this lecture alongside functional redundancy"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Structure Component 4",
+    "title": "Physical / Vertical Structure",
+    "term": "Stratification",
+    "def": "The layering of a community in physical space — for example, canopy, understory, shrub, and herb layers in a forest, or epipelagic to benthic zones in water.",
+    "bullets": [
+      "Physical structure is often created by foundation species (e.g., trees, corals, kelp) that generate habitat for other organisms",
+      "Vertical stratification increases the number of available niches, supporting higher species richness",
+      "Structural complexity (measured as foliage height diversity) is one of the best predictors of animal species diversity in terrestrial systems"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "The Community Assembly Problem",
+    "sub": "How do communities come to have the particular species they have?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Central Question",
+    "title": "What Is Community Assembly?",
+    "items": [
+      "Community assembly asks: out of the regional pool of species available, why do only some establish, persist, and coexist at a given local site?",
+      "Two broad families of answers have dominated the field for decades: niche-based (deterministic) theory and neutral (stochastic) theory",
+      "The debate is not merely academic — it shapes how we predict responses to invasion, restoration, and climate change",
+      "Most real communities likely reflect a blend of deterministic filtering and stochastic chance, but the pure theories clarify the mechanisms at each extreme"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Niche-Based (Deterministic) Assembly",
+    "sub": "Species membership is governed by traits, environment, and interactions"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Niche Theory — Filter 1",
+    "title": "Environmental Filtering",
+    "term": "Environmental filtering (abiotic filtering)",
+    "def": "The sorting of species from the regional pool based on their physiological tolerance to local abiotic conditions (climate, soil, disturbance regime).",
+    "bullets": [
+      "Only species whose fundamental niche overlaps the local abiotic conditions can pass through this first filter",
+      "Operates before any biotic interactions occur — it sets the 'candidate list' for a site",
+      "Example: only drought-tolerant species pass the filter into an arid grassland community"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Niche Theory — Filter 2",
+    "title": "Biotic Filtering",
+    "term": "Biotic filtering",
+    "def": "The further sorting of species that pass environmental filtering, based on interactions with organisms already present — competition, predation, mutualist availability, and disease.",
+    "bullets": [
+      "Competitive exclusion can eliminate species that are environmentally suited but functionally too similar to a resident",
+      "Predation and herbivory can prevent establishment even when physical conditions are favorable",
+      "The result is a nested set of filters: regional pool → abiotic filter → biotic filter → local community"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Niche Theory — Coexistence Rule",
+    "title": "Limiting Similarity",
+    "term": "Limiting similarity",
+    "def": "The principle that coexisting species must differ in resource use by some minimum amount, or competitive exclusion will eliminate the more similar species.",
+    "bullets": [
+      "Derived from classical Lotka–Volterra competition theory and niche overlap models",
+      "Predicts a characteristic spacing of niches along a resource axis (e.g., beak size in Darwin's finches, body size in carnivore guilds)",
+      "Provides the theoretical basis for niche-based assembly rules discussed later in this lecture"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Niche Theory — Summary",
+    "title": "Niche-Based Assembly in a Nutshell",
+    "items": [
+      "Assembly is deterministic: given the same regional pool and conditions, the same community should reassemble repeatably",
+      "Species differences in niche and traits are the causal drivers of who coexists",
+      "Predicts convergent community structure in similar environments (revisited in Part 6)",
+      "Critique: hard to explain the sheer number of ecologically similar species coexisting in diverse systems like tropical forests"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Neutral Theory of Biodiversity",
+    "sub": "Hubbell's radical alternative: chance, not niches"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Neutral Theory — Core Idea",
+    "title": "Neutral Theory of Biodiversity and Biogeography",
+    "term": "Neutral theory (Hubbell, 2001)",
+    "def": "A theory proposing that species within a trophic level are ecologically equivalent, and that community structure arises from stochastic processes — birth, death, dispersal, and speciation — rather than niche differences.",
+    "bullets": [
+      "Developed primarily from tropical forest tree data, where hundreds of species appear to compete for identical resources",
+      "Treats individuals, not species, as the fundamental unit — every individual has the same per-capita probability of birth, death, and dispersal",
+      "Successfully predicts realistic-looking species-abundance distributions using only three parameters: community size, speciation rate, and immigration rate"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Neutral Theory — Assumptions",
+    "title": "Core Assumptions of Neutral Theory",
+    "items": [
+      "Ecological equivalence: all species in a given trophic level have identical per-capita rates of birth, death, dispersal, and speciation",
+      "Zero-sum dynamics: community size is fixed (saturated), so one individual's death is another's opportunity",
+      "Dispersal limitation: species abundances change through a random walk as individuals die and are randomly replaced by recruits from a local or wider (metacommunity) pool",
+      "Speciation acts like a 'mutation' process introducing new species into the wider metacommunity over long time scales"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Neutral Theory — Key Concept",
+    "title": "Ecological Equivalence",
+    "term": "Ecological equivalence",
+    "def": "The neutral-theory assumption that co-trophic species are functionally interchangeable — differences in fitness are ignored, and dynamics are driven purely by demographic stochasticity.",
+    "bullets": [
+      "Does NOT claim species are identical in every trait — only that per-capita demographic rates average out to be equivalent",
+      "Controversial: most field ecologists find clear niche differences among coexisting species, yet neutral models still fit abundance data surprisingly well",
+      "Best viewed as a null model — a baseline against which real deviations (suggesting niche processes) can be measured"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Theories, One Question",
+    "title": "Niche-Based vs. Neutral Assembly",
+    "headers": [
+      "Feature",
+      "Niche-Based (Deterministic)",
+      "Neutral Theory"
+    ],
+    "rows": [
+      [
+        "Driving process",
+        "Environmental & biotic filtering, competition",
+        "Random birth, death, dispersal, speciation"
+      ],
+      [
+        "Species differences",
+        "Essential — traits determine fitness and niche",
+        "Irrelevant — species are ecologically equivalent"
+      ],
+      [
+        "Predictability",
+        "Repeatable — same inputs give similar outcomes",
+        "Stochastic — outcomes vary by chance history"
+      ],
+      [
+        "Explains coexistence via",
+        "Niche differentiation, limiting similarity",
+        "Drift and dispersal limitation, not niche differences"
+      ],
+      [
+        "Best supporting evidence",
+        "Trait-environment matching, character displacement",
+        "Species-abundance distributions in diverse tropical taxa"
+      ],
+      [
+        "Main weakness",
+        "Struggles with hyperdiverse, functionally similar taxa",
+        "Ignores well-documented functional trait differences"
+      ]
+    ],
+    "footnote": "Most ecologists now view niche and neutral processes as complementary rather than mutually exclusive."
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Assembly Rules",
+    "sub": "Diamond's checkerboards and the search for pattern in presence/absence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Origins of an Idea",
+    "title": "The Assembly Rules Concept (Diamond, 1975)",
+    "items": [
+      "Jared Diamond studied bird distributions across the Bismarck Archipelago near New Guinea and noticed non-random co-occurrence patterns",
+      "He proposed 'assembly rules' — restrictions on which species combinations can coexist on a given island, based on competitive interactions",
+      "The claim: community composition is not simply a random draw from the regional pool, but constrained by species interactions",
+      "This idea directly opposed a purely stochastic view of island colonization and ignited decades of debate over statistical methodology"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Assembly Rules — Pattern 1",
+    "title": "Checkerboard Distributions",
+    "term": "Checkerboard distribution",
+    "def": "A pattern in which two ecologically similar species never co-occur on the same island or site, but each occurs alone on otherwise similar islands — as if occupying alternating squares of a checkerboard.",
+    "bullets": [
+      "Interpreted by Diamond as evidence of strong interspecific competitive exclusion between the species pair",
+      "Statistically controversial: critics (notably Connor & Simberloff) argued similar patterns can emerge from null models with no competition at all",
+      "Testing checkerboard patterns rigorously requires null-model simulations that control for differences in species' overall commonness"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Assembly Rules — Pattern 2",
+    "title": "Forbidden Combinations",
+    "term": "Forbidden species combinations",
+    "def": "Sets of species that are never found together in nature despite each species independently being common in the region, implying that some biotic incompatibility prevents co-occurrence.",
+    "bullets": [
+      "Distinguished from simple habitat differences — the missing combination should not be explainable by each species' independent habitat preference alone",
+      "Diamond used these patterns to infer rules governing which subsets of the regional species pool can form a stable community",
+      "Remains a foundational (if contested) concept underlying modern co-occurrence null-model analysis"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Lasting Controversy",
+    "title": "Assembly Rules: Strengths and Critiques",
+    "items": [
+      "Strength: shifted community ecology toward asking whether observed patterns differ from random expectation, not just describing patterns",
+      "Critique: early assembly-rule claims often lacked rigorous null models, inflating the apparent role of competition",
+      "Modern consensus: assembly rules are a useful framework, but must be tested against carefully constructed null models that account for species' abundances and habitat associations",
+      "Assembly rules research is a direct ancestor of today's niche-vs-neutral debate"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Priority Effects and Historical Contingency",
+    "sub": "Does the order of arrival matter?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Order Matters",
+    "title": "Priority Effects",
+    "term": "Priority effect",
+    "def": "The influence that the order and timing of species arrival has on the final structure of a community — early-arriving species can facilitate or inhibit those that arrive later.",
+    "bullets": [
+      "Inhibitory priority effects: the first species to arrive pre-empts resources or space, excluding later arrivals (founder control)",
+      "Facilitative priority effects: early species modify the environment in ways that help later colonizers establish (e.g., nitrogen-fixing pioneers)",
+      "Priority effects mean that identical starting species pools can assemble into different stable communities depending purely on arrival sequence"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Specific Priority Effect",
+    "title": "Founder Control",
+    "term": "Founder control",
+    "def": "A form of priority effect in which whichever species colonizes a site first monopolizes resources and excludes competitors, regardless of which species is the superior competitor under other circumstances.",
+    "bullets": [
+      "Classic demonstration: experimental fouling communities on marine settling plates, where whoever settles first often 'wins' the space permanently",
+      "Produces multiple alternative stable states from the same regional species pool",
+      "Directly undermines strict niche-based determinism — outcome depends on history, not just traits and environment"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond a Single Effect",
+    "title": "Historical Contingency in Assembly",
+    "items": [
+      "Historical contingency: present-day community structure reflects a unique sequence of past colonization, extinction, and disturbance events, not just current conditions",
+      "Long-term experiments (e.g., Drake's laboratory microcosms, Ecotron modules) show that assembly sequence alone can generate divergent, persistent community states",
+      "Implication for restoration ecology: the order in which species are reintroduced can determine whether a restoration succeeds or fails",
+      "Historical contingency adds a third axis to the niche/neutral debate — outcomes can be deterministic in mechanism yet unpredictable due to unique history"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 7",
+    "title": "Community Convergence vs. Divergence",
+    "sub": "Do similar environments produce similar communities?"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Testing Determinism at the Community Level",
+    "title": "Convergence vs. Divergence",
+    "left": {
+      "h": "Convergence",
+      "body": "Similar environments, on different continents and with different regional species pools, evolve communities with similar structure and function — similar growth forms, guild composition, and physical structure. Classic example: Mediterranean-climate shrublands (chaparral, matorral, fynbos, mallee) independently evolved sclerophyllous, fire-adapted shrub communities on five continents despite having almost no species in common."
+    },
+    "right": {
+      "h": "Divergence",
+      "body": "Similar environments instead produce communities that remain distinct in composition and structure, reflecting differences in regional species pools, evolutionary history, and priority effects. Divergence is common when dispersal is limited or when historical contingency and founder control dominate assembly, producing alternative stable community states even under near-identical abiotic conditions."
+    },
+    "footnote": "Evidence for both patterns exists — convergence supports strong niche-based determinism; divergence supports roles for history and chance."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Evidence",
+    "title": "What Convergence and Divergence Tell Us",
+    "items": [
+      "Strong convergence (e.g., Mediterranean shrublands) is often cited as the best evidence for powerful, repeatable environmental and biotic filtering",
+      "Divergence is common in island systems and isolated regions where regional species pools differ dramatically and dispersal cannot 'refill' functional gaps",
+      "Degree of convergence often depends on the trait examined: growth form and physiognomy converge more readily than exact species composition",
+      "The convergence/divergence spectrum is essentially the community-level expression of the niche vs. neutral, deterministic vs. stochastic debate introduced earlier"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 8",
+    "title": "Guilds and Functional Redundancy",
+    "sub": "Revisiting functional organization within communities"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Revisited Concept",
+    "title": "The Guild Concept, Revisited",
+    "term": "Guild",
+    "def": "A group of species, not necessarily taxonomically related, that exploit the same class of environmental resources in a similar way — first introduced earlier this course as a tool for comparing functional roles.",
+    "bullets": [
+      "Guilds let us compare community structure across regions independent of taxonomic identity (e.g., comparing 'nectarivore guilds' of hummingbirds in the Americas and sunbirds in Africa)",
+      "Guild membership is central to assembly-rule and limiting-similarity arguments — competition is expected to be strongest within a guild",
+      "A community's guild structure (how many guilds, how many species per guild) is itself a measurable descriptor of community structure from Part 1"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Functional Organization",
+    "title": "Functional Groups and Functional Redundancy",
+    "term": "Functional redundancy",
+    "def": "The presence of multiple species within a functional group or guild that perform overlapping ecological roles, such that the loss of one species does not necessarily eliminate that function from the community.",
+    "bullets": [
+      "High redundancy buffers ecosystem function against species loss — a form of ecological insurance",
+      "Low redundancy means single species are functionally irreplaceable, making the community vulnerable to their loss",
+      "Redundancy is unevenly distributed: some functions (e.g., generalist herbivory) may be highly redundant, while others (e.g., large-bodied seed dispersal) may rest on just one or two species",
+      "This sets up the next topic directly: species whose functional importance vastly exceeds their redundancy are candidates for keystone status"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 9",
+    "title": "Keystone Species, Formalized",
+    "sub": "From the sea otter example in Lecture 31 to a general concept"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Formal Definition",
+    "title": "Keystone Species",
+    "term": "Keystone species",
+    "def": "A species whose impact on its community or ecosystem is disproportionately large relative to its abundance or biomass — removal triggers major structural or functional changes.",
+    "bullets": [
+      "Coined by Robert Paine (1969) from experimental removal of the predatory sea star Pisaster from rocky intertidal communities",
+      "Recall from Lecture 31: sea otters are a textbook keystone predator — their removal releases urchins, which then deforest kelp, collapsing the wider ecosystem",
+      "Key diagnostic: a strong per-capita community effect combined with low total abundance/biomass — this is what distinguishes 'keystone' from merely 'dominant' or 'abundant'",
+      "Keystone status is a description of community-level effect, not a fixed taxonomic property — the same species may be a keystone in one community and not another"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Beyond the Otter",
+    "title": "Keystone Species: Further Examples",
+    "cards": [
+      {
+        "h": "Sea stars (Pisaster ochraceus)",
+        "p": "Paine's original rocky-intertidal keystone predator; removal allows mussels to competitively dominate and exclude most other species."
+      },
+      {
+        "h": "Prairie dogs (Cynomys spp.)",
+        "p": "Grazing, burrowing, and clipping vegetation create habitat structure and soil turnover that supports a wide community of grassland vertebrates and plants."
+      },
+      {
+        "h": "African elephants (Loxodonta africana)",
+        "p": "Browsing and tree-toppling maintain savanna-woodland mosaic structure; also function as ecosystem engineers (see next section)."
+      },
+      {
+        "h": "Figs (Ficus spp.)",
+        "p": "Keystone plant resource — year-round fruiting sustains frugivore communities through seasons when other fruits are scarce."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 10",
+    "title": "Ecosystem Engineers",
+    "sub": "A related but distinct concept"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Habitat Modifiers",
+    "title": "Ecosystem Engineers",
+    "term": "Ecosystem engineer",
+    "def": "An organism that directly or indirectly modulates the availability of resources to other species by causing physical state changes in biotic or abiotic materials — creating, modifying, or maintaining habitat.",
+    "bullets": [
+      "Coined by Jones, Lawton & Shachak (1994) to capture species whose main community-level effect is physical habitat modification rather than trophic interaction",
+      "Allogenic engineers change the environment by transforming materials from one physical state to another (e.g., beavers building dams)",
+      "Autogenic engineers change the environment through their own physical structure/growth (e.g., trees, corals forming reef structure)",
+      "Effects of ecosystem engineers can persist long after the engineer itself is gone (e.g., abandoned beaver ponds becoming wet meadows)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Related but Distinct Concepts",
+    "title": "Keystone Species vs. Ecosystem Engineers",
+    "left": {
+      "h": "Keystone Species",
+      "body": "Defined by a disproportionately large effect on community structure relative to abundance/biomass, typically mediated through a trophic interaction such as predation, herbivory, or competition. The mechanism of effect is interaction strength: removing the keystone changes who eats whom and who wins competitively."
+    },
+    "right": {
+      "h": "Ecosystem Engineer",
+      "body": "Defined by physically creating, modifying, or maintaining habitat structure, independent of trophic position or abundance. The mechanism of effect is habitat modification: removing the engineer changes the physical template available to the rest of the community, not the interaction web itself."
+    },
+    "footnote": "The categories overlap, not exclude: a species can be both a keystone and an ecosystem engineer simultaneously."
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Engineering the Environment",
+    "title": "Ecosystem Engineers in Action",
+    "cards": [
+      {
+        "h": "Beavers (Castor spp.)",
+        "p": "Dam-building converts flowing streams into ponds and wetlands, transforming hydrology, sediment retention, and species composition across whole watersheds."
+      },
+      {
+        "h": "Reef-building corals",
+        "p": "Calcium carbonate skeletons construct three-dimensional reef structure that provides habitat for a large fraction of tropical marine biodiversity."
+      },
+      {
+        "h": "Elephants (again)",
+        "p": "Also qualify as ecosystem engineers — tree-felling and trampling physically restructure savanna vegetation, illustrating overlap with keystone status."
+      },
+      {
+        "h": "Ecosystem engineering plants",
+        "p": "Foundation species such as kelp, mangroves, and seagrasses physically create the three-dimensional habitat structure discussed in Part 1's stratification concept."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 11",
+    "title": "Case Study: The Tropical Tree Diversity Puzzle",
+    "sub": "Where niche and neutral theory meet head-on"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "An Unsolved Classic",
+    "title": "Why So Many Tree Species Coexist?",
+    "items": [
+      "A single hectare of tropical rainforest can contain 200+ tree species that all appear to compete for the same light, water, and soil nutrients",
+      "Classic niche theory struggles here: limiting similarity predicts far fewer coexisting species than are actually observed",
+      "This 'paradox of the plankton'-style puzzle (originally framed by Hutchinson for phytoplankton) is a central test case for neutral theory, which was largely developed using exactly this tropical tree data (Hubbell's work in Panama)",
+      "Multiple, non-exclusive mechanisms have been proposed to resolve the puzzle — one of the most influential is the Janzen-Connell hypothesis"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Proposed Resolution",
+    "title": "The Janzen-Connell Hypothesis",
+    "term": "Janzen-Connell hypothesis",
+    "def": "The proposal (Janzen 1970; Connell 1971) that host-specific natural enemies (seed predators, pathogens) concentrate their attack near parent trees and in areas of high conspecific density, giving rare species and seedlings far from parents a survival advantage.",
+    "bullets": [
+      "Creates negative density dependence: as any one species becomes locally common, its specialist enemies suppress its own recruitment, preventing competitive dominance",
+      "This mechanism allows many species to coexist by preventing any single species from monopolizing space — a niche-based mechanism, but one that operates via enemies rather than resource competition alone",
+      "Empirical support: seedling survival is often higher farther from conspecific adults and at lower conspecific density, consistent with the hypothesis",
+      "Janzen-Connell effects can be seen as a bridge between pure niche determinism and the observed high diversity that neutral theory was built to explain"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Niche and Neutral Together: A Working Resolution",
+    "items": [
+      "Janzen-Connell dynamics reduce fitness differences between species by penalizing common species and favoring rare ones, functionally mimicking near-ecological-equivalence at any given time",
+      "This shows how a niche-based mechanism can produce a pattern that looks neutral at the community level — the two theories are not always distinguishable from pattern alone",
+      "Current consensus: real tropical forest diversity likely reflects a combination of specialist enemy effects (Janzen-Connell), fine-scale environmental heterogeneity (niche partitioning), and substantial stochastic drift plus dispersal limitation (neutral processes)",
+      "The tropical tree diversity puzzle remains an active research frontier and a good illustration of how the niche vs. neutral debate is resolved in practice: not winner-take-all, but a search for relative contributions"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Guiding Perspective",
+    "quote": "The question is no longer whether niches or neutral processes structure communities, but how much each contributes, in which systems, and at what spatial and temporal scale.",
+    "attrib": "Paraphrased synthesis of the post-Hubbell community ecology consensus"
+  },
+  {
+    "type": "section",
+    "tag": "Wrap-Up",
+    "title": "Bringing It Together",
+    "sub": "Community structure and assembly: from filters to chance to history"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 32 Recap",
+    "title": "Key Takeaways",
+    "items": [
+      "Community structure has four core components: composition, relative abundance, guild structure, and physical/vertical structure",
+      "Assembly can be viewed through niche-based filtering (environmental + biotic + limiting similarity) or neutral, stochastic drift and dispersal — likely both operate together",
+      "Assembly rules, priority effects, and historical contingency show that arrival order and chance history matter, not just current conditions",
+      "Keystone species (disproportionate trophic effect) and ecosystem engineers (physical habitat modification) are related but distinct ways single species can shape whole communities",
+      "The tropical tree diversity puzzle and the Janzen-Connell hypothesis show niche and neutral mechanisms can produce overlapping, hard-to-distinguish predictions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 33 — Food Webs",
+    "items": [
+      "We move from community structure to the full network of feeding interactions: food webs",
+      "Topics ahead: food web topology, connectance, food chain length, and why real food webs are rarely as simple as textbook diagrams suggest",
+      "Read the assigned food web chapter before class and review the trophic cascade material from Lecture 31 — it connects directly",
+      "Come prepared to discuss: how does the community assembly perspective from today change how we should interpret a food web diagram?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Questions",
+    "title": "For Class Discussion",
+    "items": [
+      "If a keystone predator and an ecosystem engineer are removed from the same community simultaneously, would you predict a larger structural collapse, a smaller one, or something qualitatively different than removing either alone? Why?",
+      "Given the tropical tree diversity case study, design a field or experimental test that could distinguish whether local tree diversity is better explained by niche-based Janzen-Connell effects or by neutral dispersal limitation."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Principles of Ecology · BIOL 3XX</span>
+        <span>Lecture 32 — Community Structure and Assembly</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

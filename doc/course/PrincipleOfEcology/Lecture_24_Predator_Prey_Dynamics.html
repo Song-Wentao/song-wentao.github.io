@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 24: Predator-Prey Dynamics — Principles of Ecology</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 24",
+    "title": "Predator–Prey Dynamics",
+    "sub": "The Lotka-Volterra predator-prey model, isoclines, cycling, and stability",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Ch. 10"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off in Lecture 23",
+    "sub": "Predation foundations: types, functional responses, numerical responses"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 23",
+    "title": "The Predation Continuum",
+    "items": [
+      "<b>True predation</b>: predator kills and consumes multiple prey over its lifetime (e.g., lynx, wolves)",
+      "<b>Grazing</b>: consumer removes only part of the prey/plant, prey usually survives (e.g., ungulates on grass)",
+      "<b>Parasitism</b>: consumer feeds on host tissue without necessarily killing it, often lives in/on host",
+      "<b>Parasitoidism</b>: consumer (typically an insect) develops within a single host, which is always eventually killed",
+      "All four are consumer-resource interactions with a shared mathematical backbone — today we formalize the <b>true predation</b> case"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 23",
+    "title": "Functional Responses: How Intake Scales with Prey Density",
+    "items": [
+      "The <b>functional response</b> describes how an individual predator's per-capita consumption rate changes as prey density (N) increases",
+      "<b>Type I</b>: intake rises linearly with prey density, then abruptly plateaus (idealized filter feeders)",
+      "<b>Type II</b>: intake rises with diminishing returns due to handling time, saturating at a maximum (most predators)",
+      "<b>Type III</b>: sigmoid curve — low intake at low prey density (switching, learning, refuges), accelerating, then saturating",
+      "Functional response shape is central to today's model: the basic Lotka-Volterra model assumes a <b>Type I</b>-like linear response"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap · Functional Response",
+    "title": "Type I Response",
+    "term": "Linear, Unsaturating Intake",
+    "def": "Per-capita consumption rate increases linearly with prey density with no upper limit until an abrupt ceiling.",
+    "bullets": [
+      "Mathematically the simplest case: consumption = a × N, where a is a constant attack rate",
+      "Unrealistic at high prey densities (real predators are limited by handling/digestion time) but is exactly the assumption baked into the classic Lotka-Volterra predator-prey equations"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap · Functional Response",
+    "title": "Type II Response",
+    "term": "Decelerating, Saturating Intake",
+    "def": "Consumption rises with diminishing returns and plateaus because handling time limits how many prey one predator can process.",
+    "bullets": [
+      "Produces a destabilizing effect at low prey density (proportionally fewer prey eaten as N rises) — we will revisit this later in the lecture as a stabilizer/destabilizer of the full model",
+      "Underlies the Rosenzweig-MacArthur elaboration of Lotka-Volterra introduced later today"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap · Functional Response",
+    "title": "Type III Response",
+    "term": "Sigmoid, Switching Intake",
+    "def": "Consumption is low at low prey density, accelerates through an intermediate range, then saturates — often due to predator switching, learning, or prey refuges.",
+    "bullets": [
+      "The accelerating portion at low N can be <b>stabilizing</b>: predators exert lower proportional pressure when prey are scarce, giving prey populations room to recover"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 23",
+    "title": "Numerical Response",
+    "items": [
+      "The <b>numerical response</b> describes how predator abundance (through reproduction and/or aggregation) changes with prey density",
+      "Numerical responses are almost always <b>lagged</b> — predator reproduction takes time, so predator density tracks prey density with a delay",
+      "This lag is the single most important ingredient for generating <b>cycles</b> — today's model turns that qualitative idea into precise, testable mathematics"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Model",
+    "title": "Building the Lotka-Volterra Predator-Prey Model",
+    "sub": "A (+,−) interaction, paralleling the (−,−) competition model from Lecture 20"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Framework",
+    "title": "Why Model Predator and Prey Together?",
+    "items": [
+      "In Lecture 20 we modeled interspecific competition with paired Lotka-Volterra equations describing a (−,−) interaction",
+      "Predation is a (+,−) interaction: the predator benefits (+) and the prey is harmed (−) by every encounter",
+      "Alfred Lotka (1925) and Vito Volterra (1926) independently derived essentially the same pair of coupled differential equations to describe this",
+      "The goal: two linked equations, one for prey density (N) and one for predator density (P), each depending on the other"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Model · Prey Equation",
+    "title": "Prey Population Growth",
+    "term": "dN/dt = rN − aNP",
+    "def": "Prey grow exponentially in the absence of predators, minus losses to predation, which scale with encounter rate between predators and prey.",
+    "bullets": [
+      "rN: unchecked exponential growth (Lecture 11) — no carrying capacity in the basic model",
+      "aNP: predation losses, proportional to both prey density and predator density (mass-action encounter term)",
+      "This is the prey's own private growth term (rN) taxed by an encounter-driven death term (aNP)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Model · Predator Equation",
+    "title": "Predator Population Growth",
+    "term": "dP/dt = baNP − qP",
+    "def": "Predators grow in proportion to the prey they successfully convert into offspring, minus a constant per-capita death rate.",
+    "bullets": [
+      "baNP: predator births, fueled by consumed prey (aNP) converted into new predators at efficiency b",
+      "qP: predator deaths, a simple density-independent per-capita death rate",
+      "Note the built-in asymmetry: predators have NO growth without prey (no rP term) — they are entirely dependent on N"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Model · Prey Equation Terms",
+    "title": "Defining Every Term in the Prey Equation",
+    "items": [
+      "<b>N</b> = prey population density",
+      "<b>r</b> = prey intrinsic rate of increase (per-capita growth rate in the absence of predators)",
+      "<b>a</b> = attack rate (also called capture efficiency): the per-predator, per-prey probability of a successful capture per unit time",
+      "<b>aNP</b> assumes predators and prey mix randomly — more prey AND more predators both increase total kills proportionally (mass-action)",
+      "Note this a is the same idea as the linear, unsaturating Type I functional response from Lecture 23 applied at the population level"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Model · Predator Equation Terms",
+    "title": "Defining Every Term in the Predator Equation",
+    "items": [
+      "<b>P</b> = predator population density",
+      "<b>b</b> = conversion efficiency (also 'assimilation efficiency'): the fraction of consumed prey biomass/individuals that translates into new predator births",
+      "<b>a</b> = the same attack rate as in the prey equation — the same encounters (aNP) that kill prey simultaneously feed predators",
+      "<b>q</b> = predator death rate (per-capita, constant, independent of prey availability)",
+      "baNP is literally the prey-loss term aNP from the prey equation, rescaled by b — energy lost by prey becomes energy (and offspring) gained by predators"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Model · Side by Side",
+    "title": "The Coupled Predator-Prey Equations",
+    "left": {
+      "h": "Prey: dN/dt = rN − aNP",
+      "body": "Exponential growth (rN) reduced by predation losses (aNP). Prey growth is capped only by predators — there is no self-limiting carrying capacity term in the basic model."
+    },
+    "right": {
+      "h": "Predator: dP/dt = baNP − qP",
+      "body": "Predator growth (baNP) driven entirely by prey consumption, reduced by constant mortality (qP). Predators cannot persist without prey — set N=0 and dP/dt = −qP."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Isoclines",
+    "title": "Finding the Zero-Growth Isoclines",
+    "sub": "Where does each population stop changing?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Isoclines · Prey",
+    "title": "The Prey Isocline",
+    "term": "P = r/a (a horizontal line)",
+    "def": "Setting dN/dt = 0 and solving: rN = aNP → r = aP → P = r/a. Prey density stops changing whenever predator density sits exactly at r/a, regardless of N.",
+    "bullets": [
+      "Algebra: 0 = rN − aNP → 0 = N(r − aP) → since N≠0, r = aP → P = r/a",
+      "This is a horizontal line on an N (x-axis) vs P (y-axis) phase plane, at height P = r/a",
+      "Below this line (few predators) prey increase; above this line (many predators) prey decrease"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Isoclines · Prey, Interpreted",
+    "title": "Why the Prey Isocline Is Perfectly Horizontal",
+    "items": [
+      "The equilibrium predator density needed to hold prey steady does NOT depend on how many prey there are — it depends only on r and a",
+      "Intuition: whatever the prey density, if predators are below r/a, predation pressure is too weak to counteract prey's exponential growth, so prey rise",
+      "If predators are above r/a, predation pressure exceeds prey's growth capacity, so prey fall",
+      "A higher prey growth rate (r) or a weaker attack rate (a) both push the isocline upward — more predators are 'tolerable' before prey decline"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Isoclines · Predator",
+    "title": "The Predator Isocline",
+    "term": "N = q/(ba) (a vertical line)",
+    "def": "Setting dP/dt = 0 and solving: baNP = qP → baN = q → N = q/(ba). Predator density stops changing whenever prey density sits exactly at q/(ba), regardless of P.",
+    "bullets": [
+      "Algebra: 0 = baNP − qP → 0 = P(baN − q) → since P≠0, baN = q → N = q/(ba)",
+      "This is a vertical line on the same phase plane, at prey density N = q/(ba)",
+      "Left of this line (few prey) predators decline; right of this line (abundant prey) predators increase"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Isoclines · Predator, Interpreted",
+    "title": "Why the Predator Isocline Is Perfectly Vertical",
+    "items": [
+      "The equilibrium prey density needed to hold predators steady does NOT depend on how many predators there are — it depends only on q, b, and a",
+      "Intuition: whatever the predator density, if prey are below q/(ba), predators aren't getting enough food to offset their constant death rate q, so predators decline",
+      "If prey are above q/(ba), there is enough food to more than replace predator deaths, so predators increase",
+      "A higher predator death rate (q) pushes the isocline right (more prey needed to sustain predators); higher conversion efficiency (b) or attack rate (a) pushes it left"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Isoclines · Combined View",
+    "title": "Two Isoclines, One Phase Plane",
+    "left": {
+      "h": "Prey isocline: P = r/a",
+      "body": "A horizontal line. Prey increase below it, decrease above it. Position set entirely by prey biology (r) and predator efficiency (a)."
+    },
+    "right": {
+      "h": "Predator isocline: N = q/(ba)",
+      "body": "A vertical line. Predators decrease left of it, increase right of it. Position set entirely by predator mortality (q) and feeding efficiency (b, a)."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Isoclines · The Key Geometric Fact",
+    "title": "Perpendicular Isoclines → Neutral Cycling",
+    "items": [
+      "Because one isocline is horizontal and the other is vertical, they cross at a single point: the joint equilibrium (N*, P*) = (q/(ba), r/a)",
+      "The phase plane is divided into four quadrants around this point, each with a different combination of prey and predator trends (both rising, prey falling, both falling, prey rising)",
+      "Trajectories are forced to rotate around the equilibrium rather than settle onto it or spiral away — a direct geometric consequence of the isoclines being perpendicular and straight",
+      "This produces sustained, repeating oscillations rather than a stable point or runaway divergence — the hallmark prediction of the basic model"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Cycle",
+    "title": "Anatomy of a Predator-Prey Cycle",
+    "sub": "Four phases, driven by lag between prey and predator responses"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Cycle · Four Phases",
+    "title": "Walking Through One Full Cycle",
+    "items": [
+      "<b>Phase 1 — Prey increase</b>: predators are scarce (below r/a), predation pressure is low, prey grow almost exponentially",
+      "<b>Phase 2 — Predators increase (lagged)</b>: abundant prey (above q/(ba)) fuels predator reproduction, but this response trails behind the prey increase",
+      "<b>Phase 3 — Prey decrease</b>: predator numbers eventually climb above r/a, over-predation now outpaces prey growth, and prey decline",
+      "<b>Phase 4 — Predators decrease (lagged)</b>: prey fall below q/(ba), food becomes scarce, and predators decline too — but again only after a delay, allowing prey to hit lower numbers than the equilibrium before relief arrives",
+      "The cycle then restarts at Phase 1 — an endlessly repeating loop with predators always trailing prey by roughly a quarter-cycle"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Cycle · The Phase-Plane Picture",
+    "title": "Reading the Classic N-vs-P Orbit Plot",
+    "items": [
+      "Plot prey density (N) on the x-axis and predator density (P) on the y-axis; a system's state traces a path over time",
+      "The basic Lotka-Volterra model produces a <b>closed loop</b> (an ellipse-like orbit) that circles the equilibrium point (N*, P*) counter-clockwise",
+      "Each starting point (initial N and P) generates its OWN closed orbit — there are infinitely many possible orbits, nested around the same central equilibrium",
+      "Time-series form (N and P plotted against time separately) shows the same information as two offset sine-like waves, predator peaks lagging prey peaks"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Theoretical Red Flag",
+    "quote": "The Lotka-Volterra predator-prey model shows that oscillations can arise from the predator-prey interaction alone, with no external drivers required — but the cycles it predicts are neutrally stable, not truly stable.",
+    "attrib": "paraphrased from Begon & Townsend, Ecology: From Individuals to Ecosystems"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Cycle · Neutral Stability Problem",
+    "title": "Why 'Neutrally Stable' Is a Problem",
+    "items": [
+      "A perturbation (e.g., a harsh winter, a disease outbreak) bumps the system off its current orbit onto a NEW orbit — it does not return to the original orbit",
+      "Because there is no restoring force, the amplitude of cycling is entirely set by whatever the last disturbance happened to be, not by the biology of the system",
+      "Real populations are constantly perturbed, so a model with no tendency to damp back to a preferred orbit is a poor predictor of amplitude and even long-term persistence",
+      "This is considered a major theoretical weakness of the unmodified model, motivating decades of subsequent refinement (the rest of today's lecture)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Contrast · Types of Equilibrium Dynamics",
+    "title": "Neutral vs. Stable vs. Unstable Dynamics",
+    "headers": [
+      "Dynamic type",
+      "Response to perturbation",
+      "Long-term orbit behavior",
+      "Biological realism"
+    ],
+    "rows": [
+      [
+        "Neutrally stable (basic L-V)",
+        "Shifts to a new orbit, never returns",
+        "Orbit amplitude set by last disturbance",
+        "Low — real systems experience constant disturbance"
+      ],
+      [
+        "Stable spiral (with K or refuges)",
+        "Perturbation damps out over successive cycles",
+        "Converges back toward one fixed equilibrium point",
+        "Higher — matches many observed damped cycles"
+      ],
+      [
+        "Unstable / diverging",
+        "Perturbation amplifies over time",
+        "Amplitude grows until extinction of predator or prey",
+        "Seen in enrichment-driven collapse (paradox of enrichment)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Modifications",
+    "title": "Stabilizing and Destabilizing the Model",
+    "sub": "The basic model is a starting point, not an endpoint"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Modifications · Three Key Levers",
+    "title": "Ways to Modify the Basic Model",
+    "cards": [
+      {
+        "h": "Prey carrying capacity (K)",
+        "p": "Adds self-limitation to prey growth, independent of predators — generally stabilizing."
+      },
+      {
+        "h": "Type II functional response",
+        "p": "Replaces the linear aNP term with a saturating one — can be destabilizing at high prey density."
+      },
+      {
+        "h": "Predator interference",
+        "p": "Reduces per-capita predator attack rate as predator density rises (competition among predators) — generally stabilizing."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Modifications · Prey Self-Limitation",
+    "title": "Adding a Carrying Capacity to the Prey Equation",
+    "term": "dN/dt = rN(1 − N/K) − aNP",
+    "def": "Prey growth now follows a logistic curve (Lecture 18) rather than pure exponential growth, capping prey density at K even without predators.",
+    "bullets": [
+      "This single added term (the (1 − N/K) factor) fundamentally changes the shape of the prey isocline",
+      "It represents realistic resource limitation on prey — food, space, or nesting sites cap prey numbers regardless of predation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Modifications · Effect on the Prey Isocline",
+    "title": "From Horizontal Line to Downward Slope",
+    "items": [
+      "Setting the modified dN/dt = 0 no longer gives a flat P = r/a line — instead it yields a line that slopes DOWNWARD as N increases, intersecting the N-axis at K",
+      "Biological meaning: at low prey density, prey can tolerate a HIGHER predator load (predation is not the only thing limiting them); as prey approach K, self-limitation already constrains them, so they can tolerate progressively FEWER predators",
+      "This breaks the perpendicular symmetry of the basic model — the prey isocline is no longer parallel to the x-axis, and no longer perpendicular to the (still vertical) predator isocline"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Modifications · Consequence",
+    "title": "From Neutral Cycles to a Stable Spiral",
+    "items": [
+      "With a downward-sloping prey isocline crossing a vertical predator isocline, trajectories now spiral INWARD toward the equilibrium point rather than circling it forever",
+      "Each successive oscillation has smaller amplitude than the last — the system is damping toward (N*, P*), a classic damped stable spiral",
+      "This single modification converts the model from neutrally stable (a theoretical embarrassment) to genuinely stable, matching many field observations of damped predator-prey cycles better"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Modifications · A Landmark Synthesis",
+    "title": "The Rosenzweig-MacArthur Model",
+    "term": "Logistic Prey Growth + Type II Functional Response",
+    "def": "Combines a prey carrying capacity (self-limitation) with a saturating (Type II) functional response instead of the linear aNP term, producing a richer and more realistic — but also more surprising — set of predictions.",
+    "bullets": [
+      "dN/dt = rN(1 − N/K) − [predation term that saturates with N] and dP/dt = [conversion of that saturating predation term] − qP",
+      "Widely regarded as the standard 'next step' beyond basic Lotka-Volterra in consumer-resource theory",
+      "Its equilibrium can be a stable point, a stable limit cycle, or unstable, depending on parameter values — most notably on K"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Modifications · Rosenzweig-MacArthur Predictions",
+    "title": "Key Features of the Rosenzweig-MacArthur Model",
+    "items": [
+      "At low-to-moderate K, the system settles into a damped, stable equilibrium (similar to the simple K-modified model)",
+      "As K increases past a threshold, the equilibrium can become UNSTABLE, and the system spirals outward onto a large stable limit cycle instead of a fixed point",
+      "This counterintuitive outcome — that making the environment more productive can destabilize rather than stabilize the interaction — is the model's most famous and surprising prediction"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Modifications · A Famous Counterintuitive Result",
+    "title": "The Paradox of Enrichment",
+    "term": "Rosenzweig (1971)",
+    "def": "Increasing a prey population's carrying capacity (K) — e.g., through nutrient enrichment or increased food supply — can destabilize a Rosenzweig-MacArthur predator-prey system into larger-amplitude cycles, raising extinction risk rather than improving persistence.",
+    "bullets": [
+      "'Enrichment' intuitively sounds beneficial (more food, more resources) but the model shows it can push the system toward wilder swings",
+      "Larger cycle amplitude means prey and/or predator densities periodically crash toward zero — even a modest additional perturbation during a trough can cause local extinction",
+      "Real-world echoes: eutrophication of lakes has been linked to destabilized plankton-zooplankton dynamics, broadly consistent with this prediction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Modifications · Why Enrichment Destabilizes",
+    "title": "The Mechanism Behind the Paradox",
+    "items": [
+      "With a Type II functional response, predators saturate at high prey density — beyond a point, more prey does NOT mean proportionally more predation pressure",
+      "So when K rises, prey can reach very high densities where predators are already feeding at their maximum rate and cannot 'keep up' proportionally",
+      "This lets prey overshoot further before predators catch up, and predators then overshoot further in response — larger and larger amplitude swings, i.e., destabilization",
+      "Predator interference (see next) is one of the mechanisms proposed to counteract or dampen this destabilizing effect"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Modifications · Predator Interference",
+    "title": "Mutual Interference Among Predators (Stabilizing)",
+    "items": [
+      "If predators interfere with one another (competing for the same prey patch, disrupting each other's hunts), each individual predator's realized attack rate a effectively DECREASES as predator density P rises",
+      "This introduces a form of self-limitation on the predator side, analogous to what carrying capacity K does for prey",
+      "Predator interference tends to be stabilizing — it prevents predator populations from overshooting as dramatically, damping the amplitude of cycles",
+      "Together, prey self-limitation, saturating functional responses, and predator interference form the core toolkit ecologists use to move Lotka-Volterra from a neutral, unrealistic model toward more defensible, testable predictions"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study I",
+    "title": "Revisiting the Snowshoe Hare–Lynx Cycle",
+    "sub": "From Lecture 19's population fluctuations lens to today's isocline lens"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study · Recap from Lecture 19",
+    "title": "The Hare-Lynx Cycle: What We Already Know",
+    "items": [
+      "Canadian lynx (Lynx canadensis) and snowshoe hare (Lepus americanus) populations, tracked via Hudson's Bay Company fur-trapping records since the 1800s, show striking ~9–10 year cycles",
+      "Hare populations rise and fall roughly in sync with lynx populations, but lynx peaks consistently lag hare peaks by a year or more",
+      "In Lecture 19 we treated this largely descriptively, as an example of regular multi-year population cycling potentially involving both predation and food-plant interactions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study · Reframed Through Today's Model",
+    "title": "Mapping the Hare-Lynx System onto Lotka-Volterra Logic",
+    "items": [
+      "The observed lag of lynx behind hares is exactly the qualitative signature predicted by the basic model's phase relationship: predators trail prey around the orbit",
+      "On the phase plane (hare density vs. lynx density), long-term trapping data trace out loop-like trajectories broadly consistent with the closed or slowly-damping orbits predicted by Lotka-Volterra-type models",
+      "The amplitude of real hare-lynx cycles is large but not obviously diverging to extinction or collapsing to a point — suggestive of either a stable limit cycle (Rosenzweig-MacArthur territory) or externally reinforced neutral-like cycling",
+      "Caveat: hares are also strongly food-limited (willow/birch browse) and experimentally manipulated systems (food + predator exclosures) show BOTH bottom-up and top-down forces contribute — a pure two-species L-V model is a simplification"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case Study · Model Meets Data",
+    "title": "Lagged Numerical Response vs. Model-Predicted Cycling",
+    "left": {
+      "h": "Numerical response (Lecture 23 concept)",
+      "body": "Lynx reproduction and recruitment respond to hare abundance only after a delay — more kittens survive when hares are abundant, but this shows up in the lynx population a season or more later."
+    },
+    "right": {
+      "h": "Model prediction (today's concept)",
+      "body": "The predator isocline (vertical, at N = q/(ba)) combined with the lag inherent in the coupled differential equations forces predator density to always trail prey density around the cycle — the same lag, formalized mathematically."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Case Study II",
+    "title": "Laboratory Microcosms: Testing the Model Directly",
+    "sub": "Gause's protozoans and Huffaker's mites"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case Study · Gause (1934)",
+    "title": "Paramecium and Didinium",
+    "term": "A Predator That Eats Itself Out of House and Home",
+    "def": "G.F. Gause raised the ciliate predator Didinium nasutum together with its prey Paramecium caudatum in simple, well-mixed laboratory culture tubes.",
+    "bullets": [
+      "Didinium is a voracious, efficient predator of Paramecium with essentially no refuge for the prey in a homogeneous tube of medium",
+      "Gause was directly testing whether Lotka-Volterra-style oscillations would emerge in a real biological system"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study · Gause's Results",
+    "title": "Extinction, Not Sustained Cycling",
+    "items": [
+      "In simple, unstructured culture, Didinium consumed nearly all the Paramecium, then starved and died out itself — both predator and prey went extinct, typically within days",
+      "When Gause added a refuge (sediment where Paramecium could hide) predators went extinct first (having nothing left to eat) but prey then persisted alone — still no sustained coexistence cycle",
+      "Only when Gause periodically added new individuals of both species (simulating immigration) did anything resembling repeated oscillation appear",
+      "Conclusion: the basic model's prediction of neutral, indefinitely sustained cycles does NOT emerge naturally in a simple homogeneous system — something is missing, namely spatial structure or migration"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case Study · Huffaker (1958)",
+    "title": "The Orange-Mite Experiment",
+    "term": "Spatial Structure as a Stabilizer",
+    "def": "C.B. Huffaker studied a predator-prey mite system — the herbivorous six-spotted mite Eotetranychus sexmaculatus (prey) and the predatory mite Typhlodromus occidentalis — living on oranges arranged in trays as a laboratory microcosm."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study · Huffaker's Simple Systems",
+    "title": "Simple Arenas: Fast, Total Extinction",
+    "items": [
+      "In a small, simple arena (a single tray of oranges, prey and predator freely able to move everywhere), the predatory mite quickly found and consumed all the prey mites",
+      "With prey gone, the predator population then crashed too — both species went extinct within a few generations, mirroring Gause's result",
+      "Simple homogeneous space gives the efficient predator unimpeded access to every prey individual, eliminating any refuge from which prey can rebound"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study · Huffaker's Complex Systems",
+    "title": "Spatial Complexity: Persistent Oscillation",
+    "items": [
+      "Huffaker increased the arena's complexity: more oranges spread far apart, partial barriers (petroleum jelly, mazes) to slow predator movement, and posts that helped prey mites disperse (via silk threads) faster than predators could follow",
+      "In this spatially heterogeneous setup, prey mites could colonize new patches and build up local populations before predators caught up — a rolling, patchy refuge in space rather than a fixed refuge",
+      "The result: predator and prey populations persisted through several oscillating cycles, rather than crashing to extinction within one boom-bust episode",
+      "This is widely cited as one of the clearest experimental demonstrations that spatial heterogeneity and dispersal asymmetries can substitute for (or reinforce) the stabilizing mechanisms discussed earlier in the lecture"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Case Study · Huffaker's Two Arenas",
+    "title": "Simple vs. Spatially Complex Mite Microcosms",
+    "headers": [
+      "Feature",
+      "Simple arena",
+      "Spatially complex arena"
+    ],
+    "rows": [
+      [
+        "Number/arrangement of oranges",
+        "Few, clustered together",
+        "Many, dispersed widely with barriers"
+      ],
+      [
+        "Predator access to prey patches",
+        "Immediate, unimpeded",
+        "Delayed by distance and barriers"
+      ],
+      [
+        "Prey dispersal advantage",
+        "None — predators track prey easily",
+        "Prey disperse (via silk threads) faster than predators"
+      ],
+      [
+        "Outcome",
+        "Rapid extinction of both species",
+        "Multiple persistent predator-prey oscillations"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis · Tying the Case Studies to the Math",
+    "title": "What the Microcosms Tell Us About the Model",
+    "items": [
+      "Both Gause's and Huffaker's simple systems behave like an UNSTABLE version of Lotka-Volterra — without any refuge or self-limitation, efficient predation drives both species extinct rather than producing neutral cycles or a stable spiral",
+      "Huffaker's spatially complex system behaves more like a stabilized model — dispersal lags and partial refuges function much like the carrying-capacity or interference terms discussed earlier, damping the interaction enough to allow persistence",
+      "Broader lesson: real predator-prey persistence in nature often depends on spatial heterogeneity (patchiness, refuges, metapopulation structure — recall Lecture 16) as much as on the local population dynamics captured by a single well-mixed pair of equations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture Synthesis",
+    "title": "Putting It All Together",
+    "items": [
+      "The basic Lotka-Volterra predator-prey model (dN/dt = rN − aNP, dP/dt = baNP − qP) predicts neutrally stable cycles from perpendicular, straight-line isoclines",
+      "This neutral stability is a theoretical weakness: perturbations shift the orbit permanently rather than damping out",
+      "Adding prey self-limitation (K), functional response saturation (Type II), or predator interference changes isocline shapes and can produce damped stable spirals, stable limit cycles, or destabilization (paradox of enrichment)",
+      "Field data (hare-lynx) and lab microcosms (Gause, Huffaker) both show real systems departing from the simplest model — and spatial structure emerges as a recurring, powerful stabilizing mechanism"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 25 — Herbivory",
+    "left": {
+      "h": "Today (Lecture 24)",
+      "body": "We built the Lotka-Volterra predator-prey model, derived prey and predator isoclines, explained neutral cycling and its instability, and explored stabilizing/destabilizing modifications plus classic case studies (hare-lynx, Gause, Huffaker)."
+    },
+    "right": {
+      "h": "Next time (Lecture 25)",
+      "body": "We turn to herbivory as a specific, often less lethal, case of consumer-resource interaction — plant defenses (physical and chemical), induced vs. constitutive defenses, and how grazing dynamics compare to the true-predation models built today."
+    },
+    "footnote": "Read Begon & Townsend Ch. 8 (Herbivory) before class."
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question",
+    "title": "If Enrichment Can Destabilize a Predator-Prey System, What Does That Mean for Conservation?",
+    "sub": "Consider a program that boosts prey carrying capacity (e.g., supplemental feeding or habitat improvement) to help an endangered predator recover. Using the paradox of enrichment, what unintended risks might this strategy carry — and how might predator interference or spatial refuges be used to offset them?",
+    "footnote": "Bring one written idea to class — we will build a concept map together"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Principles of Ecology · BIOL 3XX</span>
+        <span>Lecture 24 — Predator-Prey Dynamics</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

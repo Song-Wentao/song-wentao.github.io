@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 17: Intraspecific Competition I — Mechanisms & Density Dependence</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "BIOL 3XX · Principles of Ecology · Lecture 17",
+    "title": "Intraspecific Competition I",
+    "sub": "Mechanisms and Density Dependence",
+    "footnote": "Begon & Townsend, Ecology: From Individuals to Ecosystems, 5th ed., Ch. 5"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off: Lecture 16",
+    "sub": "Metapopulation theory and spatial population structure"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 16",
+    "title": "The Levins Metapopulation Model",
+    "items": [
+      "A metapopulation is a set of local populations linked by dispersal across a patchy landscape",
+      "Levins' model tracks the fraction of patches occupied (p), not individual abundance",
+      "dp/dt = cp(1-p) - ep, balancing colonization (c) against extinction (e)",
+      "Equilibrium patch occupancy: p* = 1 - e/c — persistence requires c > e",
+      "Assumes patches are identical, dispersal is unlimited, and local dynamics are fast relative to colonization/extinction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 16",
+    "title": "Source-Sink Dynamics",
+    "items": [
+      "Source patches: births exceed deaths, producing a surplus of emigrants (per-capita growth rate r > 0)",
+      "Sink patches: deaths exceed births locally, but persist via continual immigration (r < 0 without immigration)",
+      "Sink populations can persist indefinitely only because sources supply immigrants — a purely local view would call sinks 'unsuitable habitat'",
+      "Rescue effect: immigration can prevent local extinction and even mask true patch quality"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 16",
+    "title": "Case Studies in Spatial Structure",
+    "items": [
+      "Glanville fritillary butterfly (Melitaea cinxia), Åland Islands: classic empirical test of Levins-type dynamics on ~4,000 dry meadow patches",
+      "Patch occupancy governed by patch area (extinction risk) and isolation (colonization probability)",
+      "Northern spotted owl: old-growth habitat fragmentation modeled with metapopulation/patch-occupancy approaches to guide conservation thresholds",
+      "Common thread: population persistence is a landscape-level property, not just a local one"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "New Topic",
+    "title": "Intraspecific Competition",
+    "sub": "When individuals of the same species compete for the same limiting resources"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definition",
+    "title": "What Is Intraspecific Competition?",
+    "term": "Intraspecific Competition",
+    "def": "An interaction between individuals of the same species, occurring when they share a resource in short supply, leading to reduced survivorship, growth, and/or reproduction of the individuals involved.",
+    "bullets": [
+      "Because competitors are conspecifics, they have essentially identical resource requirements — overlap is maximal",
+      "Distinguished from interspecific competition (Lectures 21-22), which involves different species with only partial niche overlap",
+      "Operates on virtually every limiting resource: food, water, light, nesting sites, breeding territories, mates"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters",
+    "title": "Consequences for the Individual",
+    "items": [
+      "Reduced rate of resource intake per individual as density rises",
+      "Slower individual growth rates (e.g., smaller adult body size in crowded plant or fish populations)",
+      "Lower fecundity — fewer offspring, smaller offspring, or delayed reproduction",
+      "Increased mortality risk, especially among the smallest or weakest individuals",
+      "Increased likelihood of emigration ('density-dependent dispersal')",
+      "These individual-level effects scale up to regulate the population as a whole — the central theme of this lecture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Mechanism 1",
+    "title": "Scramble vs. Contest Competition",
+    "sub": "How resources get divided among competitors"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism",
+    "title": "Scramble Competition",
+    "term": "Scramble Competition",
+    "def": "A form of competition in which the limited resource is shared out more or less equally among all competitors, so that at high density none may get enough to survive or reproduce.",
+    "bullets": [
+      "Resource is 'shared' rather than monopolized — no individual excludes another directly",
+      "Can be highly wasteful: at high density, resource is divided so finely that many or all individuals fail to survive/reproduce, even though the resource is 'used up'",
+      "Classic outcome: population crashes can occur ('overcompensating' density dependence)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism",
+    "title": "Contest Competition",
+    "term": "Contest Competition",
+    "def": "A form of competition in which the resource is shared unequally — successful competitors get all they need regardless of density, while unsuccessful ones get little or nothing.",
+    "bullets": [
+      "Winners obtain sufficient resource for survival and reproduction; losers may get none",
+      "Often mediated by aggressive interactions, dominance hierarchies, or territoriality",
+      "Population-level effect is more efficient: a subset of individuals always succeeds, buffering total output"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Mechanism Comparison",
+    "title": "Scramble vs. Contest Competition",
+    "headers": [
+      "Feature",
+      "Scramble",
+      "Contest"
+    ],
+    "rows": [
+      [
+        "Resource allocation",
+        "Divided equally among all competitors",
+        "Divided unequally — winners take all"
+      ],
+      [
+        "Outcome at high density",
+        "All individuals may get insufficient share; possible total reproductive failure",
+        "Fixed number of 'winners' succeed regardless of density"
+      ],
+      [
+        "Behavioral basis",
+        "Passive resource depletion, no direct interference",
+        "Aggression, dominance, territory defense"
+      ],
+      [
+        "Population regulation",
+        "Can overshoot K and crash (unstable)",
+        "Tends to stabilize population near K"
+      ],
+      [
+        "Example",
+        "Tadpoles competing for algae in a drying pond",
+        "Robins defending breeding territories"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Worked Examples",
+    "title": "Scramble and Contest in Nature",
+    "cards": [
+      {
+        "h": "Flour Beetles",
+        "p": "Tribolium larvae compete by scramble for flour resources; extreme crowding can cause total reproductive failure — a classic Nicholson-type demonstration."
+      },
+      {
+        "h": "Red Grouse Territories",
+        "p": "Contest competition for heather moorland territories: birds without a territory do not breed, capping the breeding population regardless of total bird numbers."
+      },
+      {
+        "h": "Plant Seedlings",
+        "p": "Dense seedling cohorts scramble for light and soil nutrients; the largest individuals dominate as density increases (self-thinning, covered later)."
+      },
+      {
+        "h": "Limpet Grazing",
+        "p": "Intertidal limpets scramble for algal films on rock surfaces; growth rate per individual declines smoothly as density increases."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Population Consequence",
+    "title": "Scramble Competition and Overcompensation",
+    "left": {
+      "h": "Low to Moderate Density",
+      "body": "Resource per capita is adequate. Survival and reproduction proceed close to their maximum rates, and total resource use rises with density."
+    },
+    "right": {
+      "h": "High Density",
+      "body": "Resource is subdivided so finely that per-capita share falls below the minimum needed for survival. Because ALL individuals are affected simultaneously, population size can overshoot and then crash sharply — an 'overcompensating' density-dependent response."
+    },
+    "footnote": "Contrast with contest competition, where a subset always secures enough resource, producing a smoother, more stable regulation curve."
+  },
+  {
+    "type": "section",
+    "tag": "Mechanism 2",
+    "title": "Exploitation vs. Interference Competition",
+    "sub": "Indirect resource depletion vs. direct behavioral interaction"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism",
+    "title": "Exploitation Competition",
+    "term": "Exploitation Competition",
+    "def": "Competition that occurs indirectly, via a shared resource: individuals interact only through their mutual effect on depleting a common resource supply, with no direct behavioral contact required.",
+    "bullets": [
+      "No direct confrontation — competitors may never meet",
+      "Effect is mediated entirely through resource depletion",
+      "Example: two plants rooted meters apart both drawing down the same soil nitrogen pool"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism",
+    "title": "Interference Competition",
+    "term": "Interference Competition",
+    "def": "Competition in which individuals interact directly, through aggression, territoriality, or other behavior, that restricts a competitor's access to a resource independent of resource abundance itself.",
+    "bullets": [
+      "Involves direct behavioral encounters: fighting, displacement, threat displays, territory defense",
+      "Access to the resource is limited by the interaction itself, not only by resource scarcity",
+      "Territoriality (later in this lecture) is a prime example of interference competition"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Mechanism Comparison",
+    "title": "Exploitation vs. Interference Competition",
+    "headers": [
+      "Feature",
+      "Exploitation",
+      "Interference"
+    ],
+    "rows": [
+      [
+        "Mode of interaction",
+        "Indirect, via shared resource pool",
+        "Direct, via behavior/aggression"
+      ],
+      [
+        "Contact required?",
+        "No",
+        "Yes, typically"
+      ],
+      [
+        "Example",
+        "Roots competing for soil water",
+        "Territorial defense of a nest site"
+      ],
+      [
+        "Relation to scramble/contest",
+        "Often produces scramble-like outcomes",
+        "Often produces contest-like outcomes"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Integration",
+    "title": "How the Two Axes Combine",
+    "items": [
+      "Exploitation and interference describe HOW individuals compete; scramble and contest describe the OUTCOME of resource division",
+      "Interference competition very often produces a contest-type outcome (a winner secures the resource)",
+      "Exploitation competition very often produces a scramble-type outcome (resource is drawn down by all simultaneously)",
+      "But the correspondence is not exact — real systems can combine elements of both axes"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Population Regulation",
+    "title": "Density-Dependent vs. Density-Independent Factors",
+    "sub": "What actually regulates population size?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Regulation",
+    "title": "Density-Dependent Factors",
+    "term": "Density Dependence",
+    "def": "A process in which the per-capita effect on birth rate, death rate, or emigration rate changes systematically with population density — typically, mortality rises and/or fecundity falls as density increases.",
+    "bullets": [
+      "Only density-dependent processes can regulate a population — i.e., return it toward an equilibrium after a disturbance",
+      "Intraspecific competition is a primary density-dependent process",
+      "Other density-dependent agents include predation (when predators respond to prey density) and disease transmission (contact-dependent)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Regulation",
+    "title": "Density-Independent Factors",
+    "term": "Density Independence",
+    "def": "A process whose per-capita effect on a population is unrelated to population density — the proportion affected is the same whether density is high or low.",
+    "bullets": [
+      "Cannot regulate population size on their own, because they do not respond to how crowded the population is",
+      "Typically abiotic: severe weather, frost, fire, flood, drought",
+      "Can drive large fluctuations in abundance even though they do not set a long-term equilibrium"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Regulation Compared",
+    "title": "Density-Dependent vs. Density-Independent Factors",
+    "headers": [
+      "Feature",
+      "Density-Dependent",
+      "Density-Independent"
+    ],
+    "rows": [
+      [
+        "Per-capita effect",
+        "Changes with density (usually intensifies as density rises)",
+        "Constant regardless of density"
+      ],
+      [
+        "Can regulate population (return to equilibrium)?",
+        "Yes",
+        "No, alone"
+      ],
+      [
+        "Typical agents",
+        "Intraspecific competition, some predation, disease",
+        "Weather extremes, catastrophic disturbance"
+      ],
+      [
+        "Role in dynamics",
+        "Sets the long-term equilibrium / carrying capacity",
+        "Drives short-term fluctuation around that equilibrium"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Examples",
+    "title": "Density-Dependent Mechanisms in Practice",
+    "items": [
+      "Food limitation: per-capita food intake falls as competitors increase, slowing growth and fecundity",
+      "Space/nest-site limitation: a fixed number of breeding sites caps reproductive output (contest competition)",
+      "Accumulation of waste products or toxins at high density (e.g., in aquatic microcosms)",
+      "Predator aggregation or switching toward abundant prey (a density-dependent mortality source)",
+      "Disease transmission rate rising with host contact rate at high density"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Examples",
+    "title": "Density-Independent Factors in Practice",
+    "items": [
+      "A hard frost killing a fixed proportion of an insect population regardless of how many individuals are present",
+      "Drought reducing seed germination equally at low and high plant density",
+      "Wildfire or flood removing habitat indiscriminately",
+      "These factors explain WHY populations fluctuate, but density dependence explains WHY they don't grow or shrink forever"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "Regulation Requires Feedback",
+    "left": {
+      "h": "Without Density Dependence",
+      "body": "A population subject only to density-independent factors would show a random walk — able to increase without limit in good conditions, or drift to extinction, with no tendency to return to any particular size."
+    },
+    "right": {
+      "h": "With Density Dependence",
+      "body": "Because intraspecific competition intensifies as density rises (and relaxes as density falls), it creates negative feedback: population growth rate declines as N approaches K, and increases again if N falls below K. This feedback is what produces a stable equilibrium."
+    },
+    "footnote": "This feedback loop is the mechanistic basis of the logistic growth model — the subject of Lecture 18."
+  },
+  {
+    "type": "section",
+    "tag": "Emergent Property",
+    "title": "Carrying Capacity, K",
+    "sub": "The population-level signature of intraspecific competition"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Carrying Capacity (K)",
+    "term": "Carrying Capacity",
+    "def": "The population size (or density) at which per-capita birth and death rates are equal, so that population growth rate is zero — the equilibrium set by the limits of the local environment's resources.",
+    "bullets": [
+      "K is not a fixed 'ceiling' imposed from outside — it EMERGES from the cumulative effect of intraspecific competition on individual survival and reproduction",
+      "As N approaches K, competition intensifies, growth rate slows, and eventually births balance deaths",
+      "K can vary in space and time as resource availability changes (recall source-sink variation in local quality, Lecture 16)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanistic Basis",
+    "title": "K as an Emergent Property, Not a Given",
+    "items": [
+      "K is the outcome of the same processes examined today: scramble/contest, exploitation/interference competition, acting on individuals",
+      "Change the mechanism of competition (e.g., from scramble to contest) and you change the shape of the approach to K and its stability",
+      "K depends on resource supply rate — richer environments generally support higher K",
+      "Because K reflects biology, not just physics, it can be measured, manipulated, and is central to management (e.g., harvest theory, invasive species control)"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "From the Text",
+    "quote": "Intraspecific competition is the process by which the finite resources of the environment are apportioned amongst members of a population, and it is this process, more than any other, that determines carrying capacity.",
+    "attrib": "Adapted from Begon & Townsend, Ecology: From Individuals to Ecosystems, Ch. 5"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Density Effects",
+    "title": "Cascading Effects of Rising Density",
+    "levels": [
+      {
+        "label": "Reduced individual growth rate",
+        "color": "#4c6ef5",
+        "width": "460px"
+      },
+      {
+        "label": "Reduced fecundity / offspring size",
+        "color": "#5c9eef",
+        "width": "400px"
+      },
+      {
+        "label": "Increased emigration",
+        "color": "#74c0fc",
+        "width": "330px"
+      },
+      {
+        "label": "Increased mortality risk",
+        "color": "#a5d8ff",
+        "width": "260px"
+      }
+    ],
+    "footnote": "These effects typically appear in this rough sequence as density rises toward K, though the exact order is species- and resource-dependent."
+  },
+  {
+    "type": "section",
+    "tag": "Preview",
+    "title": "Self-Thinning in Plant Populations",
+    "sub": "A quantitative signature of scramble competition — full treatment in Lecture 18"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Brief Introduction",
+    "title": "Self-Thinning",
+    "term": "Self-Thinning",
+    "def": "The progressive decline in the density of surviving individuals in an even-aged plant population (or sessile animal population) as the survivors grow larger and competition for light, water, and nutrients eliminates the smaller individuals.",
+    "bullets": [
+      "Occurs because plants are rooted in place — individuals cannot avoid a locally intense competitor, making light/resource competition intensely asymmetric",
+      "Result: mean plant size increases while population density decreases, in a strikingly regular, predictable relationship",
+      "This relationship — the '-3/2 power law' / self-thinning rule — will be derived and applied quantitatively in Lecture 18"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Study Preview",
+    "title": "Self-Thinning in Even-Aged Pine Stands",
+    "cards": [
+      {
+        "h": "The Setup",
+        "p": "A plantation of Pinus seedlings, sown at uniform, high density, all germinating at approximately the same time."
+      },
+      {
+        "h": "The Pattern",
+        "p": "As the stand ages, total stem density falls sharply while average tree biomass rises — classic scramble/exploitation competition for canopy light."
+      },
+      {
+        "h": "The Regularity",
+        "p": "Log(mean plant mass) plotted against log(surviving density) falls on a strikingly consistent line across many species and stand ages (Yoda et al. 1963)."
+      },
+      {
+        "h": "Why It Matters",
+        "p": "Self-thinning demonstrates intraspecific competition operating as a predictable, quantifiable population-regulating process — a direct example of density dependence in action."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Mechanism in Depth",
+    "title": "Territoriality",
+    "sub": "Interference competition made behaviorally explicit"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Behavioral Mechanism",
+    "title": "Territoriality",
+    "term": "Territoriality",
+    "def": "The defense of an area by an individual or group against intrusion by other members of the same species, such that the defended area provides exclusive or priority access to a limiting resource (food, nest sites, mates).",
+    "bullets": [
+      "A behavioral expression of interference competition, typically producing a contest-competition outcome",
+      "Territory size is often inversely related to resource richness — richer habitat supports smaller, more numerous territories",
+      "Sets an effective ceiling on local breeding density: individuals without a territory ('floaters' or 'surplus') may not breed at all"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Population Consequences",
+    "title": "Why Territoriality Regulates Populations",
+    "items": [
+      "Because only territory-holders breed, the number of available territories caps reproductive output regardless of how many individuals are present in the population",
+      "Non-territorial 'floaters' form a hidden surplus — often invisible in simple density counts but crucial for population resilience",
+      "If territory-holders die or are removed, floaters rapidly fill the vacancy — demonstrating that territory number, not raw individual number, sets the breeding ceiling",
+      "This is a textbook case of contest competition: winners (territory holders) get all they need; losers get little or nothing"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "Red Grouse and Territorial Regulation",
+    "sub": "Watson & Moss, Scottish heather moorland"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Study",
+    "title": "Red Grouse (Lagopus lagopus scoticus)",
+    "cards": [
+      {
+        "h": "The System",
+        "p": "Red grouse on Scottish heather moorland defend all-purpose territories in autumn that determine which birds survive winter and breed the following spring."
+      },
+      {
+        "h": "The Experiment",
+        "p": "Watson & Moss manipulated territorial behavior (via hormone implants increasing aggressiveness) and observed changes in breeding density independent of food supply."
+      },
+      {
+        "h": "The Result",
+        "p": "More aggressive cocks held larger territories, reducing the number of birds that could settle — density was set by territorial behavior, not simply by food or habitat area."
+      },
+      {
+        "h": "The Significance",
+        "p": "A key demonstration that behavior (interference competition) can regulate population density even when resources are not fully limiting — density dependence with a behavioral mechanism."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Detail",
+    "title": "Red Grouse: Mechanistic Detail",
+    "items": [
+      "Territory-holding cocks in autumn secure the resources and status needed to survive winter and attract a mate the following spring",
+      "Birds unable to secure a territory ('surplus' birds) suffer much higher mortality and emigrate or die over winter",
+      "Territory size adjusts with individual aggressiveness and kinship structure among neighboring males, not only with food abundance",
+      "Because breeding density tracks territory number rather than total bird number, the system shows strong density-dependent regulation of the breeding population"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "Tadpole Scramble Competition",
+    "sub": "Larval anuran experiments in temporary ponds"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Study",
+    "title": "Tadpoles and Scramble Competition",
+    "cards": [
+      {
+        "h": "The System",
+        "p": "Larval anurans (e.g., Rana, Bufo) in temporary ponds compete by exploitation scramble for algae and detritus, a resource that depletes rapidly at high density."
+      },
+      {
+        "h": "The Experiment",
+        "p": "Experimental enclosures reared tadpoles at a range of densities with fixed pond volume and food supply, tracking growth, development time, and metamorph size."
+      },
+      {
+        "h": "The Result",
+        "p": "As density increased, per-capita food intake declined, larval growth slowed, time to metamorphosis lengthened, and metamorph body size at emergence shrank."
+      },
+      {
+        "h": "The Significance",
+        "p": "A clean demonstration of scramble competition's density-dependent effects operating through resource depletion (exploitation) rather than direct aggression."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Detail",
+    "title": "Tadpoles: Mechanistic Detail",
+    "items": [
+      "Wilbur & Collins-type experiments showed that growth trajectories, not just final survival, respond continuously to larval density — a graded, not all-or-nothing, response",
+      "Smaller, slower-growing individuals at high density are also more vulnerable to pond drying, linking density-dependent competition to density-independent risk",
+      "Metamorphosing at smaller size can carry costs into adulthood (lower fecundity, survival) — density dependence has downstream, delayed fitness effects",
+      "Illustrates how exploitation competition among mobile larvae still produces a strongly scramble-like, density-dependent outcome"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Context",
+    "title": "Landmarks in Intraspecific Competition Research",
+    "items": [
+      {
+        "y": "1933",
+        "t": "A. J. Nicholson formalizes the concept of density-dependent population regulation via intraspecific competition"
+      },
+      {
+        "y": "1954",
+        "t": "Nicholson distinguishes scramble and contest competition; Park's Tribolium studies probe competitive mechanisms"
+      },
+      {
+        "y": "1963",
+        "t": "Yoda et al. describe the -3/2 power self-thinning law in even-aged plant stands"
+      },
+      {
+        "y": "1970s",
+        "t": "Watson & Moss establish territorial behavior as a density-regulating mechanism in red grouse"
+      },
+      {
+        "y": "1970s-80s",
+        "t": "Wilbur, Collins, and colleagues quantify scramble competition and growth plasticity in larval amphibians"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "From Mechanism to Regulation",
+    "left": {
+      "h": "What We Covered Today",
+      "body": "Intraspecific competition arises whenever conspecifics share a limiting resource. It can operate via scramble or contest outcomes, through exploitation or interference mechanisms, and its intensity scales with density — making it density-dependent by nature."
+    },
+    "right": {
+      "h": "Why It Matters for Populations",
+      "body": "Because its per-capita effect intensifies with density, intraspecific competition provides the negative feedback that sets carrying capacity K and stabilizes population size — the mechanistic foundation for the logistic growth model."
+    },
+    "footnote": "Self-thinning and territoriality are two concrete expressions of this same underlying density-dependent process — one in sessile plants, one in mobile, behaviorally complex animals."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "Summary: Lecture 17",
+    "items": [
+      "Intraspecific competition: conspecifics competing for a shared limiting resource",
+      "Scramble competition divides resources equally (risking overcompensation/crash); contest divides them unequally (more stable)",
+      "Exploitation competition acts indirectly via resource depletion; interference competition acts directly via behavior",
+      "Only density-dependent factors can regulate populations; density-independent factors drive fluctuation but not equilibrium",
+      "Carrying capacity K is an emergent property of intraspecific competition, not an externally fixed ceiling",
+      "Self-thinning (plants) and territoriality (animals) are two concrete case-study mechanisms of density-dependent regulation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Before Next Class",
+    "title": "Looking Ahead to Lecture 18",
+    "sub": "Intraspecific Competition II: Logistic Growth & Self-Thinning"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Next Class",
+    "title": "Preparing for Lecture 18",
+    "items": [
+      "Review today's carrying-capacity and density-dependence concepts — Lecture 18 formalizes them mathematically as the logistic growth equation, dN/dt = rN(1 - N/K)",
+      "Revisit the self-thinning introduction above; Lecture 18 derives and applies the -3/2 power law quantitatively with real plantation data",
+      "Bring a calculator/laptop: we will work through logistic growth trajectories and self-thinning log-log plots in class",
+      "Reading: Begon & Townsend, Ch. 5, sections on population growth models and self-thinning"
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "Discussion Question",
+    "title": "Scramble, Contest, or Both?",
+    "sub": "Is human competition for jobs, housing, or admission to university better modeled as scramble or contest competition — and could it be density-dependent in the Nicholsonian sense? Defend your answer with a specific mechanism.",
+    "footnote": "Bring your position to next class — we will open Lecture 18 with a short discussion."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>BIOL 3XX · Principles of Ecology</span>
+        <span>Lecture 17 · Intraspecific Competition I</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>
