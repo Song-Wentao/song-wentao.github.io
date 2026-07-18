@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 27: Food Chains and Webs I: Trophic Structure and Energy Flow Constraints</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 27",
+    "title": "Food Chains and Webs I: Trophic Structure and Energy Flow Constraints",
+    "sub": "Opening Chapter 11 — how energy flow through feeding links constrains the structure of ecological communities",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 11 — Food chains and webs"
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "From Networks to Food Webs",
+    "sub": "Recap of Chapter 10 and the shift to trophic-specific structure"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 26",
+    "title": "Where we left off: Chapter 10 synthesis",
+    "items": [
+      "Chapter 10 treated ecological networks generically — nodes and links of <b>any</b> interaction type (competitive, mutualistic, antagonistic, trophic)",
+      "Key structural properties covered: connectance, degree distribution, nestedness, modularity, and compartmentalization",
+      "Robustness analysis showed how network architecture (nested mutualisms vs. compartmentalized antagonisms) shapes resistance to species loss and secondary extinction cascades",
+      "We closed by asking: does network topology alone predict community stability and function — or does the <b>type</b> of interaction matter?",
+      "Chapter 11 answers this for feeding interactions specifically, where a hidden ingredient — energy — imposes constraints no other interaction type shares"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The pivot",
+    "title": "Why food webs are a special case of networks",
+    "items": [
+      "A <b>food web</b> is a network restricted to one interaction type: who eats whom",
+      "Unlike competition or mutualism networks, feeding links carry a physical currency — <b>energy and biomass</b> — that flows unidirectionally from resource to consumer",
+      "That directionality plus the thermodynamic cost of every transfer means food web structure is not arbitrary — it is bounded by the second law of thermodynamics",
+      "This chapter (11) asks: how does energy flow constrain trophic structure, chain length, and biomass distribution? Chapter 12 will build back up to whole food-web architecture including this energetic layer"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definitions",
+    "title": "Setting the vocabulary",
+    "term": "Food chain vs. food web",
+    "def": "A food chain is a single linear pathway of energy transfer from a basal resource through a sequence of consumers (e.g., grass → grasshopper → sparrow → hawk). A food web is the full network of all feeding links among all taxa in a community — many overlapping, branching food chains.",
+    "bullets": [
+      "Food chains are useful abstractions for studying energy flow and chain length",
+      "Food webs are the empirically observed, usually messy, reality",
+      "Most of this lecture works with the food-chain abstraction to build intuition before Lecture 28 returns to full web complexity"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Measuring trophic structure",
+    "title": "How ecologists actually assign trophic position",
+    "items": [
+      "Traditional method: direct observation of diet (gut contents, feeding observations) combined with expert-assigned integer trophic levels",
+      "Modern method: <b>stable isotope analysis</b> (especially nitrogen-15 enrichment) provides a continuous, empirically measured estimate of trophic position, since delta-15N reliably increases by ~3-4 per mil with each trophic transfer",
+      "Isotope-based fractional trophic levels naturally accommodate omnivory — a value of 2.6, for example, reflects a diet mixing herbivory and carnivory rather than forcing a discrete category",
+      "This methodological shift from discrete categories to continuous measurement mirrors the conceptual shift from 'clean ladder' to 'tangled web' discussed throughout this lecture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Trophic Levels Revisited",
+    "sub": "A useful simplification — and its limits"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The classic scheme",
+    "title": "Trophic levels: the textbook ladder",
+    "items": [
+      "<b>Primary producers</b> (autotrophs) — plants, algae, cyanobacteria; fix solar (or chemical) energy into biomass",
+      "<b>Primary consumers</b> (herbivores) — feed directly on producers",
+      "<b>Secondary consumers</b> — predators that eat herbivores",
+      "<b>Tertiary consumers</b> — top predators that eat secondary consumers",
+      "<b>Decomposers/detritivores</b> — break down dead organic matter from all levels, recycling nutrients and returning some energy to the base of the web"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Trophic roles",
+    "title": "Four functional categories, one open question",
+    "cards": [
+      {
+        "h": "Producers",
+        "p": "Convert light or chemical energy into fixed carbon; set the energetic ceiling for everything above them"
+      },
+      {
+        "h": "Consumers (herbivore → carnivore)",
+        "p": "Sequential transfer of biomass upward, with large losses at each step"
+      },
+      {
+        "h": "Decomposers/detritivores",
+        "p": "A parallel pathway (the 'brown' or detrital food web) that processes dead material from every trophic level, not just the one below"
+      },
+      {
+        "h": "Omnivores",
+        "p": "Feed across multiple levels simultaneously, breaking the clean ladder structure"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The complication",
+    "title": "Omnivory",
+    "term": "Omnivory",
+    "def": "Feeding at more than one trophic level — e.g., a fish that eats both algae (level 1) and invertebrate grazers (level 2), or a bear that eats berries, salmon, and insects. Omnivory is not the exception in real food webs; empirical surveys show it is common across nearly all ecosystem types.",
+    "bullets": [
+      "Makes assigning a single integer 'trophic level' to a species arbitrary or ambiguous",
+      "Ecologists now often use <b>fractional trophic level</b> (weighted average of prey trophic levels + 1) rather than discrete integers",
+      "Omnivory has real dynamical consequences — it can stabilize or destabilize food webs depending on link strength (foreshadowing Lecture 28)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the ladder breaks down",
+    "title": "Real food webs are rarely cleanly layered",
+    "items": [
+      "Many predators shift diet ontogenetically — juveniles eat different (often lower) trophic levels than adults of the same species",
+      "Decomposers and detritivores draw energy from dead material at <b>every</b> level simultaneously, not just 'below' them",
+      "Intraguild predation — predators that also compete with and sometimes eat their competitors — mixes predation and competition within a nominal 'trophic level'",
+      "Seasonal and spatial diet shifts mean a species' trophic position can vary across a year or across habitat patches",
+      "Despite these complications, discrete trophic levels remain a powerful simplifying tool for studying energy flow at the community scale — the key is knowing when the simplification breaks down"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Idealization vs. reality",
+    "title": "The layered pyramid vs. the tangled web",
+    "left": {
+      "h": "Idealized food chain",
+      "body": "Producer → herbivore → predator → top predator. Discrete, linear, non-overlapping levels. Energy flows in one direction, one step at a time. Analytically tractable — this is the model behind the 10% rule and classic pyramid diagrams."
+    },
+    "right": {
+      "h": "Empirical food web",
+      "body": "Omnivory, cannibalism, ontogenetic diet shifts, and a parallel detrital pathway blur the levels. Most species cannot be assigned a single clean trophic number. Yet aggregate energy flow still obeys thermodynamic constraints — the ladder is a useful fiction even when individual links defy it."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Energy Flow and the 10% Rule",
+    "sub": "Why chains can't be infinitely long"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The core constraint",
+    "title": "Trophic transfer efficiency",
+    "term": "Trophic (ecological) efficiency",
+    "def": "The proportion of energy (or biomass) at one trophic level that is successfully incorporated into the biomass of the next trophic level. Commonly cited as approximately 10%, though empirical values range widely — roughly 2% to over 24% depending on ecosystem and taxa.",
+    "bullets": [
+      "First formalized by Raymond Lindeman (1942) in his 'trophic-dynamic' concept of ecosystem energetics — a foundational paper in ecosystem ecology",
+      "The '10% rule' is a rough rule of thumb, not a physical law — treat it as an order-of-magnitude expectation, not a precise prediction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where the other 90% goes",
+    "title": "Fates of energy at each trophic transfer",
+    "items": [
+      "<b>Not consumed</b> — much producer/prey biomass is never eaten at all (dies, falls to detritus, or is otherwise unavailable)",
+      "<b>Not assimilated</b> — of what is eaten, a fraction passes through the gut undigested and exits as feces/waste, entering the detrital pathway",
+      "<b>Respired</b> — of what is assimilated, most is burned as metabolic fuel (respiration) to power movement, growth, and reproduction, released as heat per the second law of thermodynamics",
+      "<b>Converted to new biomass</b> — only the small remainder becomes new consumer tissue, the fraction available to the next trophic level",
+      "This layered leakage compounds at every transfer — it is the thermodynamic reason food chains are short"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Visualizing the constraint",
+    "title": "Pyramid of energy: the one pyramid that is never inverted",
+    "levels": [
+      {
+        "label": "Tertiary consumers (~0.1%)",
+        "color": "#7a2626",
+        "width": "120px"
+      },
+      {
+        "label": "Secondary consumers (~1%)",
+        "color": "#b5482f",
+        "width": "220px"
+      },
+      {
+        "label": "Primary consumers (~10%)",
+        "color": "#d68a2e",
+        "width": "340px"
+      },
+      {
+        "label": "Primary producers (100%)",
+        "color": "#3f8a4d",
+        "width": "480px"
+      }
+    ],
+    "footnote": "Energy values are illustrative, assuming a ~10% transfer efficiency at each step — real values vary considerably by system"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lindeman's legacy",
+    "title": "The trophic-dynamic concept",
+    "items": [
+      "Lindeman reframed community ecology in energetic terms: rather than asking 'who eats whom,' ask 'how much energy flows through each level, and how fast'",
+      "This launched ecosystem ecology as a quantitative science — energy budgets, production efficiency, and the study of ecosystems as thermodynamic systems",
+      "Lindeman's own data (Cedar Bog Lake) suggested efficiencies near 10%, but he recognized this was one system's estimate, not a universal constant",
+      "The energetic framing directly predicts a testable hypothesis: chain length should be set by how much energy enters at the base — more on this shortly"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Why efficiency varies",
+    "title": "Gross vs. net production efficiency",
+    "left": {
+      "h": "Ectotherms",
+      "body": "Fish, insects, and other ectotherms spend relatively little energy on internal heat production. A larger share of assimilated energy is available for growth and reproduction — net production efficiencies can exceed 20-30%."
+    },
+    "right": {
+      "h": "Endotherms",
+      "body": "Birds and mammals divert the majority of assimilated energy to maintaining constant body temperature. Net production efficiency is typically only 1-3% — far below the '10% rule' average, dragging down whole-chain efficiency wherever endotherms sit."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Sources of variation",
+    "title": "Why '10%' is approximate, not exact",
+    "items": [
+      "Producer quality matters: woody/structural plant tissue (high lignin/cellulose) is poorly assimilated by herbivores; phytoplankton and young leaves are assimilated much more efficiently",
+      "Consumer physiology matters: ectotherm vs. endotherm metabolic overhead (previous slide) shifts efficiency by an order of magnitude",
+      "Detrital vs. grazing pathways differ: material that bypasses the grazing chain into decomposition follows different, often less-efficient, energetic routes",
+      "Because efficiency compounds multiplicatively across levels, even small variations at each step produce large differences in how much energy reaches the top of a chain"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "What Limits Food Chain Length?",
+    "sub": "Four competing (and complementary) hypotheses"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The central question",
+    "title": "Why do most food chains stop at 3-5 levels?",
+    "items": [
+      "If transfer efficiency is ~10%, a chain of only 5 levels already reduces basal energy input by a factor of 10,000",
+      "Yet the theoretical ceiling implied by pure energetics would allow chain length to keep growing as long as productivity at the base keeps increasing",
+      "Observed chain lengths, however, do not scale up nearly as much as productivity does across ecosystems",
+      "This mismatch between energetic prediction and empirical pattern is one of the most studied open questions in community/ecosystem ecology"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Hypothesis 1",
+    "title": "The energetic (productivity) hypothesis",
+    "term": "Energetic/productivity limitation hypothesis",
+    "def": "Lindeman's classic idea: chain length is set directly by the amount of energy entering at the base (primary productivity) and the efficiency of transfer between levels. More energy at the base → enough left over to support additional trophic levels.",
+    "bullets": [
+      "Predicts a positive relationship between ecosystem productivity and food chain length",
+      "Simple, intuitive, and historically the default explanation — but empirical support is inconsistent across studies"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Hypothesis 2",
+    "title": "The ecosystem size hypothesis",
+    "term": "Ecosystem size hypothesis",
+    "def": "Larger ecosystems (larger lakes, larger habitat patches) support longer food chains — independent of productivity — because greater size provides more habitat heterogeneity, more resource diversity, larger and more stable population sizes at each level, and reduced extinction risk for specialist top predators.",
+    "bullets": [
+      "Supported by comparative studies across lakes of varying size (Post et al. and related work)",
+      "Suggests that area/volume, not just energy input rate, sets an upper bound on how many viable trophic levels a system can sustain"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Hypothesis 3",
+    "title": "The dynamical stability hypothesis",
+    "term": "Dynamical stability hypothesis",
+    "def": "Longer food chains are inherently less stable — more prone to large population oscillations and a higher risk of perturbation-driven collapse, especially of top predators. Even where energy would be sufficient to support additional levels, instability limits the realized chain length observed in nature.",
+    "bullets": [
+      "Rooted in classic theoretical results (e.g., May 1973) linking food web complexity/length to reduced local stability",
+      "Predicts that variable or frequently disturbed environments should support shorter realized chains than their energy budget alone would allow",
+      "Complements rather than replaces the energetic hypothesis: energy may set the ceiling, but stability sets how close to that ceiling a real system can persist"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Hypothesis 4",
+    "title": "Disturbance and predation-risk hypotheses",
+    "term": "Disturbance / predation-risk hypotheses",
+    "def": "Frequent disturbance (fire, flooding, seasonal drying) truncates chain length by repeatedly resetting successional/energetic accumulation before higher trophic levels can establish. Related predation-risk arguments note that top predators face high energetic and mortality costs of hunting across a landscape, further limiting how many additional levels can be reliably supported.",
+    "bullets": [
+      "Explains why disturbance-prone systems (e.g., temporary ponds, frequently burned grasslands) tend to have unusually short chains relative to their productivity",
+      "Overlaps conceptually with the stability hypothesis but emphasizes exogenous environmental variability rather than intrinsic dynamical instability"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Synthesis",
+    "title": "Four hypotheses for food chain length",
+    "headers": [
+      "Hypothesis",
+      "Core mechanism",
+      "Key prediction",
+      "Main limitation"
+    ],
+    "rows": [
+      [
+        "Energetic/productivity",
+        "More basal energy supports more transfer steps",
+        "Chain length increases with primary productivity",
+        "Empirically weak/inconsistent relationship across many systems"
+      ],
+      [
+        "Ecosystem size",
+        "Larger systems have more habitat & resource diversity",
+        "Chain length increases with ecosystem area/volume",
+        "Doesn't fully explain variation within similarly-sized systems"
+      ],
+      [
+        "Dynamical stability",
+        "Longer chains are less stable, more collapse-prone",
+        "Realized chains shorter than energy budget alone predicts",
+        "Hard to test directly; relies on model assumptions about interaction strength"
+      ],
+      [
+        "Disturbance/predation risk",
+        "Frequent perturbation resets accumulation of higher levels",
+        "Chain length shortens with disturbance frequency",
+        "Disturbance regime and productivity often correlated, confounding tests"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The empirical pattern",
+    "title": "Real food chains are short — typically 3 to 5 levels",
+    "items": [
+      "Across terrestrial, freshwater, and marine systems, observed maximum trophic levels cluster remarkably tightly around 3-5, despite enormous variation in primary productivity",
+      "Highly productive systems (e.g., estuaries, upwelling zones) do not show proportionally much longer chains than far less productive systems",
+      "This is the central empirical puzzle motivating the multi-hypothesis approach: energetics alone systematically under- or over-predicts observed lengths depending on the system",
+      "Modern consensus: chain length is likely co-determined by energy availability, ecosystem size, and stability constraints acting together, with their relative importance varying by system type"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why energetics alone underpredicts",
+    "title": "Reconciling theory and observation",
+    "items": [
+      "Pure energetic models assume all available energy is captured and passed up the chain with fixed efficiency — real systems have inefficiencies, spatial subsidies, and behavioral constraints not captured by a simple energy budget",
+      "Top predators require large, stable prey populations to persist — a purely energetic surplus is not enough if it is too variable or too spatially dispersed to reliably support a viable population",
+      "Body size and mobility create additional constraints: top predators are typically large-bodied with large home ranges, requiring ecosystem <b>size</b>, not just productivity, to sustain them",
+      "This is why ecosystem size and stability hypotheses gained traction as necessary complements to Lindeman's original energetic framework"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Theory vs. data",
+    "title": "Predicted vs. observed chain length",
+    "left": {
+      "h": "Naive energetic prediction",
+      "body": "If transfer efficiency is fixed near 10%, chain length should scale with the logarithm of productivity — highly productive systems should support several additional trophic levels relative to unproductive ones."
+    },
+    "right": {
+      "h": "Observed pattern",
+      "body": "Maximum chain length is far more conservative and far less sensitive to productivity than predicted. Ecosystem size, habitat structure, and stability constraints appear to do much more of the explanatory work than productivity alone."
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On the puzzle of chain length",
+    "quote": "Why food chains are short is one of the oldest unresolved questions in ecology — energy sets an upper bound, but something else decides how close real ecosystems come to it.",
+    "attrib": "paraphrased synthesis, after Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 11"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Production concepts",
+    "title": "Gross vs. net primary production, revisited",
+    "left": {
+      "h": "Gross primary production (GPP)",
+      "body": "Total energy fixed by producers via photosynthesis, before any losses. This is the total energetic 'income' entering the base of the food chain."
+    },
+    "right": {
+      "h": "Net primary production (NPP)",
+      "body": "GPP minus the energy producers themselves respire for their own maintenance. NPP is the energy actually available to herbivores and the rest of the food chain — the true starting point for the 10% rule calculations discussed earlier."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Ecological Pyramids",
+    "sub": "Numbers, biomass, and energy — and why they can disagree"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Three ways to stack a community",
+    "title": "Pyramids of numbers, biomass, and energy",
+    "items": [
+      "<b>Pyramid of numbers</b> — counts individual organisms at each trophic level",
+      "<b>Pyramid of biomass</b> — measures standing stock of biomass (mass per unit area) at each trophic level, typically at one point in time",
+      "<b>Pyramid of energy</b> — measures the <b>rate</b> of energy flow (production per unit area per unit time) through each trophic level",
+      "All three are attempts to visualize trophic structure, but only one of them is guaranteed by thermodynamics to always be upright"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Pyramid of numbers",
+    "title": "Why numbers can be a misleading metric",
+    "items": [
+      "A single large oak tree (one producer individual) can support thousands of individual insect herbivores — inverting a numbers pyramid at the base",
+      "A parasite-based food chain can show the opposite: one large host organism supports enormous numbers of small parasites at a nominally 'higher' trophic position",
+      "Because individual body size varies enormously across trophic levels, raw counts of individuals often fail to reflect true energy or biomass relationships",
+      "Numbers pyramids are the least thermodynamically constrained of the three — and the most prone to inversion"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Pyramid of biomass",
+    "title": "Standing stock — a snapshot, not a flow rate",
+    "items": [
+      "Biomass pyramids measure how much living mass is present at each level at a given moment — a stock, not a rate",
+      "In most terrestrial systems, biomass pyramids are upright: plant biomass (trees, grasses) vastly exceeds herbivore biomass, which exceeds carnivore biomass",
+      "But because biomass is a <b>snapshot</b> of stock rather than a measure of production rate, it can be misleading when turnover rates differ drastically between levels",
+      "This sets up the classic exception discussed next: marine phytoplankton-based systems"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "The classic exception",
+    "title": "Inverted biomass pyramid: open-ocean phytoplankton systems",
+    "levels": [
+      {
+        "label": "Fish & larger consumers",
+        "color": "#7a2626",
+        "width": "260px"
+      },
+      {
+        "label": "Zooplankton",
+        "color": "#b5482f",
+        "width": "200px"
+      },
+      {
+        "label": "Phytoplankton (small standing stock, very fast turnover)",
+        "color": "#3f8a4d",
+        "width": "140px"
+      }
+    ],
+    "footnote": "Standing biomass of phytoplankton can be lower than that of the zooplankton and fish they support, because phytoplankton turn over (divide and are consumed) many times faster than their consumers"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Resolving the paradox",
+    "title": "Why inverted biomass pyramids are not a thermodynamic violation",
+    "term": "Turnover rate",
+    "def": "The rate at which a population's biomass is replaced through growth and reproduction. Phytoplankton populations can turn over (double) in hours to days, while the zooplankton and fish that consume them turn over on the scale of weeks to years.",
+    "bullets": [
+      "A small standing stock of fast-turnover phytoplankton can still generate a very high <b>rate</b> of energy production — enough to support a much larger standing stock of slower-turnover consumers",
+      "This is why the pyramid of biomass can invert even though the pyramid of energy (which measures flow rate, not stock) cannot — energy production always exceeds energy consumption at any level, by the second law",
+      "Correcting stock (biomass) for turnover rate recovers the expected upright relationship in terms of production"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "System comparison",
+    "title": "Terrestrial vs. open-ocean pyramids",
+    "left": {
+      "h": "Terrestrial grassland/forest",
+      "body": "Producers are large, long-lived, slow-turnover organisms (trees, perennial grasses). Biomass, numbers, and energy pyramids are all typically upright and qualitatively similar in shape."
+    },
+    "right": {
+      "h": "Open-ocean pelagic system",
+      "body": "Producers (phytoplankton) are microscopic, short-lived, and extremely fast-turnover. Biomass pyramid can invert (more consumer biomass than producer biomass at a snapshot), even though the energy pyramid — because it captures flow, not stock — remains upright as always."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The one invariant pyramid",
+    "title": "Why the pyramid of energy is never inverted",
+    "items": [
+      "Energy pyramids measure production <b>rate</b> — energy fixed or transferred per unit area per unit time",
+      "By the second law of thermodynamics, energy transfer between levels always involves loss (as heat via respiration) — a consumer level can never produce more energy than it received from the level below",
+      "This makes the energy pyramid the most fundamentally reliable of the three representations, even when numbers or biomass pyramids appear inverted",
+      "Takeaway: always ask which quantity a 'pyramid' diagram is actually measuring before interpreting its shape"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Connecting the Threads",
+    "sub": "Energy flow as the hidden logic behind earlier chapters"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking back",
+    "title": "Energy flow constraints and predator-prey/competition modules (Ch5, Ch7)",
+    "items": [
+      "The predator-prey and consumer-resource models from Chapter 5 implicitly assume a bounded number of trophic levels — energy flow constraints are the underlying reason those models rarely extend past 2-3 interacting levels in practice",
+      "Competition theory (Chapter 7) generally examines species within a single trophic level competing for shared resources supplied from below — the energetic ceiling on that level's total biomass sets the resource pool available to compete over",
+      "In effect, food chain length sets the 'vertical' scope within which the 'horizontal' dynamics of competition and the 'diagonal' dynamics of predation play out",
+      "Chapter 11 supplies the energetic backbone that earlier population- and pairwise-interaction-level chapters took as a fixed backdrop"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking sideways",
+    "title": "Chain length and the strength of top-down control",
+    "items": [
+      "Trophic cascades (recall Population Ecology coursework) occur when a change at one trophic level propagates down through the chain to affect levels below",
+      "Chain length matters for cascade strength: in longer chains, the effect of a top predator on the basal producer level must propagate through more intervening links, and each transfer both dampens and delays the signal",
+      "Empirically, top-down control on producers tends to be <b>weaker and more variable</b> in longer chains — more opportunities for omnivory, alternative prey pathways, and compensatory dynamics to dilute the cascade",
+      "This is one more reason chain length is not a purely academic accounting exercise — it directly shapes how strongly predators can regulate the base of the community"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Cascade strength by chain length",
+    "title": "Short vs. long chains and basal control",
+    "left": {
+      "h": "Short chain (3 levels)",
+      "body": "Producer → herbivore → predator. A single strong link connects the top predator's effect directly to the producer level. Trophic cascades tend to be strong and easy to detect experimentally (classic examples: sea otters/urchins/kelp)."
+    },
+    "right": {
+      "h": "Long chain (5+ levels)",
+      "body": "More intervening links mean more opportunities for the cascade signal to be diluted, redirected through omnivorous links, or buffered by compensatory dynamics at intermediate levels. Top-down control on the producer base becomes weaker and harder to detect."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied stakes",
+    "title": "Why this matters beyond the classroom",
+    "items": [
+      "Fisheries and wildlife management often depend on predicting how removing a top predator (or adding a harvested species) will ripple down a food chain — chain-length theory informs how far and how strongly that ripple should travel",
+      "Ecosystem size and stability considerations inform conservation planning: reintroducing an apex predator into a fragmented, small habitat patch may fail not because of insufficient prey energy, but because the patch is too small or too unstable to sustain the added trophic level",
+      "Understanding energy flow constraints helps explain why biomanipulation (managing lake trophic structure via top predator stocking) works in some systems and fails in others"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key concepts, consolidated",
+    "title": "Four ideas to carry forward",
+    "cards": [
+      {
+        "h": "Trophic levels are a useful fiction",
+        "p": "Real food webs are riddled with omnivory and diet shifts, but discrete levels remain the right tool for energy accounting"
+      },
+      {
+        "h": "~10% is a rule of thumb, not a law",
+        "p": "Transfer efficiency varies widely by taxa (ectotherm vs. endotherm) and by resource quality"
+      },
+      {
+        "h": "Chain length is multiply determined",
+        "p": "Energy, ecosystem size, and dynamical stability each contribute; no single hypothesis fully explains observed patterns"
+      },
+      {
+        "h": "Only the energy pyramid is guaranteed upright",
+        "p": "Numbers and biomass pyramids can invert when turnover rates differ sharply across levels"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 27 recap",
+    "title": "What we covered today",
+    "items": [
+      "Reframed the network concepts of Chapter 10 specifically for trophic (feeding) interactions, where energy flow adds a unique directional, dissipative constraint",
+      "Revisited trophic levels (producers → herbivores → predators → top predators, plus decomposers) and confronted the complication of omnivory",
+      "Established the ~10% rule of trophic transfer efficiency and traced where the other ~90% of energy is lost at each step",
+      "Surveyed four hypotheses for what limits food chain length — energetic, ecosystem size, dynamical stability, and disturbance/predation-risk — and why observed chains (3-5 levels) are shorter than pure energetics predicts",
+      "Distinguished pyramids of numbers, biomass, and energy, and explained why only the energy pyramid is guaranteed to be upright",
+      "Connected energy flow constraints back to predator-prey/competition theory and to the strength of trophic cascades"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming up — Lecture 28",
+    "title": "Preview: Food Chains and Webs II — Structure, Omnivory, and Trophic Cascades",
+    "items": [
+      "We move from the food-chain abstraction back to full food-web architecture — bringing the omnivory complication introduced today into a proper network framework",
+      "Deeper look at empirical food web structure: interaction strength distributions, weak vs. strong links, and how they stabilize complex webs",
+      "Trophic cascades revisited in a network context — how cascade strength depends on web structure, not just chain length",
+      "Sets up Lecture 29's synthesis of Chapter 11 and transition toward ecosystem-level consequences of food web structure"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion prompt",
+    "title": "A question to carry into section",
+    "items": [
+      "If a lake's phytoplankton productivity doubled overnight, would you predict its food chain would gain an additional trophic level? Under the energetic hypothesis alone, perhaps — but what would the ecosystem size and stability hypotheses predict instead?",
+      "Consider: what additional information (habitat volume, disturbance frequency, existing predator population sizes) would you need to adjudicate between these competing predictions?",
+      "This is precisely the kind of multi-hypothesis reasoning that characterizes current community ecology research on food chain length"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "End of Lecture 27",
+    "title": "Food Chains and Webs I: Trophic Structure and Energy Flow Constraints",
+    "sub": "Next: Lecture 28 — Food web structure, omnivory, and trophic cascades"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 27</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

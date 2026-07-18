@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 10: Population Regulation I: Detecting Density Dependence</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology — Lecture 10",
+    "title": "Population Regulation I: Detecting Density Dependence",
+    "sub": "From mechanism to measurement — how ecologists find density dependence in real field data",
+    "footnote": "Rockwood, Introduction to Population Ecology (2nd ed.), Chapter 3"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where we've been",
+    "title": "Recap: Lectures 1–9",
+    "items": [
+      "Lectures 1–2 introduced the population as the unit of ecological study and the basic vocabulary of birth, death, immigration, emigration.",
+      "Lectures 3–5 built density-independent growth: geometric and exponential models, r and λ, doubling time, and their limits.",
+      "Lectures 6–7 introduced density dependence conceptually: the logistic model, carrying capacity K, and the idea that per-capita growth rate can fall as N rises.",
+      "Lecture 8 covered density-dependent birth and death processes and how they stabilize (or destabilize) populations.",
+      "Lecture 9 examined mechanisms: resource depletion vs. interference competition, territoriality, the −3/2 self-thinning law, density-dependent fecundity and mortality, and Allee effects.",
+      "Today we shift from 'how could density dependence work' to 'how do we prove it is working in a real population.'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Framing the Problem",
+    "title": "A Model Is Not Data",
+    "sub": "Building a density-dependent equation is easy. Demonstrating density dependence in a wild population is hard."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The empirical gap",
+    "title": "Why Detection Is a Separate Problem",
+    "items": [
+      "The logistic equation and its relatives are hypotheses about how a population behaves — they are not automatically true of any given species.",
+      "A real population's abundance over time is the product of weather, predation, disease, competition, sampling error, and pure chance, all tangled together.",
+      "To claim a population is 'regulated' we need evidence that some vital rate changes systematically with density — not just that the population fluctuates or eventually stops growing.",
+      "This distinction mattered enormously in the mid-20th century, when ecologists disagreed sharply about whether density dependence was common, rare, or nearly universal in nature.",
+      "Chapter 3 of Rockwood surveys the toolkit that grew out of this disagreement: key factor analysis, life table response experiments, and time-series statistics."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core distinction",
+    "title": "Density Dependence vs. Density Limitation",
+    "term": "Regulation",
+    "def": "A process that returns a population toward some bounded range of abundance, driven by a change in a vital rate (birth, death, or movement rate) that is systematically related to population density.",
+    "bullets": [
+      "Regulation requires negative feedback: as N increases, some rate change tends to push N back down (or vice versa).",
+      "A population can fluctuate a lot and still be regulated, as long as the feedback is present over the long run.",
+      "Simply observing that a population does not grow to infinity is not proof of density dependence — density-independent factors can also keep populations bounded, at least temporarily.",
+      "Detecting the feedback signal requires structured data across many generations or years, which is exactly what key factor analysis was designed to provide."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Method 1",
+    "title": "Key Factor Analysis",
+    "sub": "Varley and Gradwell's approach to life table data across generations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Origins",
+    "title": "Varley & Gradwell and the Winter Moth",
+    "items": [
+      "George Varley and George Gradwell developed key factor analysis in the 1960s while studying the winter moth (Operophtera brumata) in Wytham Wood, England.",
+      "Their goal was to take life table data collected year after year and identify which mortality factor — of many acting on the population — was most responsible for driving the year-to-year changes in population size.",
+      "The method requires a life table constructed the same way for multiple generations (or years), so that mortality at each life stage can be compared across time.",
+      "It became one of the most widely used tools in insect population ecology because it turns a large stack of life table data into a single, interpretable answer: which stage matters most.",
+      "Crucially, key factor analysis identifies the factor that explains the most variation in total mortality — that factor is not automatically the density-dependent one; a separate step is needed to test for density dependence."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The raw material",
+    "title": "Generation (Cohort) Life Tables",
+    "term": "Age-specific or stage-specific life table",
+    "def": "A table tracking the number of individuals alive at the start of each life stage within a single cohort or generation, together with the mortality occurring during each stage.",
+    "bullets": [
+      "For an insect like the winter moth, stages might include: eggs, early larvae, late larvae, pupae, and adults.",
+      "Each stage has its own characteristic mortality agents — e.g., predation on eggs, parasitism of larvae, pupal predation by small mammals.",
+      "Key factor analysis requires this same table structure repeated across many years, so mortality at each stage can be tracked as density changes from year to year.",
+      "The number entering each stage is denoted lx (or Nx); the number lost during the stage is dx."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Setting up the analysis",
+    "title": "From Life Tables to k-values",
+    "items": [
+      "The central innovation of Varley and Gradwell was to convert mortality at each stage into a logarithmic measure they called a k-value.",
+      "Logarithms are used because mortality acting in sequence across stages is multiplicative, not additive — logs convert multiplication into addition, so stage-specific k-values can simply be summed.",
+      "Each mortality factor in the life cycle (egg predation, larval parasitism, pupal predation, winter disappearance, etc.) gets its own k-value, labeled k1, k2, k3, and so on.",
+      "The sum of all the k-values in a generation equals K, the total 'killing power' acting on the cohort that generation."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The key formula",
+    "title": "Defining the k-value",
+    "term": "k = log(N at start of stage) − log(N at end of stage)",
+    "def": "The k-value for a life stage is the base-10 logarithm of the number of individuals entering the stage minus the log of the number surviving to the end of the stage — a measure of the 'killing power' of that stage's mortality.",
+    "bullets": [
+      "Equivalently, k = log(Nstart / Nend), since log(a) − log(b) = log(a/b).",
+      "Larger k means more individuals were lost proportionally during that stage — higher killing power.",
+      "Because k is a log-ratio, a k of 1.0 means 90% mortality (10-fold reduction), and a k of 2.0 means 99% mortality (100-fold reduction).",
+      "k-values are additive across stages within a generation, which is what makes this method so useful for partitioning total mortality."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why logs, and why additive",
+    "title": "The Additive Property of k-values",
+    "items": [
+      "If a cohort starts with N0 individuals and loses fractions to k1 (egg mortality), k2 (larval mortality), and k3 (pupal mortality) in sequence, then K = k1 + k2 + k3 exactly, with no approximation needed.",
+      "This lets a researcher decompose total generation mortality (K) into contributions from each individual mortality agent.",
+      "The stage with the k-value that correlates most strongly with year-to-year changes in K is designated the key factor — the single biggest driver of population change.",
+      "Note the two distinct k's in the literature: lower-case k (a specific stage's killing power) and upper-case K (total generation killing power, the sum of all k's) — do not confuse K here with carrying capacity K from the logistic model."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "A generic insect life cycle",
+    "title": "Typical Life Stages Tracked in Key Factor Analysis",
+    "cards": [
+      {
+        "h": "Egg stage",
+        "p": "Mortality from predation, parasitism, or desiccation before hatching; k1."
+      },
+      {
+        "h": "Larval stage(s)",
+        "p": "Often split into early and late larval instars; mortality from predation, parasitism, starvation, disease; k2, k3."
+      },
+      {
+        "h": "Pupal stage",
+        "p": "Mortality from small-mammal predation, parasitism, or fungal infection; k4."
+      },
+      {
+        "h": "Adult stage",
+        "p": "Mortality before or during reproduction; sometimes includes a 'winter disappearance' factor between generations; k5."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked example, part 1",
+    "title": "A Simplified Key Factor Table — Setup",
+    "left": {
+      "h": "The cohort",
+      "body": "Imagine a hypothetical insect with three life stages tracked across one generation: eggs, larvae, and pupae, ending with the count of adults that emerge. We record the number entering each stage (log-transformed) so we can compute k-values for each stage's mortality."
+    },
+    "right": {
+      "h": "The numbers",
+      "body": "Eggs laid: 10,000 (log = 4.00). Surviving to larvae: 3,162 (log = 3.50). Surviving to pupae: 1,000 (log = 3.00). Surviving to adults: 398 (log = 2.60). These round numbers are chosen to make the log arithmetic transparent."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked example, part 2",
+    "title": "Calculating the k-values",
+    "items": [
+      "k1 (egg mortality) = log(10,000) − log(3,162) = 4.00 − 3.50 = 0.50",
+      "k2 (larval mortality) = log(3,162) − log(1,000) = 3.50 − 3.00 = 0.50",
+      "k3 (pupal mortality) = log(1,000) − log(398) = 3.00 − 2.60 = 0.40",
+      "Total K = k1 + k2 + k3 = 0.50 + 0.50 + 0.40 = 1.40, which should equal log(10,000) − log(398) = 4.00 − 2.60 = 1.40 — the additive property checks out.",
+      "In this single generation, egg and larval mortality contribute equally (k = 0.50 each) while pupal mortality contributes slightly less (k = 0.40) — but a single generation cannot tell us which factor is the key factor; we need many years of this same table."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked example, part 3",
+    "title": "Adding a Second Generation to Compare",
+    "items": [
+      "Suppose in Year 2, egg mortality rises sharply: k1 = 0.90, while k2 stays at 0.50 and k3 stays at 0.40. Total K = 1.80, up from 1.40.",
+      "The increase in K from Year 1 to Year 2 (+0.40) is entirely attributable to the increase in k1 (also +0.40) — k2 and k3 did not change at all.",
+      "This is the logic of key factor analysis: plot each k-value against total K across many years, and see which k tracks K most closely.",
+      "In real winter moth data, Varley and Gradwell found that winter disappearance (adult mortality between generations) tracked total generation mortality most closely across many years — making it the key factor, even though it was not the most dramatic single-year mortality source."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case study",
+    "title": "Varley & Gradwell's Actual Winter Moth Result",
+    "left": {
+      "h": "What they expected",
+      "body": "Given the dramatic, highly variable mortality inflicted by larval parasitoids and predators, many entomologists at the time assumed one of these conspicuous natural-enemy factors would turn out to be both the key factor and the density-dependent regulating factor."
+    },
+    "right": {
+      "h": "What they found",
+      "body": "Winter disappearance — adult mortality occurring between generations, likely linked to weather and predation on adults in the leaf litter — tracked total generation mortality (K) most closely across years, making it the key factor. A separate factor, pupal predation, showed the clearest density-dependent signal (k vs. log density slope near 1), making it the leading candidate for the regulating factor. The two were not the same stage."
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "The payoff",
+    "title": "The Key Factor",
+    "term": "Key factor",
+    "def": "The life-stage mortality factor whose k-value shows the strongest correlation with total generation mortality (K) across a multi-year time series, and is therefore judged the primary driver of population change.",
+    "bullets": [
+      "Identification is typically done by plotting each ki against K over many years and comparing correlation coefficients (or regression slopes near 1.0).",
+      "The factor with the steepest, most consistent relationship to K is the key factor — often visualized by plotting k1, k2, k3... and K as stacked lines over years and seeing which ki line tracks the K line's shape most closely.",
+      "Identifying the key factor tells you which mortality source drives fluctuations, but it does NOT by itself tell you whether that factor is density dependent — that is a separate analysis.",
+      "In practice, the key factor is often a density-independent factor like weather-driven winter mortality, while a different, smaller factor turns out to be the density-dependent regulating one."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The second question",
+    "title": "Testing Individual k-values for Density Dependence",
+    "items": [
+      "Once k-values are computed for each stage across years, each ki can be plotted separately against log(density) at the start of that stage.",
+      "If a stage's mortality is density independent, ki should show no consistent trend with density — points scatter randomly.",
+      "If a stage's mortality is density dependent, ki should rise (or in rarer cases fall, for inverse density dependence) as density increases.",
+      "A regression slope of ki on log(density) close to 1.0 indicates that mortality is removing a roughly constant proportion above some threshold — classic 'perfect' density dependence in Varley and Gradwell's framework.",
+      "Slopes between 0 and 1 indicate 'undercompensating' density dependence — mortality increases with density but not quite fast enough to fully regulate; slopes near 0 indicate density independence."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the plots",
+    "title": "k vs. log(Density): Interpreting the Slope",
+    "items": [
+      "Slope ≈ 0: mortality at this stage is unrelated to density — a density-independent factor (e.g., a hard frost that kills the same proportion of eggs regardless of how many eggs there are).",
+      "Slope > 0 but < 1: density-dependent but undercompensating — helps dampen fluctuations but does not fully stabilize the population on its own.",
+      "Slope ≈ 1: density-dependent and exactly compensating — proportional mortality increase exactly offsets the proportional increase in density, a hallmark of strong regulation.",
+      "Slope > 1: overcompensating density dependence — can produce population cycles or even chaotic dynamics if strong enough.",
+      "Because several stages can each show weak density dependence that combine to produce strong overall regulation, ecologists distinguish the 'key factor' (which drives year-to-year change) from the 'regulating factor' (which is density dependent) — they are often not the same stage."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two complementary approaches",
+    "title": "Key Factor Analysis vs. Life Table Response Experiments",
+    "headers": [
+      "Feature",
+      "Key Factor Analysis",
+      "Life Table Response Experiments"
+    ],
+    "rows": [
+      [
+        "Data source",
+        "Observational field life tables across many generations/years",
+        "Controlled or comparative experiments manipulating conditions"
+      ],
+      [
+        "Core output",
+        "k-values per stage; identification of the key factor and density-dependent stages",
+        "Contribution of each vital rate's change to the difference in population growth rate (λ) between treatments"
+      ],
+      [
+        "Underlying math",
+        "Log-transformed stage mortality, summed additively (k1 + k2 + ... = K)",
+        "Matrix population models; sensitivity/elasticity analysis of vital rates"
+      ],
+      [
+        "Strength",
+        "Works with long-term observational data; no manipulation needed",
+        "Directly tests causal effect of a specific factor (e.g., density, predator removal)"
+      ],
+      [
+        "Limitation",
+        "Correlational; needs many years of consistent data; sensitive to sampling error",
+        "Requires ability to manipulate or compare distinct treatment groups; more resource-intensive"
+      ],
+      [
+        "Typical taxa",
+        "Historically insects (winter moth, other forest pests) with discrete generations",
+        "Plants and animals with structured (stage/age) demography, often in experimental or comparative field settings"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Method 2",
+    "title": "Life Table Response Experiments",
+    "sub": "Complementing observation with manipulation"
+  },
+  {
+    "type": "term",
+    "eyebrow": "A demographic toolkit",
+    "title": "Life Table Response Experiment (LTRE)",
+    "term": "LTRE",
+    "def": "An analytical approach that decomposes the difference in population growth rate (λ) between two or more treatments, sites, or time periods into the separate contributions of each underlying vital rate (survival, growth, fecundity at each stage).",
+    "bullets": [
+      "LTREs build on structured (stage- or age-classified) population matrix models rather than the simple stage-by-stage life tables used in key factor analysis.",
+      "The 'experiment' can be a true manipulation (e.g., experimentally reducing density, adding predators, altering resources) or a natural comparison (e.g., high-density vs. low-density populations, or good years vs. bad years).",
+      "The output tells you not just that λ differs between treatments, but which specific vital rate — e.g., seedling survival vs. adult fecundity — is responsible for how much of that difference.",
+      "This makes LTRE a natural complement to key factor analysis: where key factor analysis says which stage's mortality tracks population change, LTRE can experimentally confirm that manipulating density at that stage actually changes the vital rate as predicted."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "How an LTRE works",
+    "title": "The LTRE Method, Step by Step",
+    "items": [
+      "Build a stage- or age-structured population projection matrix for each treatment or time period being compared.",
+      "Calculate λ (the population growth rate) for each matrix, and note the vital rates (survival probabilities, transition probabilities, fecundities) that make up each matrix.",
+      "Use sensitivity or elasticity analysis to ask: how much would λ change if a given vital rate changed slightly?",
+      "Combine the observed difference in each vital rate between treatments with its sensitivity to compute that vital rate's overall 'contribution' to the difference in λ.",
+      "Sum the contributions across all vital rates to explain the total observed difference in λ between treatments — a formal accounting of which parts of the life cycle matter most for the observed change."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applications",
+    "title": "Where LTREs Have Been Used",
+    "items": [
+      "Perennial plant demography: comparing populations across sites with different densities, disturbance regimes, or grazing pressure to see which life-history transition (e.g., seedling establishment vs. adult survival) drives differences in population growth.",
+      "Comparing a population before and after a management intervention, such as invasive species removal or a conservation planting program.",
+      "Testing whether density itself is the causal driver by experimentally thinning or adding individuals to plots and re-measuring vital rates — this directly tests density dependence rather than inferring it from a correlation.",
+      "Because LTREs use matrix models, they connect naturally to the structured population models covered earlier in the course, extending them from description to formal causal decomposition."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Strengths and limits",
+    "title": "Evaluating the LTRE Approach",
+    "items": [
+      "Strength: LTREs can establish causality where key factor analysis can only establish correlation, because treatments can be experimentally assigned.",
+      "Strength: results are expressed in the biologically meaningful currency of λ, making it easy to compare the importance of very different vital rates (e.g., survival vs. fecundity) on a common scale.",
+      "Limitation: true experimental manipulation of density is often impractical for long-lived organisms or large spatial scales, forcing reliance on 'natural experiments' with weaker causal inference.",
+      "Limitation: requires enough data to parameterize a full stage-structured matrix for each treatment, which can be demanding for species with complex life cycles or where cryptic life stages are hard to sample.",
+      "Together, key factor analysis and LTREs represent the two classic strategies in Rockwood's Chapter 3: analyze what you can observe over time, and manipulate what you can control experimentally."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Statistical Problem",
+    "title": "Why This Is Hard to Prove With Time-Series Data",
+    "sub": "Detecting density dependence has been one of the most contentious statistical debates in ecology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The core difficulty",
+    "title": "Time Series Are Not Designed Experiments",
+    "items": [
+      "Most long-term abundance data are observational time series — a single population sampled over many years, not replicated experimental units.",
+      "Testing 'does Nt+1 depend on Nt' sounds like a simple regression problem, but the statistical properties of population time series violate several assumptions that standard regression requires.",
+      "Ecologists in the 1970s–1990s (including Bulmer, Pollard, and others) developed and argued over increasingly sophisticated statistical tests for density dependence, precisely because naive tests were shown to be unreliable.",
+      "Understanding why detection is statistically hard is as important as understanding the biological mechanisms themselves — a beautiful mechanism is only as convincing as the data used to demonstrate it."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Problem 1",
+    "title": "Autocorrelation",
+    "term": "Autocorrelation",
+    "def": "The tendency of successive values in a time series to be correlated with each other simply because Nt+1 is mathematically derived from Nt (this year's population size depends heavily on last year's), independent of any biological regulation.",
+    "bullets": [
+      "Because population size this year is built from population size last year plus births/deaths, Nt and Nt+1 are inherently statistically linked even under a purely random, density-independent process.",
+      "This autocorrelation can make it look like there is a regulating relationship between density and growth rate when none exists — a purely statistical artifact.",
+      "Standard regression significance tests assume independent data points; autocorrelated time series violate this, inflating the apparent significance of density dependence tests.",
+      "Corrections (e.g., Bulmer's test, randomization approaches) were developed specifically to account for this artifact when testing for density dependence."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Problem 2",
+    "title": "Measurement Error",
+    "items": [
+      "Population counts are estimates, not exact values — sampling error, imperfect detection, and observer variation all add 'noise' to each Nt.",
+      "When Nt is measured with error, and growth rate is calculated as a function involving Nt (such as log(Nt+1) − log(Nt)), that same measurement error appears on both sides of the relationship being tested.",
+      "This shared error term can create spurious negative density dependence — an apparent relationship between density and growth rate that is actually just an artifact of the error structure, not a biological signal.",
+      "This problem is especially severe for rare or hard-to-sample species where counts are noisy, and it was a major source of debate about whether classic 'proofs' of density dependence were statistically valid."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Problem 3",
+    "title": "Short Time Series",
+    "items": [
+      "Detecting a reliable statistical signal of density dependence typically requires a long run of years — often 20, 30, or more consecutive generations of data.",
+      "Most field studies, even long-term ones, provide relatively short time series (10–20 points is common), giving tests for density dependence low statistical power.",
+      "Short series make it hard to distinguish true density dependence from density-independent fluctuations that happen, by chance, to show an apparent trend.",
+      "This creates a frustrating asymmetry: failing to detect density dependence in a short series does not mean it is absent — it may simply mean the study lacked the statistical power to find it."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Problem 4",
+    "title": "Spurious Density Dependence",
+    "items": [
+      "Even purely random-walk population processes with no biological regulation whatsoever can, by chance, produce time series that pass naive statistical tests for density dependence.",
+      "This 'spurious density dependence' problem was central to the statistical controversies of the 1980s–90s, prompting the development of tests specifically designed to have the correct false-positive rate under a null hypothesis of no regulation.",
+      "Solutions have included randomization/permutation tests, bootstrapping approaches, and state-space models that explicitly separate process variation (real biological fluctuation) from observation error.",
+      "The upshot: a positive result from a simple correlation or regression of growth rate on density should be treated with caution unless it comes from a method that has been validated against these known artifacts."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A common statistical model",
+    "title": "Testing Density Dependence With Regression Models",
+    "term": "Ricker- and Gompertz-style regression tests",
+    "def": "Statistical approaches that regress a transformed measure of population growth (e.g., log(Nt+1) − log(Nt)) against log(Nt) or Nt, checking whether the slope differs from zero in the direction consistent with negative feedback.",
+    "bullets": [
+      "A Ricker-type model tests growth rate against raw density (Nt); a Gompertz-type model tests growth rate against log density (log Nt) — the choice affects how mortality is assumed to scale with density.",
+      "Bulmer's test and later refinements adjust the critical values used to judge 'significance' specifically to correct for the autocorrelation problem discussed earlier, rather than using off-the-shelf regression p-values.",
+      "These regression-based tests are conceptually related to the ki vs. log(density) plots used in key factor analysis, but applied directly to total population counts rather than stage-specific mortality.",
+      "No single test is universally agreed upon as the 'correct' one — different tests make different assumptions about error structure, which is part of why this remained a live statistical controversy for decades."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key contributors to the statistical debate",
+    "title": "Voices in the Density-Dependence Detection Controversy",
+    "cards": [
+      {
+        "h": "Michael Bulmer (1975)",
+        "p": "Proposed an early corrected test for density dependence in time series, explicitly accounting for the autocorrelation inherent in Nt-based statistics."
+      },
+      {
+        "h": "John Pollard and colleagues",
+        "p": "Extended and refined randomization-based approaches for testing density dependence, improving robustness to short and noisy time series."
+      },
+      {
+        "h": "Peter Turchin",
+        "p": "Championed the use of longer time series and more rigorous null-model comparisons, and reviewed how common density dependence appears to be across many taxa."
+      },
+      {
+        "h": "P. J. den Boer",
+        "p": "Challenged the framing of the debate itself, proposing density vagueness as an alternative to precise, statistically 'clean' density dependence."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On the difficulty of the problem",
+    "quote": "Detecting density dependence in a single time series is, statistically speaking, one of the hardest problems in population ecology — the very autocorrelation built into population growth can mimic the signal we are looking for.",
+    "attrib": "Paraphrased summary of the statistical density-dependence debate (Rockwood, Ch. 3)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Methodological responses",
+    "title": "How Ecologists Responded",
+    "items": [
+      "Bulmer's test and related methods correct for the mathematical autocorrelation inherent in Nt-based statistics, providing a more conservative test for density dependence.",
+      "Randomization and permutation tests simulate what a purely density-independent process would look like, then ask whether the observed data are unusual compared to that null distribution.",
+      "State-space and hierarchical models explicitly separate 'process error' (true biological variation, potentially density dependent) from 'observation error' (sampling noise), addressing the measurement-error problem directly.",
+      "Meta-analyses pooling many species' time series (e.g., work following Turchin and others) have been used to ask how common density dependence is across taxa, partly to move past single-series limitations.",
+      "The consensus that emerged is nuanced: density dependence is common but often weak, intermittent, or detectable only with substantial data and careful statistical treatment — not the clean, deterministic signal early models implied."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "An Alternative View",
+    "title": "Density Dependence vs. \"Density Vagueness\"",
+    "sub": "Does regulation follow a precise rule, or something looser?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "A challenge to strict models",
+    "title": "Density Vagueness",
+    "term": "Density vagueness (den Boer)",
+    "def": "A concept introduced by Dutch ecologist P. J. den Boer proposing that population regulation in nature is often 'loose' or irregular — operating within broad bounds rather than through a precise, consistently repeatable mathematical relationship between density and vital rates.",
+    "bullets": [
+      "Den Boer argued that classic density dependence, as tested statistically, implies a tight and repeatable functional relationship between density and a vital rate — but real populations may instead show regulation that is intermittent, threshold-like, or spatially patchy.",
+      "Under density vagueness, a population may be strongly regulated over the long run (bounded, persistent, not exploding or collapsing) without any single year-to-year relationship being statistically detectable as classic density dependence.",
+      "This idea was partly a response to the difficulty (discussed on the previous slides) of reliably detecting density dependence statistically — den Boer suggested the difficulty might reflect biological reality, not just poor statistics.",
+      "Density vagueness does not deny regulation exists; it reframes regulation as an emergent, population-level outcome of many weak, variable, spatially heterogeneous processes rather than a single precise feedback loop."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "den Boer's reasoning",
+    "title": "Why Den Boer Proposed This Idea",
+    "items": [
+      "Den Boer worked extensively with carabid beetle populations and observed that local population fluctuations were often large and seemingly erratic, yet species persisted for decades without extinction or explosion.",
+      "He argued that spreading risk across many spatially separate subpopulations (a form of what we now call metapopulation dynamics) could stabilize a species regionally even if no single local population showed tight density dependence.",
+      "He was skeptical of experiments and analyses (including some key factor analyses) that claimed to detect precise, universal density-dependent relationships, arguing they often reflected short data series or particular local conditions rather than a general law.",
+      "This positioned den Boer within a broader lineage of ecologists (echoing Andrewartha and Birch, covered in Lecture 11) who were cautious about assuming density dependence was the default explanation for population persistence."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two views of regulation",
+    "title": "Strict Density Dependence vs. Density Vagueness",
+    "left": {
+      "h": "Density Dependence (classical)",
+      "body": "Regulation operates through a specific, statistically detectable relationship between a vital rate and density. Given enough data, a consistent slope or correlation should emerge (e.g., k-value vs. log density with slope near 1). Regulation is treated as a precise, quantifiable process."
+    },
+    "right": {
+      "h": "Density Vagueness (den Boer)",
+      "body": "Regulation is real but 'loose' — bounded, long-term persistence emerges from many weak and variable processes, spatial subdivision, and chance, rather than one precise feedback relationship. A clean statistical signature in any single time series may simply not exist, even when the population is genuinely regulated."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why this distinction matters",
+    "title": "Implications for How We Interpret Data",
+    "items": [
+      "If density vagueness is correct, the failure of key factor analysis or time-series regression to detect a clean density-dependent signal is not necessarily evidence against regulation — it may just mean regulation does not take that tidy form.",
+      "This raises the bar (and the humility required) for ecologists interpreting time-series statistics: absence of a detected signal is genuinely ambiguous, not a clean negative result.",
+      "For conservation and management, density vagueness suggests that regulation may depend on landscape-scale processes (dispersal among patches, spatial heterogeneity) rather than being predictable from any single local population's data.",
+      "The density dependence vs. density vagueness debate is a direct descendant of, and closely related to, the larger historical controversy over whether populations are regulated at all — the subject of Lecture 11."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Toolkit recap",
+    "title": "Four Ways to Approach Detecting Regulation",
+    "cards": [
+      {
+        "h": "Key Factor Analysis",
+        "p": "Decompose multi-year life table data into k-values per stage; find which stage's mortality tracks total mortality (key factor) and which shows density dependence (slope near 1)."
+      },
+      {
+        "h": "Life Table Response Experiments",
+        "p": "Manipulate or compare conditions and use matrix-model sensitivity analysis to attribute differences in λ to specific vital rates."
+      },
+      {
+        "h": "Time-Series Statistics",
+        "p": "Apply corrected regression, randomization, or state-space methods to test for density dependence while accounting for autocorrelation and measurement error."
+      },
+      {
+        "h": "Density Vagueness Lens",
+        "p": "Interpret ambiguous or weak statistical signals as potentially reflecting loose, spatially distributed regulation rather than an absence of regulation."
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Weighing the evidence",
+    "title": "Strength of Evidence for Population Regulation",
+    "levels": [
+      {
+        "label": "Single-year correlation between density and a vital rate",
+        "color": "#f7c948",
+        "width": "260px"
+      },
+      {
+        "label": "Multi-year key factor analysis showing slope near 1",
+        "color": "#f2994a",
+        "width": "320px"
+      },
+      {
+        "label": "Time-series statistics correcting for autocorrelation and error",
+        "color": "#eb5757",
+        "width": "380px"
+      },
+      {
+        "label": "Experimental confirmation via life table response experiments",
+        "color": "#9b51e0",
+        "width": "440px"
+      },
+      {
+        "label": "Convergent evidence across multiple sites, methods, and years",
+        "color": "#2f80ed",
+        "width": "500px"
+      }
+    ],
+    "footnote": "Confidence in a claim of density-dependent regulation increases as evidence accumulates from the base to the top of this pyramid."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical guidance",
+    "title": "Best Practices for Detecting Density Dependence",
+    "items": [
+      "Favor long time series over short ones whenever possible — statistical power to detect real density dependence increases substantially with more years of data.",
+      "Combine methods: use key factor analysis to identify candidate stages, then use LTREs or direct manipulation to test causality at those stages.",
+      "Explicitly model and report measurement error separately from true population fluctuation wherever data allow (e.g., using state-space models), rather than treating raw counts as error-free.",
+      "Replicate across multiple independent populations or sites rather than relying on a single time series, to guard against spurious, site-specific results.",
+      "Report effect sizes (e.g., regression slopes) alongside significance tests — 'density dependence detected' is less informative than knowing whether it is weak, moderate, or strongly compensating."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Closing the Lecture 1–10 Arc",
+    "sub": "From concepts to mechanisms to measurement"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "The arc so far",
+    "title": "Lectures 1–10: Single-Species Growth and Density Dependence",
+    "items": [
+      {
+        "y": "L1–2",
+        "t": "Introduced the population as a unit of study; core vocabulary (N, births, deaths, immigration, emigration)."
+      },
+      {
+        "y": "L3–5",
+        "t": "Density-independent growth: geometric and exponential models, r, λ, doubling time, and their real-world limits."
+      },
+      {
+        "y": "L6–7",
+        "t": "Density dependence introduced: the logistic model, carrying capacity K, per-capita growth rate declining with N."
+      },
+      {
+        "y": "L8",
+        "t": "Density-dependent birth and death processes and their stabilizing (or destabilizing) effects on dynamics."
+      },
+      {
+        "y": "L9",
+        "t": "Mechanisms of intraspecific competition: resource depletion vs. interference, territoriality, self-thinning, Allee effects."
+      },
+      {
+        "y": "L10 (today)",
+        "t": "Detecting density dependence empirically: key factor analysis, k-values, LTREs, time-series statistics, and density vagueness."
+      },
+      {
+        "y": "L11 (next)",
+        "t": "The historical regulation debate: Nicholson vs. Andrewartha & Birch, and how it shaped modern population ecology."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The big picture",
+    "title": "What Lecture 10 Adds to the Arc",
+    "items": [
+      "Lectures 1–9 gave us the mathematics and biology of how density dependence could work — equations, mechanisms, and case-level intuition.",
+      "Lecture 10 supplies the missing piece: methods to test whether density dependence is actually operating in a given real population, and to quantify which life stage or vital rate matters most.",
+      "We saw that this is not a solved problem — it requires careful log-transformed accounting (key factor analysis), experimental designs (LTRE), and statistically sophisticated handling of time series (correcting for autocorrelation and measurement error).",
+      "We also saw a genuine scientific tension: den Boer's density vagueness reminds us that failing to detect a clean signal does not prove regulation is absent, only that it may not take the tidy form our statistical tools are built to detect.",
+      "This sets up Lecture 11's central question directly: given how hard density dependence is to detect, how confident can we really be that populations in nature are regulated at all? That is precisely the debate Nicholson and Andrewartha & Birch had — and it remains foundational to the field."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking ahead",
+    "title": "Preview: Lecture 11, Population Regulation II",
+    "items": [
+      "Lecture 11 turns to the historical 'regulation debate' between A. J. Nicholson, who argued density dependence was essential and near-universal for population persistence, and H. G. Andrewartha and L. C. Birch, who argued weather and density-independent factors often dominate.",
+      "We will see how this debate shaped decades of population ecology research design, including much of the key factor analysis and time-series work covered today.",
+      "We will also connect den Boer's density vagueness concept more fully into this historical debate, since his views were partly a reaction to Nicholson's strict regulation framework.",
+      "Bring today's toolkit with you — Lecture 11 asks not just how we detect density dependence, but how much it actually matters for explaining real population abundances in nature."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preparing for Lecture 11: Population Regulation II",
+    "left": {
+      "h": "Read",
+      "body": "Rockwood, Introduction to Population Ecology, continue in Chapter 3 (sections on the Nicholson vs. Andrewartha & Birch debate). Review today's k-value formula and the density dependence vs. density vagueness distinction — both will resurface directly."
+    },
+    "right": {
+      "h": "Think about",
+      "body": "Come prepared to discuss: if statistical detection of density dependence is this difficult, how should ecologists decide whether a species' populations are 'regulated'? Is the burden of proof on those claiming regulation, or those claiming it is absent?"
+    },
+    "footnote": "Lecture 11: Population Regulation II — The Regulation Debate (Nicholson vs. Andrewartha & Birch)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion question 1",
+    "title": "For Class Discussion",
+    "items": [
+      "A ten-year time series shows no statistically significant density dependence in a regression of growth rate on density. List at least three distinct explanations (statistical or biological) for this negative result, drawing on today's material.",
+      "How would you distinguish, using additional data or a different study design, between 'this population is not regulated' and 'this population shows density vagueness rather than classical density dependence'?",
+      "Why is it essential that k-values are calculated using logarithms rather than raw numbers or percentages? What would go wrong with the additive property of k1 + k2 + ... = K if percentages were used instead?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion question 2",
+    "title": "Applying Key Factor Analysis",
+    "items": [
+      "In a hypothetical moth population, egg-stage mortality (k1) shows the highest correlation with total generation mortality (K) across 20 years of data, but pupal-stage mortality (k3) shows the strongest density-dependent relationship (slope near 1 when regressed on log density). Which stage is the 'key factor' and which is the 'regulating factor'? Are these necessarily the same thing — why or why not?",
+      "Design, in broad strokes, a life table response experiment that could test whether the density dependence detected at the pupal stage in the scenario above is caused by predation pressure that itself intensifies with density (e.g., predators aggregating where pupae are abundant)."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 10</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 9: Population Growth and Density Dependence I: Foundation for Community Models</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 9",
+    "title": "Population Growth and Density Dependence I: The Single-Species Foundation for Community Models",
+    "sub": "Opening Chapter 4 and Part II \"The Nitty-Gritty\" — a fast review of exponential and logistic growth as the mathematical building blocks for every multi-species model to come",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 4 — Population growth and density dependence"
+  },
+  {
+    "type": "section",
+    "tag": "RECAP",
+    "title": "Where we left off: Lecture 8 and the close of Part I",
+    "sub": "A brief look back before we turn the page"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 8",
+    "title": "Part I synthesis: what a community even is",
+    "items": [
+      "Lecture 8 closed Part I by synthesizing how ecologists <b>define and delimit communities</b> — from strict interactive assemblages to loose statistical co-occurrence patterns",
+      "We reconciled the individualistic (Gleasonian) and holistic (Clementsian) views as endpoints of a spectrum, not a binary choice",
+      "We reviewed the major approaches to describing community structure: species composition, diversity indices, and null-model comparisons",
+      "The take-home: communities are defined by the <b>questions we ask</b> of them — the same set of species can be a \"community\" for one purpose and irrelevant grouping for another",
+      "That conceptual foundation now lets us ask a sharper question: what actually generates the patterns we see? The answer starts with population dynamics"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART II — THE NITTY-GRITTY",
+    "title": "Species interactions in simple modules",
+    "sub": "Chapter 4 opens Part II: before pairs of species, we need the single-species toolkit"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Course roadmap",
+    "title": "Why start Part II with a single species?",
+    "items": [
+      "Part II builds community ecology from the ground up: <b>simple modules</b> of a few interacting species, analyzed with dynamical models",
+      "Every module in Ch. 5–9 — predator-prey, competition, mutualism — is built by taking a single-species growth equation and adding a <b>second species' effect</b> on it",
+      "Chapter 4 (this lecture + Lecture 10) is therefore a <b>bridge chapter</b>: it revisits the single-species machinery you need before we add interaction terms",
+      "If you have taken Population Ecology, this will be familiar — think of today as a fast, applied review with an eye toward what comes next, not a first introduction",
+      "If you have not taken Population Ecology, don't worry: we will build the essential concepts from scratch, just briskly"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Roadmap",
+    "title": "Part II: from one species to a community",
+    "items": [
+      {
+        "y": "Ch. 4 (L9–10)",
+        "t": "Single-species growth & density dependence — today's foundation"
+      },
+      {
+        "y": "Ch. 5–6",
+        "t": "Predator-prey and consumer-resource dynamics"
+      },
+      {
+        "y": "Ch. 7–8",
+        "t": "Interspecific competition"
+      },
+      {
+        "y": "Ch. 9",
+        "t": "Mutualism and facilitation"
+      },
+      {
+        "y": "Beyond",
+        "t": "Scaling simple modules up to whole food webs and communities"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's agenda",
+    "title": "What we'll cover in Lecture 9",
+    "items": [
+      "Exponential growth as the density-independent <b>null model</b>",
+      "Logistic growth and the origin of carrying capacity, <b>K</b>",
+      "Why single-species self-limitation is the essential building block for interspecific models",
+      "A quick tour of alternative functional forms of density dependence (theta-logistic, Ricker)",
+      "Time lags and discrete-time dynamics — how a single species alone can oscillate or cycle",
+      "Environmental and demographic stochasticity layered on the deterministic skeleton",
+      "A preview of Lecture 10, which closes Chapter 4 and sets up predator-prey models in Ch. 5"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Exponential growth — the density-independent null model",
+    "sub": "The baseline against which all regulation is measured"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The starting point",
+    "title": "Exponential (density-independent) growth",
+    "term": "dN/dt = rN",
+    "def": "The per-capita growth rate, r, is constant — it does not change as population size N changes. Growth is proportional to current population size.",
+    "bullets": [
+      "N = population size; r = intrinsic (per-capita) rate of increase, set by birth rate minus death rate",
+      "Solved: N(t) = N₀e^(rt) — growth accelerates without bound as N grows",
+      "No term in the equation depends on N itself beyond the linear scaling — this is what makes it <b>density-independent</b>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exponential growth",
+    "title": "Doubling time and why it matters",
+    "items": [
+      "Doubling time t_d = ln(2)/r — a simple, testable prediction of the exponential model",
+      "Real populations approximate exponential growth only briefly: at low density, following colonization, or after a crash, when resources are effectively unlimited",
+      "No population grows exponentially forever — this model is a <b>limiting case</b>, not a realistic long-term description",
+      "Its real value is conceptual: it isolates what growth looks like with <b>zero self-limitation and zero interaction effects</b> — a pure baseline",
+      "Every model we build for the rest of the course will be judged by how it deviates from this null expectation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Why we need a null model",
+    "title": "The role of exponential growth in community ecology",
+    "left": {
+      "h": "As a baseline",
+      "body": "Exponential growth tells us what a population would do with no resource limitation and no interacting species. Any observed slowdown, decline, or oscillation signals that something — density dependence, an interaction, or stochastic variation — is at work."
+    },
+    "right": {
+      "h": "As a building block",
+      "body": "The r term in dN/dt = rN reappears, largely unchanged, as the intrinsic growth rate in every logistic and Lotka-Volterra equation to come. Understanding it in isolation makes the added terms in Ch. 5–9 easy to interpret."
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Reading r ecologically",
+    "title": "What determines r in the field?",
+    "cards": [
+      {
+        "h": "Birth rate",
+        "p": "Fecundity, clutch/litter size, reproductive frequency — all raise r when resources are abundant."
+      },
+      {
+        "h": "Death rate",
+        "p": "Predation, disease, and physiological stress lower r independent of density in the exponential model."
+      },
+      {
+        "h": "Age structure",
+        "p": "r as used here assumes a stable age distribution; population ecology courses relax this assumption with full life tables."
+      },
+      {
+        "h": "Environment",
+        "p": "r is often treated as roughly constant only over short windows — a simplification exponential growth relies on."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Logistic growth — density dependence enters",
+    "sub": "From unlimited growth to self-limitation and carrying capacity"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Adding self-limitation",
+    "title": "The logistic growth equation",
+    "term": "dN/dt = rN(1 − N/K)",
+    "def": "Per-capita growth rate now declines linearly as N approaches the carrying capacity K, the population size at which growth stops (dN/dt = 0).",
+    "bullets": [
+      "(1 − N/K) is the <b>density-dependence term</b>: it equals 1 when N is near zero (growth ≈ exponential) and 0 when N = K (growth stops)",
+      "K represents the resource-limited ceiling set by the environment — food, space, nutrients, or other limiting factors",
+      "This single added term converts an unbounded exponential curve into a bounded, self-regulating one"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Quick derivation",
+    "title": "Where the logistic equation comes from",
+    "items": [
+      "Start from dN/dt = rN and ask: what if the per-capita growth rate itself is a <b>declining linear function</b> of N, rather than a constant?",
+      "Per-capita growth rate = r(1 − N/K): equals r when N = 0, and declines linearly to zero as N → K",
+      "Multiply by N to return to a population-level rate: dN/dt = rN(1 − N/K)",
+      "This is the simplest possible form of density dependence — linear decline in per-capita growth with N — which is exactly why it is the default starting point for building multi-species models",
+      "Later chapters modify this same per-capita term by adding effects of a second species (competitors, predators, mutualists)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The sigmoid curve",
+    "title": "Graphical review: N(t) and dN/dt vs. N",
+    "items": [
+      "Plotting N against time produces the classic <b>S-shaped (sigmoid) curve</b>: near-exponential acceleration at low N, an inflection point at N = K/2, then deceleration as N approaches K",
+      "Plotting dN/dt against N produces a <b>downward parabola</b>: zero growth at N = 0 and N = K, maximum growth rate at N = K/2",
+      "The inflection point, N = K/2, is where absolute population growth is fastest — a fact with direct relevance to sustainable-harvest and pest-management applications",
+      "Two equilibria: N = 0 (unstable — any perturbation away from zero grows) and N = K (stable — perturbations decay back toward K)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Foundational comparison",
+    "title": "Exponential vs. logistic growth",
+    "headers": [
+      "Feature",
+      "Exponential (dN/dt = rN)",
+      "Logistic (dN/dt = rN(1−N/K))"
+    ],
+    "rows": [
+      [
+        "Density dependence",
+        "None — r is constant",
+        "Present — per-capita growth declines linearly with N"
+      ],
+      [
+        "Long-term behavior",
+        "Unbounded growth",
+        "Bounded; approaches carrying capacity K"
+      ],
+      [
+        "Shape of N(t)",
+        "J-shaped curve",
+        "S-shaped (sigmoid) curve"
+      ],
+      [
+        "Equilibria",
+        "None (only N = 0, and it's unstable)",
+        "N = 0 (unstable), N = K (stable)"
+      ],
+      [
+        "Ecological role here",
+        "Null model / baseline",
+        "Building block for self-limitation in multi-species models"
+      ]
+    ],
+    "footnote": "Both equations reappear, in modified form, throughout Ch. 5–9 — every predator-prey, competition, and mutualism model starts from one of these two skeletons."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where does K come from?",
+    "title": "Carrying capacity as an emergent, not fixed, quantity",
+    "items": [
+      "K is often presented as a fixed number, but mechanistically it emerges from the balance of resource supply and per-capita resource demand in a given environment",
+      "K can shift seasonally, with climate, or with habitat degradation — it is a property of the species-environment relationship, not a species constant carved in stone",
+      "In community models to come, K for one species can itself be altered by the presence of another species (e.g., a competitor reducing effective K, or a mutualist increasing it) — a preview of how interspecific terms will be introduced",
+      "Recognizing K as dynamic, rather than fixed, avoids a common conceptual error when moving from single-species to multi-species models"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Density dependence as community-model machinery",
+    "sub": "Why intraspecific self-limitation is the seed of every interspecific model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The conceptual bridge",
+    "title": "From one species to many: the logic of extension",
+    "items": [
+      "In Population Ecology you studied <b>intraspecific competition</b> — individuals of the same species competing for shared, limited resources — as the mechanistic basis of the (1 − N/K) term",
+      "In community ecology, the key move is to ask: what happens when <b>individuals of a different species</b> also compete for those same resources, or eat this species, or benefit it?",
+      "The single-species logistic equation becomes the <b>\"zero interaction partner\" baseline</b>: it describes exactly what a population would do if no other species existed",
+      "Lotka-Volterra competition and predator-prey models (Ch. 5–8) are built by adding a term for a second species' density directly into this same equation structure",
+      "This is why Ch. 4 must precede Ch. 5: you cannot interpret an interspecific competition coefficient without first understanding what the self-limitation term it modifies represents"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Preview of the extension",
+    "title": "From logistic growth to Lotka-Volterra models",
+    "left": {
+      "h": "Single species (today)",
+      "body": "dN/dt = rN(1 − N/K)\nGrowth is limited only by the species' own density, via intraspecific competition for shared resources."
+    },
+    "right": {
+      "h": "Two species (Ch. 5–8 preview)",
+      "body": "dN₁/dt = r₁N₁(1 − N₁/K₁ − α₁₂N₂/K₁)\nAn added term (α₁₂N₂/K₁) captures how a second species' density also erodes the first species' growth — the interaction coefficient α is the entire new idea."
+    },
+    "footnote": "Everything in Ch. 5–9 is, structurally, this same substitution repeated with different signs and functional forms for the interaction term."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why this matters pedagogically",
+    "title": "The single species IS the null model for interactions",
+    "items": [
+      "When ecologists ask \"is this an interspecific effect, or just each species behaving as it would alone?\", the single-species logistic prediction is the counterfactual being tested",
+      "Understanding K, the equilibrium point, and the shape of density dependence in isolation lets you immediately see what an interaction term is <b>adding or subtracting</b> from that baseline",
+      "This is precisely why this chapter is condensed: we are not teaching density dependence for the first time, we are re-establishing it as the shared vocabulary for everything that follows"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Evidence check",
+    "title": "Do real populations actually show logistic-like regulation?",
+    "items": [
+      "Long-term field and lab datasets (e.g., Daphnia, Paramecium, many insect populations) often show density-dependent regulation broadly consistent with a logistic-like ceiling — but rarely with perfectly linear curvature",
+      "Some populations show delayed density dependence, others show strong Allee-type effects at low density, and others fluctuate too much to fit any simple deterministic curve cleanly",
+      "The pragmatic lesson for community ecology: the logistic is a <b>tractable approximation</b> useful for building analytically solvable multi-species models, not a claim that all populations regulate exactly this way",
+      "This is precisely why the alternative functional forms in the next section exist — to give community ecologists options when the simple logistic doesn't fit"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Choosing a functional form",
+    "sub": "The logistic is one option among several — a quick tour"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the simple logistic",
+    "title": "Density dependence rarely is exactly linear",
+    "items": [
+      "The logistic assumes per-capita growth declines <b>linearly</b> with N — a convenient simplification, not a biological law",
+      "Real populations often show curvature: weak self-limitation at low density that strengthens sharply near K, or strong limitation even at low density (Allee-adjacent patterns)",
+      "Community ecologists have several standard alternative functional forms available — we review them briefly here as options, not as full derivations, since Population Ecology covers the mechanistic detail",
+      "The choice of functional form matters for community models because it changes the strength and stability properties of the interaction terms built on top of it"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Flexible curvature",
+    "title": "The theta-logistic model",
+    "term": "dN/dt = rN[1 − (N/K)^θ]",
+    "def": "A generalization of the logistic that adds a shape parameter θ controlling the curvature of density dependence.",
+    "bullets": [
+      "θ = 1 recovers the standard logistic exactly",
+      "θ > 1: density dependence is weak until N is close to K, then strengthens sharply (concave curve)",
+      "θ < 1: density dependence is strong even at low N (convex curve)",
+      "Widely used in community and conservation ecology because it can be fit to data without assuming linearity a priori"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Discrete-time alternative",
+    "title": "The Ricker model",
+    "term": "N(t+1) = N(t)e^{r[1−N(t)/K]}",
+    "def": "A discrete-generation (difference equation) analogue of logistic growth, common for species with non-overlapping generations — many insects, annual plants, some fish.",
+    "bullets": [
+      "Growth is calculated in discrete time steps rather than continuously — appropriate when reproduction is seasonal or pulsed",
+      "Unlike the continuous logistic, the Ricker model can produce <b>overcompensating</b> dynamics: population overshoots K and oscillates, even without any lag term",
+      "At high r, Ricker dynamics move through damped oscillations, stable limit cycles, and eventually chaos — a preview of instability themes that recur in discrete predator-prey and host-parasitoid models later in the course"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Functional forms of density dependence",
+    "title": "Three ways to model self-limitation",
+    "headers": [
+      "Model",
+      "Time structure",
+      "Key feature",
+      "Typical use"
+    ],
+    "rows": [
+      [
+        "Logistic",
+        "Continuous",
+        "Linear decline in per-capita growth with N",
+        "Default baseline; simple, tractable analytically"
+      ],
+      [
+        "Theta-logistic",
+        "Continuous",
+        "Flexible curvature via shape parameter θ",
+        "Fitting empirical density-dependence data"
+      ],
+      [
+        "Ricker",
+        "Discrete",
+        "Exponential form; can overshoot K and oscillate",
+        "Species with discrete, non-overlapping generations"
+      ]
+    ],
+    "footnote": "Community ecologists pick the form that best matches a species' life history and the data available — none is universally \"correct.\""
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Curvature and stability",
+    "title": "Why the choice of functional form matters downstream",
+    "left": {
+      "h": "θ > 1 (weak low-density regulation)",
+      "body": "Populations grow close to exponentially until near K, then brake sharply. When extended to interaction models, this tends to produce sharper, more threshold-like responses to a competitor or predator."
+    },
+    "right": {
+      "h": "θ < 1 (strong low-density regulation)",
+      "body": "Self-limitation kicks in even at low N. Extended to interaction models, this tends to buffer populations more strongly against added interspecific pressure, stabilizing two-species systems."
+    },
+    "footnote": "We will see these same curvature effects resurface when we discuss functional responses of predators to prey density in Ch. 5."
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Time lags, discrete dynamics, and stochasticity",
+    "sub": "How a single species alone can already be unstable and variable"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A single species can still oscillate",
+    "title": "Time-lagged density dependence",
+    "items": [
+      "So far our models assumed growth responds <b>instantaneously</b> to current density N(t) — but real populations often respond to density at some point in the past (delayed maturation, resource depletion lag, generation time)",
+      "A time-lagged logistic, e.g. dN/dt = rN(t)[1 − N(t−τ)/K], introduces a lag τ between when density changes and when its effect on growth is felt",
+      "Even a single, non-interacting species can generate <b>damped oscillations, stable limit cycles, or chaos</b> purely from the interaction between r and the lag τ — no second species is required",
+      "This is a critical preview: the mechanism generating cycles in a lagged single-species model is mathematically the same mechanism that generates predator-prey cycles in Ch. 5–6 — a delayed negative feedback",
+      "Large r combined with long lag τ destabilizes the equilibrium; the qualitative behavior (stable point → damped oscillation → stable cycle → chaos) will reappear repeatedly this semester"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discrete-time dynamics",
+    "title": "Why discreteness alone can destabilize",
+    "items": [
+      "Discrete-time models (like the Ricker equation) implicitly build in a one-generation time lag, because growth is recalculated only once per time step using the density from the previous step",
+      "As the intrinsic rate r increases in a discrete logistic or Ricker model, the equilibrium sequence: stable point → 2-point cycle → 4-point cycle → ... → chaos (a period-doubling route to chaos)",
+      "This is a purely deterministic phenomenon — no stochastic noise is required to generate seemingly erratic dynamics",
+      "Take-home for the community context: instability is not always a sign of species interactions or randomness; simple time-structure in a single species can be enough"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Quantifying the lag effect",
+    "title": "The dimensionless product rτ",
+    "term": "rτ (growth rate × lag length)",
+    "def": "The stability of a time-lagged logistic model depends not on r or τ alone, but on their product — a compact way to summarize when lags matter.",
+    "bullets": [
+      "Small rτ: equilibrium is stable, population settles smoothly at K, much like the standard logistic",
+      "Intermediate rτ: damped oscillations around K before settling",
+      "Large rτ (roughly rτ > π/2 in classic delayed-logistic analyses): sustained, stable limit cycles — oscillations that persist indefinitely",
+      "This single dimensionless combination will reappear conceptually when we assess stability criteria for predator-prey and competition models in later chapters"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "REALISM LAYER",
+    "title": "Stochasticity",
+    "sub": "Adding realistic variability on top of the deterministic skeleton"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why deterministic models aren't the whole story",
+    "title": "Two sources of stochasticity",
+    "items": [
+      "All the models above are <b>deterministic</b>: given the same starting N and parameters, they always produce the same trajectory — real populations never behave this cleanly",
+      "<b>Environmental stochasticity</b>: random year-to-year variation in r or K driven by weather, resource pulses, disturbance — affects all individuals in the population simultaneously and does not average out with population size",
+      "<b>Demographic stochasticity</b>: random variation in individual birth and death events, arising because births and deaths are discrete, probabilistic outcomes for each individual — matters most at <b>small population size</b> and averages out as N grows",
+      "Both are layered on top of the deterministic exponential/logistic skeleton — they explain the noisy scatter around the smooth curves we derived, not a replacement for the underlying model"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two kinds of noise",
+    "title": "Environmental vs. demographic stochasticity",
+    "headers": [
+      "Feature",
+      "Environmental stochasticity",
+      "Demographic stochasticity"
+    ],
+    "rows": [
+      [
+        "Source",
+        "External variation in r, K (weather, resources, disturbance)",
+        "Chance variation in individual births/deaths"
+      ],
+      [
+        "Scales with N?",
+        "Affects all individuals similarly regardless of N",
+        "Relatively larger effect at small N; averages out at large N"
+      ],
+      [
+        "Extinction risk",
+        "Elevated at any population size",
+        "Elevated mainly for small populations"
+      ],
+      [
+        "Relevance ahead",
+        "Drives variability in predator-prey and competition outcomes (Ch. 5–8)",
+        "Central to small-population and rare-species dynamics discussed later"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A simple stochastic extension",
+    "title": "Stochastic logistic growth (conceptual form)",
+    "term": "dN/dt = rN(1 − N/K) + noise",
+    "def": "The deterministic logistic skeleton with a random perturbation term added — environmental noise typically scaled to N, demographic noise typically scaled to √N.",
+    "bullets": [
+      "Even a population sitting exactly at its deterministic equilibrium K will wander around it, because noise continually perturbs it away and density dependence pulls it back",
+      "Stronger density dependence (steeper decline in per-capita growth near K) dampens the amplitude of this stochastic wandering — self-limitation acts as a stabilizing force against noise",
+      "This same principle — density dependence buffering against stochastic perturbation — reappears when we ask whether predator-prey or competitive systems can persist despite environmental variability"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking ahead",
+    "title": "Why stochasticity matters for community models",
+    "items": [
+      "Multi-species models (Ch. 5–9) are typically built and taught as deterministic skeletons first, exactly as we are doing with the single-species case today",
+      "But real predator-prey cycles, competitive exclusion outcomes, and mutualistic persistence are all shaped by environmental and demographic noise superimposed on the deterministic dynamics",
+      "Carrying this dual view — deterministic backbone plus stochastic realism — forward from single-species models will make the multi-species versions much easier to interpret when noise is reintroduced there",
+      "For now: know that the smooth curves we derived today are best-case, average expectations, not exact predictions"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Study skills",
+    "title": "How to use this review effectively",
+    "left": {
+      "h": "If you took Population Ecology",
+      "body": "Treat today's equations as vocabulary refreshers. Focus your attention on the framing slides — how each single-species term will be modified with an interaction coefficient in Ch. 5–9 — since that connection, not the algebra itself, is new."
+    },
+    "right": {
+      "h": "If you are new to this material",
+      "body": "Prioritize the core equations (exponential, logistic) and their graphs first. The alternative functional forms and stochasticity sections are conceptual previews — you are not expected to derive them, only to recognize their role."
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Chapter 4 building blocks",
+    "title": "The single-species toolkit you now carry forward",
+    "cards": [
+      {
+        "h": "Exponential growth",
+        "p": "dN/dt = rN — the density-independent null model and source of the r parameter reused everywhere."
+      },
+      {
+        "h": "Logistic growth",
+        "p": "dN/dt = rN(1−N/K) — the self-limitation term that Lotka-Volterra models modify to add interspecific effects."
+      },
+      {
+        "h": "Flexible & discrete forms",
+        "p": "Theta-logistic and Ricker models show density dependence isn't always linear or continuous."
+      },
+      {
+        "h": "Lags & stochasticity",
+        "p": "Time lags and discreteness alone can cause cycles; environmental/demographic noise adds realistic variability."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Check your understanding",
+    "title": "Self-test questions before Lecture 10",
+    "items": [
+      "Why is exponential growth called a \"null model\" rather than a realistic long-term prediction?",
+      "What single algebraic term distinguishes logistic growth from exponential growth, and what does it represent biologically?",
+      "How would you modify the logistic equation to represent the effect of a second species reducing the first species' growth?",
+      "Why can a single species oscillate without any predator, competitor, or mutualist present?",
+      "What is the practical difference between environmental and demographic stochasticity in terms of which populations they threaten most?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Putting the pieces together",
+    "sub": "Why this condensed review sets up the rest of the semester"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridging to community models",
+    "title": "The essential takeaway from Lecture 9",
+    "items": [
+      "Every model in this course — predator-prey, competition, mutualism — is a single-species growth equation with an <b>added term for a second species' density</b>",
+      "You cannot interpret those added terms without a solid working sense of what the underlying single-species dynamics (exponential baseline, logistic self-limitation, K) already predict on their own",
+      "The functional form chosen for density dependence (linear logistic, theta-logistic, Ricker) will carry through into which multi-species model variant is used later in the semester",
+      "Instability — oscillations, cycles, chaos — is not unique to species interactions; time lags and discreteness in a <b>single species</b> can already produce it, a theme that recurs constantly once we add real predator-prey and host-parasitoid dynamics",
+      "Stochasticity reminds us that even our two-species models to come are best read as expected trends, not exact forecasts"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Common pitfalls to avoid",
+    "title": "Misreadings of density dependence to watch for",
+    "cards": [
+      {
+        "h": "Confusing correlation with mechanism",
+        "p": "A negative relationship between per-capita growth and N doesn't by itself identify which resource or mechanism is limiting."
+      },
+      {
+        "h": "Assuming K is fixed",
+        "p": "Treating K as a hard, unchanging ceiling ignores that it shifts with environment and, later, with interacting species."
+      },
+      {
+        "h": "Ignoring time structure",
+        "p": "Applying a continuous logistic to a species with discrete generations can miss real oscillatory dynamics a Ricker model would catch."
+      },
+      {
+        "h": "Dismissing noise as \"error\"",
+        "p": "Stochastic variation is a biological feature of real populations, not just statistical nuisance around a deterministic curve."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Framing this chapter",
+    "quote": "The logistic equation and its single-species relatives are not an end point — they are the scaffolding on which every model of species interaction in this book is constructed.",
+    "attrib": "Adapted framing from Mittelbach & McGill, Community Ecology, Ch. 4"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Summary",
+    "title": "Recap of Lecture 9",
+    "items": [
+      "Exponential growth (dN/dt = rN) is density-independent and serves as the baseline null model",
+      "Logistic growth (dN/dt = rN(1−N/K)) adds linear density dependence, producing a sigmoid curve and a stable equilibrium at K",
+      "Density dependence in a single species is the essential building block that Lotka-Volterra-type community models extend with interspecific terms",
+      "Alternative functional forms — theta-logistic, Ricker — offer flexibility in curvature and discrete-time structure without changing the core logic",
+      "Time lags and discreteness alone can generate oscillations and chaos in a single species, previewing instability themes in predator-prey models",
+      "Environmental and demographic stochasticity add realistic variability on top of these deterministic skeletons"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT TIME",
+    "title": "Preview of Lecture 10",
+    "sub": "Closing Chapter 4 and opening the door to predator-prey dynamics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming up in Lecture 10",
+    "title": "Multiple limiting factors and the transition to Chapter 5",
+    "items": [
+      "Lecture 10 closes Chapter 4 by extending today's single-limiting-factor logistic view to populations regulated by <b>multiple, simultaneously limiting factors</b> (e.g., food and space, or several nutrients)",
+      "We will examine how density dependence can act through different mechanisms — resource competition, predation risk, disease, interference — and how these can combine or interact",
+      "We will also revisit the r- and K-selection framework and life-history correlates of density dependence, briefly, as a bridge concept",
+      "The lecture ends by explicitly setting up Chapter 5: what happens when the limiting factor for one species is the <b>density of a second species</b> — the entry point into predator-prey and consumer-resource models",
+      "Come prepared to see the (1 − N/K) term you learned today generalized into the first genuine two-species interaction equation of the course"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 9</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

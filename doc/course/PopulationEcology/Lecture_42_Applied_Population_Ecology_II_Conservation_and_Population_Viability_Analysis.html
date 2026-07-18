@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 42: Applied Population Ecology II: Conservation and Population Viability Analysis</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 42",
+    "title": "Applied Population Ecology II: Conservation and Population Viability Analysis",
+    "sub": "Minimum viable populations, the extinction vortex, and PVA as a capstone synthesis of the course toolkit",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.) — applied synthesis; PVA and conservation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Today's Roadmap",
+    "items": [
+      "<b>L41</b> covered harvesting theory and Maximum Sustainable Yield — managing populations we want to sustainably remove from",
+      "<b>L42 (today)</b> flips the problem: managing populations we want to prevent from disappearing — the conservation side of applied population ecology",
+      "We build toward <b>Population Viability Analysis (PVA)</b>, a quantitative framework that integrates stochastic growth, age structure, metapopulation dynamics, and density dependence into a single decision-support tool",
+      "This is the last content lecture before <b>Student Presentations (L43–44)</b> and <b>Course Synthesis (L45)</b> — today is explicitly built to feel like a capstone"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART I",
+    "title": "Population Viability Analysis: The Framework",
+    "sub": "A quantitative toolkit for estimating extinction risk"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CONSERVATION PROBLEM",
+    "title": "Why We Need a Formal Framework",
+    "items": [
+      "Conservation managers routinely face questions with life-or-death stakes: How large must a reserve population be? Is a captive breeding program needed? Should we translocate individuals between fragments?",
+      "Gut intuition and single-number rules of thumb are not enough — species differ enormously in life history, environmental variability, and current population size",
+      "<b>Population Viability Analysis (PVA)</b> was developed to bring the quantitative tools of population ecology — the same tools built across this entire course — to bear on real-world persistence questions",
+      "PVA does not predict the future with certainty; it estimates a <b>probability of persistence</b> (or extinction) over a defined time horizon, given stated assumptions"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE DEFINITION",
+    "title": "Population Viability Analysis",
+    "term": "Population Viability Analysis (PVA)",
+    "def": "A quantitative, model-based procedure that estimates the probability a population will persist (or go extinct) over a specified time horizon, by integrating demographic, environmental, genetic, and catastrophic sources of risk.",
+    "bullets": [
+      "Typically expressed as a probability, e.g., '95% chance of persistence over 100 years' or '<10% extinction probability over 50 years'",
+      "Outputs also commonly include expected minimum population size, time to quasi-extinction, and sensitivity of results to specific parameters",
+      "PVA is a framework, not a single method — it ranges from simple back-of-envelope stochastic models to complex, spatially explicit, individually based simulations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BUILDING ON THE COURSE",
+    "title": "PVA as an Integration Point",
+    "left": {
+      "h": "What feeds into a PVA",
+      "body": "Stochastic population growth and geometric mean fitness (Ch. 1 / L5), density-dependent growth and carrying capacity (Ch. 2–3), age- or stage-structured demography and Leslie matrices (Ch. 4), metapopulation structure and patch dynamics (Ch. 5), and species interactions that constrain vital rates (Part 2)."
+    },
+    "right": {
+      "h": "Why this matters today",
+      "body": "Almost nothing in a serious PVA is a new concept — it is the synthesis of tools you already have. Today's lecture is less about new math and more about seeing how the pieces assemble into a decision-relevant output."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MODELING APPROACH 1",
+    "title": "Simple Stochastic Exponential / Diffusion Models",
+    "items": [
+      "The simplest PVA extends the stochastic exponential growth model from <b>L5</b>: population size fluctuates around a mean growth rate due to environmental stochasticity",
+      "Recall that with environmental variance, the long-run growth rate is better approximated by the <b>geometric mean</b> of annual growth rates, which is always ≤ the arithmetic mean",
+      "This class of model treats population size as a continuous variable undergoing a <b>random walk with drift</b> — formally, a diffusion process — allowing analytic or simulation-based estimates of extinction probability",
+      "Useful when data are limited to a time series of total population counts, without age structure or explicit spatial detail"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Diffusion Approximation of Extinction Risk",
+    "term": "Diffusion approximation",
+    "def": "A mathematical approximation, developed by Dennis, Munholland & Scott (1991) among others, that models population size (usually log-transformed) as undergoing a random walk with a given mean growth rate and environmental variance, from which the probability of reaching a lower extinction threshold within a given time can be derived analytically.",
+    "bullets": [
+      "Two parameters dominate the outcome: mean growth rate (μ) and environmental variance (σ²) — higher variance sharply increases extinction risk even when mean growth is positive",
+      "Extinction risk depends heavily on the ratio of current population size to the extinction threshold, and on the time horizon considered",
+      "Elegant and data-efficient, but assumes density independence and no age structure — a simplification that can be badly wrong for structured or strongly regulated populations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MODELING APPROACH 2",
+    "title": "Structured (Matrix-Based) PVA",
+    "items": [
+      "More realistic PVAs extend the <b>Leslie / stage-based projection matrices</b> from Ch. 4, allowing vital rates (survival, fecundity) to vary stochastically by age or stage class and by year",
+      "This captures biologically important detail that simple exponential models miss: e.g., a population dominated by post-reproductive individuals may look stable in total count but be demographically doomed",
+      "Stochastic matrix PVA can also incorporate <b>density dependence</b> (Ch. 2–3) so that vital rates change as population size approaches carrying capacity or drops toward an Allee threshold",
+      "Spatially explicit versions incorporate <b>metapopulation structure</b> (Ch. 5) — multiple subpopulations connected by dispersal, each with its own local extinction risk and rescue potential"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MODELING APPROACH 3",
+    "title": "Monte Carlo Simulation: How PVA Actually Runs",
+    "items": [
+      "Because stochastic models rarely have simple closed-form solutions once age structure, density dependence, and catastrophes are included, most modern PVA relies on <b>Monte Carlo simulation</b>",
+      "The model is run forward in time thousands of times, each run drawing survival and fecundity values from specified statistical distributions (capturing environmental stochasticity) and, in small populations, adding random individual-level variation (demographic stochasticity)",
+      "Each simulated trajectory either persists to the time horizon or crosses an extinction threshold; the fraction of runs that go extinct estimates the extinction probability",
+      "Software packages such as VORTEX and RAMAS are widely used in professional conservation practice to implement exactly this kind of simulation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHAT A PVA PRODUCES",
+    "title": "Typical PVA Outputs",
+    "cards": [
+      {
+        "h": "Extinction probability",
+        "p": "E.g., 'a 23% chance of falling below 50 individuals within 100 years' — the headline conservation-relevant number."
+      },
+      {
+        "h": "Expected minimum population size",
+        "p": "The average lowest population size a trajectory is expected to reach — flags bottleneck risk even absent full extinction."
+      },
+      {
+        "h": "Time to quasi-extinction",
+        "p": "Expected years until the population drops below a threshold considered functionally non-viable, not just zero."
+      },
+      {
+        "h": "Sensitivity analysis",
+        "p": "Which parameter (adult survival, fecundity, catastrophe frequency) most changes the outcome if improved — guides where management effort should go."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Quasi-Extinction Threshold",
+    "term": "Quasi-extinction threshold",
+    "def": "A population size, set above zero, below which a population is considered functionally non-viable — too small to recover, too genetically depauperate, or too vulnerable to catastrophe to meaningfully continue as a self-sustaining unit.",
+    "bullets": [
+      "PVA models frequently track the probability of crossing this threshold rather than true extinction (N = 0), because models tend to become unreliable at very low N and because many populations are functionally doomed well before literally reaching zero",
+      "Choice of threshold is itself a judgment call — set too low and quasi-extinction risk underestimates real management urgency; set too high and it can overstate risk",
+      "Connects directly to MVP: a population's MVP is, in effect, the size needed to keep quasi-extinction probability acceptably low over the chosen time horizon"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PVA IN THE TOOLBOX",
+    "title": "Software and Practice",
+    "items": [
+      "Professional PVA is rarely done by hand — dedicated software packages implement the Monte Carlo simulation approach described earlier at scale",
+      "<b>VORTEX</b> is an individual-based simulation model widely used for single-species PVA, explicitly tracking genetics, demographic stochasticity, and catastrophes for each simulated individual",
+      "<b>RAMAS</b> offers matrix-based and spatially explicit metapopulation PVA, well suited to reserve-design questions and multi-patch systems",
+      "Regardless of software, the underlying logic is exactly what has been built across this course: growth models plus stochasticity plus structure, run forward many times and summarized as a probability"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART II",
+    "title": "Minimum Viable Population",
+    "sub": "How small is too small? A concept with a contested history"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ORIGINS OF THE CONCEPT",
+    "title": "Shaffer (1981) and the Birth of MVP",
+    "items": [
+      "Wildlife biologist <b>Mark Shaffer (1981)</b> coined the term <b>Minimum Viable Population (MVP)</b> in a landmark paper analyzing grizzly bear persistence in Yellowstone",
+      "Shaffer's key insight: population persistence is inherently probabilistic, not a fixed threshold — so MVP must be defined relative to a stated probability and a stated time horizon",
+      "This reframed the extinction question from a deterministic one ('how many individuals?') to a stochastic one ('how many individuals give X% odds of surviving Y years?')",
+      "Shaffer's grizzly analysis is considered one of the founding applications of quantitative conservation biology, directly anticipating modern PVA"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE DEFINITION",
+    "title": "Minimum Viable Population",
+    "term": "Minimum Viable Population (MVP)",
+    "def": "The smallest isolated population size that has an acceptably high probability of persisting for a specified period of time, despite the foreseeable effects of demographic, environmental, and genetic stochasticity and natural catastrophes.",
+    "bullets": [
+      "Always defined relative to a chosen persistence probability (commonly 95–99%) and time horizon (commonly 100 years) — there is no single universal MVP number for a species",
+      "MVP estimates are population- and context-specific: the same species can have very different MVPs depending on habitat quality, isolation, and threats",
+      "Functions as a conservation planning benchmark, not a hard guarantee — falling below MVP sharply raises risk, but exceeding it does not eliminate risk"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL ARC",
+    "title": "The 50/500 Rule: Origins and Evolution",
+    "items": [
+      {
+        "y": "1980",
+        "t": "Franklin proposes a genetics-based rule of thumb: effective population size (Ne) of 50 to avoid short-term inbreeding depression, 500 to maintain long-term evolutionary potential"
+      },
+      {
+        "y": "1981",
+        "t": "Shaffer formalizes the probabilistic MVP concept, providing the demographic complement to Franklin's genetic rule"
+      },
+      {
+        "y": "1980s–1990s",
+        "t": "The '50/500 rule' becomes a widely cited conservation planning heuristic, appearing in recovery plans and reserve design guidance"
+      },
+      {
+        "y": "2014",
+        "t": "Frankham, Bradshaw & Brook publish a major synthesis revising the rule upward, arguing Ne of 100 and 1,000 better reflect modern genetic and empirical evidence"
+      },
+      {
+        "y": "2010s–present",
+        "t": "Consensus shifts toward species-specific, model-based PVA estimates rather than fixed numerical rules, while the 50/500 heuristic persists as a rough teaching benchmark"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE RULE ITSELF",
+    "title": "The 50/500 Rule: Two Numbers, Two Purposes",
+    "headers": [
+      "Feature",
+      "'50' rule",
+      "'500' rule"
+    ],
+    "rows": [
+      [
+        "Effective population size (Ne) target",
+        "50",
+        "500"
+      ],
+      [
+        "Time horizon",
+        "Short-term (few generations)",
+        "Long-term (evolutionary time scale)"
+      ],
+      [
+        "Genetic concern addressed",
+        "Inbreeding depression, loss of heterozygosity per generation",
+        "Maintenance of additive genetic variance for adaptive evolution"
+      ],
+      [
+        "Underlying logic",
+        "Keeps inbreeding rate below ~1% per generation",
+        "Balances mutation input against genetic drift loss"
+      ],
+      [
+        "Modern critique (Frankham et al. 2014)",
+        "Revised upward to Ne ≈ 100",
+        "Revised upward to Ne ≈ 1,000"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CRITIQUES AND REFINEMENTS",
+    "title": "Why the 50/500 Rule Is Contested",
+    "items": [
+      "<b>Effective population size (Ne) ≠ census size (N):</b> Ne is often a small fraction of N (commonly cited ratios of Ne/N ~ 0.1–0.5), so a '50/500' Ne target can require a much larger census population — a frequent source of public confusion",
+      "The rule was derived largely from generic genetic theory and limited empirical data; it does not account for species-specific mutation rates, generation time, mating system, or existing genetic load",
+      "Modern conservation genetics (Frankham, Bradshaw & Brook 2014) argues the rule <b>underestimates</b> true requirements for many taxa and should not be applied as a blanket target across all species",
+      "Critics on the other side caution against <b>over-reliance on any single numerical rule</b> — MVP and Ne targets should be one input among several in a full PVA, not a substitute for it",
+      "Modern practice increasingly favors integrating genetic, demographic, and environmental data into a full species-specific PVA rather than citing 50/500 as a stand-alone benchmark"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART III",
+    "title": "The Extinction Vortex",
+    "sub": "How small populations spiral toward extinction through compounding threats"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CORE IDEA",
+    "title": "Why Small Populations Are Different",
+    "items": [
+      "Once a population drops below a critical size, it does not simply face a scaled-down version of the same risks — it enters a qualitatively different regime where multiple threats interact and reinforce one another",
+      "This positive feedback loop is known as the <b>extinction vortex</b> (Gilpin & Soulé 1986): decline causes further decline, accelerating toward extinction",
+      "The vortex draws together concepts from across this entire course — demographic stochasticity, environmental stochasticity (L5), genetic factors, and Allee effects (L9) — showing why they cannot be considered in isolation for small populations",
+      "Understanding the vortex is central to interpreting why MVP and PVA thresholds exist at all: below some size, risks stop being additive and start being multiplicative"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "VISUALIZING THE VORTEX",
+    "title": "Compounding Threats at Small Population Size",
+    "levels": [
+      {
+        "label": "Extinction",
+        "color": "#7f1d1d",
+        "width": "160px"
+      },
+      {
+        "label": "Allee effects: reduced mate-finding, cooperation breakdown",
+        "color": "#b91c1c",
+        "width": "260px"
+      },
+      {
+        "label": "Genetic factors: inbreeding depression, lost diversity",
+        "color": "#dc2626",
+        "width": "340px"
+      },
+      {
+        "label": "Demographic stochasticity: random birth/death variance",
+        "color": "#f97316",
+        "width": "420px"
+      },
+      {
+        "label": "Environmental stochasticity: variable growth rates",
+        "color": "#facc15",
+        "width": "500px"
+      }
+    ],
+    "footnote": "Each layer intensifies as population size shrinks, and the layers reinforce one another rather than acting independently."
+  },
+  {
+    "type": "term",
+    "eyebrow": "VORTEX FACTOR 1",
+    "title": "Demographic Stochasticity",
+    "term": "Demographic stochasticity",
+    "def": "Random variation in individual births and deaths that, at large population size, averages out to a predictable rate, but at small population size can cause large proportional swings — including runs of bad luck that drive a small population to zero even when expected growth is positive.",
+    "bullets": [
+      "A population of 5 individuals in which, by chance, all offspring in a season are male faces a real risk of local extinction regardless of the 'true' underlying growth rate",
+      "Effect size scales with 1/N — demographic stochasticity is often negligible above a few hundred individuals but dominant below a few dozen",
+      "This is a fundamentally different risk category from environmental stochasticity: it exists even in a perfectly constant, favorable environment"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VORTEX FACTOR 2",
+    "title": "Environmental Stochasticity",
+    "term": "Environmental stochasticity",
+    "def": "Year-to-year variation in vital rates driven by external conditions (weather, resource availability, disease prevalence) that affects all individuals in a population simultaneously, unlike demographic stochasticity's individual-level randomness.",
+    "bullets": [
+      "Recall from <b>L5</b>: variable growth rates reduce the realized long-run growth rate below the arithmetic mean, following the <b>geometric mean</b> — high-variance environments depress viability even when average conditions look favorable",
+      "Environmental stochasticity does not shrink with population size the way demographic stochasticity does — it remains a persistent risk at any population size, though its relative impact on extinction probability grows as populations get smaller",
+      "Catastrophes (fires, floods, disease outbreaks) are often modeled as an extreme, low-probability tail of environmental stochasticity in PVA software"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VORTEX FACTOR 3",
+    "title": "Genetic Factors and Inbreeding Depression",
+    "term": "Inbreeding depression",
+    "def": "Reduced survival and reproductive performance in offspring of related parents, arising from increased expression of deleterious recessive alleles and loss of heterozygosity — a direct genetic consequence of small effective population size.",
+    "bullets": [
+      "Small populations lose genetic diversity through drift each generation at a rate approximately 1/(2·Ne), directly connecting back to the 50/500 rule's Ne targets",
+      "Reduced genetic diversity lowers a population's capacity to adapt to future environmental change (disease, climate shifts) — a long-term viability cost layered on top of short-term inbreeding effects",
+      "Genetic erosion and demographic decline reinforce each other: fewer individuals reduces Ne, which accelerates inbreeding and diversity loss, which further reduces fitness and survival — closing the feedback loop"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VORTEX FACTOR 4",
+    "title": "Allee Effects",
+    "term": "Allee effect",
+    "def": "A positive relationship between population density (or size) and individual fitness at low density — the opposite of standard negative density dependence — arising from mechanisms such as difficulty finding mates, breakdown of cooperative behaviors, or reduced predator swamping.",
+    "bullets": [
+      "First formalized in Ch. 2 / <b>L9</b> of this course as a modification to logistic-type growth models: per-capita growth rate can become negative below a critical threshold density",
+      "In the extinction vortex, Allee effects are especially dangerous because they can create a <b>deterministic downward pull</b> that compounds the stochastic risks above — a population isn't just vulnerable to bad luck, it is actively pulled toward zero",
+      "Species with strong social or reproductive dependence on group size (colonial breeders, cooperative hunters, broadcast spawners) are particularly susceptible"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PUTTING THE VORTEX TOGETHER",
+    "title": "Why the Whole Is Worse Than the Sum of Its Parts",
+    "items": [
+      "A population entering decline (say, from habitat loss) shrinks toward a size where demographic stochasticity becomes significant, adding unpredictable variance around an already-strained trajectory",
+      "Smaller size reduces Ne, accelerating inbreeding depression and diversity loss, which lowers average survival and fecundity — further slowing or reversing growth",
+      "If density falls below an Allee threshold, per-capita growth rate can turn negative independent of any stochastic bad luck, locking in decline",
+      "Environmental stochasticity and catastrophes then act on an already-weakened population, with a much higher chance of pushing it to zero than the same disturbance would have caused at larger size",
+      "This is precisely why MVP and PVA target <b>probabilities well above the naive replacement threshold</b> (r ≈ 0) — safety margins must account for the vortex, not just deterministic growth"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART IV",
+    "title": "PVA in Practice",
+    "sub": "Data limits, real applications, and how conservation decisions actually get made"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE HONEST LIMITATION",
+    "title": "PVA Is Only as Good as Its Inputs",
+    "items": [
+      "Every PVA modeling approach discussed today requires estimates of survival rates, fecundity, environmental variance, and (for structured models) age- or stage-specific vital rates — all of which come from field data",
+      "For well-studied species with long-term monitoring (e.g., many game species, well-funded endangered species programs), these estimates can be reasonably precise",
+      "For rare, cryptic, or newly discovered species — often exactly the species most in need of conservation attention — data are sparse, and parameter uncertainty can be enormous",
+      "Garbage in, garbage out: a PVA built on a handful of years of noisy data can produce a precise-looking extinction probability that is, in reality, highly uncertain"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CRITIQUES OF PVA",
+    "title": "Should We Trust the Numbers?",
+    "items": [
+      "Ludwig (1999) and others showed that confidence intervals around PVA-estimated extinction probabilities are often extremely wide — far wider than typically presented in management reports — when propagated correctly from parameter uncertainty",
+      "Short time series (common for rare species) provide poor estimates of environmental variance specifically, and extinction probability is highly sensitive to this parameter",
+      "Some conservation biologists argue PVA outputs should be used <b>comparatively</b> (which management option reduces risk more?) rather than as absolute predictions (there is a precise 17% chance of extinction)",
+      "The consensus applied position: PVA is a structured way to think rigorously about risk and prioritize management actions, not a crystal ball — sensitivity analysis (identifying which parameters matter most) is often more valuable than the headline probability itself"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON PVA'S LIMITS",
+    "quote": "Population viability analysis is best viewed not as a prediction of the future but as a structured way of asking 'what do we not yet know, and what would it take to find out?'",
+    "attrib": "Paraphrased synthesis of Ludwig (1999) and Reed et al. (2002) on PVA uncertainty"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLICATION 1",
+    "title": "Endangered Species Recovery Planning",
+    "items": [
+      "PVA is a standard, often legally referenced component of recovery planning under frameworks like the U.S. Endangered Species Act — recovery criteria are frequently expressed directly in MVP/PVA terms (e.g., 'X self-sustaining populations of size Y for Z years')",
+      "PVA outputs help identify which vital rate improvements (adult survival vs. juvenile recruitment vs. habitat connectivity) would most reduce extinction risk, directing limited conservation funding toward the highest-leverage interventions",
+      "Because these are legally and politically consequential documents, the data-uncertainty critiques from the previous slides matter enormously in practice — overconfident PVA outputs can shape multi-decade, multi-million-dollar management commitments"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "REAL-WORLD CASES",
+    "title": "PVA in Endangered Species Recovery",
+    "cards": [
+      {
+        "h": "Florida panther",
+        "p": "Small, inbred population with documented genetic defects; PVA supported a 1995 genetic rescue via introduction of Texas cougars, directly applying inbreeding-depression theory from today's vortex discussion."
+      },
+      {
+        "h": "Whooping crane",
+        "p": "One of North America's rarest birds; structured PVA incorporating age classes and migration risk has guided reintroduction of a second migratory population to reduce single-catastrophe risk — a metapopulation-style hedge."
+      },
+      {
+        "h": "California condor",
+        "p": "Population fell to 27 individuals in 1987 before captive breeding; PVA modeling of lead-poisoning mortality and reproductive rates continues to guide release-site selection and ongoing management targets."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLICATION 2",
+    "title": "Reserve Design and Metapopulation Conservation",
+    "items": [
+      "Recall <b>L19</b>'s metapopulation framework: patch occupancy depends on local extinction and colonization rates, and persistence of the whole system can exceed persistence of any single patch",
+      "PVA-informed reserve design asks how large and how connected individual reserves need to be so that local patch populations approach MVP thresholds, and so that dispersal between patches provides a meaningful <b>rescue effect</b>",
+      "This connects directly to real reserve network design debates (e.g., SLOSS — 'single large or several small' — reserves) and to corridor-planning efforts intended to maintain gene flow and reduce local inbreeding risk",
+      "Spatially explicit PVA can explicitly simulate patch-level extinction and recolonization, providing quantitative support for how many patches, of what size and spacing, a reserve network needs to sustain a target overall persistence probability"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MANAGING UNCERTAINTY",
+    "title": "Where to Focus When Data Are Limited",
+    "cards": [
+      {
+        "h": "Prioritize adult survival estimates",
+        "p": "In most long-lived vertebrates, population growth is more sensitive to adult survival than fecundity — precise estimates here yield the most reliable PVA output."
+      },
+      {
+        "h": "Bound environmental variance conservatively",
+        "p": "When time series are short, use a wider plausible range for environmental variance rather than a single point estimate, and report results across that range."
+      },
+      {
+        "h": "Report ranges, not single numbers",
+        "p": "Present extinction probability as a range or confidence interval tied to input uncertainty, rather than a single misleadingly precise figure."
+      },
+      {
+        "h": "Update iteratively",
+        "p": "Treat PVA as a living model — revisit and refine it as new monitoring data accumulate, rather than a one-time calculation."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLICATION 3",
+    "title": "Captive Breeding Program Planning",
+    "items": [
+      "When wild population size falls well below estimated MVP, captive breeding can serve as a genetic and demographic reservoir while wild threats are addressed — as in the California condor case above",
+      "PVA and Ne-based genetic management (studbooks, pedigree tracking, minimizing kinship in pairings) are used together to slow the loss of genetic diversity within captive populations — a direct, applied use of the 50/500 rule's underlying logic",
+      "Captive populations face their own vortex risks: small founder numbers, adaptation to captivity (potentially maladaptive in the wild), and the challenge of eventual reintroduction into habitat that may itself be limiting",
+      "PVA models can compare reintroduction strategies (timing, release group size, source population) by simulating post-release survival and establishment probability under realistic demographic and environmental stochasticity"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART V",
+    "title": "Capstone Synthesis",
+    "sub": "How the whole course feeds into applied conservation decisions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "PVA as the Course's Integration Point",
+    "items": [
+      "Nearly every model built across this course reappears inside a real PVA: exponential and logistic growth (Ch. 1–3), age structure and Leslie matrices (Ch. 4), metapopulation dynamics (Ch. 5), and the species-interaction effects on vital rates from Part 2",
+      "The applied unit (L41–42) shows both directions this toolkit can be pointed: <b>harvesting</b> (L41) asks how much we can sustainably remove; <b>conservation</b> (L42) asks how little we can afford to lose",
+      "Both problems ultimately reduce to the same underlying question: given a growth model, its parameters, and its uncertainty, what population trajectory results — and what management action changes that trajectory favorably?",
+      "This is the practical payoff of the entire course: population ecology's mathematical models are not academic exercises — they are the working tools of applied wildlife management and conservation biology"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO SIDES OF ONE TOOLKIT",
+    "title": "Harvesting vs. Conservation, Revisited",
+    "left": {
+      "h": "L41 — Harvesting / MSY",
+      "body": "Uses density-dependent growth models to find the population size and harvest rate that maximizes sustainable yield, balancing exploitation against maintaining a self-renewing population — an optimization problem centered on a target above zero growth."
+    },
+    "right": {
+      "h": "L42 — Conservation / PVA",
+      "body": "Uses stochastic, structured, and spatially explicit models to estimate the probability a population avoids falling to zero, balancing limited conservation resources against multiple compounding risk factors — a risk-minimization problem centered on avoiding collapse."
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "UNIT SYNTHESIS",
+    "title": "Applied Population Ecology: Harvesting vs. Conservation Framing",
+    "headers": [
+      "Dimension",
+      "Harvesting (L41)",
+      "Conservation / PVA (L42)"
+    ],
+    "rows": [
+      [
+        "Central question",
+        "How much can we remove sustainably?",
+        "How small can we go and still persist?"
+      ],
+      [
+        "Key output",
+        "Maximum Sustainable Yield (MSY)",
+        "Extinction probability / MVP"
+      ],
+      [
+        "Core model extended",
+        "Logistic growth, density dependence",
+        "Stochastic growth, Leslie matrices, metapopulations"
+      ],
+      [
+        "Primary risk of getting it wrong",
+        "Overharvest, population collapse",
+        "Underestimating vortex risk, false confidence"
+      ],
+      [
+        "Typical stakeholder",
+        "Fisheries / wildlife managers, industry",
+        "Conservation biologists, regulatory agencies"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING BACK ACROSS THE COURSE",
+    "title": "The Toolkit Assembled Today",
+    "items": [
+      "<b>Ch. 1 (density-independent growth, L5):</b> stochastic exponential growth and geometric mean fitness underpin the simplest PVA and the environmental-stochasticity vortex factor",
+      "<b>Ch. 2–3 (density-dependent growth, L9):</b> logistic growth, carrying capacity, and Allee effects underpin both MSY (L41) and the Allee vortex factor (L42)",
+      "<b>Ch. 4 (age structure, Leslie matrices):</b> structured PVA models trace directly back to the projection matrix machinery built earlier in the course",
+      "<b>Ch. 5 (metapopulations, L19):</b> patch occupancy and rescue effects underpin spatially explicit PVA and reserve design",
+      "<b>Part 2 (species interactions):</b> predation, competition, and disease all shape the vital rates that feed into every PVA — no population is modeled in isolation from its community"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP: LECTURE 41",
+    "title": "Bridging Back to Harvesting and MSY",
+    "items": [
+      "L41 built the harvesting side of applied population ecology: surplus production models, Maximum Sustainable Yield, and the population-level consequences of different harvest strategies (fixed quota vs. fixed effort)",
+      "L41 emphasized that MSY is a theoretical optimum highly sensitive to parameter uncertainty and to violations of simplifying assumptions (e.g., constant carrying capacity, no age structure) — a direct parallel to today's PVA data-uncertainty critique",
+      "Together, L41 and L42 form the applied capstone: the same population models, pointed at opposite management goals — sustainable extraction versus risk-minimized persistence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Key Takeaways from Today",
+    "items": [
+      "<b>PVA</b> quantitatively estimates extinction/persistence probability by integrating stochastic growth, structured demography, and metapopulation dynamics — it is a synthesis tool, not a new independent model",
+      "<b>MVP</b>, coined by Shaffer (1981), is always defined relative to a stated persistence probability and time horizon; the '50/500 rule' is a useful but contested and now-revised genetic heuristic (Frankham et al. 2014)",
+      "The <b>extinction vortex</b> shows why small populations face compounding, not merely additive, risk from demographic stochasticity, environmental stochasticity, genetic factors, and Allee effects",
+      "PVA is powerful but data-hungry — outputs should be interpreted with appropriate humility, especially for data-poor rare species, and are most valuable for comparing management options and guiding sensitivity-based priorities",
+      "Real-world PVA applications (Florida panther, whooping crane, California condor, reserve design, captive breeding) show this is not abstract theory — it directly shapes multi-decade conservation policy"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CLOSING THOUGHT",
+    "quote": "Every model in this course — growth, structure, space, interactions — exists ultimately to answer one question conservation biologists face daily: will this population still be here in a hundred years, and what can we do about it?",
+    "attrib": "Course synthesis framing, Population Ecology BIOL 4XX"
+  },
+  {
+    "type": "section",
+    "tag": "WHAT'S NEXT",
+    "title": "Closing the Course",
+    "sub": "From applied theory to student work and full synthesis"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW: LECTURES 43–44",
+    "title": "Student Presentations",
+    "items": [
+      "<b>L43–44</b> shift format entirely: students present independent projects applying course concepts (growth models, life tables, metapopulation analysis, species-interaction models, or PVA) to a species or system of their choosing",
+      "Presentations are expected to demonstrate fluency with the quantitative toolkit built across the semester — many students will find today's PVA framework a natural capstone lens for their own project",
+      "Come prepared to engage as an active audience: questions and discussion during peer presentations are part of the participation expectation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW: LECTURE 45",
+    "title": "Course Synthesis",
+    "items": [
+      "<b>L45</b> is the final lecture of the course — a full synthesis tying together density-independent and density-dependent growth, age/stage structure, metapopulations, species interactions, and applied management into one integrated conceptual map",
+      "Expect a review structured around exam/assessment preparation as well as big-picture reflection on how population ecology connects to broader conservation biology, wildlife management, and environmental policy",
+      "Today's lecture was deliberately built as a preview of that synthesis — if the PVA integration made sense, L45's full-course version will be a natural extension"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Final Thoughts Before Presentations",
+    "items": [
+      "Applied Population Ecology (L41–42) closes the course's content arc by showing that every mathematical tool introduced — from Ch. 1's simple exponential growth to Ch. 5's metapopulations — has direct, high-stakes, real-world application",
+      "Whether the question is 'how much can we sustainably harvest?' (L41) or 'how do we keep this population from disappearing?' (L42), the underlying quantitative literacy is the same",
+      "Bring that integrated toolkit into your presentations — the goal is not just applying one formula, but showing how multiple pieces of population ecology combine to answer a real question about a real population"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 42</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

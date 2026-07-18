@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 24: Ecological Networks I: From Pairwise Interactions to Network Thinking</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 24",
+    "title": "Ecological Networks I: From Pairwise Interactions to Network Thinking",
+    "sub": "Opening Chapter 10 and Part III — scaling up from isolated interaction modules to the full web of simultaneously interacting species",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 10 — Ecological networks"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "After the Midterm: Where We've Been, Where We're Going",
+    "sub": "Closing Part II's module-by-module approach and opening Part III's synthetic view"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Course checkpoint",
+    "title": "Midterm I is behind us",
+    "items": [
+      "Midterm I covered Lectures 9–23: density dependence, predator-prey, selective predators, competition, coexistence/niche theory, and mutualism — the whole of Part II, <b>\"The Nitty-Gritty.\"</b>",
+      "Lecture 23 closed Part II with a synthesis: how the pairwise modules (Ch. 4–9) relate to one another and how they set up the questions Part III will tackle.",
+      "Today we turn the page to <b>Part III — Putting the Pieces Together</b> (Ch. 10–12): ecological networks, food chains and webs, and community assembly.",
+      "Same textbook (Mittelbach & McGill), same rigor — but a shift in scale and in the kind of question we ask."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap of Part II",
+    "title": "How Part II built its case, one module at a time",
+    "items": [
+      "Ch. 5–6: <b>predator-prey</b> and selective predation — one predator, one (or a few) prey, studied largely in isolation.",
+      "Ch. 7: <b>competition</b> — pairwise and small guilds of competitors, Lotka-Volterra and R* frameworks.",
+      "Ch. 8: <b>coexistence theory</b> — niche and neutral mechanisms, still typically analyzed a few species at a time.",
+      "Ch. 9: <b>mutualism</b> — pairwise mutualisms, with a brief preview of plant-pollinator <i>networks</i> at the chapter's end.",
+      "Common thread: each module isolates one type of interaction between a small number of species to build intuition — a deliberate simplification."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The core idea of Part III",
+    "title": "Scaling up in complexity",
+    "term": "Ecological network",
+    "def": "A representation of an entire community as a set of species (or functional groups) and the interactions that link them — capturing many species and many interaction types simultaneously, rather than one pair or module at a time.",
+    "bullets": [
+      "Real communities are not built from isolated pairs — every species is embedded in a web of simultaneous interactions with predators, prey, competitors, and mutualists.",
+      "Part III asks: what happens when we stop isolating modules and instead look at the whole architecture of who-interacts-with-whom?",
+      "This is the natural next step in complexity after Part II — and it is where community ecology starts to look like the interconnected systems it actually studies."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Framing the shift",
+    "quote": "A community is not simply a collection of independent pairwise interactions — it is a network in which the fate of any one species depends on paths of influence that may run through many others.",
+    "attrib": "paraphrased framing, after Mittelbach & McGill, Ch. 10"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's lecture in the arc of Ch. 10",
+    "title": "Lecture 24: laying the groundwork",
+    "items": [
+      "Today (L24): basic network <b>concepts and vocabulary</b> — nodes, links, network types, and why network thinking matters.",
+      "Lecture 25: network <b>structure metrics in depth</b> — connectance, degree distributions, nestedness, modularity, and how to quantify architecture.",
+      "Lecture 26: network <b>stability and robustness</b> — how structure predicts resilience to species loss, closing Chapter 10 before Ch. 11 (Food Chains and Webs).",
+      "By the end of this three-lecture arc, you will be able to describe, quantify, and reason about the consequences of network structure."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Network Basics: Nodes, Links, and Vocabulary",
+    "sub": "The minimal toolkit for describing any ecological network"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Building block 1",
+    "title": "The node",
+    "term": "Node (vertex)",
+    "def": "A single unit in a network — typically a species, but sometimes a functional group, a life-history stage, or even a higher taxon, depending on the resolution of the study.",
+    "bullets": [
+      "Nodes are the \"who\" of the network — the entities whose interactions we are mapping.",
+      "Aggregating species into functional groups (e.g., \"grazers,\" \"decomposers\") trades resolution for tractability — a common choice in large, species-rich systems.",
+      "The choice of node definition shapes every downstream network metric, so it must be stated explicitly and applied consistently."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Building block 2",
+    "title": "The link",
+    "term": "Link (edge)",
+    "def": "A connection between two nodes representing a documented interaction — feeding, pollination, parasitism, seed dispersal, or another interaction type.",
+    "bullets": [
+      "Links are the \"how\" of the network — they encode which pairs of species interact and, often, in what way.",
+      "A network is nothing more (and nothing less) than a set of nodes plus a set of links connecting them — deceptively simple, but capable of representing enormous complexity.",
+      "Links can be observed directly (e.g., watching a pollinator visit a flower) or inferred indirectly (e.g., gut-content analysis for a predator's diet)."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A first distinction",
+    "title": "Directed vs. undirected links",
+    "left": {
+      "h": "Directed",
+      "body": "The link has a direction — interaction flows from one node to another. A feeding link runs from prey to predator (energy/biomass flows predator-ward); an arrow captures who eats whom. Most antagonistic networks (food webs, host-parasite webs) are directed."
+    },
+    "right": {
+      "h": "Undirected",
+      "body": "The link has no inherent direction — the interaction is symmetric in the sense that both parties are simply \"connected.\" Some mutualistic networks are represented this way when the emphasis is on which species pairs interact, not on flow direction (though many are still drawn with implied direction, e.g., pollinator → plant)."
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A second distinction",
+    "title": "Weighted vs. unweighted links",
+    "left": {
+      "h": "Unweighted",
+      "body": "A link is simply present or absent — a binary yes/no record of whether an interaction occurs. This is the minimum information needed to describe network structure, and it is what most large ecological datasets provide, because interaction frequency is far harder to measure than mere occurrence."
+    },
+    "right": {
+      "h": "Weighted",
+      "body": "A link carries a numeric value reflecting interaction strength — e.g., number of visits, frequency of a prey item in a predator's diet, or per-capita effect on population growth. Weighted networks carry richer information but require much more sampling effort to estimate reliably."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two summary properties",
+    "title": "Network size and connectance",
+    "items": [
+      "<b>Network size</b>: the number of nodes (species) in the network — the simplest possible description of a network's scope.",
+      "<b>Connectance (C)</b>: the proportion of all possible links that are actually realized — C = (observed links) / (possible links).",
+      "Connectance is a single number that summarizes how densely interconnected a network is, independent of how many species it contains.",
+      "Larger networks (more nodes) tend to have lower connectance — a pattern seen across many types of biological and non-biological networks, and one we will return to in Lecture 25."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Quick vocabulary check",
+    "title": "Four terms, one mental model",
+    "cards": [
+      {
+        "h": "Node",
+        "p": "A species or functional group — the \"who.\""
+      },
+      {
+        "h": "Link",
+        "p": "An interaction between two nodes — the \"how.\""
+      },
+      {
+        "h": "Directed/weighted",
+        "p": "Extra information layered onto a link: does it have a direction, and how strong is it?"
+      },
+      {
+        "h": "Connectance",
+        "p": "Realized links ÷ possible links — how densely wired the whole network is."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Types of Ecological Networks",
+    "sub": "Antagonistic vs. mutualistic interactions, and bipartite vs. unipartite structure"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Category 1",
+    "title": "Antagonistic networks",
+    "term": "Antagonistic network",
+    "def": "A network built from interactions in which one partner benefits at the other's expense — feeding links (food webs) or exploitative links (host-parasite, host-parasitoid networks).",
+    "bullets": [
+      "Food webs: nodes are species, links represent \"eats\" relationships, typically directed from prey to predator.",
+      "Host-parasite and host-parasitoid networks: links represent infection or parasitism relationships, often bipartite (parasites vs. hosts) and highly asymmetric in specificity.",
+      "These are the networks most classically studied in ecology and the subject of Chapter 11 (Food Chains and Webs), which follows this three-lecture unit."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Category 2",
+    "title": "Mutualistic networks",
+    "term": "Mutualistic network",
+    "def": "A network built from interactions in which both partners benefit — most commonly plant-pollinator and plant-seed-disperser networks.",
+    "bullets": [
+      "Plant-pollinator networks: links represent visitation or pollen transfer between plant species and their animal pollinators.",
+      "Plant-seed-disperser networks: links represent fruit consumption and dispersal relationships between plants and their animal dispersers.",
+      "You previewed these networks at the close of Lecture 23 (Ch. 9) — today reframes them as one specific case within the broader landscape of ecological network types."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A structural distinction that cuts across interaction type",
+    "title": "Bipartite vs. unipartite networks",
+    "term": "Bipartite network",
+    "def": "A network with two distinct sets of nodes, in which links occur only between the two sets, never within a set — e.g., plants and pollinators, or hosts and parasites.",
+    "bullets": [
+      "In a bipartite plant-pollinator network, no plant links to another plant, and no pollinator links to another pollinator — every link crosses between the two groups.",
+      "Most mutualistic networks and many antagonistic host-parasite networks are naturally bipartite, because the underlying biology defines two functionally distinct roles.",
+      "Contrast this with a <b>unipartite</b> network, where all nodes belong to a single set and links can occur between any pair — the typical structure of a food web, where predators can eat other predators (omnivory) as well as basal prey."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Putting the distinctions together",
+    "title": "Antagonistic vs. mutualistic networks",
+    "headers": [
+      "Feature",
+      "Antagonistic networks",
+      "Mutualistic networks"
+    ],
+    "rows": [
+      [
+        "Fitness effect on interacting pair",
+        "One partner gains, the other loses",
+        "Both partners gain"
+      ],
+      [
+        "Classic examples",
+        "Food webs; host-parasite/host-parasitoid webs",
+        "Plant-pollinator; plant-seed-disperser networks"
+      ],
+      [
+        "Typical link direction",
+        "Directed (prey → predator, host → parasite)",
+        "Often drawn directed (pollinator → plant) but interaction is mutually beneficial"
+      ],
+      [
+        "Typical structure",
+        "Often unipartite (food webs) or bipartite (host-parasite)",
+        "Very commonly bipartite (two distinct partner groups)"
+      ],
+      [
+        "Common structural signature",
+        "Compartmentalized / modular in many systems",
+        "Often nested (Lecture 23 preview; detailed in Lecture 25)"
+      ],
+      [
+        "Chapter treatment in this course",
+        "Ch. 11 — Food Chains and Webs (L27-29)",
+        "Introduced in Ch. 9 (L22-23); revisited structurally here in Ch. 10"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the bipartite/unipartite distinction matters",
+    "title": "Structure constrains the questions you can ask",
+    "items": [
+      "Bipartite networks let you ask group-specific questions: do generalist pollinators visit generalist plants, or specialists pair with specialists?",
+      "Unipartite food webs let you ask questions bipartite networks cannot, such as: how many trophic levels are there, and does omnivory occur?",
+      "The same structural metrics (connectance, degree, nestedness) can be computed on either type, but their ecological interpretation differs depending on structure.",
+      "Recognizing which structure you are looking at is the first step before applying any quantitative network tool — a theme we build on heavily in Lecture 25."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Why Network Thinking Matters",
+    "sub": "Indirect effects, emergent structure, and the limits of pairwise reasoning"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The core motivation",
+    "title": "Pairwise interactions rarely tell the whole story",
+    "items": [
+      "Chapters 5–9 studied interactions largely in isolation: predator-prey, competitor pairs, mutualist pairs.",
+      "But in real communities, a species' fate is rarely determined by a single interaction — it is shaped by <b>paths of influence</b> running through many other species at once.",
+      "A species can be affected by another species it never directly interacts with, purely through shared links elsewhere in the network — this is the essence of an <b>indirect effect</b>.",
+      "Network thinking exists precisely to capture these indirect, multi-species consequences that pairwise models miss by construction."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Indirect effect #1 — reprised in network terms",
+    "title": "Apparent competition as a network phenomenon",
+    "term": "Apparent competition",
+    "def": "A negative effect of one prey species on another, mediated not by resource competition but by a shared predator — an indirect link that only becomes visible when the network, not just the pair, is considered.",
+    "bullets": [
+      "In pairwise terms: prey species A and B never interact directly, so a purely pairwise model would predict no effect of A on B.",
+      "In network terms: A and B are both linked to predator P; an increase in A supports more P, which then increases predation pressure on B — a two-step path through the network.",
+      "This is a clean illustration of why network structure — not just interaction strength — determines outcomes that pairwise models cannot predict."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Indirect effect #2 — reprised in network terms",
+    "title": "Trophic cascades as a network phenomenon",
+    "term": "Trophic cascade",
+    "def": "An indirect effect that propagates down multiple trophic levels — e.g., predators suppress herbivores, releasing plants from herbivory — visible as a chain of links through a food web network.",
+    "bullets": [
+      "A trophic cascade is, structurally, just a multi-step directed path through a food web network — predator → herbivore → plant.",
+      "Framing cascades as network paths (rather than as a special case) shows that many \"named\" indirect effects in ecology are really instances of a single underlying idea: effects propagate along network links.",
+      "This framing will resurface in Lecture 26 when we ask how network structure governs the strength and reach of such cascading effects."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The deeper point",
+    "title": "Structure itself is a community property",
+    "items": [
+      "Two networks with identical interaction strengths but different <b>architectures</b> (who is linked to whom) can behave very differently under perturbation.",
+      "This means network <b>structure</b> — not just the strength of any individual interaction — is itself a property of the community that affects emergent outcomes like stability and robustness to species loss.",
+      "This is the central claim motivating the rest of Chapter 10: you cannot fully predict community-level outcomes from pairwise interaction strengths alone; you also need to know the wiring diagram.",
+      "Lecture 26 will formalize this link between structure and stability/robustness in depth."
+    ]
+  },
+  {
+    "type": "quote",
+    "quote": "It is not enough to know how strongly two species interact — you must also know their position in the network of all the community's interactions.",
+    "attrib": "paraphrased framing, after Mittelbach & McGill, Ch. 10"
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Describing Network Architecture",
+    "sub": "A conceptual first pass at the metrics that will be developed fully in Lecture 25"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why we need metrics at all",
+    "title": "Networks are too complex to describe by eye",
+    "items": [
+      "A network with even 50 species and a few hundred links is too complex to characterize just by looking at a diagram.",
+      "Ecologists have borrowed a small set of summary statistics from network science to make architecture <b>tractable</b> — reducible to a handful of comparable numbers.",
+      "Today we introduce these conceptually, with minimal math; Lecture 25 develops the formal definitions, calculations, and worked examples in depth.",
+      "The goal here is to build intuition for what each metric captures and why ecologists care about it."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Metric 1 (reprised)",
+    "title": "Connectance, revisited",
+    "term": "Connectance",
+    "def": "The proportion of possible links that are realized in a network — a single number summarizing overall network density.",
+    "bullets": [
+      "High connectance: most possible interactions occur — a densely wired community.",
+      "Low connectance: only a small fraction of possible interactions occur — a sparsely wired community.",
+      "Connectance is one of the most widely reported network statistics because it is comparatively easy to compute and compare across very different systems."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Metric 2",
+    "title": "Degree and degree distribution",
+    "term": "Degree",
+    "def": "The number of links attached to a given node — i.e., how many partners a single species interacts with.",
+    "bullets": [
+      "A generalist species (many partners) has high degree; a specialist species (few partners) has low degree.",
+      "The <b>degree distribution</b> describes how degree is distributed across all nodes in the network — are most species generalists, most specialists, or a mix?",
+      "Degree distribution shape turns out to matter enormously for network robustness — a theme picked up again in Lecture 26 (targeted vs. random species loss)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Metric 3 (reprised from Lecture 23)",
+    "title": "Nestedness",
+    "term": "Nestedness",
+    "def": "A structural pattern in which specialist species interact with a subset of the partners that generalist species interact with — creating a hierarchical, \"nested\" arrangement rather than a random one.",
+    "bullets": [
+      "You first encountered nestedness in Lecture 23 as a common feature of mutualistic (plant-pollinator) networks.",
+      "Conceptually: if you sort species by how many partners they have, specialists' partner lists tend to be subsets of generalists' partner lists — not an independent, random draw.",
+      "Nestedness is one of the clearest examples of a metric that captures architecture rather than raw interaction strength — two networks with identical connectance can differ enormously in nestedness."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A visual habit worth building",
+    "title": "Reading a network diagram",
+    "left": {
+      "h": "Antagonistic (food web) diagram",
+      "body": "Nodes are usually arranged in rough trophic layers (basal species at the bottom, top predators at the top), with directed arrows pointing from prey up to predator. Reading the diagram vertically tells you about trophic position; reading it horizontally tells you about diet breadth within a level."
+    },
+    "right": {
+      "h": "Mutualistic (bipartite) diagram",
+      "body": "Nodes are arranged in two parallel rows or columns — plants on one side, pollinators or dispersers on the other — with links drawn only between the two sides. Reading the diagram tells you which species are generalists (many links) versus specialists (few links), and whether the layout looks nested."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking ahead",
+    "title": "These three metrics are the tip of the iceberg",
+    "items": [
+      "Connectance, degree distribution, and nestedness are the conceptual entry points — Lecture 25 will add modularity (compartmentalization into subgroups) and formalize each metric's calculation.",
+      "Each metric answers a different question: How densely wired? (connectance) How unevenly is connectivity distributed? (degree distribution) Is there hierarchical structure among specialists and generalists? (nestedness)",
+      "Together, these metrics let ecologists compare network architecture across systems as different as tropical rainforests and arctic tundra — a task impossible with qualitative description alone."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Borrowing from Network Science",
+    "sub": "Small-world and scale-free concepts, and the challenge of sampling real networks"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ecological networks are not studied in isolation",
+    "title": "A shared toolkit across disciplines",
+    "items": [
+      "Ecological networks share their basic mathematical structure (nodes and links) with networks studied far outside biology: social networks, the World Wide Web, transportation systems, neural networks.",
+      "This shared structure means ecologists can borrow well-developed analytical tools and concepts from graph theory and network science rather than reinventing them.",
+      "Two of the most influential general network concepts — small-world and scale-free structure — originated outside ecology but have shaped how ecologists think about network architecture."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "General network science concept 1",
+    "title": "Small-world networks",
+    "term": "Small-world network",
+    "def": "A network in which most nodes are not directly linked to one another, but any node can be reached from any other through a surprisingly short chain of links (\"six degrees of separation\").",
+    "bullets": [
+      "Popularized through social-network research — most pairs of people are not friends, yet are connected through short chains of acquaintances.",
+      "Small-world structure combines high local clustering (tightly linked neighborhoods) with short overall path lengths between distant nodes.",
+      "In ecological terms, small-world properties can mean that a perturbation to one species can, in principle, propagate to distant parts of the community faster than intuition would suggest."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "General network science concept 2",
+    "title": "Scale-free networks",
+    "term": "Scale-free network",
+    "def": "A network whose degree distribution follows a power law — most nodes have few links, but a small number of \"hub\" nodes have disproportionately many links.",
+    "bullets": [
+      "Classic example: the World Wide Web, where most pages have few links in, but a handful of hub pages (search engines, major platforms) have enormous numbers of links.",
+      "In ecological networks, this concept motivates asking whether a few highly connected \"hub\" species disproportionately hold the network together.",
+      "If hub species exist, their loss should have outsized consequences for network integrity — a hypothesis formally tested with robustness analyses in Lecture 26."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why borrow these concepts at all",
+    "title": "General network science gives ecology a common language",
+    "items": [
+      "Small-world and scale-free are not ecology-specific ideas — they are general properties that many kinds of real-world networks share to varying degrees.",
+      "Testing whether ecological networks show small-world or scale-free properties lets ecologists ask: are ecological networks fundamentally similar to other complex networks, or do biological constraints make them distinctive?",
+      "This question is still actively debated — some ecological networks show partial small-world or scale-free signatures, others do not, and results are sensitive to network size and sampling completeness (next topic)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The practical catch",
+    "title": "Ecological networks are hard to sample completely",
+    "items": [
+      "Unlike a hyperlink network (which can, in principle, be crawled exhaustively), ecological interactions must be <b>observed</b> — in the field, over time, often for rare or fleeting events.",
+      "Rare interactions are especially easy to miss: a pollinator that visits a plant once a season, or a predator that eats an unusual prey item occasionally.",
+      "This problem grows worse in species-rich systems — the number of possible pairwise interactions grows roughly with the square of species number, while observation effort per pair is limited.",
+      "Undersampling systematically biases network metrics: apparent connectance is usually an underestimate, and rare specialist links are disproportionately missed."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Responding to the sampling problem",
+    "title": "Statistical and methodological responses",
+    "items": [
+      "Ecologists use sampling-completeness estimators (e.g., species-accumulation-style curves applied to interactions, not just species) to judge whether a network is adequately sampled.",
+      "Standardizing sampling effort (e.g., equal observation hours per plant, per site) helps make connectance and other metrics comparable across studies.",
+      "Some metrics (like nestedness) are more robust to moderate undersampling than others (like absolute connectance), which affects which metrics are trusted for cross-study comparison.",
+      "This is a live methodological frontier: as we will see in Lecture 25, much of network ecology's recent progress has been about handling this sampling problem rigorously rather than ignoring it."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Synthesis and Roadmap",
+    "sub": "From vocabulary to metrics to stability — the arc of Chapter 10"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two structural axes, one framework",
+    "title": "Classifying any ecological network",
+    "headers": [
+      "Axis",
+      "Option A",
+      "Option B"
+    ],
+    "rows": [
+      [
+        "Interaction type",
+        "Antagonistic (feeding, parasitism)",
+        "Mutualistic (pollination, seed dispersal)"
+      ],
+      [
+        "Node structure",
+        "Unipartite (one node set, e.g., food webs)",
+        "Bipartite (two node sets, e.g., plant-pollinator)"
+      ],
+      [
+        "Link direction",
+        "Directed (flow from one node to another)",
+        "Undirected (symmetric connection)"
+      ],
+      [
+        "Link information",
+        "Unweighted (present/absent)",
+        "Weighted (interaction strength recorded)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key takeaways",
+    "title": "What to carry forward from today",
+    "items": [
+      "A network is defined by nodes and links; describing one requires specifying node type, link direction, and link weighting.",
+      "Antagonistic networks (food webs, host-parasite) and mutualistic networks (plant-pollinator, plant-disperser) differ in fitness consequences but share the same descriptive toolkit.",
+      "Bipartite vs. unipartite structure is a separate axis from interaction type — know both when classifying a network.",
+      "Indirect effects (apparent competition, trophic cascades) show why pairwise reasoning is insufficient — network structure itself shapes community outcomes.",
+      "Connectance, degree distribution, and nestedness are the conceptual entry points to quantifying that structure; small-world and scale-free concepts situate ecological networks within general network science.",
+      "Sampling completeness is a first-order practical concern — undersampled networks can give systematically misleading metric values."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Chapter 10 roadmap",
+    "title": "Three lectures, one arc",
+    "items": [
+      {
+        "y": "L24",
+        "t": "Network basics and vocabulary (today): nodes, links, network types, why structure matters, sampling challenges."
+      },
+      {
+        "y": "L25",
+        "t": "Network structure metrics in depth: formal connectance, degree distribution, nestedness, and modularity calculations with worked examples."
+      },
+      {
+        "y": "L26",
+        "t": "Network stability and robustness: how structure predicts resilience to species loss, closing Ch. 10 before Ch. 11 (Food Chains and Webs)."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Before you go",
+    "title": "Study checklist for today's material",
+    "cards": [
+      {
+        "h": "Vocabulary",
+        "p": "Be able to define node, link, directed/undirected, weighted/unweighted, network size, and connectance from memory."
+      },
+      {
+        "h": "Network types",
+        "p": "Know the difference between antagonistic and mutualistic networks, and between bipartite and unipartite structure."
+      },
+      {
+        "h": "Indirect effects",
+        "p": "Be able to explain apparent competition and trophic cascades as multi-step paths through a network."
+      },
+      {
+        "h": "Metrics preview",
+        "p": "Understand conceptually what connectance, degree distribution, and nestedness each measure — full calculations come in Lecture 25."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing thought",
+    "quote": "Every pairwise interaction we studied in Part II is real — but no species experiences its community one interaction at a time. Networks are how we put the pieces back together.",
+    "attrib": "framing for Part III, after Mittelbach & McGill, Ch. 10"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap: Lecture 23",
+    "title": "What Lecture 23 established, briefly",
+    "items": [
+      "Lecture 23 closed Part II (\"The Nitty-Gritty\") with a synthesis of Ch. 4–9: density dependence, predator-prey, selective predation, competition, coexistence, and mutualism.",
+      "It previewed plant-pollinator and plant-disperser networks as an early glimpse of nestedness — a concept we revisited today and will formalize in Lecture 25.",
+      "It served as Midterm I review — the last checkpoint before the exam covering Lectures 9–23.",
+      "Today's lecture is the direct sequel: it takes the mutualistic-network preview from L23 and situates it within the full landscape of ecological network types."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Preview: Lecture 25",
+    "title": "Coming next — Network Structure Metrics in Depth",
+    "items": [
+      "Lecture 25 formalizes the metrics introduced conceptually today: precise definitions and calculations for connectance, degree distribution, nestedness, and modularity.",
+      "Expect worked numerical examples — computing these metrics by hand on small toy networks before discussing how they scale to real, large datasets.",
+      "We will examine how these metrics differ systematically between antagonistic and mutualistic networks, and what that difference implies about the forces structuring each.",
+      "This sets up Lecture 26's central question: does network structure predict which communities are more stable and more robust to species loss?"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 24</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

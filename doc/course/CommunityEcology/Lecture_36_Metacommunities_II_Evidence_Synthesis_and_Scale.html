@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 36: Metacommunities II: Evidence, Synthesis, and Scale</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 36",
+    "title": "Metacommunities II: Evidence, Synthesis, and Scale",
+    "sub": "Testing the four paradigms, modern integration, and the close of Part IV: Spatial Ecology",
+    "footnote": "Mittelbach & McGill, Community Ecology, 2nd ed., Ch. 14 (cont.)"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where we left off",
+    "sub": "L35: the metacommunity concept and the four classic paradigms"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The four paradigms, briefly",
+    "items": [
+      "Patch dynamics: identical patches, extinction–colonization balance, competition–colonization tradeoffs maintain diversity",
+      "Species sorting: heterogeneous patches, dispersal sufficient for local environment to select composition",
+      "Mass effects: heterogeneous patches, dispersal so high it produces source–sink dynamics and rescues poor competitors",
+      "Neutral theory: patches equivalent, all species demographically identical per capita, dynamics driven by drift and dispersal limitation",
+      "All four differ chiefly in two axes: environmental heterogeneity among patches and dispersal rate among patches",
+      "L35 left an open question: how do we tell, from real data, which paradigm(s) actually operate in a given system?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Empirical tests",
+    "title": "From typology to evidence",
+    "sub": "Moving beyond four idealized boxes to what data actually show"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why testing the paradigms is hard",
+    "items": [
+      "The four paradigms are not mutually exclusive alternatives — they are corners of a continuous parameter space",
+      "Real metacommunities can show signatures of more than one paradigm simultaneously, or shift between them seasonally",
+      "We rarely observe dispersal directly; we infer it from spatial patterns in composition, which is indirect and assumption-laden",
+      "Statistical methods needed a way to partition how much of compositional variation traces to environment vs. to space",
+      "This motivated variance partitioning approaches, developed originally in plant community ecology (Borcard, Legendre, Drapeau 1992)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Variance partitioning",
+    "term": "Variance partitioning",
+    "def": "A statistical approach that decomposes variation in community composition among sites into components explained by environmental variables, by spatial variables (site position/connectivity), their shared overlap, and unexplained residual variation.",
+    "bullets": [
+      "Conceptually analogous to partitioning variance in ANOVA, but applied to a matrix of species abundances across sites using ordination methods (RDA, CCA)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The logic, without the heavy statistics",
+    "items": [
+      "Step 1: measure environmental variables at each site (pH, nutrients, temperature, canopy cover, etc.)",
+      "Step 2: generate spatial variables that describe site position and connectivity (e.g., distance-based spatial eigenvectors, or simple geographic coordinates)",
+      "Step 3: ask how much of the variation in the species-by-site abundance matrix aligns with environment alone, space alone, both together, or neither",
+      "Large environmental-only fraction → composition tracks local conditions, consistent with species sorting",
+      "Large spatial-only fraction (independent of measured environment) → consistent with dispersal limitation, patch dynamics, or neutral drift",
+      "Large shared fraction → environment itself is spatially structured, so the two are confounded and hard to disentangle"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "RDA and CCA: the conceptual tools",
+    "left": {
+      "h": "Redundancy Analysis (RDA)",
+      "body": "<ul><li>Constrained ordination assuming linear species responses to gradients</li><li>Finds axes of community variation that are linear combinations of predictor variables</li><li>Used when species turnover across the gradient is modest</li><li>Output: proportion of total compositional variance 'explained' by environment vs. space</li></ul>"
+    },
+    "right": {
+      "h": "Canonical Correspondence Analysis (CCA)",
+      "body": "<ul><li>Constrained ordination assuming unimodal species responses to gradients</li><li>Better suited to long environmental gradients with high species turnover</li><li>Same partitioning logic as RDA, different underlying response-curve assumption</li><li>Choice between RDA/CCA matters less than the partitioning logic itself for this course</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Four partitions, four interpretations",
+    "cards": [
+      {
+        "h": "Pure environmental",
+        "p": "Composition tracks measured environment independent of spatial position — consistent with species sorting."
+      },
+      {
+        "h": "Pure spatial",
+        "p": "Composition varies with geography independent of measured environment — consistent with dispersal limitation, patch dynamics, or drift."
+      },
+      {
+        "h": "Shared (confounded)",
+        "p": "Environment is itself spatially structured; the two explanations cannot be statistically separated with this design."
+      },
+      {
+        "h": "Unexplained",
+        "p": "Residual variance — often large, reflecting unmeasured environmental variables, stochasticity, or sampling error."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Mapping variance partitions onto paradigms",
+    "headers": [
+      "Dominant variance fraction",
+      "Best-supported paradigm",
+      "Caveat"
+    ],
+    "rows": [
+      [
+        "Environmental only",
+        "Species sorting",
+        "Requires all relevant environmental axes to be measured"
+      ],
+      [
+        "Spatial only, weak environmental signal",
+        "Patch dynamics or neutral drift",
+        "Cannot distinguish drift from unmeasured dispersal limitation alone"
+      ],
+      [
+        "Both environmental and spatial, roughly equal",
+        "Mass effects",
+        "Source–sink structure often needs demographic data to confirm"
+      ],
+      [
+        "Large shared/confounded fraction",
+        "Ambiguous — spatially structured environment",
+        "Classic weakness of the correlative approach"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "What decades of variance-partitioning studies found",
+    "items": [
+      "A large meta-analysis (Cottenie 2005) compiled partitioning results across dozens of metacommunity datasets",
+      "Pure environmental effects were common and often the largest single fraction — species sorting is widespread",
+      "Pure spatial effects were also common, especially in systems with limited dispersal (e.g., isolated ponds)",
+      "The shared, confounded fraction was frequently substantial — a persistent methodological headache",
+      "Conclusion: most real metacommunities show signatures of multiple paradigms at once, not a single pure type",
+      "This result itself was important — it pushed the field away from asking 'which one paradigm' toward 'how do processes combine'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Study systems",
+    "title": "Case studies across taxa and habitats",
+    "sub": "How the paradigms and variance-partitioning approach play out in real systems"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Pond zooplankton metacommunities",
+    "items": [
+      "Classic model system: rock-pool and farm-pond zooplankton (Daphnia, copepods, rotifers) across regional pond networks",
+      "Ponds vary in size, permanence, predation regime, and productivity — strong environmental heterogeneity",
+      "Zooplankton also disperse passively (wind, waterfowl, resting-egg banks) — variable, patch-dependent dispersal rates",
+      "Isolated ponds show strong environmental sorting signals; well-connected ponds show mass-effects-like homogenization",
+      "Dormant egg banks add a temporal storage effect that interacts with spatial dynamics — the two are not fully separable"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Propagule bank (resting egg bank)",
+    "term": "Propagule bank (resting egg bank)",
+    "def": "A reservoir of dormant, diapausing propagules (eggs, spores, seeds) accumulated in sediment or soil that can 'disperse through time,' buffering populations against extinction and complicating spatial-only interpretations of metacommunity structure.",
+    "bullets": [
+      "In zooplankton, egg banks mean a species can persist locally through unfavorable periods without any spatial recolonization — a temporal analogue of rescue effects."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Stream fish metacommunities",
+    "items": [
+      "Streams form dendritic (branching, hierarchical) networks rather than open two-dimensional landscapes",
+      "Fish dispersal is constrained to the network — movement along channels, not across watershed boundaries",
+      "Position within the network (headwater vs. mainstem vs. confluence) strongly predicts diversity and composition",
+      "Confluences and mainstems often act as dispersal hubs, elevating local diversity via mass-effect-like inputs",
+      "Headwater sites, more isolated within the network, show stronger environmental sorting and higher spatial turnover"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Dendritic network",
+    "term": "Dendritic network",
+    "def": "A branching, hierarchically organized spatial network (as in river/stream systems) where connectivity is constrained to a tree-like topology, unlike the more freely connected two-dimensional space assumed in many metacommunity models.",
+    "bullets": [
+      "Dendritic structure predicts that network position (centrality, distance to confluence) matters as much as simple geographic distance for community similarity."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Tropical tree metacommunities",
+    "items": [
+      "Large forest-dynamics plots (e.g., Barro Colorado Island, Panama; other CTFS/ForestGEO network sites) map every tree over large areas",
+      "Extraordinarily high local diversity with many rare species — a classic testing ground for neutral theory",
+      "Spatial patterns of tree distributions show significant aggregation and distance-decay in similarity, partly consistent with dispersal limitation",
+      "But species also show clear habitat associations (topography, soil, drainage) — inconsistent with strict neutrality",
+      "Best-fit models increasingly combine niche-based habitat filtering with dispersal limitation — neither paradigm alone suffices"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Neutral theory test (tree metacommunities)",
+    "term": "Neutral theory test (tree metacommunities)",
+    "def": "Comparing observed spatial patterns (species-area relationships, distance-decay of similarity, relative abundance distributions) in mapped forest plots against predictions of Hubbell's unified neutral theory to evaluate how much pattern requires niche differences to explain.",
+    "bullets": [
+      "Neutral models often fit abundance patterns surprisingly well but fail to capture the strength of observed habitat associations — a recurring theme across taxa."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Protist microcosm experiments",
+    "items": [
+      "Laboratory microcosms (e.g., Fox & Morin, Cadotte, Altermatt/Holyoak lab systems) with bacteria and protists in linked vials or wells",
+      "Allow experimental control of the two key axes: environmental heterogeneity among patches and dispersal rate between them",
+      "Direct, manipulative tests of the four-paradigm framework — something impossible in most field systems",
+      "Results consistently show a hump-shaped relationship between dispersal rate and regional diversity (see next section)",
+      "Also confirm that intermediate dispersal can rescue species from local extinction while too-high dispersal homogenizes and can cause regional extinction of specialists"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Microcosm / mesocosm experiment",
+    "term": "Microcosm / mesocosm experiment",
+    "def": "A small-scale, often laboratory-based experimental system (e.g., linked culture vials, ponds-in-tanks) used to manipulate metacommunity parameters like dispersal rate and patch heterogeneity under controlled, replicated conditions.",
+    "bullets": [
+      "Trade-off: high experimental control and replication, but uncertain generality to larger, messier natural landscapes."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Study systems at a glance",
+    "headers": [
+      "System",
+      "Dominant spatial structure",
+      "Best-supported paradigm(s)",
+      "Key complication"
+    ],
+    "rows": [
+      [
+        "Pond zooplankton",
+        "Isolated patches, variable connectivity",
+        "Species sorting + mass effects",
+        "Egg banks add a temporal storage effect"
+      ],
+      [
+        "Stream fish",
+        "Dendritic network",
+        "Mass effects near hubs; sorting in headwaters",
+        "Network topology, not simple geographic distance"
+      ],
+      [
+        "Tropical trees",
+        "Continuous forest, mapped individuals",
+        "Dispersal limitation + habitat filtering",
+        "Neutral and niche processes both contribute"
+      ],
+      [
+        "Protist microcosms",
+        "Experimenter-controlled patches",
+        "All four, depending on treatment",
+        "Generality to field systems uncertain"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Beyond the four paradigms",
+    "sub": "Toward a continuous, integrative framework — 'metacommunity concept 2.0'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why the field moved past the four-box typology",
+    "items": [
+      "Empirical results (Cottenie 2005 and successors) rarely fit cleanly into one of the four boxes",
+      "The four paradigms were always special cases along two continuous axes: environmental heterogeneity and dispersal rate",
+      "Leibold & Chase (2018, Metacommunity Ecology) and related work reframed the field around these continuous axes directly",
+      "This 'metacommunity concept 2.0' treats dispersal rate as a continuous gradient rather than a categorical high/low switch",
+      "It also incorporates spatial network structure (topology) as a first-class variable, not an afterthought"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "Dispersal as a continuous gradient",
+    "levels": [
+      {
+        "label": "Dispersal limitation",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Intermediate dispersal",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Dispersal homogenization",
+        "color": "#3f7d5c",
+        "width": "440px"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Hump-shaped diversity–dispersal relationship",
+    "term": "Hump-shaped diversity–dispersal relationship",
+    "def": "The frequently observed pattern in which regional (gamma) diversity peaks at intermediate dispersal rates and declines at both very low dispersal (extinction without rescue) and very high dispersal (homogenization by dominant competitors).",
+    "bullets": [
+      "This single relationship subsumes patch dynamics, species sorting, and mass effects as different positions along one dispersal axis rather than as categorically distinct paradigms."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Spatial network topology matters",
+    "items": [
+      "Not just how much dispersal occurs, but the structure of connections among patches shapes outcomes",
+      "Random networks, lattice (grid) networks, and dendritic networks produce different diversity and stability patterns even at equal average connectivity",
+      "Highly connected 'hub' patches disproportionately influence regional dynamics — losing a hub has outsized consequences",
+      "Network topology interacts with dispersal rate: the same dispersal rate produces different outcomes depending on network shape",
+      "This is directly relevant to real landscapes, which are rarely homogeneous 2D space — think stream networks, habitat patches along roads, or island chains"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Network topology types",
+    "left": {
+      "h": "Idealized topologies",
+      "body": "<ul><li>Lattice/grid: patches connected to immediate neighbors only, distance-limited dispersal</li><li>Random network: connections assigned without spatial structure</li><li>Dendritic/branching: hierarchical, tree-like connectivity (streams, some road networks)</li><li>Hub-and-spoke: a few highly connected patches link many peripheral patches</li></ul>"
+    },
+    "right": {
+      "h": "Consequences for metacommunities",
+      "body": "<ul><li>Lattices favor local sorting and slow spatial spread of disturbances</li><li>Dendritic networks concentrate diversity and dispersal flux at confluences/hubs</li><li>Hub loss disproportionately fragments the whole network</li><li>Topology can be as important as total connectivity for predicting regional diversity</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Topology effects: quick summary",
+    "cards": [
+      {
+        "h": "Connectivity ≠ topology",
+        "p": "Two networks can have the same average number of connections per patch but very different dynamics depending on arrangement."
+      },
+      {
+        "h": "Hubs are disproportionately important",
+        "p": "Highly connected patches act as diversity sources and stabilizers; their loss cascades through the network."
+      },
+      {
+        "h": "Peripheral patches diverge",
+        "p": "Patches far from hubs, in isolated branches, tend to show the strongest environmental sorting signal."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Scale",
+    "title": "Scale-dependence of metacommunity processes",
+    "sub": "The same system can look different depending on the spatial and temporal scale of observation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why scale changes the answer",
+    "items": [
+      "At small spatial extents, dispersal is rarely limiting — most species can reach most patches, so species sorting tends to dominate",
+      "At larger extents, dispersal limitation becomes more likely, and patch dynamics / neutral drift signatures increase",
+      "Temporal scale matters too: short observation windows may miss slow colonization–extinction dynamics central to patch dynamics",
+      "The grain (patch size) and extent (total study area) of a sampling design can each shift which paradigm appears best supported",
+      "A single 'true' answer for a whole taxon or region may not exist — scale-dependence is a real ecological property, not just a sampling artifact"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Local vs. regional scale signatures",
+    "headers": [
+      "Scale",
+      "Typical dominant process",
+      "Variance-partitioning signature"
+    ],
+    "rows": [
+      [
+        "Local (small extent, high connectivity)",
+        "Species sorting, mass effects",
+        "Environmental fraction large"
+      ],
+      [
+        "Regional (large extent, patchy connectivity)",
+        "Patch dynamics, dispersal limitation, drift",
+        "Spatial fraction large, environmental fraction smaller"
+      ],
+      [
+        "Continental / biogeographic",
+        "Historical/evolutionary and dispersal-limitation effects",
+        "Both fractions often weak; deep history and speciation dominate"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Scale-dependence (in metacommunity ecology)",
+    "term": "Scale-dependence (in metacommunity ecology)",
+    "def": "The property that the relative importance of environmental sorting, dispersal limitation, and stochastic drift shifts systematically with the spatial and temporal scale at which a metacommunity is studied.",
+    "bullets": [
+      "Practical implication: comparing variance-partitioning results across studies requires matching spatial extent and grain, not just taxon or habitat type."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Applications",
+    "title": "Applied relevance",
+    "sub": "From theory to conservation and restoration practice"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Habitat corridors and connectivity",
+    "items": [
+      "Metacommunity theory gives a mechanistic basis for corridor and stepping-stone design in fragmented landscapes",
+      "Corridors increase effective dispersal rate between patches — moving a system along the dispersal axis toward mass effects/rescue",
+      "But the hump-shaped diversity–dispersal relationship warns that more connectivity is not always better",
+      "Over-connecting a landscape can homogenize composition and allow competitive dominants or invasives to spread, reducing regional (gamma) diversity",
+      "Network topology thinking argues for protecting hub patches and confluences preferentially, not just maximizing total links"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Connectivity conservation",
+    "term": "Connectivity conservation",
+    "def": "A conservation strategy that manages the arrangement and linkage of habitat patches across a landscape (corridors, stepping stones, protected hubs) to maintain metapopulation and metacommunity processes, rather than protecting patches in isolation.",
+    "bullets": [
+      "Effective connectivity conservation requires knowing where a system sits on the dispersal axis and what the network topology looks like — a direct application of this lecture's frameworks."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Metacommunity theory in restoration",
+    "items": [
+      "Restoring a single site rarely works if the surrounding metacommunity cannot supply colonists — restoration is a regional, not just local, problem",
+      "Species sorting predicts that restoring the right local environmental conditions is necessary but may not be sufficient without a nearby source pool",
+      "Patch-dynamics thinking predicts that restored patches need a realistic colonization-extinction turnover budget, not a one-time planting event",
+      "Assisted colonization/translocation programs are essentially manual overrides of a broken dispersal pathway in an otherwise sound metacommunity",
+      "Restoration practitioners increasingly use metacommunity-informed landscape design: which patches to restore first, and how they connect to existing source populations"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Applied case snapshots",
+    "cards": [
+      {
+        "h": "Wetland restoration networks",
+        "p": "Prioritizing restoration of wetlands near existing high-quality source wetlands increases colonization success for amphibians and invertebrates."
+      },
+      {
+        "h": "Stream barrier removal",
+        "p": "Removing dams/culverts restores dendritic connectivity for fish metacommunities, but can also let invasive species access previously isolated headwaters."
+      },
+      {
+        "h": "Corridor design for large mammals",
+        "p": "Corridor placement informed by network topology (protecting pinch-point 'hub' habitat) is more effective than maximizing total corridor length."
+      },
+      {
+        "h": "Reef and island connectivity",
+        "p": "Marine protected area networks are explicitly designed using metacommunity/metapopulation connectivity models to balance local protection and regional recruitment."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "The question is no longer whether species sorting or dispersal limitation structures a given metacommunity, but how much of each, at what scale, and through what network of connections.",
+    "attrib": "paraphrased synthesis, after Leibold & Chase, Metacommunity Ecology (2018)"
+  },
+  {
+    "type": "section",
+    "tag": "Part IV synthesis",
+    "title": "Closing Part IV: Spatial Ecology",
+    "sub": "Chapter 13 (patchy environments, metapopulations, fugitive species) + Chapter 14 (metacommunities) as one coherent arc"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Chapter 13 recap: the single-species spatial story",
+    "items": [
+      "Patchy environments: populations distributed across discrete habitat patches connected by dispersal",
+      "Levins metapopulation model: extinction–colonization balance determines regional persistence even when local populations frequently go extinct",
+      "The rescue effect: immigration can prevent local extinction, linking patch dynamics to persistence",
+      "Fugitive species: poor competitors that persist regionally via superior dispersal/colonization ability, escaping competitive exclusion in space",
+      "Core insight of Ch. 13: space and dispersal can maintain species and populations that local, non-spatial models predict should go extinct"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Chapter 14 recap: scaling up to whole communities",
+    "items": [
+      "Metacommunities extend the single-species patch framework to entire assemblages of interacting species",
+      "Four paradigms (patch dynamics, species sorting, mass effects, neutral theory) organize how environment and dispersal jointly shape composition",
+      "Variance partitioning and study systems (zooplankton, stream fish, tropical trees, microcosms) show real systems blend multiple paradigms",
+      "Metacommunity concept 2.0 replaces the four discrete boxes with continuous dispersal and topology axes",
+      "Core insight of Ch. 14: the same spatial processes that maintain single species (Ch. 13) also generate and maintain regional diversity patterns"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "The Part IV arc",
+    "items": [
+      {
+        "y": "Ch 13, early",
+        "t": "Single populations in patchy environments — occupancy, not just abundance, becomes the state variable"
+      },
+      {
+        "y": "Ch 13, Levins model",
+        "t": "Extinction–colonization balance predicts regional persistence despite local extinction"
+      },
+      {
+        "y": "Ch 13, fugitive species",
+        "t": "Dispersal ability substitutes for competitive ability — a spatial escape from exclusion"
+      },
+      {
+        "y": "Ch 14, L35",
+        "t": "Scale up to whole communities: four paradigms organize environment × dispersal space"
+      },
+      {
+        "y": "Ch 14, L36 (today)",
+        "t": "Empirical tests, real systems, and a continuous synthesis beyond the four paradigms"
+      },
+      {
+        "y": "Bridge forward",
+        "t": "Spatial heterogeneity understood — next axis of environmental variation is time"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Ch. 13 vs. Ch. 14: same logic, different scale",
+    "headers": [
+      "Feature",
+      "Ch. 13 (metapopulations)",
+      "Ch. 14 (metacommunities)"
+    ],
+    "rows": [
+      [
+        "Unit of interest",
+        "Single species, patch occupancy",
+        "Multiple species, patch composition"
+      ],
+      [
+        "Key process",
+        "Extinction–colonization balance",
+        "Environmental sorting + dispersal + drift"
+      ],
+      [
+        "Persistence mechanism",
+        "Rescue effect",
+        "Mass effects (rescue applied per species, community-wide)"
+      ],
+      [
+        "Diversity mechanism",
+        "Fugitive species escape exclusion via dispersal",
+        "Regional diversity peaks at intermediate dispersal (hump-shaped)"
+      ],
+      [
+        "Core trade-off",
+        "Competition vs. colonization ability",
+        "Local environmental fit vs. regional dispersal supply"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Unifying themes across Part IV",
+    "items": [
+      "Space is not just a backdrop — dispersal and patch structure are active ecological forces shaping persistence and diversity",
+      "Local processes (competition, environmental filtering) never act alone; regional supply of colonists always matters",
+      "Purely local, non-spatial models systematically under-predict diversity and persistence relative to what spatial coupling allows",
+      "Scale is not a nuisance variable — the 'right' scale of analysis is itself an ecological question with a real answer",
+      "These spatial mechanisms are conservation-relevant right now: fragmentation, corridors, and connectivity loss are dominant global change drivers"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Looking ahead",
+    "title": "Bridging to Part V: Species in Changing Environments",
+    "sub": "From spatial heterogeneity to temporal heterogeneity"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The next axis of environmental variation: time",
+    "items": [
+      "Part IV treated heterogeneity mainly as variation across space — different patches, different local conditions, connected by dispersal",
+      "Part V asks the parallel question for variation across time: what happens when a single location's conditions change over time?",
+      "Many of the same conceptual tools reappear: storage effects, source–sink-like buffering, and coexistence via non-equilibrium dynamics",
+      "Just as dispersal let species escape local competitive exclusion in space, temporal variation and dormancy can let species escape exclusion in time",
+      "L37 begins Part V by asking how organisms track, buffer, or exploit environmental change through time — starting with the concept of environmental variability itself"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Part IV vs. Part V: parallel structure",
+    "left": {
+      "h": "Part IV — Spatial Ecology (Ch. 13–14, done)",
+      "body": "<ul><li>Heterogeneity in space: patches differ in local conditions</li><li>Coupling mechanism: dispersal</li><li>Escape from exclusion: fugitive species, mass effects</li><li>Key statistic: variance partitioning (environment vs. space)</li></ul>"
+    },
+    "right": {
+      "h": "Part V — Changing Environments (Ch. 15+, starting L37)",
+      "body": "<ul><li>Heterogeneity in time: conditions differ across time at one location</li><li>Coupling mechanism: temporal storage, dormancy, life-history buffering</li><li>Escape from exclusion: storage effect, relative nonlinearity</li><li>Key statistic: variance partitioning extended to temporal and space-by-time variation</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Temporal heterogeneity (preview)",
+    "term": "Temporal heterogeneity (preview)",
+    "def": "Variation in environmental conditions over time at a given location, which can promote species coexistence and community diversity through mechanisms analogous to spatial heterogeneity, such as the storage effect.",
+    "bullets": [
+      "Preview only — full development begins in L37; the key conceptual bridge is that both space and time provide 'refuges' from competitive exclusion under the right conditions."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "What to carry forward into Part V",
+    "items": [
+      "The environment × dispersal framework from metacommunities has a direct temporal analogue: environment × dormancy/storage",
+      "Variance partitioning logic (environmental vs. spatial vs. shared) extends naturally to environmental vs. temporal vs. shared variation",
+      "The scale-dependence lesson from today applies equally to time: short vs. long observation windows can flip conclusions about which process dominates",
+      "Applied lessons also carry over: just as connectivity conservation manages spatial coupling, understanding temporal variability informs climate-change-era conservation planning",
+      "Read ahead: Ch. 15 introduces the concept of environmental variability and its measurement before building toward coexistence mechanisms in fluctuating environments"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "A metacommunity is, in the end, just a community observed with space taken seriously. The next step is a community observed with time taken just as seriously.",
+    "attrib": "course synthesis, Community Ecology BIOL 4XX"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key takeaways from L36",
+    "items": [
+      "Variance partitioning (environment vs. space) is the main empirical tool for testing metacommunity paradigms, though confounding limits clean inference",
+      "Real systems — zooplankton, stream fish, tropical trees, protist microcosms — consistently show mixtures of paradigms, not pure types",
+      "Metacommunity concept 2.0 reframes the four paradigms as regions along continuous dispersal-rate and network-topology axes",
+      "Regional diversity commonly peaks at intermediate dispersal (hump-shaped relationship) — a unifying empirical pattern",
+      "Metacommunity processes are scale-dependent, with direct, practical implications for corridor design, connectivity conservation, and restoration planning",
+      "Part IV as a whole establishes that space is an active ecological force; Part V will show that time plays a structurally similar role"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Part IV complete — Spatial Ecology",
+    "sub": "Next: Part V, Species in Changing Environments, begins L37 with temporal heterogeneity"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 36</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

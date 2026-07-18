@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 4: Patterns of Biological Diversity II: Species Abundance Distributions</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 4",
+    "title": "Patterns of Biological Diversity II: Species Abundance Distributions",
+    "sub": "From counting species to explaining why some are common and most are rare — rank-abundance curves, classic SAD models, and the veil of sampling",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 2 — Patterns of biological diversity"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Recap and Roadmap",
+    "sub": "From richness and diversity indices to the shape of abundance itself"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 3",
+    "title": "Where we left off",
+    "items": [
+      "<b>Species richness</b> — a simple count of species in a sample or community, blind to how abundance is distributed among them",
+      "<b>Diversity indices</b> (Shannon <i>H′</i>, Simpson <i>D</i>) combine richness with <b>evenness</b> into a single number",
+      "<b>Rarefaction</b> corrects for unequal sampling effort so richness estimates are comparable across sites",
+      "<b>Alpha, beta, and gamma diversity</b> partition diversity across spatial scales: within-site, turnover between sites, and total regional diversity",
+      "Big unresolved question from L3: <i>two communities can have identical richness and very different diversity — why?</i>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's question",
+    "title": "What determines evenness?",
+    "items": [
+      "Diversity indices need more than a species list — they need the <b>relative abundance</b> of every species",
+      "Today we open up that abundance information directly: the <b>species abundance distribution (SAD)</b>",
+      "We will meet the classic graphical tool ecologists use to visualize it — the <b>rank-abundance (Whittaker) plot</b>",
+      "We will compare four historic mathematical models proposed to explain the SAD's shape",
+      "We will ask why sampling itself distorts what we observe — Preston's <b>veil line</b>",
+      "We will close by explicitly reconnecting SAD shape to the Shannon and Simpson indices from Lecture 3"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Species Abundance Distribution",
+    "sub": "One of the most universal patterns in ecology"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core concept",
+    "title": "Defining the SAD",
+    "term": "Species abundance distribution (SAD)",
+    "def": "The frequency distribution describing how many species in a community have 1 individual, 2 individuals, 3 individuals, and so on — equivalently, the distribution of species' relative abundances.",
+    "bullets": [
+      "Requires only two things: a species list and a count (or biomass, cover, etc.) for each species",
+      "Can be built for any taxon, any habitat, any spatial scale — birds, trees, soil bacteria, coral reef fish",
+      "Is the single most information-rich, yet simplest, description of community structure"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "An empirical regularity",
+    "title": "The pattern is remarkably consistent",
+    "items": [
+      "Virtually every community ever sampled shows the same qualitative shape: <b>a few species are common, and many species are rare</b>",
+      "Plotted as a histogram of abundance classes, the SAD is almost always strongly <b>right-skewed</b> (long tail of common species; a cluster of many rare ones)",
+      "This holds from tropical rainforest trees to Arctic soil microbes to reef fish assemblages — one of ecology's few near-universal laws",
+      "Fisher, Preston, and MacArthur each proposed mathematical explanations in the 1940s-50s, launching a debate that continues today"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why should abundance be so skewed?",
+    "title": "Two broad classes of explanation, previewed",
+    "items": [
+      "<b>Niche-based / deterministic view:</b> species differ systematically in competitive ability, resource use efficiency, or niche breadth, so some species are inherently destined to be common and others rare",
+      "<b>Statistical / neutral view:</b> abundance is the product of many small, independent, multiplicative random growth processes acting on each population — skewed distributions emerge from probability alone, with no need to invoke species differences",
+      "Both camps predict a right-skewed SAD — but they disagree sharply on <i>why</i>, and this debate reappears when we discuss neutral theory later in the course",
+      "Distinguishing them requires more than the SAD shape alone — but the SAD is where the debate starts"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Rank-Abundance Curves",
+    "sub": "The Whittaker plot — visualizing dominance and evenness"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The essential graphical tool",
+    "title": "Reading a Whittaker plot",
+    "term": "Rank-abundance curve (Whittaker plot)",
+    "def": "A plot of species ranked from most to least abundant (x-axis) against their log-transformed relative abundance or percent abundance (y-axis).",
+    "bullets": [
+      "Converts a table of abundances into a single, comparable curve — the SAD's visual signature",
+      "Named for Robert Whittaker, who popularized the technique in the 1960s and 70s",
+      "The single most widely used tool in community ecology for comparing the abundance structure of two or more communities"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting curve shape",
+    "title": "Slope tells you about dominance and evenness",
+    "items": [
+      "<b>Steep line</b> = abundance drops off fast from rank 1 to rank 2 to rank 3 → <b>low evenness, high dominance</b> — one or a few species dominate numerically",
+      "<b>Shallow line</b> = abundance declines slowly across ranks → <b>high evenness</b> — species are closer to equally abundant",
+      "<b>Curve length</b> (how far the x-axis extends) reflects species <b>richness</b> — a longer line means more species were recorded",
+      "Two communities can have the same richness (same line length) but very different slopes (very different evenness) — this is exactly the ambiguity richness alone cannot resolve"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two idealized communities, same richness",
+    "title": "Steep vs. shallow rank-abundance lines",
+    "left": {
+      "h": "Steep curve",
+      "body": "A handful of species make up the vast majority of individuals; the rest are represented by only one or two individuals each. Diversity indices are low relative to richness. Typical of early-successional, stressed, or strongly competitive/disturbed systems."
+    },
+    "right": {
+      "h": "Shallow curve",
+      "body": "Individuals are spread more evenly across species; no single species numerically dominates. Diversity indices are high relative to richness. Often associated with more stable, resource-partitioned, or less-disturbed systems."
+    },
+    "footnote": "Same number of species (same x-axis length) can hide very different underlying abundance structure — this is exactly why rank-abundance plots matter."
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Classic Theoretical Models of the SAD",
+    "sub": "Four historic attempts to explain the shape mathematically"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical development",
+    "title": "A half-century of competing SAD models",
+    "items": [
+      {
+        "y": "1932",
+        "t": "Motomura proposes the geometric series (niche preemption) model from Japanese benthic community data"
+      },
+      {
+        "y": "1943",
+        "t": "Fisher, Corbett & Williams introduce the log-series distribution and Fisher's alpha from British moth trap records"
+      },
+      {
+        "y": "1948",
+        "t": "Preston proposes the lognormal distribution and the veil line concept, reanalyzing bird and moth census data"
+      },
+      {
+        "y": "1957",
+        "t": "MacArthur proposes the broken-stick (random niche boundary) model as a more mechanistic alternative"
+      },
+      {
+        "y": "1960s-70s",
+        "t": "Whittaker popularizes rank-abundance plots as the standard graphical comparison tool"
+      },
+      {
+        "y": "2000s-present",
+        "t": "Large modern datasets and neutral theory (Hubbell) reopen the debate over statistical vs. niche-based explanations"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Model 1",
+    "title": "Niche preemption",
+    "term": "Geometric series model",
+    "def": "Assumes each species, in sequence, claims a fixed proportion (k) of the remaining unused resource or niche space — the most abundant species takes the largest share, the next species takes the same fraction of what's left, and so on.",
+    "bullets": [
+      "Produces a straight, very steep line on a rank-abundance plot (log abundance vs. rank)",
+      "Predicts the most uneven, most dominance-skewed communities of any classic model",
+      "Biological interpretation: strong, sequential competitive priority — an early colonist or competitive dominant locks up most of the resource first",
+      "Best empirical fits: species-poor, harsh, or early-successional communities (e.g., some Arctic or alpine plant assemblages)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Geometric series — key properties",
+    "title": "What to remember",
+    "items": [
+      "Also called the <b>niche preemption model</b> (Motomura 1932)",
+      "Mathematically the simplest classic SAD model — one parameter, <i>k</i>, the preemption fraction",
+      "On a rank-abundance plot: a straight line with steep negative slope",
+      "Represents the theoretical extreme of low evenness / high dominance"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Model 2",
+    "title": "Fisher's classic contribution",
+    "term": "Log-series distribution",
+    "def": "Proposed by R.A. Fisher, A.S. Corbett, and C.B. Williams (1943); predicts that the number of species with 1 individual, 2 individuals, 3 individuals, etc. declines according to a log-series (log α is Fisher's diversity index), with most species represented by very few individuals.",
+    "bullets": [
+      "Historically the first influential statistical model fit to real abundance data (British moth trap collections)",
+      "Produces a rank-abundance curve intermediate in steepness — less extreme than the geometric series, more uneven than the lognormal",
+      "Fisher's alpha (α) is still used today as a diversity metric largely independent of sample size",
+      "Fits reasonably well for many real communities, especially when sample sizes are moderate"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Log-series — key properties",
+    "title": "What to remember",
+    "items": [
+      "Predicts many rare species and a steadily decreasing number of species at each higher abundance class",
+      "Gives rise to <b>Fisher's alpha</b>, a still-widely-reported diversity statistic",
+      "Intermediate evenness — more even than geometric series, less even than lognormal",
+      "Was the dominant SAD model in ecology for roughly two decades before Preston's critique"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Model 3",
+    "title": "Preston's classic model",
+    "term": "Lognormal distribution",
+    "def": "Proposed by Frank Preston (1948); assumes the logarithm of species' abundances is normally distributed — most species have intermediate abundance, and both very rare and very common species are comparatively less frequent.",
+    "bullets": [
+      "On a histogram of log-abundance classes ('octaves'), the SAD forms a symmetric bell curve, not a monotonically declining curve",
+      "On a rank-abundance plot, produces a sigmoid (S-shaped) curve: shallow at both ends, steeper in the middle",
+      "The most empirically successful classic SAD model — fits an extremely wide range of taxa and ecosystems better than any competitor",
+      "Preston argued the log-series and geometric series were simply truncated views of an underlying lognormal (see the veil line, ahead)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lognormal — key properties",
+    "title": "What to remember",
+    "items": [
+      "Plotting species number against <b>octaves of abundance</b> (doubling classes: 1-2, 2-4, 4-8...) yields a classic bell-shaped curve",
+      "Predicts a genuine mode at intermediate abundance — not simply 'more rare species than common ones' at every step",
+      "Rank-abundance curve shape: sigmoid — moderate slope overall, shallower at the extremes",
+      "By far the most frequently observed best fit to real, well-sampled empirical SADs across taxa"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Model 4 — historically important, largely superseded",
+    "title": "MacArthur's random-niche model",
+    "term": "Broken-stick model",
+    "def": "Proposed by Robert MacArthur (1957); imagines total niche space as a single stick broken simultaneously and randomly into as many pieces as there are species, with each piece's length representing that species' relative abundance.",
+    "bullets": [
+      "Predicts the most even abundance distribution of any classic model — far more even than typically observed in nature",
+      "Produces a shallow, nearly straight rank-abundance line",
+      "MacArthur himself later abandoned it as a general model once broader data showed real communities are almost always less even than it predicts",
+      "Retained today mainly as a null/limiting case: the most even a community could plausibly be under simple random partitioning"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Broken stick — key properties",
+    "title": "What to remember",
+    "items": [
+      "Statistically distinct from the geometric series: pieces are broken <b>simultaneously</b>, not sequentially, giving a far more even outcome",
+      "Rarely provides a good empirical fit to real communities — most real SADs are more uneven than the broken stick predicts",
+      "Historically important as one of the first attempts to derive a SAD from an explicit biological/geometric mechanism (random niche partitioning)",
+      "Still useful pedagogically as the 'maximum evenness' reference point against which real, skewed data are judged"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Synthesis",
+    "title": "Four classic SAD models compared",
+    "headers": [
+      "Model",
+      "Mechanism assumed",
+      "Rank-abundance shape",
+      "Evenness predicted",
+      "Empirical support"
+    ],
+    "rows": [
+      [
+        "Geometric series",
+        "Sequential niche preemption — each species claims a fixed fraction of what remains",
+        "Straight line, steep slope",
+        "Lowest evenness / highest dominance",
+        "Good fit only in species-poor, harsh, or early-successional systems"
+      ],
+      [
+        "Log-series (Fisher)",
+        "Statistical description; no strong mechanistic claim; yields Fisher's alpha",
+        "Straight-ish line, moderately steep",
+        "Low-to-moderate evenness",
+        "Reasonable fit for many communities, especially smaller samples"
+      ],
+      [
+        "Lognormal (Preston)",
+        "Many independent multiplicative factors act on each population (statistical/CLT argument)",
+        "Sigmoid (S-shaped) curve",
+        "Moderate, most realistic evenness",
+        "Best and most common fit across taxa and ecosystems, especially large, well-sampled datasets"
+      ],
+      [
+        "Broken stick (MacArthur)",
+        "Simultaneous random partitioning of total niche space among species",
+        "Shallow, nearly straight line",
+        "Highest evenness of the four",
+        "Rarely fits real data — real communities are almost always more uneven"
+      ]
+    ],
+    "footnote": "General pattern: geometric series (steepest) → log-series → lognormal → broken stick (shallowest), spanning low to high predicted evenness."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the family of curves",
+    "title": "Visual signatures on one rank-abundance plot",
+    "items": [
+      "If you overlay all four model curves for a community of the same richness, they fan out by slope: geometric series steepest, broken stick shallowest, log-series and lognormal in between",
+      "A real dataset's curve typically sits closest to the <b>lognormal</b> prediction, especially once sample size is large",
+      "Deviations toward the geometric series suggest strong dominance (e.g., recent disturbance, invasive dominance, harsh abiotic filtering)",
+      "Deviations toward the broken stick suggest a strikingly even community — biologically the least common outcome"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Which Model Fits, and Why It Matters",
+    "sub": "Niche-based determinism vs. purely statistical, neutral processes"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The empirical verdict",
+    "title": "The lognormal usually wins",
+    "items": [
+      "Across hundreds of published datasets spanning plants, birds, fish, insects, and microbes, the <b>lognormal distribution is the single most frequently best-fitting model</b>",
+      "This holds especially once sample sizes are large enough to reveal the full shape of the curve, including its rare-species tail",
+      "The geometric series and log-series often fit small or truncated samples reasonably well — but converge toward lognormal-like behavior as sampling effort increases",
+      "This empirical consistency is part of why Preston's model is considered one of the foundational results in quantitative community ecology"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two very different explanations for the same curve",
+    "title": "Why does the lognormal fit so well?",
+    "left": {
+      "h": "Niche-based / deterministic explanation",
+      "body": "Species differ systematically in resource use efficiency, competitive ability, and niche breadth. Community assembly and competitive sorting produce a structured hierarchy of abundances that happens to resemble a lognormal shape, reflecting real biological differences among species."
+    },
+    "right": {
+      "h": "Statistical / neutral explanation",
+      "body": "Population growth is driven by many independent, small, multiplicative environmental and demographic factors (birth, death, dispersal, resource fluctuation). By the Central Limit Theorem, the product of many independent random factors approaches a lognormal distribution — regardless of whether species differ biologically at all."
+    },
+    "footnote": "Both views predict the same overall SAD shape, which is exactly why SAD shape alone cannot decide between them."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The statistical argument in more detail",
+    "title": "Why randomness alone can generate a lognormal",
+    "items": [
+      "If a population's growth rate in each time step is the <b>product</b> of many small, independent random multipliers (not a sum), the logarithm of final abundance is a <b>sum</b> of many random terms",
+      "By the <b>Central Limit Theorem</b>, a sum of many independent random variables tends toward a normal distribution",
+      "Therefore log(abundance) tends toward normal — i.e., abundance itself tends toward <b>lognormal</b> — even with zero assumptions about species differing from one another",
+      "This is the core statistical insight later formalized and extended by Hubbell's <b>neutral theory of biodiversity</b>, which we will cover later in the course"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On the veil and the shape of nature",
+    "quote": "It is not simple accident that most census data can be fitted by the log normal curve, though it is a matter of chance just which forms are common and which are rare.",
+    "attrib": "Frank W. Preston, 1948, The Ecological Society of America"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the debate matters",
+    "title": "Stakes of the niche-vs-neutral question",
+    "items": [
+      "If SAD shape is largely a statistical inevitability, then fitting a lognormal to your data tells you little about the specific biology of your community",
+      "If SAD shape instead reflects real niche differences and competitive hierarchies, then deviations from lognormal (e.g., toward geometric series) are diagnostic of ecological process — dominance, disturbance, or competitive exclusion",
+      "In practice, most ecologists now treat SAD fitting as necessary but not sufficient — a good lognormal fit is consistent with, but does not prove, neutral dynamics",
+      "This exact tension — pattern consistent with multiple mechanisms — is a recurring theme in community ecology and will resurface directly when we cover neutral theory"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the classroom",
+    "title": "Why practicing ecologists still use SAD models",
+    "items": [
+      "<b>Conservation monitoring:</b> a shift in a community's rank-abundance curve toward the geometric series over time can flag increasing dominance by a stress-tolerant or invasive species before richness itself declines",
+      "<b>Restoration assessment:</b> comparing a restored site's rank-abundance curve to a reference (undisturbed) site's curve is a standard way to judge recovery progress, beyond simply counting species",
+      "<b>Detecting invasion or disturbance:</b> a sudden steepening of the curve, or a single species jumping to rank 1, is often an early quantitative signal of ecological disruption",
+      "<b>Microbiome and metagenomic studies:</b> SAD and rank-abundance approaches, originally developed for plants and animals, are now standard tools for characterizing bacterial and fungal community structure from sequencing data"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Sampling Effects and Preston's Veil Line",
+    "sub": "What you observe is rarely what is really out there"
+  },
+  {
+    "type": "term",
+    "eyebrow": "A critical sampling concept",
+    "title": "The veil line",
+    "term": "Veil line",
+    "def": "Preston's concept describing how limited sampling effort systematically fails to detect the rarest species in a community, effectively 'veiling' or truncating the left (rare-species) tail of the true underlying lognormal abundance distribution.",
+    "bullets": [
+      "Named because it acts like a curtain hiding part of the true distribution from the observer",
+      "As sample size increases, the veil line shifts left, revealing progressively rarer species and more of the true distribution's shape",
+      "At small sample sizes, an underlying lognormal community can appear to follow a log-series or geometric series simply because its rare tail is unobserved"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences of the veil line",
+    "title": "Why observed SADs mislead",
+    "items": [
+      "A truncated lognormal (small sample) can be difficult to distinguish statistically from a true log-series — this is one reason the log-series was long favored before larger datasets became available",
+      "The apparent mode of an observed SAD (the most common abundance class) is an artifact of sampling, not necessarily the true population mode",
+      "Comparing SADs across studies with very different sampling effort can be misleading unless researchers standardize effort or account for the veil line explicitly",
+      "Rarefaction (Lecture 3) and the veil line concept address closely related problems: both concern how limited sampling effort distorts our picture of a community"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "What we assume vs. what we see",
+    "title": "True distribution vs. observed sample",
+    "left": {
+      "h": "True underlying distribution",
+      "body": "Full lognormal curve, symmetric on a log-abundance axis, including a long tail of extremely rare or locally undetectable species — some perhaps present at only a handful of individuals across the entire region."
+    },
+    "right": {
+      "h": "Observed distribution (small sample)",
+      "body": "Truncated on the left: the rarest species are simply never captured. The observed curve can look log-series-like, or even appear to have its mode at the lowest abundance class recorded, purely because of the veil line."
+    },
+    "footnote": "Preston's key insight: increasing sample size does not change the true community — it moves the veil line and reveals more of what was always there."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical implications",
+    "title": "Designing and interpreting abundance surveys",
+    "items": [
+      "Always report and compare sampling effort (number of individuals, traps, plots, sequencing reads) alongside any SAD or rank-abundance curve",
+      "Expect rare-species estimates to be the least reliable part of any survey — this is exactly where the veil line operates",
+      "Very large datasets (e.g., long-term forest plots, large-scale metabarcoding) increasingly support the lognormal as the dominant true shape, once the veil line is pushed far enough left",
+      "This connects directly back to <b>rarefaction</b> from Lecture 3 — both are tools for reasoning carefully about how sampling effort shapes what we think we know about a community"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Connecting SADs to Diversity Indices",
+    "sub": "Closing the loop with Lecture 3"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The missing link from Lecture 3",
+    "title": "SAD shape is what diversity indices are secretly measuring",
+    "items": [
+      "Shannon (<i>H′</i>) and Simpson (<i>D</i>) indices are calculated directly from each species' proportional abundance (<i>p</i><sub>i</sub>) — exactly the information encoded in the SAD",
+      "A community's SAD shape therefore directly and mathematically determines its diversity index values, given a fixed richness",
+      "<b>Steep rank-abundance curve (geometric-series-like)</b> → low evenness → lower Shannon/Simpson diversity for a given richness",
+      "<b>Shallow rank-abundance curve (more lognormal- or broken-stick-like)</b> → higher evenness → higher Shannon/Simpson diversity for the same richness"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Worked illustration",
+    "title": "Same richness, different SAD shape, different diversity",
+    "headers": [
+      "Community",
+      "Richness (S)",
+      "SAD shape",
+      "Relative evenness",
+      "Shannon diversity (H′)"
+    ],
+    "rows": [
+      [
+        "Community A",
+        "10 species",
+        "Geometric-series-like (steep)",
+        "Low",
+        "Low, despite S = 10"
+      ],
+      [
+        "Community B",
+        "10 species",
+        "Lognormal-like (moderate slope)",
+        "Moderate-high",
+        "Higher than A at same S"
+      ],
+      [
+        "Community C",
+        "10 species",
+        "Broken-stick-like (shallow)",
+        "Highest",
+        "Highest of the three"
+      ]
+    ],
+    "footnote": "Illustrative ranking, not exact computed values — the key point is that richness alone (S = 10 in all three) cannot predict H′; SAD shape does."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Bringing L3 and L4 together",
+    "title": "Two lenses on the same underlying data",
+    "left": {
+      "h": "Diversity indices (Lecture 3)",
+      "body": "Compress the entire abundance structure of a community into a single summary number (H′ or D). Fast to compute and compare, but the number alone hides the shape of the underlying distribution — two very different SADs can, in principle, produce similar index values."
+    },
+    "right": {
+      "h": "SAD / rank-abundance curve (Lecture 4)",
+      "body": "Preserves the full abundance structure of every species in the community. Reveals dominance patterns, model fit, and sampling artifacts that a single index number cannot show — at the cost of being harder to summarize and compare across many sites at once."
+    },
+    "footnote": "Best practice: report a diversity index for quick comparison, but always inspect the rank-abundance curve before interpreting what that number means biologically."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Take-home synthesis",
+    "title": "Why this connection matters for the rest of the course",
+    "items": [
+      "Any factor that changes a community's SAD shape (disturbance, competitive dominance, invasion, environmental stress) will change its diversity index values, even if richness stays constant",
+      "This is why ecologists increasingly report rank-abundance curves alongside index numbers, not instead of them",
+      "The niche-vs-neutral debate from Part 5 is really a debate about <i>why</i> SAD shape — and therefore diversity index values — vary among communities",
+      "Keep this link in mind: later in the course, both niche theory and neutral theory will be evaluated in part by how well they predict observed SAD and diversity patterns"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key vocabulary",
+    "title": "Core terms from today",
+    "cards": [
+      {
+        "h": "Species abundance distribution (SAD)",
+        "p": "The frequency distribution of species' relative abundances in a community — nearly always right-skewed, with few common and many rare species."
+      },
+      {
+        "h": "Rank-abundance (Whittaker) curve",
+        "p": "Species ranked by abundance (x-axis) vs. log-abundance (y-axis); slope indicates evenness, length indicates richness."
+      },
+      {
+        "h": "Lognormal distribution",
+        "p": "Preston's model: log(abundance) is normally distributed; the most common empirical best fit across taxa and ecosystems."
+      },
+      {
+        "h": "Veil line",
+        "p": "The sampling-imposed truncation of the rare-species tail of the true SAD; recedes leftward as sample size increases."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common misconceptions to avoid",
+    "title": "Careful with these traps",
+    "items": [
+      "A good statistical fit to the lognormal does <b>not</b> by itself prove that community assembly is neutral or stochastic — niche-based processes can also produce lognormal-like patterns",
+      "The broken-stick model is <b>not</b> a good general-purpose null model for real communities — it is far too even; real SADs are almost always more uneven",
+      "An observed log-series shape in a small dataset may simply reflect the veil line truncating an underlying lognormal, not a fundamentally different generative process",
+      "Richness and evenness are <b>independent axes</b> of diversity — never assume a species-rich community is automatically an even one, or vice versa"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Putting It All Together",
+    "sub": "From abundance patterns to the questions ahead"
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing thought",
+    "quote": "The species-abundance relation is the most fundamental characteristic of a biotic community, and any theory of communities must ultimately account for it.",
+    "attrib": "Paraphrased from the tradition of Fisher, Preston, and MacArthur's founding work on species abundance distributions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 4 recap",
+    "title": "What we covered today",
+    "items": [
+      "The <b>species abundance distribution (SAD)</b> — a near-universal right-skewed pattern of few common, many rare species",
+      "<b>Rank-abundance (Whittaker) curves</b> as the standard visualization: slope = evenness, length = richness",
+      "Four classic models — <b>geometric series, log-series, lognormal, broken stick</b> — spanning low to high predicted evenness",
+      "The <b>lognormal</b> as the best-supported empirical model, and the unresolved <b>niche vs. neutral / statistical</b> debate over why",
+      "Preston's <b>veil line</b>: sampling effort truncates the observed rare-species tail of the true distribution",
+      "How SAD shape directly determines <b>Shannon and Simpson diversity index</b> values from Lecture 3"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Explicit recap — Lecture 3",
+    "title": "Reminder: what came before this lecture",
+    "items": [
+      "<b>Species richness</b> — simple species counts, sensitive to sampling effort",
+      "<b>Diversity indices</b> (Shannon, Simpson) — combine richness and evenness into one summary statistic",
+      "<b>Rarefaction</b> — standardizes richness comparisons across unequal sampling effort",
+      "<b>Alpha, beta, gamma diversity</b> — partition diversity across local, turnover, and regional spatial scales",
+      "Lecture 4 filled in the missing piece: the full abundance structure (the SAD) that diversity indices summarize and that rarefaction and the veil line both must reckon with"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming up — Lecture 5",
+    "title": "Preview: The Latitudinal Diversity Gradient",
+    "items": [
+      "One of the oldest and most striking patterns in all of ecology: species richness increases from the poles toward the equator, across an enormous range of taxa",
+      "We will examine the historical and modern evidence for the gradient's generality — and its notable exceptions",
+      "We will survey the major classes of hypotheses proposed to explain it: energy/productivity, area, time/evolutionary age, climatic stability, and biotic interactions (e.g., stronger competition and predation in the tropics)",
+      "We will ask how the tools from Lectures 3-4 — richness, diversity indices, and SADs — are actually used to test these hypotheses across latitude",
+      "This sets up Chapter 2's central synthesis question: why is the tropics so much more diverse than the poles?"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 4</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 11: Predator-Prey Fundamentals I: From Population Cycles to Community Structure</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 11",
+    "title": "Predator-Prey Fundamentals I: From Population Cycles to Community Structure",
+    "sub": "Opening Chapter 5 — treating the predator-prey pair as the smallest community module, and asking what predation does to coexistence, composition, and diversity rather than just to two population trajectories",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 5 — Predator-prey fundamentals"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Recap and Reframing",
+    "sub": "From single-species density dependence to the first heterospecific interaction"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 10",
+    "title": "Where we left off at the end of Chapter 4",
+    "items": [
+      "Lecture 10 closed out Chapter 4 by generalizing single-species density dependence to multi-factor, multi-species contexts: Liebig's Law of the Minimum vs. multiplicative co-limitation as contrasting models of how limiting factors combine",
+      "We formalized the distinction between <b>conspecific density dependence (CDD)</b> — self-limitation — and <b>heterospecific density dependence (HDD)</b> — limitation by other species — and used the Janzen-Connell hypothesis as a case where both operate simultaneously",
+      "We introduced a general two-species interaction-term template, dN<sub>i</sub>/dt = r<sub>i</sub>N<sub>i</sub>(1 − N<sub>i</sub>/K<sub>i</sub> − α<sub>ij</sub>N<sub>j</sub>/K<sub>i</sub>), as the bridge from single-species logistic growth to explicit species interactions",
+      "That template was left deliberately generic — α<sub>ij</sub> could represent competition, predation, or facilitation. Today we specialize it for the first time: α<sub>ij</sub> becomes a predator's attack rate"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing",
+    "title": "Predation is the second interaction type in this course",
+    "items": [
+      "Chapter 4 dealt with density dependence largely as a within- and among-species competitive process; Chapter 5 introduces <b>predation</b> — a fundamentally asymmetric, consumer-resource interaction — as the second building block",
+      "Predation differs from competition in a crucial structural way: it is a directional flow of biomass and energy from one species to another, not a mutual negative effect on shared resources",
+      "This directionality is precisely why predator-prey dynamics generate oscillations that pure competition typically does not — the predator's growth depends positively on the prey it consumes, creating a feedback loop absent from symmetric competition",
+      "Chapters 5-6 together form this course's predator-prey unit: Chapter 5 (Lectures 11-13) covers fundamentals and community consequences; Chapter 6 (later) covers selective predation and prey switching in more depth"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing",
+    "title": "The predator-prey pair as a community 'module'",
+    "items": [
+      "Mittelbach & McGill treat the two-species predator-prey system not as an endpoint but as the smallest possible <b>community module</b> — a minimal subunit whose dynamics recur, in modified form, throughout much larger food webs",
+      "A module perspective asks: what does this two-species unit predict about the surrounding community once we add a third species, a competitor, or a second prey type?",
+      "This reframing is the central shift of today's lecture: population ecology asks 'do these two populations cycle?'; community ecology asks 'how does this interaction reshape which species persist, in what abundances, alongside this pair?'",
+      "Everything that follows — equilibrium shifts, keystone predation, the paradox of the plankton, generalist vs. specialist effects — is this same module question asked in different community contexts"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Framing",
+    "title": "Population-dynamics question vs. community-ecology question",
+    "left": {
+      "h": "Population ecology asks",
+      "body": "Given the L-V (or Rosenzweig-MacArthur) model's parameters, do predator and prey populations cycle, converge to a stable point, or go extinct? What is the amplitude and period of the cycle?"
+    },
+    "right": {
+      "h": "Community ecology asks",
+      "body": "Given that predator and prey coexist (cycling or not), what does the predator's presence do to the rest of the species pool interacting with the prey — composition, relative abundance, and diversity?"
+    },
+    "footnote": "Same underlying model, two different questions asked of it — this lecture is squarely in the right-hand column."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Course Context",
+    "title": "A note on overlap with Population Ecology",
+    "items": [
+      "If you have taken or are concurrently taking Population Ecology, you have likely already derived the Lotka-Volterra predator-prey model in full, worked through functional responses, and studied the Rosenzweig-MacArthur model and the paradox of enrichment",
+      "This lecture will <b>not</b> re-derive that machinery from scratch — we review it briefly as known material and move quickly to questions that population-dynamics courses typically do not emphasize: how predation reshapes multi-species community structure",
+      "Think of today as taking a population-dynamics result you already have and asking a community-ecology question of it: not 'how do N and P cycle?' but 'what does this cycling — or this equilibrium shift — mean for every other species that interacts with the prey?'"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Framing",
+    "title": "Community modules: predator-prey is the first of several recurring motifs",
+    "cards": [
+      {
+        "h": "Predator-prey (today)",
+        "p": "Two species, asymmetric consumer-resource link — the focus of this chapter."
+      },
+      {
+        "h": "Exploitative competition",
+        "p": "Two species, shared resource, no direct contact — covered in Chapters 7-8."
+      },
+      {
+        "h": "Apparent competition",
+        "p": "Two prey species, shared predator, no direct contact — previewed in Part 5, formalized in Lecture 13."
+      },
+      {
+        "h": "Intraguild predation",
+        "p": "A predator that also competes with its own prey for a shared resource — introduced later in the food web unit."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Lotka-Volterra Predator-Prey Model, Briefly",
+    "sub": "A rapid review — treated as a reminder, not a fresh derivation"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Reminder",
+    "title": "The classic Lotka-Volterra predator-prey equations",
+    "term": "dN/dt = rN − aNP,  dP/dt = baNP − dP",
+    "def": "N = prey density, P = predator density, r = prey intrinsic growth rate, a = attack rate (predator's per-capita search/capture efficiency), b = conversion efficiency of consumed prey into new predators, d = predator death rate.",
+    "bullets": [
+      "Prey grow exponentially absent predators (rN) and are removed at a rate proportional to the encounter rate between predators and prey (aNP)",
+      "Predators grow in proportion to prey consumed, converted at efficiency b (baNP), and die at a constant per-capita rate d",
+      "You should already recognize this system — our purpose today is what it implies for community structure, not re-deriving it"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reminder",
+    "title": "Core assumptions worth flagging before we move on",
+    "items": [
+      "Prey growth is exponential (unlimited) in the absence of predators — no carrying capacity term, unlike the logistic models of Chapter 4",
+      "The predator's per-capita consumption rate rises linearly and without bound as prey density increases (a linear, Type I functional response) — an assumption Chapter 6 will revisit and relax",
+      "A single predator species interacts with a single prey species — no alternative prey, no interference among predators, no spatial structure",
+      "These are strong simplifications; the point of reviewing them briefly is to be explicit about what the model strips away before asking what its predictions still teach us about communities"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Reminder",
+    "title": "Isocline geometry: the qualitative picture",
+    "left": {
+      "h": "Prey isocline (dN/dt = 0)",
+      "body": "Solving rN = aNP gives P = r/a — a horizontal line. Prey density is held in check only when predator density equals r/a, regardless of N. Below that line prey increase; above it prey decline."
+    },
+    "right": {
+      "h": "Predator isocline (dP/dt = 0)",
+      "body": "Solving baNP = dP gives N = d/(ba) — a vertical line. Predator density is held in check only when prey density equals d/(ba). To the right predators increase; to the left predators decline."
+    },
+    "footnote": "The two isoclines cross at a single equilibrium point; the four quadrants around it generate the counter-clockwise rotation that produces the model's signature cycles."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reminder",
+    "title": "Why this geometry produces neutral cycles",
+    "items": [
+      "Because each isocline is set by the <em>other</em> species' parameters (prey isocline depends only on predator parameters r and a; predator isocline depends only on prey-derived parameters b, a, d), trajectories orbit the equilibrium rather than converging to it",
+      "These are <b>neutral cycles</b>: the amplitude of the orbit is fixed entirely by the starting conditions, not damped or amplified by the dynamics themselves — a razor's-edge property, not a robust prediction",
+      "Any small perturbation to the model's structure (density dependence in prey, a saturating functional response, stochastic noise) tends to either damp the cycles to a stable point or destabilize them into extinction — real cycling systems need additional mechanisms to persist",
+      "The key qualitative takeaway for our purposes: predator and prey abundances are decoupled from any fixed equilibrium value and instead oscillate together, out of phase, with the predator peak trailing the prey peak"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reminder",
+    "title": "Why a manifestly unrealistic model is still a useful starting point",
+    "items": [
+      "The Lotka-Volterra model gets almost every biological detail wrong — no carrying capacity, unbounded consumption, single prey, single predator — yet it correctly predicts the qualitative signature of many real systems: out-of-phase, lagged oscillations between predator and prey",
+      "It functions as a <b>null model</b>: a baseline against which we measure the effect of adding realism (density dependence, saturating functional responses, multiple prey, spatial refuges) one piece at a time",
+      "Its isocline structure — one species' equilibrium set entirely by the other's parameters — is the conceptual seed for everything in this lecture: because prey equilibrium abundance is a function of predator traits (a, in particular), predators can shift prey abundance, and that shift ripples outward to the rest of the community",
+      "This is the pivot for the rest of today: instead of asking how N and P cycle, we ask how the predator's attack rate a — a single parameter — reshapes the surrounding community"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Reminder",
+    "title": "Functional response and numerical response (terminology only)",
+    "term": "Functional response: an individual predator's per-capita consumption rate as a function of prey density. Numerical response: how predator abundance (via reproduction or aggregation) changes with prey density.",
+    "def": "The attack rate a in the Lotka-Volterra equations is a linear (Type I) functional response bundled together with a linear numerical response via the conversion efficiency b. Chapter 6 unpacks both responses into their own explicit functions — today we only need the vocabulary.",
+    "bullets": [
+      "We flag these terms now because Part 5's generalist-vs-specialist discussion and Lecture 12's stability discussion both depend on which functional response type is assumed"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reminder",
+    "title": "Why oscillation itself is a community-relevant phenomenon",
+    "items": [
+      "Even before considering third-party species, the mere fact that predator-prey pairs cycle has community consequences: species with cycling dynamics periodically pass through low-abundance troughs, during which they are vulnerable to stochastic extinction or invasion by competitors",
+      "A community containing several cycling predator-prey pairs can therefore show turnover and instability driven purely by this internal dynamic, independent of any external environmental change — an important null expectation before invoking climate, disturbance, or invasion as explanations",
+      "This sets up why Lecture 12 asks about stability: a community ecologist cares whether predator-prey cycles are a permanent, robust feature of a system or a fragile, parameter-dependent artifact of the unrealistic linear functional response reviewed today"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Predation Intensity and Community Structure",
+    "sub": "How a single parameter — attack rate — ripples outward to third-party species"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Community Consequences",
+    "title": "Attack rate sets prey equilibrium abundance — the key community-relevant fact",
+    "items": [
+      "From the predator isocline, prey equilibrium N* = d/(ba): prey equilibrium abundance depends only on the predator's death rate, conversion efficiency, and attack rate — not on the prey's own growth rate r",
+      "This is a genuinely community-relevant, non-intuitive result: a more efficient predator (higher a) drives its prey equilibrium <em>down</em>, while prey intrinsic growth rate r affects only the predator's equilibrium (P* = r/a), not the prey's own",
+      "Because prey equilibrium abundance is set by predator traits rather than prey traits, predators function as an external lever on prey population size — precisely the lever that then propagates to every other species that interacts with that prey population",
+      "This single relationship — N* = d/(ba) — is the mathematical hinge connecting population-level predator-prey theory to community-level consequences for the rest of this lecture"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Community Consequences",
+    "title": "High vs. low predation intensity on the same prey population",
+    "left": {
+      "h": "Low attack rate (inefficient predator)",
+      "body": "Prey equilibrium N* = d/(ba) is high — prey remain abundant, potentially dominant enough to competitively exclude subordinate species. Community effect: prey-mediated competitive exclusion of other species that share the prey's resources is more likely."
+    },
+    "right": {
+      "h": "High attack rate (efficient predator)",
+      "body": "Prey equilibrium N* = d/(ba) is low — prey are held well below the level at which they would monopolize resources. Community effect: resources or space that a dominant prey would otherwise occupy become available to other species."
+    },
+    "footnote": "The same prey population, same underlying resource base — the predator's efficiency alone determines whether the prey suppresses or coexists with the rest of the community."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Community Consequences",
+    "title": "Third-party species: when predators affect species they never touch",
+    "items": [
+      "Consider a predator that consumes prey species A, and prey species A is also the dominant competitor against a subordinate species B for a shared resource. The predator never interacts with B directly",
+      "If the predator suppresses A's abundance (low N* via high a), A's competitive pressure on B is relieved — B's abundance can rise even though the predator has never encountered B",
+      "This is an <b>indirect effect</b>: a change transmitted through a chain of direct interactions (predator → A → shared resource → B) rather than through direct contact between predator and B",
+      "This single mechanism — a predator suppressing a dominant competitor and thereby releasing subordinate species — is the seed of the <b>keystone predation</b> concept, formalized fully in Chapters 10-11 on indirect effects"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Community Consequences",
+    "title": "The reverse case: what happens when predators are removed",
+    "items": [
+      "The community-level logic works symmetrically: removing or suppressing a predator (via harvest, disease, or extirpation) releases prey from top-down control, raising prey equilibrium abundance and potentially restoring or strengthening the prey's competitive dominance over other species",
+      "This is the mechanism behind many documented cases of <b>trophic cascades</b> and mesopredator or herbivore release — e.g., sea otter loss leading to urchin population explosions and subsequent kelp forest collapse in Pacific coastal ecosystems",
+      "Predator removal experiments (natural or deliberate) are therefore one of the primary empirical tools ecologists use to test whether a given predator-prey link functions as a keystone interaction — a method we will see formalized when Paine's experiments are covered in full in Chapters 10-11"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Preview Concept",
+    "title": "Keystone predation (early preview)",
+    "term": "A predator whose removal of a dominant competitor allows subordinate competitors to persist, disproportionately increasing local diversity relative to the predator's own biomass",
+    "def": "The term 'keystone' captures the idea that a species with modest abundance or biomass can have an outsized structuring effect on the community — the architectural keystone that holds an arch together despite being just one stone among many.",
+    "bullets": [
+      "Classic empirical case (previewed here, developed fully later): Robert Paine's removal experiments with the predatory sea star Pisaster ochraceus on rocky intertidal shores of the Pacific Northwest",
+      "When Pisaster was experimentally removed, the mussel Mytilus californianus — its preferred prey and the community's dominant space competitor — monopolized substrate and diversity collapsed from over 15 species to 1-2",
+      "We are flagging this now because it is the direct community-level consequence of the N* = d/(ba) relationship just derived — we will return to Paine's data and the formal keystone predation framework in Chapters 10-11"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Classic Result",
+    "quote": "Local species diversity is directly related to the number of trophic links in the local food web, and increases in this number of links usually results from predation.",
+    "attrib": "Paraphrased from Robert T. Paine's foundational keystone predation studies, rocky intertidal, Pacific Northwest"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Community Consequences",
+    "title": "Two channels by which predation intensity reaches the community",
+    "left": {
+      "h": "Density-mediated indirect effect",
+      "body": "The predator reduces prey abundance (density), and that abundance change alone alters the prey's competitive impact on third-party species — the mechanism emphasized so far via N* = d/(ba)."
+    },
+    "right": {
+      "h": "Trait-mediated indirect effect",
+      "body": "The mere presence or risk of predation alters prey behavior, habitat use, or foraging effort, without necessarily changing prey density — an alternative channel to the same third-party consequences, revisited in later chapters on trait-mediated interactions."
+    },
+    "footnote": "Today's equilibrium-based treatment focuses on the density-mediated channel; keep the trait-mediated channel in mind as a parallel pathway covered later in the course."
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Predation and Coexistence — the Paradox of the Plankton",
+    "sub": "How consuming the dominant competitor can prevent competitive exclusion"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coexistence Preview",
+    "title": "The paradox of the plankton, briefly",
+    "items": [
+      "G. Evelyn Hutchinson's 1961 'paradox of the plankton': competitive exclusion theory predicts that a small number of superior competitors should dominate a homogeneous resource pool, yet open-water plankton communities routinely contain dozens of coexisting phytoplankton species competing for a handful of limiting resources (light, a few nutrients)",
+      "Multiple resolutions have been proposed (fine-grained niche partitioning, non-equilibrium dynamics, spatial and temporal heterogeneity) — today we focus specifically on the predation-based resolution, because it follows directly from the community module we just built",
+      "The predation resolution: if a predator (or grazer, in the plankton case, zooplankton) preferentially consumes whichever phytoplankton species is currently most abundant, it prevents any single species from realizing its full competitive advantage long enough to exclude the others"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coexistence Preview",
+    "title": "Predation as an 'equalizing' force among competing prey",
+    "items": [
+      "In coexistence theory (formalized in Chapter 8), mechanisms that reduce average fitness differences among competitors are called <b>equalizing mechanisms</b> — they do not eliminate competition, but they narrow the gap between the strongest and weakest competitors",
+      "A predator that disproportionately consumes the numerically or competitively dominant prey species acts as an equalizing force: it imposes an extra mortality cost on the very species that would otherwise win outright, effectively taxing success",
+      "This is distinct from a predator that consumes prey species indiscriminately (in proportion to their relative abundance) — indiscriminate predation does not equalize competitive outcomes, because it does not disproportionately burden the dominant competitor",
+      "The critical requirement is that predation pressure on a prey species scales with that species' competitive dominance or local abundance — precisely the pattern a generalist, switching predator produces, previewed in Part 5"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Historical Note",
+    "quote": "Why are there so many species of phytoplankton, all competing for merely a few resources?",
+    "attrib": "G. Evelyn Hutchinson, 'The Paradox of the Plankton,' The American Naturalist, 1961"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Equalizing mechanism (coexistence theory preview)",
+    "term": "A process that reduces the fitness or competitive advantage of the strongest competitor(s) relative to weaker ones, without requiring niche differences",
+    "def": "Contrasted in Chapter 8 with 'stabilizing mechanisms,' which generate negative frequency dependence via niche differentiation. Predation that targets the locally dominant prey species is a leading example of an equalizing mechanism operating through a third species rather than through the competitors' own niches.",
+    "bullets": [
+      "Equalizing mechanisms alone do not guarantee stable coexistence — they buy time and reduce exclusion rates, but robust coexistence typically still requires some stabilizing (niche-based) component as well",
+      "This distinction — equalizing vs. stabilizing — is the organizing framework of Chapter 8; today's predation discussion previews only the equalizing side of it"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coexistence Preview",
+    "title": "Boundary conditions: when predation fails to resolve the paradox",
+    "items": [
+      "Predation only equalizes competition if the predator's preference genuinely tracks competitive dominance — a predator with a fixed preference for a particular prey trait (e.g., large cell size), unrelated to which species is currently winning the competitive race, will not produce this effect",
+      "If predation pressure is too intense, it can drive the formerly dominant prey extinct outright rather than merely suppressing it — overshooting equalization and instead imposing a different single-species dominance (by whichever prey best resists or evades the predator)",
+      "This sets up a preview of Lecture 12's central question: predation intensity must fall within some intermediate range to promote coexistence — too little and competitive exclusion proceeds unchecked, too much and the predator itself becomes the exclusionary force"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coexistence Preview",
+    "title": "Linking forward: why this belongs in a predator-prey chapter at all",
+    "items": [
+      "Predation and competition are usually taught as separate interaction types, but the paradox-of-the-plankton logic shows they are mechanistically entangled: a predator's diet choice can determine whether competitive exclusion plays out among the prey",
+      "This is the first concrete instance in the course of an interaction type (predation) altering the outcome of a <em>different</em> interaction type (competition) among a third set of species — the general phenomenon of indirect effects that structures Chapters 10-11",
+      "Keep this thread in mind: keystone predation (Part 3) and the paradox-of-the-plankton resolution (this part) are two faces of the same underlying mechanism — predators that preferentially remove locally dominant prey release competitive pressure on the rest of the community"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Generalist vs. Specialist Predators",
+    "sub": "Diet breadth as the switch between destabilizing and stabilizing community effects"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Diet Breadth",
+    "title": "Specialist predators: tight coupling, classic cycling",
+    "items": [
+      "A <b>specialist predator</b> feeds on essentially one prey species (or a narrow set of ecologically similar prey) and has no alternative food source to fall back on when that prey becomes scarce",
+      "This is exactly the scenario the Lotka-Volterra model of Part 2 describes: predator population growth is tightly, almost exclusively, coupled to the fate of a single prey population",
+      "Community consequence: because the specialist has nowhere else to turn, it can crash alongside its prey during a prey decline — canonical examples include lynx and snowshoe hare, or many host-specific parasitoids and their single host species",
+      "Specialist-driven dynamics tend to produce the classic out-of-phase population cycles reviewed in Part 2, with limited buffering — the two species' fates are numerically bound together"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Diet Breadth",
+    "title": "Generalist predators: prey switching and community stabilization",
+    "items": [
+      "A <b>generalist predator</b> feeds on multiple prey species and can shift its foraging effort among them as their relative abundances change — a behavior called <b>prey switching</b>",
+      "Prey switching typically produces a Type III (sigmoidal) functional response at the community level: the predator disproportionately targets whichever prey is currently most common, and relatively spares rare prey types",
+      "Because the generalist is not dependent on any single prey species for survival, it does not crash when one prey population declines — it simply reallocates effort to alternative prey, decoupling predator dynamics from any one prey trajectory",
+      "This switching behavior is precisely the mechanism required for the paradox-of-the-plankton resolution in Part 4: targeting whichever prey is locally dominant is what makes predation an equalizing force rather than a destabilizing one",
+      "Prey switching and its functional-response consequences are the central topic of Chapter 6 (selective predation) — today's treatment is a bridge, establishing why diet breadth matters before we formalize the switching functional response itself"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Diet Breadth",
+    "title": "Worked examples across the specialist-generalist spectrum",
+    "cards": [
+      {
+        "h": "Canada lynx / snowshoe hare",
+        "p": "Near-specialist predator, textbook ~10-year cycling; lynx abundance closely tracks the hare cycle across boreal North America."
+      },
+      {
+        "h": "Host-specific parasitoid wasps",
+        "p": "Many parasitoid species attack a single host species, producing tight numerical coupling analogous to classic L-V cycling."
+      },
+      {
+        "h": "Coyotes (generalist)",
+        "p": "Feed across rodents, lagomorphs, fruit, and carrion; population is buffered against the decline of any one prey type."
+      },
+      {
+        "h": "Zooplankton grazers",
+        "p": "Generalist grazing across phytoplankton taxa, switching toward whichever species is locally abundant — the mechanism behind the paradox-of-the-plankton resolution."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Synthesis",
+    "title": "Generalist vs. specialist predators: contrasting community consequences",
+    "headers": [
+      "Dimension",
+      "Specialist predator",
+      "Generalist predator"
+    ],
+    "rows": [
+      [
+        "Diet breadth",
+        "One or few closely related prey species",
+        "Multiple, often taxonomically diverse prey species"
+      ],
+      [
+        "Numerical coupling to prey",
+        "Tight — predator abundance tracks single prey population directly",
+        "Loose — predator can persist on alternative prey when one declines"
+      ],
+      [
+        "Typical dynamic signature",
+        "Classic Lotka-Volterra-style cycling; can crash with prey",
+        "Dampened or decoupled dynamics; predator population buffered"
+      ],
+      [
+        "Functional response pattern",
+        "Often Type I or Type II on the single prey",
+        "Often Type III at the community level, via prey switching"
+      ],
+      [
+        "Effect on competitive dominance among prey",
+        "Limited — no mechanism to preferentially suppress the dominant prey among alternatives",
+        "Can act as an equalizing force by disproportionately targeting the locally dominant prey species"
+      ],
+      [
+        "Net community consequence",
+        "Can destabilize the focal prey's dynamics; limited effect on prey diversity",
+        "Can stabilize prey community composition and help maintain prey diversity (paradox-of-the-plankton logic)"
+      ]
+    ],
+    "footnote": "Diet breadth alone — a single trait of the predator — flips predation from a potentially destabilizing force on one prey population into a potentially stabilizing, diversity-maintaining force across the whole prey community."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Diet Breadth",
+    "title": "Diet breadth is not fixed — it can itself respond to community context",
+    "items": [
+      "Diet breadth is often treated as a fixed species trait, but many predators show flexible, condition-dependent diet breadth: a facultative specialist may behave as a specialist when its preferred prey is abundant and broaden its diet only when preferred prey becomes scarce",
+      "This flexibility means the generalist-specialist dichotomy is better understood as a spectrum along which a single predator population can move, rather than two discrete categories of species",
+      "Community consequence of flexible diet breadth: a predator can shift the community from a cycling, specialist-like regime toward a stabilized, generalist-like regime as prey availability changes — an important caveat before applying the compare table on the next slide too rigidly"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridge Forward",
+    "title": "Why diet breadth is the natural bridge to Chapter 6",
+    "items": [
+      "Today's generalist-vs-specialist contrast has been qualitative and diet-breadth based; Chapter 6 formalizes it by deriving how prey switching arises mechanistically from predator search behavior and prey encounter rates",
+      "Chapter 6 will also address <b>apparent competition</b> in a preliminary way — two prey species sharing a common generalist predator can behave as if they compete with each other, even with no direct resource overlap, because an increase in one prey species supports more predators, which then suppress the other prey",
+      "Note the terminology carefully: apparent competition is technically an indirect effect transmitted through a shared predator, not true resource competition — Lecture 13 revisits this formally as the closing synthesis of this chapter"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis",
+    "title": "Four community-level lessons from today's predator-prey module",
+    "cards": [
+      {
+        "h": "Prey equilibrium is predator-controlled",
+        "p": "N* = d/(ba) depends on predator traits, not prey traits — predators are an external lever on prey abundance, which then propagates outward."
+      },
+      {
+        "h": "Indirect effects reach third parties",
+        "p": "Suppressing a dominant prey competitor frees resources for species the predator never directly contacts — the seed of keystone predation."
+      },
+      {
+        "h": "Predation can equalize competition",
+        "p": "Predators that track and disproportionately consume the dominant prey resolve part of the paradox of the plankton by taxing competitive success."
+      },
+      {
+        "h": "Diet breadth sets the sign of the effect",
+        "p": "Specialists tend toward destabilizing population cycles; generalists with prey switching tend toward community-stabilizing, diversity-preserving effects."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Roadmap and Synthesis",
+    "sub": "Closing Lecture 11 and orienting the rest of Chapter 5"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Chapter 5 Roadmap",
+    "title": "Lectures 11-13: Predator-Prey Fundamentals",
+    "items": [
+      {
+        "y": "Lecture 11 (today)",
+        "t": "Community framing and brief L-V review — predation intensity, keystone predation preview, paradox-of-the-plankton preview, generalist vs. specialist diet breadth"
+      },
+      {
+        "y": "Lecture 12",
+        "t": "Predator-prey stability and coexistence implications — functional responses beyond Type I, stabilizing mechanisms (prey refuges, density dependence, ratio dependence), and formal conditions for persistent coexistence"
+      },
+      {
+        "y": "Lecture 13",
+        "t": "Apparent competition and indirect effects synthesis — closes Chapter 5 by formalizing how shared predators link ostensibly unconnected prey species, bridging into Chapters 6, 10, and 11"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "How today's four threads connect to one another",
+    "items": [
+      "The brief L-V review (Part 2) established that prey equilibrium N* is set by predator traits — this single fact is the mechanistic root of everything that followed",
+      "Predation intensity (Part 3) showed how varying the predator's attack rate shifts N*, and how that shift reaches third-party species through indirect effects — introducing keystone predation",
+      "The paradox of the plankton (Part 4) showed a special case of the same logic: when predation targets whichever prey is locally dominant, it equalizes competition among the prey themselves",
+      "Generalist vs. specialist diet breadth (Part 5) identified the predator trait — diet breadth and switching behavior — that determines whether a given predator produces the destabilizing cycling of Part 2 or the equalizing, diversity-preserving effect of Part 4"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Check",
+    "title": "Questions you should now be able to answer",
+    "items": [
+      "Write the Lotka-Volterra predator-prey equations and state, without re-deriving, what the prey and predator isoclines represent geometrically",
+      "Explain why the standard Lotka-Volterra model produces neutral cycles rather than a stable equilibrium, and why this makes it a useful null model despite being unrealistic",
+      "Derive verbally (not algebraically) why prey equilibrium abundance N* depends on predator attack rate rather than on prey growth rate, and explain the community-level significance of that fact",
+      "Describe, with an example, how a predator can indirectly benefit a species it never interacts with directly, and name the concept this previews",
+      "Explain how predation can act as an equalizing mechanism and how this relates to Hutchinson's paradox of the plankton",
+      "Contrast specialist and generalist predators in terms of their typical population dynamics and their differential effects on prey community structure and diversity"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "A community is not simply the sum of its pairwise interactions; predation on one species is routinely felt, several steps removed, by species that never meet the predator at all.",
+    "attrib": "Adapted from Mittelbach & McGill, Community Ecology, Ch. 5"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 11 summary",
+    "items": [
+      "This lecture opened Chapter 5 by reframing the predator-prey pair as a community module — the smallest unit relevant to questions of composition, diversity, and coexistence, rather than an end in itself",
+      "We reviewed the Lotka-Volterra predator-prey model briefly as known material, emphasizing its isocline geometry and neutral cycles as a starting point rather than a fully realistic description",
+      "The key community-relevant result was N* = d/(ba): prey equilibrium abundance is set by predator traits, giving predators an external lever on prey abundance that ripples to third-party species via indirect effects — previewing keystone predation",
+      "We connected predation to coexistence theory through the paradox of the plankton, framing selective predation on the dominant competitor as an equalizing mechanism (previewing Chapter 8)",
+      "We contrasted specialist predators (tight coupling, classic cycling, limited diversity effects) with generalist predators (prey switching, dampened dynamics, potential to stabilize and diversify prey communities) — a direct bridge to Chapter 6"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Vocabulary Check",
+    "title": "Key terms introduced today",
+    "items": [
+      "<b>Community module</b> — a minimal, recurring subunit of species interactions (here, one predator and one prey) used to build intuition about larger food webs",
+      "<b>Prey equilibrium N* = d/(ba)</b> — the L-V prediction that prey abundance at equilibrium is set by predator traits (death rate, conversion efficiency, attack rate), not by prey growth rate",
+      "<b>Indirect effect</b> — an effect transmitted through a chain of direct interactions rather than through direct contact between the two species involved",
+      "<b>Keystone predation</b> — a predator whose suppression of a dominant competitor disproportionately increases community diversity relative to the predator's own biomass",
+      "<b>Equalizing mechanism</b> — a process (such as targeted predation on the dominant competitor) that narrows fitness differences among competitors without requiring niche differentiation",
+      "<b>Prey switching</b> — a generalist predator's behavioral shift toward whichever prey is currently most abundant, typically producing a Type III functional response at the community level"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Lecture 12: Stability and Coexistence in Predator-Prey Systems",
+    "sub": "From the bare Lotka-Volterra module to the mechanisms that let predators and prey actually persist together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Preview — Lecture 12",
+    "title": "Predator-prey stability and coexistence implications",
+    "items": [
+      "Lecture 12 relaxes the assumptions flagged in today's brief review — unlimited prey growth, linear functional response — to ask what makes predator-prey coexistence <em>robust</em> rather than a razor's-edge neutral cycle",
+      "We will examine functional response types beyond the Type I reviewed today (Type II saturation, Type III sigmoidal) and their differing stability consequences, extending the prey-switching discussion from Part 5",
+      "Stabilizing mechanisms under discussion: prey density dependence (a carrying capacity term reintroduced from Chapter 4), spatial or temporal prey refuges, and ratio-dependent predation",
+      "We will revisit today's keystone predation and paradox-of-the-plankton previews with the added stability machinery, sharpening the conditions under which predation genuinely maintains prey diversity versus when it can instead drive prey to local extinction"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 11</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 7: The Logistic Growth Model</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology — Lecture 7",
+    "title": "The Logistic Growth Model",
+    "sub": "Building density dependence into a mathematical model of population growth",
+    "footnote": "Rockwood, Introduction to Population Ecology, 2nd ed., Ch. 2"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off",
+    "sub": "Lecture 6: Density Dependence — Concept and Evidence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap of Lecture 6",
+    "title": "Density Dependence: The Core Idea",
+    "items": [
+      "Per capita birth and death rates change as population density changes",
+      "Negative density dependence: birth rates fall and/or death rates rise as N increases",
+      "This creates a regulating force that can stabilize population size over time",
+      "Contest competition: individuals compete for a limiting, divisible resource; some win, some lose outright",
+      "Scramble competition: resource is shared equally among all individuals, often leading to overcompensation and crashes",
+      "Nicholson's blowfly experiments provided classic laboratory evidence of density-dependent regulation via food-limited larval competition"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap of Lecture 6",
+    "title": "Why Density Dependence Matters for Modeling",
+    "items": [
+      "The exponential model (dN/dt = rN) assumes r is constant regardless of N — unrealistic over the long run",
+      "Real populations show growth rates that decline as N approaches some upper limit",
+      "We need a model whose per capita growth rate is itself a function of N",
+      "Today: the logistic growth model, the simplest mathematical formalization of negative density dependence",
+      "This model was first proposed by Pierre-François Verhulst (1838) and reintroduced to ecology by Raymond Pearl and Lowell Reed in the 1920s"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Motivation",
+    "title": "From Exponential to Logistic",
+    "sub": "Why unlimited growth cannot be the whole story"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "The Problem With Exponential Growth",
+    "items": [
+      "dN/dt = rN predicts population size grows without bound as long as r > 0",
+      "No population on Earth grows exponentially forever — resources, space, and other factors eventually intervene",
+      "Even bacteria in a nutrient-rich flask eventually stop growing as nutrients are depleted and waste accumulates",
+      "We observed this pattern already in lab populations (e.g., Gause's Paramecium, Nicholson's blowflies): growth slows and levels off",
+      "We need a model that captures both the initial rapid growth and the eventual leveling off"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "What a Better Model Needs",
+    "items": [
+      "At low density, growth should behave approximately like exponential growth (few limits on resources)",
+      "As density increases, growth rate should decline",
+      "At some upper population size, growth should stop entirely (births balance deaths)",
+      "The model should be simple enough to derive from first principles and analyze mathematically",
+      "The logistic model achieves all of this by adding a single density-dependent term to the exponential equation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Derivation",
+    "title": "Deriving the Logistic Equation",
+    "sub": "From dN/dt = rN to dN/dt = rN(1 − N/K)"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Starting Point",
+    "title": "The Exponential Growth Equation",
+    "term": "dN/dt = rN",
+    "def": "The instantaneous rate of change of population size equals the per capita growth rate (r) multiplied by the current population size (N).",
+    "bullets": [
+      "r is constant — it does not depend on N",
+      "This produces unlimited, accelerating (J-shaped) growth",
+      "Our goal: modify this equation so that the growth rate itself declines as N increases"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Derivation, Step 1",
+    "title": "Step 1 — Identify What Needs to Change",
+    "items": [
+      "In dN/dt = rN, the per capita growth rate (1/N)(dN/dt) is always equal to r, a constant",
+      "We want the per capita growth rate to decrease as N increases",
+      "This means we need to multiply r by some factor that equals 1 when N is small (no limitation) and equals 0 when N reaches some maximum (no more growth possible)",
+      "Verhulst's insight: introduce a population ceiling, called the carrying capacity, symbolized K"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Derivation, Step 2",
+    "title": "Introducing Carrying Capacity",
+    "term": "K (carrying capacity)",
+    "def": "The maximum population size that a given environment can sustain indefinitely, given available resources such as food, water, space, and other necessities.",
+    "bullets": [
+      "K is measured in the same units as N (number of individuals, or density per unit area)",
+      "K represents an equilibrium point: when N = K, the population is not growing or shrinking",
+      "We will use K to build our density-dependent scaling term"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Derivation, Step 3",
+    "title": "Step 2 — Construct the Scaling Term (1 − N/K)",
+    "items": [
+      "Consider the ratio N/K: this is the fraction of carrying capacity currently occupied by the population",
+      "When N is small relative to K, N/K is close to 0",
+      "When N approaches K, N/K approaches 1",
+      "Therefore (1 − N/K) is close to 1 when N is small, and close to 0 when N approaches K",
+      "This is exactly the scaling behavior we wanted: full growth potential at low N, zero growth potential at N = K"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Derivation, Step 4",
+    "title": "The Logistic Growth Equation",
+    "term": "dN/dt = rN(1 − N/K)",
+    "def": "The rate of population growth equals the exponential growth rate rN, multiplied by a density-dependent scaling factor (1 − N/K) that shrinks toward zero as N approaches carrying capacity K.",
+    "bullets": [
+      "This is the logistic (or Verhulst-Pearl) growth equation",
+      "It is the exponential equation with a single added term: (1 − N/K)",
+      "When N is very small, (1 − N/K) ≈ 1, so growth is nearly exponential",
+      "When N = K, (1 − N/K) = 0, so dN/dt = 0 and growth stops"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Model",
+    "title": "What Does (1 − N/K) Represent Biologically?",
+    "items": [
+      "It represents the fraction of carrying capacity that remains 'unused' — the unrealized growth potential still available to the population",
+      "At N = 0.1K, 90% of carrying capacity is unused, so growth proceeds at ~90% of the maximum exponential rate",
+      "At N = 0.5K, 50% of carrying capacity is unused, so growth proceeds at ~50% of the maximum rate",
+      "At N = K, 0% of carrying capacity is unused — no room left, so growth ceases",
+      "At N > K (overshoot), (1 − N/K) becomes negative, so dN/dt becomes negative — the population declines back toward K"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Building Intuition",
+    "title": "Two Multiplied Terms, Two Jobs",
+    "left": {
+      "h": "rN — the growth engine",
+      "body": "This term sets the pace of growth. It is the same exponential term from Lecture-level basic models: more individuals means more total births and deaths, scaled by the intrinsic rate of increase r."
+    },
+    "right": {
+      "h": "(1 − N/K) — the brake",
+      "body": "This term applies a proportional brake that gets stronger as N approaches K. It converts the constant per capita rate r into an effective per capita rate that shrinks with density: r(1 − N/K)."
+    },
+    "footnote": "The logistic model = exponential engine × density-dependent brake"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Per Capita View",
+    "title": "Per Capita Growth Rate Under the Logistic Model",
+    "items": [
+      "Recall: per capita growth rate = (1/N)(dN/dt)",
+      "For the logistic model: (1/N)(dN/dt) = r(1 − N/K)",
+      "This per capita rate is a straight line when plotted against N: it equals r when N = 0, and declines linearly to 0 when N = K",
+      "This linear decline in per capita growth rate with density is the defining signature of the logistic model",
+      "Contrast with the exponential model, where per capita growth rate is a flat horizontal line at r regardless of N"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Carrying Capacity",
+    "title": "Understanding K",
+    "sub": "What sets the ceiling on population size?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Carrying Capacity, Revisited",
+    "term": "K",
+    "def": "The population size at which births equal deaths on average — an equilibrium determined by the environment's ability to supply resources and absorb the population's demands.",
+    "bullets": [
+      "K is not a fixed constant of nature — it is a property of the interaction between a population and its specific environment",
+      "K can differ dramatically between habitats, seasons, and years for the same species",
+      "In the logistic model, K is treated as constant for mathematical simplicity — an assumption we will revisit"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Carrying Capacity",
+    "title": "What Determines K? Linking Back to Principles of Ecology",
+    "items": [
+      "Food and nutrient availability — the classic limiting resource in many systems",
+      "Availability of physical space, nesting sites, or territories",
+      "Water availability, especially in arid or seasonal environments",
+      "Presence of predators, parasites, and disease that impose additional mortality at high density",
+      "Accumulation of waste products or toxins (as in Gause's yeast and Paramecium cultures)",
+      "Intraspecific competition intensity — how strongly individuals interfere with or deplete resources for one another",
+      "All of these map onto the resource and habitat concepts introduced in the Principles of Ecology unit on limiting factors and niche"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Carrying Capacity",
+    "title": "K Is Species- and Context-Specific",
+    "items": [
+      "The same patch of habitat has a different K for different species, depending on their resource requirements",
+      "K for a given species can change seasonally (e.g., higher K in a productive summer, lower K in a harsh winter)",
+      "Human activities alter K for many species — habitat destruction lowers K, supplemental feeding or habitat restoration can raise it",
+      "In laboratory settings, K is set largely by the experimenter — for example, the size of a culture flask and rate of resource renewal"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Carrying Capacity in Practice",
+    "title": "Examples of Factors Setting K",
+    "cards": [
+      {
+        "h": "Food-limited populations",
+        "p": "Deer populations in a forest with fixed forage; K rises and falls with mast (seed/nut) production and vegetation growth."
+      },
+      {
+        "h": "Space-limited populations",
+        "p": "Territorial seabirds nesting on a cliff; K is set by the number of available nest sites, not food."
+      },
+      {
+        "h": "Laboratory populations",
+        "p": "Yeast or Paramecium in a fixed-volume culture; K is set by nutrient concentration and waste buildup."
+      },
+      {
+        "h": "Predator-influenced K",
+        "p": "Prey populations whose effective K is lowered by sustained predation pressure, independent of resource limits."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Curve",
+    "title": "The Sigmoid Growth Curve",
+    "sub": "What logistic growth looks like over time"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The S-Shaped Curve",
+    "title": "From Equation to Curve: What N(t) Looks Like",
+    "items": [
+      "Plotting N against time for the logistic model produces a characteristic S-shaped, or sigmoid, curve",
+      "This is fundamentally different from the J-shaped curve of exponential growth",
+      "The sigmoid curve has three recognizable phases as the population grows from a small initial size toward K",
+      "Understanding these phases connects the equation's behavior to observable population trajectories"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Phases of the Sigmoid Curve",
+    "title": "Three Phases of Logistic Growth",
+    "items": [
+      {
+        "y": "Phase 1",
+        "t": "Slow initial growth — population is small, density-dependent braking is minimal, growth resembles exponential but total numbers added per unit time are small"
+      },
+      {
+        "y": "Phase 2",
+        "t": "Rapid growth — population and per capita rate are both large enough that absolute growth (dN/dt) reaches its maximum; the curve rises steeply"
+      },
+      {
+        "y": "Phase 3",
+        "t": "Leveling off — as N approaches K, the (1 − N/K) term shrinks toward zero, growth decelerates, and the curve flattens as N asymptotically approaches K"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Inflection Point",
+    "title": "The Inflection Point at N = K/2",
+    "items": [
+      "The inflection point is where the curve switches from concave-up (accelerating) to concave-down (decelerating)",
+      "For the logistic model, this occurs exactly at N = K/2",
+      "At N = K/2, the absolute growth rate dN/dt reaches its maximum value, equal to rK/4",
+      "Before N = K/2: growth is accelerating (each successive time interval adds more individuals than the last)",
+      "After N = K/2: growth is decelerating (each successive time interval adds fewer individuals than the last), even though N is still increasing"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Result",
+    "title": "Maximum Growth Rate",
+    "term": "dN/dt(max) = rK/4",
+    "def": "The largest possible absolute rate of population increase under the logistic model, achieved precisely when N = K/2.",
+    "bullets": [
+      "This is a useful benchmark in wildlife and fisheries management — many harvesting strategies aim to keep a population near K/2 to maximize sustainable yield",
+      "It follows directly from taking the derivative of rN(1 − N/K) with respect to N and setting it to zero",
+      "This result depends entirely on the symmetric, S-shaped assumption built into the logistic model"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Curve",
+    "title": "Connecting the Curve Back to the Equation",
+    "items": [
+      "Near N = 0: (1 − N/K) ≈ 1, so dN/dt ≈ rN — steep, near-exponential rise begins",
+      "Near N = K/2: dN/dt is at its peak — the curve is steepest here",
+      "Near N = K: (1 − N/K) ≈ 0, so dN/dt ≈ 0 — the curve flattens and approaches K asymptotically",
+      "The population never mathematically exceeds K in the continuous, time-lag-free version of the model — it approaches K but the growth rate smoothly declines to zero"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Solving the Equation",
+    "title": "Solving the Logistic Equation",
+    "sub": "From growth rate to population size over time"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From Rate to Trajectory",
+    "title": "Why We Want a Closed-Form Solution",
+    "items": [
+      "dN/dt = rN(1 − N/K) tells us the instantaneous rate of change, but not directly how big the population is at any specific time t",
+      "Just as with exponential growth, we can integrate the logistic differential equation to obtain N as an explicit function of time, N(t)",
+      "This lets us predict population size at any future time, given starting conditions",
+      "We will present the result conceptually rather than working through the full calculus"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Solution",
+    "title": "Closed-Form Logistic Solution",
+    "term": "N(t) = K / (1 + [(K − N0)/N0] e^(−rt))",
+    "def": "An explicit formula giving population size at time t, based on initial population size N0, intrinsic growth rate r, and carrying capacity K.",
+    "bullets": [
+      "As t → 0, N(t) → N0 (correctly recovers the starting population)",
+      "As t → ∞, the exponential term e^(−rt) → 0, so N(t) → K (population approaches carrying capacity)",
+      "The shape of this function traces out the sigmoid curve described earlier",
+      "This is the same mathematical family as the logistic function used widely in statistics, epidemiology, and machine learning"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Using the Solution",
+    "title": "What the Solution Tells Us Practically",
+    "items": [
+      "Larger r produces a faster approach to K — a steeper rise through the middle phase of the sigmoid curve",
+      "Smaller N0 (relative to K) produces a longer initial lag phase before rapid growth kicks in",
+      "The formula is symmetric around the inflection point at N = K/2, giving the sigmoid curve its characteristic mirrored shape above and below that point",
+      "In practice, ecologists rarely need to hand-solve this equation — the key is understanding what it predicts qualitatively"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Comparison",
+    "title": "Logistic vs. Exponential Growth",
+    "sub": "Two models, two very different long-term predictions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Comparing Models",
+    "title": "Same Starting Point, Different Assumptions",
+    "items": [
+      "Both models begin from a population growing at some intrinsic rate r",
+      "The exponential model assumes r is constant regardless of N — unlimited resources",
+      "The logistic model assumes the effective per capita growth rate declines linearly with N, reaching zero at K",
+      "At low population density (N << K), the two models produce nearly identical predictions, since (1 − N/K) ≈ 1",
+      "The models diverge sharply as N approaches K"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Model Comparison",
+    "title": "Exponential Growth vs. Logistic Growth",
+    "headers": [
+      "Feature",
+      "Exponential Growth",
+      "Logistic Growth"
+    ],
+    "rows": [
+      [
+        "Equation",
+        "dN/dt = rN",
+        "dN/dt = rN(1 − N/K)"
+      ],
+      [
+        "Per capita growth rate",
+        "Constant, equal to r",
+        "Declines linearly with N, from r to 0"
+      ],
+      [
+        "Carrying capacity",
+        "Not included (none)",
+        "Explicit upper limit, K"
+      ],
+      [
+        "Shape of N vs. t curve",
+        "J-shaped, unbounded",
+        "S-shaped (sigmoid), bounded by K"
+      ],
+      [
+        "Density dependence",
+        "Absent",
+        "Present (negative density dependence)"
+      ],
+      [
+        "Maximum growth rate location",
+        "Increases continuously, no maximum",
+        "Occurs at N = K/2 (dN/dt = rK/4)"
+      ],
+      [
+        "Best approximation when",
+        "Population far below any resource limit (e.g., early colonization, invasive species establishment)",
+        "Population approaching resource or space limitation"
+      ],
+      [
+        "Long-term prediction",
+        "Infinite population size",
+        "Population stabilizes at K"
+      ]
+    ],
+    "footnote": "At low N, logistic growth approximates exponential growth because (1 − N/K) ≈ 1"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "When Each Model Applies",
+    "title": "Choosing the Right Model",
+    "items": [
+      "Exponential growth is a good approximation during early colonization of a new habitat, during recovery from a population crash, or over short time horizons where resource limits are not yet binding",
+      "Logistic growth is a better approximation when a population has been established long enough to approach the resource or space limits of its environment",
+      "Neither model is universally 'correct' — both are simplifications chosen to match the timescale and biological context of the question being asked",
+      "Many real population trajectories look exponential at first and then bend toward a logistic-like plateau as density effects appear — this transition is itself informative"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Visual Intuition",
+    "title": "J-Curve vs. S-Curve",
+    "left": {
+      "h": "Exponential (J-shaped)",
+      "body": "Growth rate keeps accelerating; the curve bends upward without limit. No equilibrium exists in the model itself — the population size has no ceiling."
+    },
+    "right": {
+      "h": "Logistic (S-shaped)",
+      "body": "Growth accelerates, peaks at N = K/2, then decelerates and flattens as N approaches K. The curve has a built-in equilibrium — the population settles near K."
+    },
+    "footnote": "The single added term (1 − N/K) transforms unbounded growth into a self-limiting trajectory"
+  },
+  {
+    "type": "section",
+    "tag": "Assumptions",
+    "title": "Assumptions of the Logistic Model",
+    "sub": "What we had to assume to get such a clean equation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Assumptions",
+    "title": "Assumption 1 — Instantaneous Response to Density",
+    "items": [
+      "The model assumes the population's growth rate responds immediately to its current density N",
+      "There is no delay between a change in N and the corresponding change in the growth rate",
+      "In reality, many organisms respond to density changes only after some delay — for example, effects on reproduction may not appear until the next breeding season",
+      "This assumption of 'no time lag' is a major simplification, and relaxing it is the focus of the next lecture on time lags and complex dynamics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Assumptions",
+    "title": "Assumption 2 — Constant Carrying Capacity",
+    "items": [
+      "K is treated as a fixed, unchanging number over the entire time period being modeled",
+      "Real environments fluctuate: seasonal changes, weather, resource pulses, and disturbances all cause K to vary over time",
+      "A constant K is a reasonable approximation only over relatively short or stable time periods",
+      "When K itself fluctuates, population dynamics become considerably more complex than the smooth sigmoid curve"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Assumptions",
+    "title": "Assumption 3 — Continuous Growth and a Homogeneous Population",
+    "items": [
+      "The model assumes continuous (overlapping-generation) growth, described by a differential equation, rather than discrete generations",
+      "All individuals are assumed identical: same birth rate, same death rate, same response to density, regardless of age, sex, or genotype",
+      "There is no age structure — every individual contributes equally and simultaneously to N",
+      "There is no spatial structure — individuals are assumed to mix freely and experience the same average density"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Assumptions",
+    "title": "Assumption 4 — Linear Density Dependence",
+    "items": [
+      "The model assumes the per capita growth rate declines linearly with N — a straight-line relationship from r at N=0 down to 0 at N=K",
+      "This produces the specific symmetric S-shape and the specific inflection point at exactly N = K/2",
+      "Real density-dependent responses are often nonlinear — for example, effects may be negligible until N is quite high, then drop off steeply (a threshold-like response)",
+      "Different assumed shapes of density dependence produce different curve shapes and different maximum-growth-rate locations, which is an active area of population modeling"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Limitations",
+    "title": "Limitations of the Logistic Model",
+    "sub": "Where the clean mathematics meets messy biology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limitations",
+    "title": "Real Populations Often Don't Fit a Clean S-Curve",
+    "items": [
+      "Few natural populations trace out a perfectly smooth sigmoid curve in practice",
+      "Environmental variability (weather, resource pulses, disturbance) causes N to fluctuate around, rather than smoothly approach, K",
+      "Species interactions — predation, competition with other species, disease — introduce dynamics the single-species logistic model does not capture",
+      "Even controlled laboratory populations (e.g., Gause's protozoans) show oscillations and irregularities not predicted by the simplest logistic curve"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limitations",
+    "title": "Overshoot and Lag Effects",
+    "items": [
+      "If there is any delay between a change in density and the population's response (violating Assumption 1), the population can overshoot K before growth turns negative",
+      "Overshoot can lead to oscillations around K, or in some cases to a sharp decline (crash) well below K",
+      "The larger the time lag relative to r, the more pronounced the oscillations or overshoot become",
+      "This overshoot-and-lag behavior is exactly the phenomenon that motivates the time-delayed logistic model, our next topic"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limitations",
+    "title": "Additional Practical Limitations",
+    "items": [
+      "The model has only two parameters (r and K), which is elegant but cannot capture more complex biological detail like age structure, sex ratio, or genetic variation",
+      "K is often difficult to estimate precisely in real populations and may not even be a meaningful fixed number for a given system",
+      "The model does not include stochastic (random) variation — real populations experience demographic and environmental randomness the deterministic logistic equation ignores",
+      "Despite these limitations, the logistic model remains foundational because of its simplicity and its qualitative capture of density-dependent regulation"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On Model Simplicity",
+    "quote": "All models are wrong, but some are useful.",
+    "attrib": "George E. P. Box (statistician), a principle central to how ecologists use simplified models like the logistic equation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Model Still Matters",
+    "title": "The Logistic Model's Enduring Value",
+    "items": [
+      "It is the simplest possible model that captures the essential feature of negative density dependence",
+      "It generates clear, testable predictions: an S-shaped curve, a maximum growth rate at K/2, and stabilization at K",
+      "It provides the mathematical foundation for more advanced models covered later in the course, including time-delayed logistic growth, predator-prey models, and models with Allee effects",
+      "It is widely used as a baseline in fisheries and wildlife management for estimating sustainable harvest levels"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Logistic Growth in the Real World",
+    "title": "Where the Logistic Model Is Applied",
+    "cards": [
+      {
+        "h": "Fisheries management",
+        "p": "Maximum sustainable yield calculations are often based on harvesting near N = K/2, where the logistic model predicts maximum surplus production."
+      },
+      {
+        "h": "Wildlife population recovery",
+        "p": "Reintroduced or recovering populations (e.g., after conservation intervention) often show S-shaped growth trajectories as they approach habitat carrying capacity."
+      },
+      {
+        "h": "Microbial and cell cultures",
+        "p": "Bacterial growth in a batch culture classically follows a logistic-like curve as nutrients are depleted."
+      },
+      {
+        "h": "Human population growth",
+        "p": "Global human population growth has been modeled with logistic curves, though estimating a meaningful global K remains highly debated."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Putting It Together",
+    "title": "Summary — The Logistic Growth Model",
+    "items": [
+      "The logistic equation dN/dt = rN(1 − N/K) modifies exponential growth by adding the density-dependent term (1 − N/K)",
+      "(1 − N/K) represents the fraction of carrying capacity still unused; it drives growth toward zero as N approaches K",
+      "The resulting trajectory is a sigmoid (S-shaped) curve with an inflection point, and maximum growth rate, at N = K/2",
+      "At low density the logistic model behaves like the exponential model; at high density it diverges sharply, converging on K instead of growing without bound",
+      "Key assumptions — no time lag, constant K, homogeneous continuous population, linear density dependence — are simplifications that limit real-world fit but make the model tractable",
+      "Overshoot and lag effects, arising when the no-time-lag assumption is violated, preview the more complex dynamics covered next"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Looking Ahead",
+    "title": "Before Next Class",
+    "sub": "From steady approach to K, toward oscillations and complexity"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 8 — Time Lags and Complex Dynamics",
+    "left": {
+      "h": "What we assumed today",
+      "body": "The logistic model assumed population growth responds instantaneously to current density — no delay between a change in N and a change in growth rate. This gave us a smooth, predictable S-curve."
+    },
+    "right": {
+      "h": "What happens when that assumption breaks",
+      "body": "Lecture 8 introduces a time delay into the density-dependence term. We will see how even a modest lag can generate damped oscillations, stable limit cycles, or chaotic dynamics — very different from the smooth sigmoid curve."
+    },
+    "footnote": "Reading for Lecture 8: Rockwood, Ch. 3"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question",
+    "title": "Discussion — Estimating Carrying Capacity",
+    "items": [
+      "If you were tasked with estimating the carrying capacity K for a deer population in a forest reserve, what data would you need to collect?",
+      "How might K differ between a wet year and a drought year, and what would that mean for applying a model that assumes constant K?",
+      "Would you expect the logistic model to fit better over a 5-year window or a 50-year window? Why?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question",
+    "title": "Discussion — Logistic vs. Exponential in Practice",
+    "items": [
+      "Think of a real or hypothetical population you might expect to grow exponentially for a while before shifting toward logistic-like behavior. What triggers that shift?",
+      "If a population is observed to be growing faster and faster over time (accelerating), does that tell you whether N is above or below K/2 under the logistic model?",
+      "What kinds of data would let you distinguish, from observations alone, whether a population is following exponential growth or is still in the early phase of logistic growth?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "End of Lecture 7",
+    "title": "The Logistic Growth Model",
+    "sub": "Next: Time Lags and Complex Dynamics (Lecture 8)"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 7</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

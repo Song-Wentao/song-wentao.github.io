@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 16: Competitive Interactions Fundamentals II: Null Models and Detecting Community-Wide Competition</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 16",
+    "title": "Competitive Interactions Fundamentals II: Null Models and Detecting Community-Wide Competition",
+    "sub": "Testing whether co-occurrence patterns reveal competition, or just chance, filtering, and history",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 7 — Competitive interactions fundamentals"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Recap of Lecture 15",
+    "items": [
+      "Lecture 15 asked: does competition structure whole communities, not just pairs of species?",
+      "<b>MacArthur's warblers</b> — subtle niche partitioning within a guild of foliage-gleaning insectivores, interpreted as evidence of competition's imprint",
+      "<b>Connell's barnacles</b> — a manipulative field experiment showing realized vs. fundamental niche, direct evidence competition sets a zonation boundary",
+      "<b>Diamond's assembly rules</b> — checkerboard-like co-occurrence patterns among New Guinea birds, interpreted as evidence of competitive exclusion structuring whole faunas",
+      "Diamond's claims were bold and largely qualitative — critics asked: how do we know these patterns aren't just what random colonization would produce?",
+      "That question ignited one of the most consequential methodological debates in community ecology — the subject of today's lecture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "The Null Model Controversy",
+    "sub": "Connor & Simberloff's challenge to Diamond's assembly rules"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE SPARK",
+    "title": "Diamond's Assembly Rules, Restated",
+    "items": [
+      "In 1975, Jared Diamond proposed a set of verbal \"assembly rules\" for bird communities on New Guinea and satellite islands",
+      "Central claim: certain species combinations are missing from islands where both species' habitats co-occur — a pattern he called a <b>checkerboard distribution</b>",
+      "Diamond interpreted missing combinations as fingerprints of interspecific competition — species so similar in niche that they exclude each other island by island",
+      "The rules were influential but based on pattern alone: no null expectation was calculated, no statistical test was applied",
+      "This left an opening: could these \"forbidden combinations\" simply reflect chance, given how few islands and species were involved?"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THE CRITIQUE",
+    "quote": "Patterns which are indistinguishable from chance have been interpreted as evidence for competition. We show that null hypotheses, rigorously constructed, are essential before invoking any biological mechanism to explain a pattern.",
+    "attrib": "Connor & Simberloff (1979), paraphrased summary of their critique of Diamond's assembly rules"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE COUNTER-ARGUMENT",
+    "title": "Connor & Simberloff's Null Model Critique (1979)",
+    "items": [
+      "E.F. Connor and D. Simberloff re-examined Diamond's bird data using a randomization approach",
+      "They built a <b>null model</b>: randomize species presence/absence across islands while holding certain totals fixed (e.g., how many islands each species occupies, how many species each island holds)",
+      "Result: many of the co-occurrence patterns Diamond attributed to competition were <b>statistically indistinguishable from random assembly</b>",
+      "Their conclusion was provocative — much of the \"evidence\" for competition structuring these communities could not be distinguished from patterns generated by chance colonization alone",
+      "This did not prove competition was unimportant — it argued that pattern-based claims require a rigorous null before being accepted as evidence"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO CAMPS",
+    "title": "The Debate That Followed",
+    "left": {
+      "h": "Diamond & allies",
+      "body": "Argued the null models used by Connor & Simberloff were themselves flawed — some randomization algorithms are too permissive, producing checkerboards even from communities that ARE competitively structured. Biological realism (e.g., known habitat requirements) must inform any null, not just statistical convenience."
+    },
+    "right": {
+      "h": "Connor, Simberloff & allies",
+      "body": "Argued that without an explicit, defensible null model, any observed pattern can be claimed as evidence for any favored process. Ecologists must state their null model precisely, test sensitivity to its assumptions, and accept that pattern alone rarely proves process."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY IT MATTERED",
+    "title": "The Larger Stakes of the Null Model Debate",
+    "items": [
+      "This was not a narrow argument about New Guinea birds — it became a referendum on how community ecology does science",
+      "Before this debate, many claims about competition's community-wide role rested on \"the pattern looks non-random to me\" — an intuitive, unquantified judgment",
+      "After this debate, rigorous null-model testing became a baseline expectation for any claim that a community pattern reflects a particular biological process",
+      "The controversy also exposed a deeper problem that recurs throughout community ecology: multiple different processes can generate the same observed pattern",
+      "This is the <b>pattern-vs-process problem</b> — a theme we will return to repeatedly across this course"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Defining the Null Model",
+    "term": "Null model",
+    "def": "A pattern-generating model that deliberately excludes the biological mechanism of interest (e.g., competition) while retaining other constraints of the real system (e.g., how many species occur on each site, how common each species is), used to ask whether an observed pattern is more extreme than what could arise by chance alone.",
+    "bullets": [
+      "The null model is not \"no pattern at all\" — it is a specific, defensible alternative to the hypothesis being tested",
+      "Rejecting the null does not automatically confirm competition — it only shows the pattern is unlikely under the stated null",
+      "Constructing a good null model is as much a scientific judgment call as constructing a good hypothesis"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Building a Null Model",
+    "sub": "The logic of randomization, constraints, and comparison"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BASIC LOGIC",
+    "title": "Four Steps of Null Model Testing",
+    "items": [
+      "<b>Step 1 — Observe:</b> calculate a summary statistic from the real community data (e.g., a co-occurrence score across a matrix of species x sites)",
+      "<b>Step 2 — Randomize:</b> generate many (often thousands of) randomized versions of the data matrix, using an algorithm that shuffles presence/absence while holding chosen properties fixed",
+      "<b>Step 3 — Distribute:</b> calculate the same summary statistic for every randomized matrix, building a null distribution of expected values under \"no competition\"",
+      "<b>Step 4 — Compare:</b> ask where the observed value falls relative to the null distribution — is it in the extreme tail, suggesting the real pattern is unlikely to arise by chance?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE DATA STRUCTURE",
+    "title": "The Presence-Absence Matrix",
+    "items": [
+      "Most co-occurrence null models start from a simple binary matrix: rows = species, columns = sites (or islands), cell = 1 if the species is present at that site, 0 if absent",
+      "Row totals = number of sites each species occupies (a measure of how widespread/common each species is)",
+      "Column totals = number of species present at each site (a measure of that site's overall species richness)",
+      "The entire question becomes: given these row and column totals, is the specific arrangement of 1s and 0s in the matrix different from what randomization would produce?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CRUX OF THE DEBATE",
+    "title": "Why Constraints Matter",
+    "items": [
+      "The choice of what to hold fixed while randomizing is the single most consequential decision in null model construction",
+      "Fix nothing: shuffle 1s and 0s completely freely — usually too permissive, destroys realistic structure, easily rejected as unrealistic",
+      "Fix row totals only: preserve each species' overall commonness, randomize which sites it occupies",
+      "Fix column totals only: preserve each site's species richness, randomize species identities",
+      "Fix BOTH row and column totals (the most widely used approach): preserve exactly how common each species is AND exactly how rich each site is, randomize only the specific pairings",
+      "Different constraint choices can lead to different conclusions about the very same dataset — this sensitivity is itself a central point of criticism and caution"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "ALGORITHM CHOICES",
+    "title": "Common Null Model Algorithms",
+    "cards": [
+      {
+        "h": "Equiprobable rows/columns",
+        "p": "All species and all sites treated as equally likely to gain a presence — simplest, but often unrealistic and prone to false positives for structure."
+      },
+      {
+        "h": "Fixed-fixed (both totals fixed)",
+        "p": "Preserves row and column sums exactly, then reshuffles cell placement — the most widely recommended and most conservative standard approach."
+      },
+      {
+        "h": "Proportional / weighted algorithms",
+        "p": "Allow site or species probabilities to vary in proportion to observed totals rather than being held exactly fixed — a middle ground between rigidity and total freedom."
+      },
+      {
+        "h": "Sequential swap algorithms",
+        "p": "Randomly swap pairs of cells to preserve row/column totals while efficiently generating many independent randomized matrices for the null distribution."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONCEPTUAL WALKTHROUGH",
+    "title": "A Worked Mini-Example",
+    "left": {
+      "h": "The observed matrix",
+      "body": "Imagine 5 islands and 4 bird species. Two of the species are ecologically very similar (same foraging guild). In the real data, these two species are NEVER found together on the same island — every island has one or the other, never both."
+    },
+    "right": {
+      "h": "The null comparison",
+      "body": "Randomize the matrix thousands of times, holding fixed how many islands each species occupies and how many species each island holds. Ask: across these random matrices, how often do we see this same pair of species co-occurring zero times? If that outcome is rare in the null distribution, the observed non-overlap is a statistically supported checkerboard."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Checkerboards and the C-Score",
+    "sub": "From pairwise patterns to community-wide co-occurrence metrics"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "A Classic Signature of Exclusion",
+    "term": "Checkerboard distribution",
+    "def": "A pattern in which two species never co-occur at the same site across a set of sites where both are otherwise capable of occurring — named for the alternating presence/absence pattern that would resemble a checkerboard if the two species' rows were plotted side by side.",
+    "bullets": [
+      "Diamond proposed checkerboards as a signature of competitive exclusion: if two ecologically similar species compete strongly, only one can persist per site",
+      "A single checkerboard pair, by itself, is weak evidence — it could easily arise from chance, especially with only a few sites",
+      "The question becomes statistical: are checkerboard PAIRS more common across the WHOLE community than a null model predicts?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FROM PAIRS TO COMMUNITIES",
+    "title": "Why Look at the Whole Matrix, Not Just One Pair",
+    "items": [
+      "Diamond's original assembly rules were often illustrated with individual, cherry-picked species pairs — vulnerable to the criticism of selective reporting",
+      "A more rigorous approach asks: across ALL possible species pairs in the community, is there an excess of checkerboard-like segregation compared to a null expectation?",
+      "This requires a single summary statistic that captures the overall degree of co-occurrence structure (segregation or aggregation) across the entire matrix",
+      "This is exactly the role played by co-occurrence indices such as the <b>C-score</b>"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "A Standardized Measure of Segregation",
+    "term": "C-score (checkerboard score)",
+    "def": "A community-wide index, developed by Stone & Roberts (1990), that averages a measure of pairwise \"checkerboardedness\" across all species pairs in a matrix — essentially counting, for each pair, the number of sites where one species occurs without the other, then averaging across all pairs.",
+    "bullets": [
+      "A higher-than-null C-score indicates the community as a whole is more segregated (species pairs co-occur less often) than random assembly would predict",
+      "A lower-than-null C-score indicates aggregation — species pairs co-occur MORE than expected, perhaps due to shared habitat preferences or facilitation",
+      "The C-score summarizes the whole matrix in one number, avoiding the selective-reporting problem of picking individual \"good\" pairs"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW THE TEST WORKS",
+    "title": "Testing the C-Score Against a Null Distribution",
+    "items": [
+      "Calculate the observed C-score for the real presence-absence matrix",
+      "Generate thousands of randomized matrices under a chosen constraint algorithm (commonly fixed-fixed)",
+      "Calculate the C-score for each randomized matrix, building up a null distribution",
+      "If the observed C-score falls in the extreme upper tail of the null distribution, this is taken as community-wide statistical evidence for segregation (consistent with, though not proof of, competitive structuring)",
+      "This general logic — observed statistic vs. null distribution built from many randomizations — underlies the majority of modern co-occurrence null model analyses"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND THE C-SCORE",
+    "title": "Other Co-occurrence Metrics",
+    "items": [
+      "<b>Number of checkerboard pairs:</b> a simple count of species pairs with perfect non-overlap, compared to null expectation",
+      "<b>Number of species combinations:</b> the total count of distinct species assemblages observed at sites, compared to how many unique combinations random assembly would generate",
+      "<b>Togetherness / segregation indices:</b> alternative pairwise measures with slightly different sensitivity to matrix structure",
+      "No single metric is universally best — different metrics have different statistical power and different sensitivity to matrix fill and size, so robust studies often report several"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Critiques and Cautions",
+    "sub": "What null models can and cannot tell us"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAUTION 1",
+    "title": "Sensitivity to Algorithm Choice",
+    "items": [
+      "The same dataset can yield a statistically significant checkerboard signal under one null model algorithm and no signal at all under another",
+      "This sensitivity is not a minor technicality — it can flip the qualitative conclusion of a study",
+      "Best practice today: report results under multiple constraint algorithms, and be explicit and transparent about which was chosen and why",
+      "Gotelli (2000) systematically compared multiple null model algorithms across many empirical datasets, providing the field's most-cited guidance on this issue and generally favoring fixed-fixed constraints as the most conservative default"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAUTION 2 — THE BIG ONE",
+    "title": "Pattern Cannot Prove Process",
+    "items": [
+      "Even a statistically robust, community-wide checkerboard signal (an elevated C-score) does not, by itself, prove that competition caused the pattern",
+      "Several other processes can independently generate segregated co-occurrence patterns that look just like competitive exclusion:",
+      "<b>Habitat filtering:</b> species differ in habitat requirements, so different species occupy different site types even with zero interaction between them",
+      "<b>Dispersal limitation:</b> species simply never reach certain sites due to distance or barriers, unrelated to any competitive interaction",
+      "<b>Historical biogeography:</b> species ranges reflect deep history — glaciation, speciation events, vicariance — producing non-overlap that has nothing to do with present-day competition",
+      "This is the central epistemological challenge of the whole null-model enterprise: co-occurrence pattern alone is fundamentally ambiguous about mechanism"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE SAME PATTERN, DIFFERENT CAUSES",
+    "title": "Three Roads to a Checkerboard",
+    "left": {
+      "h": "Competition (Diamond's hypothesis)",
+      "body": "Species A and B have overlapping niches. Wherever both colonize, one competitively excludes the other, leaving a checkerboard of single occupancy across sites."
+    },
+    "right": {
+      "h": "Non-competitive alternatives",
+      "body": "Species A prefers wet sites, species B prefers dry sites (habitat filtering) — checkerboard with no interaction at all. OR: species A and B arose in different biogeographic regions and their ranges simply never overlapped (history) — checkerboard with no interaction and no shared habitat gradient either."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAUTION 3",
+    "title": "Statistical and Practical Limitations",
+    "items": [
+      "Small matrices (few species, few sites) have low statistical power — real structure may go undetected, and apparent structure may be a small-sample artifact",
+      "Presence/absence data discard information — two species could \"co-occur\" at a site but use it at different times, depths, or microhabitats, meaning true niche overlap is not well captured by a binary matrix",
+      "Publication and selection bias: assemblages chosen for study are sometimes selected because they already show striking patterns, inflating apparent effect sizes",
+      "Null models test a statistical hypothesis about matrix structure — they do not, by themselves, test a mechanistic hypothesis about individual organisms interacting"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THE TAKEAWAY CAUTION",
+    "quote": "A significant departure from a null model tells you the pattern is unusual. It does not tell you why.",
+    "attrib": "Paraphrase of the central lesson of the null model literature, following Gotelli & Graves (1996)"
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Beyond Co-occurrence",
+    "sub": "Trait-based and phylogenetic approaches as complementary evidence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY WE NEED MORE TOOLS",
+    "title": "Strengthening Inference Beyond Presence/Absence",
+    "items": [
+      "Because co-occurrence pattern alone cannot distinguish competition from habitat filtering, dispersal limitation, or history, ecologists have developed complementary lines of evidence",
+      "Two major complementary approaches: examine species' <b>functional traits</b> related to resource use, and examine species' <b>evolutionary relatedness</b>",
+      "The logic in both cases: if competition (not just co-occurrence pattern) is driving community structure, we should see specific, independently testable signatures in trait or phylogenetic space",
+      "These approaches do not replace null models of co-occurrence — they triangulate the same underlying question from different angles"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Testing for Resource-Use Differences",
+    "term": "Trait-based (limiting similarity) analysis",
+    "def": "An approach that asks whether species co-occurring at a site differ systematically, and more than expected by chance, in functional traits linked to resource use (e.g., beak size, body size, root depth) — the prediction being that strong competition should select for coexisting species to diverge in resource-use traits (limiting similarity).",
+    "bullets": [
+      "If co-occurring species show greater trait spacing (overdispersion) than a null community assembled at random from the regional species pool, this is consistent with competitive character displacement / limiting similarity",
+      "If co-occurring species show trait clustering (similarity) instead, this is more consistent with habitat filtering — species that survive at a site share traits suited to that environment, regardless of competition",
+      "Same basic null-model logic as co-occurrence analysis, but applied to a trait matrix instead of a presence/absence matrix"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Testing for Evolutionary Overdispersion",
+    "term": "Phylogenetic community structure",
+    "def": "An approach that asks whether species co-occurring at a site are more or less closely related, on average, than expected under random assembly from the regional pool — using a dated phylogeny to calculate relatedness among co-occurring species.",
+    "bullets": [
+      "<b>Phylogenetic overdispersion:</b> co-occurring species are LESS closely related than expected — consistent with competitive exclusion among close relatives that share similar (inherited) niches",
+      "<b>Phylogenetic clustering:</b> co-occurring species are MORE closely related than expected — consistent with habitat filtering, if relatives share traits suited to the local environment",
+      "Rests on an assumption — <b>phylogenetic niche conservatism</b> — that close relatives tend to be ecologically similar; where this assumption fails, phylogenetic patterns can mislead",
+      "This approach previews a major theme of Chapter 12, where phylogenetic and trait-based community assembly frameworks are developed in much greater depth"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS",
+    "title": "Three Approaches to Detecting Community-Wide Competition",
+    "headers": [
+      "Approach",
+      "What it measures",
+      "Signature of competition",
+      "Key limitation"
+    ],
+    "rows": [
+      [
+        "Co-occurrence null models",
+        "Presence/absence structure across a species x site matrix",
+        "Checkerboard pattern / elevated C-score (segregation)",
+        "Cannot distinguish competition from filtering, dispersal, or history"
+      ],
+      [
+        "Trait-based (limiting similarity)",
+        "Functional trait spacing among co-occurring species",
+        "Trait overdispersion (co-occurring species more different than expected)",
+        "Requires traits that actually map onto the relevant resource axis"
+      ],
+      [
+        "Phylogenetic structure",
+        "Relatedness among co-occurring species using a dated phylogeny",
+        "Phylogenetic overdispersion (co-occurring species less related than expected)",
+        "Depends on niche conservatism holding true for the group studied"
+      ]
+    ],
+    "footnote": "No single approach is decisive alone; convergent evidence across all three strengthens (but never fully proves) a competition-based interpretation."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMBINING THE EVIDENCE",
+    "title": "Triangulation, Not a Single Silver Bullet",
+    "items": [
+      "A community showing co-occurrence segregation AND trait overdispersion AND phylogenetic overdispersion presents a much stronger, more convergent case for competitive structuring than any one line of evidence alone",
+      "Conversely, if co-occurrence segregation exists but traits and phylogeny show no corresponding overdispersion, competition becomes a less compelling explanation — habitat filtering or history become more plausible",
+      "This multi-pronged strategy reflects a broader methodological maturation in community ecology: moving away from single-pattern claims toward integrated, multiple-lines-of-evidence inference",
+      "Still, all of these approaches remain observational and correlational; the strongest inference ultimately still comes from Connell-style manipulative field experiments (recall Lecture 15)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Toward a Modern Synthesis",
+    "sub": "Reframing the question from \"whether\" to \"when, where, and how strongly\""
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "REFRAMING THE DEBATE",
+    "title": "From \"Is Competition Important?\" to a Better Question",
+    "items": [
+      "The Diamond vs. Connor & Simberloff debate was often framed as a yes/no dichotomy: is competition an important structuring force in communities, or isn't it?",
+      "Decades of null model studies, trait analyses, and phylogenetic studies have made clear that this framing is too simple — competition's importance varies enormously across systems, taxa, and spatial scales",
+      "The modern, more productive question: <b>when, where, and how strongly</b> does competition structure communities, relative to other processes acting simultaneously?",
+      "This is sometimes called a pluralistic view of community assembly — multiple processes operate together, and their relative importance is itself the subject of empirical study, not an assumption"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE COMPETING PROCESSES",
+    "title": "What Else Shapes Co-occurrence Patterns?",
+    "items": [
+      "<b>Environmental / habitat filtering:</b> abiotic conditions and resource availability determine which species from the regional pool can persist at a site at all",
+      "<b>Dispersal limitation and stochasticity:</b> not every species reaches every suitable site; chance colonization and extinction events (neutral dynamics) shape which species end up where",
+      "<b>Other biotic interactions:</b> predation, mutualism, facilitation, and disease can produce co-occurrence patterns that mimic or mask competitive signals",
+      "<b>Historical biogeography:</b> long-term evolutionary and geographic history constrains present-day species pools independent of any current ecological process",
+      "Community ecology's modern task is disentangling the relative contributions of all of these — competition is one piece of a larger, interacting puzzle"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A CONTEXT-DEPENDENT ANSWER",
+    "title": "Findings from the Broader Null Model Literature",
+    "items": [
+      "Large-scale reviews and meta-analyses (following Gotelli & McCabe 2002, among others) found that many empirical presence/absence matrices DO show more checkerboard structure than null models predict — competition-consistent signals are not rare",
+      "But the strength and consistency of these signals varies substantially by taxon (e.g., stronger in some bird and ant datasets), by spatial scale, and by which null model algorithm is used",
+      "This mixed, context-dependent picture is now seen as a feature, not a failure, of the field — it reflects real biological variation in how strongly competition operates across different systems",
+      "The lesson: sweeping, universal claims (\"competition structures all communities\" or \"competition structures none\") are both oversimplifications the null model literature has helped correct"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THEN AND NOW",
+    "title": "Shifting Frameworks in Community Ecology",
+    "left": {
+      "h": "Earlier framing (1970s-80s)",
+      "body": "Dichotomous debate: either competition is a dominant, pervasive structuring force across communities (Diamond-style assembly rules), or apparent patterns are essentially noise and competition's community-wide role is overstated (Connor & Simberloff-style null model skepticism)."
+    },
+    "right": {
+      "h": "Modern framing (post-2000s synthesis)",
+      "body": "Pluralistic, quantitative framework: competition is one of several interacting processes (filtering, dispersal, stochasticity, other interactions, history); its relative importance is empirically estimated per-system using multiple convergent lines of evidence, not assumed a priori."
+    },
+    "footnote": "This shift mirrors a broader trend across ecology toward context-dependence and multi-causal explanation."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODOLOGICAL LEGACY",
+    "title": "Why This Debate Still Matters Today",
+    "items": [
+      "The null model controversy fundamentally changed standards of evidence across community ecology, not just for competition studies",
+      "It established the expectation that any claim of non-random pattern be paired with an explicit, justified null model and sensitivity analysis",
+      "The same logic and toolkit (observed statistic vs. randomized null distribution) is now applied far beyond co-occurrence — to trait dispersion, phylogenetic structure, network structure, and spatial pattern analysis across ecology",
+      "Understanding this debate equips you to critically evaluate ANY community ecology claim that a pattern reflects a particular process — a skill that will recur throughout the rest of this course"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "EVIDENTIARY STRENGTH",
+    "title": "A Hierarchy of Evidence for Competition's Role",
+    "levels": [
+      {
+        "label": "Manipulative field experiments (e.g., Connell's removals)",
+        "color": "#1f6f54",
+        "width": "220px"
+      },
+      {
+        "label": "Convergent trait + phylogenetic + co-occurrence signals",
+        "color": "#2f8f6f",
+        "width": "280px"
+      },
+      {
+        "label": "Community-wide null model tests (C-score vs. randomization)",
+        "color": "#57ab8c",
+        "width": "340px"
+      },
+      {
+        "label": "Single-pair pattern observation (e.g., one checkerboard pair)",
+        "color": "#8ecdb4",
+        "width": "400px"
+      }
+    ],
+    "footnote": "Moving up the pyramid strengthens causal inference; moving down increases the risk that pattern is mistaken for process."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODOLOGICAL CONTRIBUTION",
+    "title": "Gotelli's Systematic Comparisons",
+    "items": [
+      "Nicholas Gotelli, working with Gary Graves and later others, conducted extensive systematic comparisons of null model algorithms across dozens of published presence/absence datasets",
+      "These studies quantified how often conclusions about community structure flipped depending solely on which randomization algorithm was used",
+      "Their overall recommendation favored fixed-fixed (row and column totals both held constant) as the most defensible default, balancing statistical power against unrealistic permissiveness",
+      "This body of work, along with freely available null-model software, helped standardize practice across the field and is a large part of why rigorous null model testing is now the expected norm rather than the exception"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BIG IDEAS TO CARRY FORWARD",
+    "title": "Four Takeaways from the Null Model Debate",
+    "cards": [
+      {
+        "h": "Pattern needs a null",
+        "p": "Any claim that community structure is \"non-random\" requires a rigorous, explicit null model — intuition is not sufficient evidence."
+      },
+      {
+        "h": "Constraints shape conclusions",
+        "p": "How a null model is constructed (which totals are held fixed, which algorithm is used) can change the outcome — transparency and sensitivity testing are essential."
+      },
+      {
+        "h": "Pattern is not process",
+        "p": "Co-occurrence structure alone cannot distinguish competition from habitat filtering, dispersal limitation, or biogeographic history."
+      },
+      {
+        "h": "Triangulate the evidence",
+        "p": "Combining co-occurrence, trait, and phylogenetic approaches — ideally with experiments — gives far stronger inference than any single method alone."
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL ARC",
+    "title": "Milestones in the Null Model Debate",
+    "items": [
+      {
+        "y": "1975",
+        "t": "Diamond proposes verbal assembly rules for New Guinea bird communities, citing checkerboard distributions as evidence of competitive exclusion"
+      },
+      {
+        "y": "1979",
+        "t": "Connor & Simberloff publish their null model critique, showing many of Diamond's patterns are statistically indistinguishable from random assembly"
+      },
+      {
+        "y": "1980s",
+        "t": "Extended back-and-forth exchanges between Diamond/Gilpin and Connor/Simberloff over appropriate null model construction and constraints"
+      },
+      {
+        "y": "1990",
+        "t": "Stone & Roberts introduce the C-score as a standardized, community-wide co-occurrence metric"
+      },
+      {
+        "y": "1996–2000",
+        "t": "Gotelli & Graves, and later Gotelli, systematically compare null model algorithms across many empirical datasets, establishing best-practice guidance"
+      },
+      {
+        "y": "2000s–present",
+        "t": "Trait-based and phylogenetic community structure approaches expand the toolkit; field converges on a pluralistic, multi-process view of community assembly"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING THE THREADS",
+    "title": "Linking Back to Lecture 15",
+    "items": [
+      "Lecture 15's field studies (MacArthur's warblers, Connell's barnacles) provided direct, often experimental, evidence that competition CAN structure real communities in specific cases",
+      "Diamond's assembly rules attempted to generalize this to a community-wide, pattern-based claim — and it was precisely this generalization that triggered the null model debate covered today",
+      "Today's null model, C-score, trait, and phylogenetic tools are the methodological response to the problem Diamond's critics identified: how do we test community-wide claims rigorously?",
+      "Together, Lectures 15 and 16 show both sides of the evidentiary coin in Chapter 7: experimental demonstration of mechanism (L15) and statistical/comparative testing of pattern across whole communities (L16)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS QUESTION",
+    "title": "Where This Leaves Us Going Forward",
+    "items": [
+      "We now have tools to ask whether competition-consistent patterns exist across communities (null models, C-scores) and to strengthen inference about mechanism (traits, phylogeny)",
+      "But detecting a pattern consistent with competition is not the same as understanding HOW competing species actually coexist over the long term, given that competition should, in theory, drive exclusion",
+      "That deeper theoretical question — how do ecologically similar, competing species persist together at all? — is where Chapter 7 is heading next, and where Chapter 8's coexistence theory takes over in full",
+      "Lecture 17 will synthesize the historical (L15) and statistical (L16) threads of Chapter 7 and set up the transition to modern coexistence theory"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Lecture 16 Summary",
+    "items": [
+      "The null model controversy, sparked by Connor & Simberloff's critique of Diamond's assembly rules, established that community pattern claims require rigorous statistical testing, not just visual inspection",
+      "Null models compare an observed community statistic to a distribution generated by randomizing the data under specified constraints (commonly, fixed row and column totals)",
+      "Checkerboard distributions and the community-wide C-score provide standardized ways to test whether segregation across a whole co-occurrence matrix exceeds chance expectations",
+      "Null model conclusions are sensitive to algorithm choice, and — more fundamentally — co-occurrence pattern alone cannot distinguish competition from habitat filtering, dispersal limitation, or biogeographic history",
+      "Trait-based (limiting similarity) and phylogenetic (overdispersion) approaches provide complementary, partially independent lines of evidence, previewing themes developed further in Chapter 12",
+      "The field has moved from a dichotomous \"is competition important\" debate toward a pluralistic question: when, where, and how strongly does competition structure communities relative to other processes?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Preview of Lecture 17",
+    "sub": "Chapter 7 synthesis and the bridge to modern coexistence theory (Chapter 8)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP",
+    "title": "Lecture 17: Competitive Interactions Fundamentals III",
+    "items": [
+      "Lecture 17 will synthesize Chapter 7 as a whole — integrating the historical field studies (L15) and the null model / pattern-detection toolkit (L16) into a unified picture of competitive interactions",
+      "We will revisit the recurring pattern-vs-process theme one more time before transitioning frameworks",
+      "Central bridging question: if competition is context-dependent and hard to detect from pattern alone, what theoretical framework explains HOW similar competing species manage to coexist at all?",
+      "This sets up Chapter 8's formal coexistence theory — Lotka-Volterra competition models, the competitive exclusion principle, and modern niche/fitness difference frameworks — as the next major arc of the course"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 16</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

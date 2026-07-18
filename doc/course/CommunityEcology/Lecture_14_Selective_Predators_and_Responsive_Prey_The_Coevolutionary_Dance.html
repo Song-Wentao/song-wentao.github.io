@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 14: Selective Predators and Responsive Prey: The Coevolutionary Dance</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 14",
+    "title": "Selective Predators and Responsive Prey: The Coevolutionary Dance",
+    "sub": "Beyond the single-predator/single-prey abstraction: diet choice, switching, induced defenses, and the reciprocal dynamics that shape multi-species communities",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 6 — Selective predators and responsive prey"
+  },
+  {
+    "type": "section",
+    "tag": "PART 0",
+    "title": "Where We Left Off",
+    "sub": "From Chapter 5's generalized consumer-resource models to Chapter 6's realism"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 13",
+    "title": "Apparent Competition and the Ch. 5 Synthesis",
+    "items": [
+      "Two prey species sharing a common predator can suppress one another indirectly — <b>apparent competition</b> — without any direct resource overlap",
+      "Signature: an increase in prey A's abundance depresses prey B's abundance via a shared predator's numerical response",
+      "Lecture 13 synthesized Ch. 5's models: exploitative interactions, Lotka-Volterra predator-prey cycles, functional responses (Type I/II/III), and stability criteria (self-limitation, Type III refugia, spatial refuges)",
+      "Throughout Ch. 5, predators and prey were treated as <b>generalized, homogeneous entities</b> — one predator type, one prey type, fixed per-capita rates",
+      "Chapter 6 asks: what happens when predators can <b>choose</b> among prey, and prey can <b>respond</b> adaptively to risk?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "Real Predators Are Not Indifferent Consumers",
+    "items": [
+      "Real predators typically encounter a menu of prey species, sizes, and phenotypes simultaneously — not a single homogeneous resource",
+      "Observation from countless field studies: prey items appear in predator diets in proportions that rarely match their proportions in the environment",
+      "Some prey types are eaten far more than expected (preferred); others are eaten far less (avoided) or ignored entirely",
+      "This non-random diet composition is not noise — it reflects <b>decision rules</b> shaped by natural selection on foraging behavior",
+      "Prey, in turn, are not passive targets: many species detect predation risk and alter morphology, behavior, or habitat use in real time or across generations",
+      "Today's goal: build the selective-predator / responsive-prey toolkit, then show how it feeds back into community structure and diversity"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Prey Selectivity",
+    "sub": "Quantifying preference and avoidance in the diet"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core concept",
+    "title": "Diet Selectivity",
+    "term": "Selectivity (Electivity)",
+    "def": "The degree to which a predator's diet composition deviates from the relative abundance of prey types available in the environment — the raw signature of non-random foraging.",
+    "bullets": [
+      "Measured by comparing the proportion of a prey type in the diet to its proportion in the environment",
+      "Values > expected proportion indicate preference; values < expected proportion indicate avoidance or inaccessibility",
+      "Selectivity can arise from active choice, differential detectability, differential capture success, or differential post-capture handling — the index itself doesn't distinguish these mechanisms"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A classic metric",
+    "title": "Ivlev's Electivity Index",
+    "term": "Ivlev's Electivity Index (E)",
+    "def": "E = (r_i − p_i) / (r_i + p_i), where r_i is the proportion of prey type i in the diet and p_i is its proportion in the environment.",
+    "bullets": [
+      "E ranges from −1 (complete avoidance) to +1 (exclusive preference), with E = 0 indicating consumption exactly proportional to availability",
+      "Positive E: predator is selecting for that prey type relative to its abundance",
+      "Negative E: predator is selecting against that prey type, or that type has an effective refuge/defense",
+      "Widely used in aquatic ecology (fish diet studies) but generalizes conceptually to any predator-multiprey system; several refinements exist (e.g., Chesson's alpha) that correct for prey depletion during sampling"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Applying the index",
+    "title": "Reading an Electivity Profile",
+    "left": {
+      "h": "Example: a visual fish predator",
+      "body": "A fish preys on three zooplankton types. Large, pigmented Daphnia make up 20% of the plankton community but 60% of gut contents → strongly positive electivity. Small, transparent copepods make up 50% of the community but only 15% of the diet → strongly negative electivity."
+    },
+    "right": {
+      "h": "Interpreting the pattern",
+      "body": "The fish is not sampling randomly — it is visually cueing on large, conspicuous, energetically rewarding prey and largely ignoring small, cryptic, low-reward prey. This single profile already hints at the logic of optimal foraging: prey value and detectability jointly shape realized diet."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why selectivity matters for communities",
+    "title": "From Individual Choice to Community Pattern",
+    "items": [
+      "If selectivity is driven by relative prey abundance itself (not fixed preference), it can generate <b>frequency-dependent predation</b> — previewed later as switching",
+      "Selective removal of certain prey types alters relative abundances within the prey community, which can feed back into competitive and apparent-competitive dynamics from Ch. 5",
+      "Selectivity is the observable pattern; optimal foraging theory supplies the mechanistic, adaptive explanation for why that pattern should evolve"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Optimal Foraging Theory",
+    "sub": "The economics of prey choice"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framework",
+    "title": "Optimal Foraging Theory (OFT): Core Premise",
+    "items": [
+      "Natural selection favors foraging decision rules that maximize net energy (or fitness) gain per unit time spent foraging",
+      "Foragers face trade-offs: time spent searching for or handling one prey type is time not available for others",
+      "OFT treats diet choice as an optimization problem, generating quantitative, testable predictions rather than just descriptive patterns like electivity indices",
+      "Two classic currencies: <b>search time</b> (time to encounter a prey item) and <b>handling time</b> (time to pursue, subdue, consume, and digest it before resuming search)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The currency of choice",
+    "title": "Ranking Prey by Value",
+    "term": "Profitability",
+    "def": "The energetic value of a prey item divided by the handling time required to capture and consume it (E_i / h_i) — energy gained per unit handling-time investment.",
+    "bullets": [
+      "High-profitability prey deliver a large energy payoff for a small handling-time cost",
+      "Profitability, not raw energy content or raw abundance alone, is what should drive an optimally foraging predator's ranking of prey types",
+      "Prey types are ranked from highest to lowest profitability; this ranking is the backbone of the prey choice model"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The classic model",
+    "title": "The Prey Choice (Diet Breadth) Model — Setup",
+    "items": [
+      "Predator encounters prey types sequentially while searching; upon encounter, it must decide: pursue this item, or continue searching for something better?",
+      "Each prey type i has an encounter rate (λ_i), an energy value (E_i), and a handling time (h_i)",
+      "Prey types are ranked by profitability E_i/h_i from highest (rank 1) to lowest",
+      "The model asks: given the encounter rate and profitability of the top-ranked prey, should a lower-ranked prey type ever be included in the diet?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The key prediction",
+    "title": "The Zero-One Rule",
+    "term": "The Zero-One Rule",
+    "def": "A given prey type should be included in the optimal diet with probability 1 (always eaten on encounter) or probability 0 (always ignored) — never partially — and the decision depends only on the abundance of higher-ranked prey, not on the lower-ranked prey's own abundance.",
+    "bullets": [
+      "Counterintuitive result: whether to add a lower-ranked prey type to the diet does NOT depend on how common that prey type is",
+      "It depends entirely on whether including it would raise or lower the forager's overall long-term rate of energy intake, which is set by the encounter rate with higher-ranked prey",
+      "If top-ranked prey are abundant enough that the average search-plus-handling economics already exceed what a lower-ranked item offers, the forager should skip the lower-ranked item every time it is encountered — even if it is abundant"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Working through the logic",
+    "title": "Why Density of the Lower-Ranked Prey Doesn't Matter",
+    "items": [
+      "Adding a prey type to the diet means: every time it's encountered, time is spent handling it instead of continuing to search",
+      "Whether that trade is worth it depends on the alternative — the expected rate of return from continuing to search for higher-ranked prey — which is a function of the higher-ranked prey's encounter rate, not the focal item's own abundance",
+      "This produces the sharp (all-or-nothing) threshold in the zero-one rule rather than a graded response",
+      "This is a foundational, often-tested prediction of OFT — real foragers approximate but do not always perfectly obey it (partial preferences are observed and are an active research topic)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Diet breadth shifts with resource availability",
+    "title": "Predictions: Rich vs. Poor Environments",
+    "left": {
+      "h": "When top-ranked prey are abundant",
+      "body": "High encounter rate with the best prey type means the expected payoff from continued searching is high. The optimal forager should specialize narrowly — ignoring lower-ranked prey entirely, even if those items are locally common. Diet breadth is NARROW."
+    },
+    "right": {
+      "h": "When top-ranked prey are scarce",
+      "body": "Low encounter rate with the best prey type lowers the expected payoff from continued search. It becomes worthwhile to accept lower-ranked prey on encounter rather than pass them up. Diet breadth WIDENS as top-ranked prey become rarer — a key, counter-intuitive, empirically supported OFT prediction."
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "OFT synthesis",
+    "title": "Four Take-Home Predictions of the Prey Choice Model",
+    "cards": [
+      {
+        "h": "Rank by profitability",
+        "p": "Not by abundance or raw energy content — E_i/h_i (energy per unit handling time) sets the ranking."
+      },
+      {
+        "h": "Zero-one inclusion",
+        "p": "Lower-ranked prey are taken always or never on encounter, not in proportion to their abundance."
+      },
+      {
+        "h": "Breadth tracks top-prey density",
+        "p": "Diet narrows when the best prey is common; diet broadens when the best prey becomes scarce."
+      },
+      {
+        "h": "Own abundance is (nearly) irrelevant",
+        "p": "Whether a lower-ranked type is included depends on competitors above it in rank, not on its own density."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Predator Switching",
+    "sub": "Frequency-dependent predation as an emergent Type III response"
+  },
+  {
+    "type": "term",
+    "eyebrow": "From individual choice to population pattern",
+    "title": "Predator Switching",
+    "term": "Switching (Frequency-Dependent Predation)",
+    "def": "A predator disproportionately attacks whichever prey type is currently the most common in the environment, and shifts its relative attack effort as prey frequencies change.",
+    "bullets": [
+      "Distinct from simple preference: a switching predator prefers whatever prey type is locally abundant, rather than always preferring the same fixed prey type",
+      "Mechanisms include formation of a search image for the common type, differential learning/practice effects on handling efficiency, and area-restricted search that concentrates effort where profitable encounters are frequent",
+      "Switching means per-capita predation risk on a given prey type rises steeply once that type becomes common — and drops once it becomes rare"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting back to Chapter 5",
+    "title": "Switching Produces a Sigmoid, Type III-like Response",
+    "left": {
+      "h": "At the single-prey-species level",
+      "body": "Plotting predation rate on prey type A against A's relative frequency in the community yields an S-shaped (sigmoid) curve: low predation pressure when A is rare, rapidly rising pressure as A becomes common, then leveling off — the classic Type III functional response shape from Ch. 5."
+    },
+    "right": {
+      "h": "Why this matters for stability",
+      "body": "Recall from Lecture 11-13: Type III functional responses are stabilizing because they provide prey with a low-density refuge from predation. Switching shows that a Type III-like response can emerge at the community level even if each individual predator has a Type II response to any single prey type in isolation — it's a product of adaptive CHOICE among alternatives, not just handling-time saturation."
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Mechanistic origins of Type III shapes",
+    "title": "Two Routes to a Stabilizing Type III Functional Response",
+    "headers": [
+      "Mechanism",
+      "Level of analysis",
+      "Underlying driver",
+      "Ch. 5/6 connection"
+    ],
+    "rows": [
+      [
+        "Search image / handling-time learning within one prey type",
+        "Single predator, single prey species",
+        "Prey density itself increases capture efficiency (e.g., search image formation) as that prey becomes locally common",
+        "Ch. 5's classic Type III explanation"
+      ],
+      [
+        "Predator switching among alternative prey types",
+        "Single predator, multiple prey species (community-level)",
+        "Relative frequency among prey types reallocates predator attention/effort toward whichever type is currently common",
+        "Ch. 6's emergent, choice-based Type III"
+      ],
+      [
+        "Prey refuge use at low density",
+        "Single predator, single prey species",
+        "Structural or behavioral refuges reduce encounter rate when prey are rare, independent of predator choice",
+        "Ch. 5's spatial refuge stability mechanism"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Community consequence of switching",
+    "title": "Switching as a Diversity-Maintaining Force",
+    "items": [
+      "Because switching predators impose the heaviest per-capita mortality on whichever prey species is currently most abundant, they create a negative feedback on that species' dominance",
+      "This tends to prevent any single prey species from monopolizing the community — directly analogous to how Type III refugia stabilize a single predator-prey pair, but now operating across an entire prey assemblage",
+      "Switching is therefore a mechanistically explicit link between individual adaptive foraging behavior (OFT) and community-level coexistence patterns"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Apostatic Selection",
+    "sub": "Switching predation as a force maintaining polymorphism within prey species"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Within-species consequence of switching",
+    "title": "Apostatic Selection",
+    "term": "Apostatic Selection",
+    "def": "Negative frequency-dependent selection imposed by predators that disproportionately attack the most common phenotype (morph) within a polymorphic prey population, thereby favoring rare morphs.",
+    "bullets": [
+      "A special case of predator switching applied within a single species rather than across species — the 'prey types' are color morphs, shell patterns, or other discrete phenotypes",
+      "Predators often form a search image for the common morph (learning its cryptic pattern or simply encountering it more often), making rare morphs relatively harder to detect and thus safer",
+      "Net effect: rare morphs enjoy a fitness advantage purely because they are rare — as they increase in frequency, that advantage erodes, and selection favors whichever morph is currently uncommon"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences for prey populations",
+    "title": "How Apostatic Selection Maintains Polymorphism",
+    "items": [
+      "Because the fitness advantage flips to whichever morph is rare, apostatic selection acts as a stabilizing (balancing) force on morph frequencies — it actively resists fixation of any single morph",
+      "This is one of the classic mechanisms proposed to explain why many prey species (land snails, some insects, guppies) maintain stable genetic/phenotypic polymorphisms rather than converging on a single 'best' morph",
+      "Classic empirical systems: visual predator (e.g., birds, fish) foraging on polymorphic prey (e.g., banded land snails, artificial 'prey' in operant experiments) consistently shows disproportionate predation on the locally common morph",
+      "Apostatic selection illustrates a direct route from a predator's foraging psychology (search image formation, learning) to standing genetic diversity within a prey species — a within-species mirror of the between-species diversity effects of switching"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Conceptual bridge",
+    "quote": "A predator that learns to recognize the common form of its prey turns rarity itself into a form of camouflage — the population's own diversity becomes each rare morph's best defense.",
+    "attrib": "Paraphrased conceptual summary of apostatic selection dynamics, Mittelbach & McGill Ch. 6"
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Prey Responses to Predation Risk",
+    "sub": "Induced defenses: morphological and behavioral"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The prey side of the coevolutionary dance",
+    "title": "Prey Are Not Passive: The Logic of Induced Defenses",
+    "items": [
+      "If predation risk is variable in space or time, and defenses are costly, prey should ideally deploy defenses only when risk is actually present — this favors <b>plasticity</b> (inducibility) over fixed, permanently expressed defenses",
+      "An induced defense is triggered by a reliable cue of predation risk (often a chemical cue released by the predator itself) rather than being constitutively expressed",
+      "Induced defenses span two broad categories covered here: <b>morphological</b> changes to the prey's body, and <b>behavioral</b> changes to activity, habitat use, or social organization",
+      "Both categories can occur within a single generation (phenotypic plasticity) or, in some systems, be shaped across generations by predator presence"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Textbook example",
+    "title": "Chemically Cued Morphological Defense",
+    "term": "Daphnia Predator-Induced Morphology",
+    "def": "Daphnia (water fleas) exposed to waterborne chemical cues from predators (kairomones) — such as from predatory midge larvae (Chaoborus) or fish — develop enlarged 'helmets,' elongated tail spines, or neck teeth that are absent in predator-free water.",
+    "bullets": [
+      "The cue is a <b>kairomone</b>: a chemical released by the predator that the prey has evolved to detect and interpret as a reliable risk signal",
+      "Induced helmets and spines increase effective body size and reduce vulnerability to gape-limited invertebrate predators, or interfere with fish attack success depending on the predator type",
+      "Different predator kairomones can induce different defensive morphologies in the same Daphnia species — the response is tuned to the specific predator regime, not a generic 'danger' response",
+      "This system is a cornerstone case study in inducible defense research because the morphological change, the cue, and the fitness benefit can all be manipulated experimentally in the lab"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond Daphnia",
+    "title": "Other Morphological Induced Defenses",
+    "items": [
+      "Bryozoans and barnacles can grow defensive spines or thickened shells in response to predator cues",
+      "Some snails thicken their shells or narrow their aperture when exposed to predatory crab cues",
+      "Tadpoles of several amphibian species develop deeper tail fins and altered body shapes when reared with predator cues, improving escape performance",
+      "Common thread: the induced trait improves survival against a specific predator's attack mode (crushing, gape-limitation, pursuit) at a measurable cost (see below)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The other half of the response",
+    "title": "Behavioral Induced Defenses",
+    "items": [
+      "<b>Habitat shifts</b>: prey move to structurally complex or otherwise safer microhabitats when predation risk is detected (e.g., Daphnia performing diel vertical migration to dark, food-poor deep water during the day to avoid visually hunting fish, returning to productive surface waters at night)",
+      "<b>Activity timing changes</b>: shifting foraging or movement to times of day when predator activity or detectability is lower (nocturnality shifts, reduced daytime movement)",
+      "<b>Group formation</b>: schooling in fish, flocking in birds, and herding in ungulates dilute individual predation risk, improve collective vigilance/predator detection, and can confuse predator targeting ('confusion effect')",
+      "<b>Reduced activity/freezing</b>: many prey reduce movement and foraging effort under perceived risk, trading feeding opportunity for reduced detectability"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two classes of induced anti-predator response",
+    "title": "Morphological vs. Behavioral Induced Defenses",
+    "headers": [
+      "Feature",
+      "Morphological induced defenses",
+      "Behavioral induced defenses"
+    ],
+    "rows": [
+      [
+        "Example",
+        "Daphnia helmets/spines induced by kairomones",
+        "Vertical migration, activity shifts, schooling/flocking"
+      ],
+      [
+        "Speed of deployment",
+        "Slower — requires growth/development, often expressed at next molt or life stage",
+        "Fast — can be near-immediate, reversible within minutes to hours"
+      ],
+      [
+        "Reversibility",
+        "Often low to moderate; may persist for part or all of an instar/life stage",
+        "High — can be turned on and off as risk fluctuates"
+      ],
+      [
+        "Typical cost",
+        "Reduced growth rate, reproduction, or feeding efficiency (developmental/energetic cost)",
+        "Lost foraging time, reduced growth, opportunity cost of the safer habitat or timing"
+      ],
+      [
+        "Cue type",
+        "Usually a specific predator kairomone (chemical)",
+        "Kairomones, direct predator detection, or social/alarm cues from conspecifics"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "No free lunch",
+    "title": "The Cost Side of Induced Defenses",
+    "left": {
+      "h": "Benefit when predators present",
+      "body": "Induced morphological or behavioral defenses measurably raise survival probability in the presence of the specific predator that induced them — this is why the trait is favored by selection in risky environments."
+    },
+    "right": {
+      "h": "Cost when predators absent",
+      "body": "In predator-free conditions, individuals expressing the defense typically show reduced growth rate, delayed or reduced reproduction, or lower feeding efficiency compared to undefended individuals — a classic <b>cost-benefit trade-off</b>. This cost is precisely why the defense is induced rather than constitutively expressed: paying the cost only when the benefit is present maximizes fitness across variable environments."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Linking modules",
+    "title": "Trade-offs: A Direct Echo of Population Ecology",
+    "items": [
+      "The cost structure of induced defenses is a direct application of <b>life-history trade-off theory</b> from the Population Ecology module: resources allocated to defense (structural growth, vigilance, altered habitat use) are resources unavailable for growth or reproduction",
+      "Just as life-history theory predicts organisms should shift allocation strategies with environmental conditions (e.g., r- vs K-selected life histories, reproductive timing trade-offs), induced-defense theory predicts organisms should shift defensive allocation with perceived risk",
+      "This is the same underlying logic that explained plant defense trade-offs against herbivores in the Population Ecology plant-herbivore coevolution material — costly defense traits are maintained only when the risk that favors them is reliably present or reliably cued"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "The Coevolutionary Arms Race",
+    "sub": "Reciprocal selection between predator foraging strategy and prey defense"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Putting the two sides together",
+    "title": "A Reciprocal, Ongoing Dynamic",
+    "items": [
+      "Predator selectivity (OFT-driven diet choice, switching) exerts selection pressure on prey — favoring individuals better able to avoid detection, capture, or handling by the predator",
+      "Prey defenses (induced morphology, behavioral shifts, polymorphism maintained by apostatic selection) in turn exert selection pressure back on predators — favoring predator traits/strategies that can overcome or circumvent those defenses (better search images, altered attack modes, diet shifts to less-defended prey)",
+      "Neither side reaches a permanent 'solution' — improvements on one side change the payoff landscape for the other, generating an ongoing reciprocal dynamic often called a <b>coevolutionary arms race</b>",
+      "Unlike a literal arms race with an end state, these dynamics can persist indefinitely, cycle, or reach dynamic equilibria depending on genetic variation, costs, and environmental variability"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two directions of selection pressure",
+    "title": "The Two Arms of the Race",
+    "left": {
+      "h": "Predator → Prey",
+      "body": "Selective foraging (profitability ranking, zero-one exclusion of poorly defended-but-low-value prey, switching toward common/undefended morphs) removes the most vulnerable prey phenotypes each generation, pushing prey trait distributions toward better-defended, better-hidden, or rarer (apostatic) forms."
+    },
+    "right": {
+      "h": "Prey → Predator",
+      "body": "As prey defenses improve (induced morphology, refuge use, schooling, timing shifts, phenotype rarity), the profitability and detectability of prey shifts — favoring predators with more flexible foraging strategies, better sensory tuning, improved search-image formation, or willingness to switch to alternative, less-defended prey types."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Parallel to another module",
+    "title": "Echoes of Plant-Herbivore Coevolution",
+    "items": [
+      "The Population Ecology module covered plant-herbivore coevolution: plants evolve chemical/structural defenses (often inducible, with growth-defense trade-offs) and herbivores evolve counter-adaptations (detoxification, specialization) in response",
+      "Chapter 6's predator-prey arms race is the animal-system analogue: inducible defenses with trade-offs, and consumers (here, predators rather than herbivores) evolving foraging strategies that respond to defense prevalence",
+      "The general principle is consistent across both systems: reciprocal, frequency- and cost-dependent selection between consumer and consumed is a pervasive organizing force in ecological communities, not a phenomenon unique to any one interaction type"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Community Consequences",
+    "sub": "How selective predation and prey responses shape diversity and structure"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Selective Predation Stabilizes Multi-Prey Communities",
+    "items": [
+      "Predator switching preferentially suppresses whichever prey species is locally abundant — a built-in negative feedback against any one prey species achieving dominance",
+      "Prey induced defenses (morphological and behavioral) reduce realized predation pressure precisely when and where risk is high, buffering prey populations from collapse and reducing the chance of local extinction under heavy predation",
+      "Together, these two mechanisms — adaptive predator choice and adaptive prey response — act as complementary stabilizers that help maintain multiple prey species coexisting under shared predation pressure",
+      "This extends and mechanistically grounds the Type III-refuge stability logic introduced in Ch. 5, now showing it can emerge from behavior and plasticity rather than only from fixed functional-response shape or static spatial refuges"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting to Lecture 12",
+    "title": "Selective Predation and Keystone Predation",
+    "left": {
+      "h": "Lecture 12's keystone predator concept",
+      "body": "A keystone predator disproportionately suppresses a competitively dominant prey species, preventing that species from excluding weaker competitors and thereby maintaining prey diversity — the classic Paine sea star / mussel example."
+    },
+    "right": {
+      "h": "Mechanistic link via switching and selectivity",
+      "body": "Predator switching and OFT-based selectivity provide a mechanistic explanation for HOW a predator can preferentially target the competitively dominant (often locally abundant) prey species: switching behavior naturally concentrates attack effort on whatever prey type is currently winning the competitive race, reinforcing the keystone effect from the ground up."
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Big picture",
+    "title": "Four Community-Level Payoffs of Chapter 6's Mechanisms",
+    "cards": [
+      {
+        "h": "Prevents single-species dominance",
+        "p": "Switching predation caps any one prey species' realized population growth once it becomes common."
+      },
+      {
+        "h": "Buffers against local extinction",
+        "p": "Induced defenses reduce mortality risk on rare or currently-targeted prey, providing a plastic refuge."
+      },
+      {
+        "h": "Maintains within-species diversity",
+        "p": "Apostatic selection sustains phenotypic/genetic polymorphism via negative frequency-dependence."
+      },
+      {
+        "h": "Reinforces keystone dynamics",
+        "p": "Selective attack on locally abundant/dominant prey mechanistically supports keystone predation's diversity effects."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bringing Ch. 5 and Ch. 6 together",
+    "title": "A Unified View of Predator-Prey Community Effects",
+    "items": [
+      "Chapter 5 established the population-dynamic scaffolding: functional/numerical responses, cycles, and the stability conditions (self-limitation, Type III refuges, spatial structure) for a generalized predator-prey pair, plus indirect effects like apparent competition among prey sharing a predator",
+      "Chapter 6 fills in the behavioral and evolutionary mechanisms that make real multi-prey communities behave the way they do: selectivity indices describe the pattern, OFT explains the decision rule behind it, switching converts individual choice into a community-level stabilizing Type III shape, apostatic selection extends the logic within species, and induced defenses show prey are equally adaptive participants in the interaction",
+      "The result is a genuinely reciprocal, coevolutionary view of predator-prey communities — not a one-way top-down force, but an ongoing negotiation that helps explain observed patterns of diversity, coexistence, and polymorphism in real ecological communities"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Recap and Preview",
+    "sub": "Closing the predator-prey module, opening the competition module"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 13 recap",
+    "title": "What We Established Before Today",
+    "items": [
+      "Apparent competition: shared predation can suppress prey species indirectly, with dynamics that mirror direct resource competition",
+      "Chapter 5 synthesis: functional response shape (I/II/III), numerical responses, and refuge mechanisms jointly determine predator-prey stability and cycling behavior",
+      "Predators and prey in that framework were treated as generalized, homogeneous entities — a deliberate simplification to isolate population-dynamic mechanisms"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 14 recap",
+    "title": "What We Added Today",
+    "items": [
+      "<b>Selectivity</b>: predators consume prey non-randomly; Ivlev's electivity index (E = (r−p)/(r+p)) quantifies preference and avoidance",
+      "<b>Optimal foraging theory</b>: the prey choice model ranks prey by profitability (energy/handling time) and predicts the <b>zero-one rule</b> — lower-ranked prey are taken always or never, with diet breadth widening as top-ranked prey become scarcer",
+      "<b>Predator switching</b>: frequency-dependent attack on whichever prey type is currently common generates an emergent, community-level Type III-like functional response, reinforcing Ch. 5's stability logic through adaptive choice",
+      "<b>Apostatic selection</b>: switching-type predation on common phenotypes maintains polymorphism within prey species via negative frequency-dependent selection",
+      "<b>Induced defenses</b>: prey deploy morphological (e.g., Daphnia helmets/spines via kairomone cues) and behavioral (habitat shifts, timing, grouping) defenses that carry costs when predators are absent — a direct application of life-history trade-off theory",
+      "<b>Coevolutionary arms race</b>: predator selectivity and prey defense exert reciprocal selection pressure on one another, echoing plant-herbivore coevolution from Population Ecology",
+      "<b>Community consequences</b>: these mechanisms together stabilize multi-prey communities, prevent single-species dominance, maintain diversity, and mechanistically reinforce keystone predation effects from Lecture 12"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking ahead",
+    "title": "Preview — Lecture 15: Competitive Interactions Fundamentals I",
+    "items": [
+      "Lecture 15 opens Chapter 7 and a new interaction module: <b>competition</b>, shifting focus from predator-prey/consumer-resource dynamics to interactions among species competing for shared limiting resources",
+      "We will build the foundational competition models (beginning with Lotka-Volterra competition) and revisit the classical conditions for coexistence versus competitive exclusion",
+      "This sets up direct contrasts with today's material: how does DIRECT competition for resources compare to the INDIRECT, predator-mediated apparent competition covered in Lecture 13? Keep that comparison in mind as we move into the new module",
+      "As with the shift from Ch. 5 to Ch. 6, we will again move from simplified two-species models toward more realistic, multi-species, trait-based treatments of competitive communities in subsequent lectures"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing thought",
+    "quote": "Predator and prey are not fixed opponents locked in a static equation — they are two adaptive strategists, each rewriting its rules in response to the other's last move.",
+    "attrib": "Framing summary for Ch. 6, Mittelbach & McGill, Community Ecology (2nd ed.)"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 14</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

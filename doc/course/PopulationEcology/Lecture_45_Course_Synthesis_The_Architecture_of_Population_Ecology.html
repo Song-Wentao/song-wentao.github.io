@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 45: Course Synthesis: The Architecture of Population Ecology</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 45",
+    "title": "Course Synthesis: The Architecture of Population Ecology",
+    "sub": "A capstone review of the entire course — from single-species growth to multi-trophic communities — and preparation for the comprehensive final exam.",
+    "footnote": "Comprehensive review — Lectures 1-44 — final exam preparation"
+  },
+  {
+    "type": "section",
+    "tag": "OVERTURE",
+    "title": "Population Ecology as a Discipline",
+    "sub": "What questions does this field answer, and why has it occupied us for 44 lectures?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Big Questions",
+    "title": "What Does Population Ecology Ask?",
+    "items": [
+      "<b>Why do populations grow, shrink, or stay roughly constant?</b> — the question behind Chapters 1-3",
+      "<b>What determines the age and stage composition of a population?</b> — life tables and matrix models",
+      "<b>How do populations persist despite local extinction?</b> — metapopulation theory",
+      "<b>How should organisms allocate limited resources across reproduction and survival?</b> — life history evolution",
+      "<b>How do species sharing resources, enemies, or partners affect one another's dynamics?</b> — Chapters 7-12",
+      "<b>How can humans manage populations sustainably or protect them from extinction?</b> — applied population ecology",
+      "Every lecture this semester has been an attempt to answer one facet of these questions with an explicit, testable mathematical model"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters",
+    "title": "The Stakes of Population Ecology",
+    "items": [
+      "<b>Conservation biology</b> — predicting extinction risk, designing reserves, managing endangered and invasive species",
+      "<b>Resource management</b> — setting sustainable harvest quotas for fisheries, forestry, and wildlife",
+      "<b>Public health</b> — modeling infectious disease spread, vaccination thresholds, and outbreak dynamics",
+      "<b>Agriculture</b> — pest population control, biological control agents, crop-herbivore management",
+      "<b>Evolutionary biology</b> — population dynamics are the arena in which natural selection acts; density dependence and interspecific interactions shape fitness",
+      "<b>Global sustainability</b> — human population growth, resource limits, and demographic transition connect directly to every model in this course"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Framing Thought",
+    "quote": "A population is not a static number — it is a dynamical system, and the goal of population ecology is to write down the rules that govern its motion.",
+    "attrib": "paraphrased from Rockwood, Introduction to Population Ecology"
+  },
+  {
+    "type": "section",
+    "tag": "PART I — LECTURES 1-23",
+    "title": "Single-Species Populations",
+    "sub": "Chapters 1-6: from unconstrained growth to the evolution of life histories"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 1 (L1-4)",
+    "title": "Density-Independent Growth",
+    "items": [
+      "The starting point of the entire course: growth unconstrained by population size itself",
+      "<b>Geometric growth</b> (discrete time): Nt = N0λt, where λ is the finite rate of increase",
+      "<b>Exponential growth</b> (continuous time): dN/dt = rN, solved as Nt = N0ert",
+      "<b>Stochastic growth</b> — environmental and demographic stochasticity make λ (or r) a random variable, producing variance in outcomes and extinction risk even without density dependence",
+      "Key insight: no population can sustain this growth indefinitely — the assumption of unlimited resources is the model's built-in fragility, motivating everything that follows"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap: Core Equation",
+    "title": "Exponential Growth",
+    "term": "dN/dt = rN",
+    "def": "The instantaneous rate of change in population size is proportional to the current population size, with proportionality constant r (the intrinsic rate of increase).",
+    "bullets": [
+      "r > 0: growth; r = 0: stationary; r < 0: decline",
+      "Doubling time = ln(2)/r — a useful back-of-envelope tool",
+      "The discrete-time analog, Nt = N0λt, relates to r via λ = er"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 2 (L5-8)",
+    "title": "Density Dependence and Logistic Growth",
+    "items": [
+      "Real populations slow down as they approach a ceiling — the birth of <b>density dependence</b>",
+      "<b>Logistic growth model</b>: dN/dt = rN(1 − N/K), introducing carrying capacity K",
+      "<b>Intraspecific competition</b> — the mechanism underlying the (1 − N/K) term: individuals compete for the same limiting resources",
+      "Scramble vs. contest competition — how the *form* of competition changes the shape of density dependence and can produce overcompensation",
+      "The logistic curve's sigmoidal shape and its maximum growth rate at N = K/2 became the mathematical basis for maximum sustainable yield (Lecture 41)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap: Core Equation",
+    "title": "Logistic Growth",
+    "term": "dN/dt = rN(1 − N/K)",
+    "def": "Population growth rate declines linearly with N, reaching zero at carrying capacity K.",
+    "bullets": [
+      "The (1 − N/K) term is the density-dependent feedback — the single most reused idea in this course",
+      "Assumes instantaneous, linear response to density with no time lag (relaxed in later models)",
+      "Foundation for R*, competition, and predator-prey models built later in the semester"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A Foundational Distinction",
+    "title": "Density-Independent vs. Density-Dependent Regulation",
+    "left": {
+      "h": "Density-Independent Factors",
+      "body": "Weather, natural disasters, and abiotic extremes affect per-capita growth rate regardless of population size. They can drive booms and crashes but, acting alone, cannot regulate a population around an equilibrium — they explain fluctuation, not persistence."
+    },
+    "right": {
+      "h": "Density-Dependent Factors",
+      "body": "Competition, predation, and disease intensify their effect on per-capita growth rate as N increases. Only density-dependent processes can produce a stable equilibrium, because only they provide the negative feedback needed for regulation."
+    },
+    "footnote": "This distinction resurfaces throughout the course — in Ch2-3, in the regulation controversy, and again in host-parasite and predator-prey dynamics."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 3 (L9-12)",
+    "title": "Population Regulation and Key Factor Analysis",
+    "items": [
+      "<b>Key factor analysis</b> — decomposing total generational mortality (k-values) to identify which life stage drives year-to-year fluctuations",
+      "Distinguishing <b>key factors</b> (drive fluctuation) from <b>regulating factors</b> (provide density-dependent feedback and stabilize the population)",
+      "Classic long-term data sets (e.g., winter moth, Colorado potato beetle) used to illustrate k-value decomposition",
+      "Density-dependent mortality need not be the dominant source of mortality to be the regulating factor"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 3 (L9-12), continued",
+    "title": "The Regulation Controversy",
+    "items": [
+      "<b>Nicholson</b>: density dependence is necessary and sufficient to explain population regulation",
+      "<b>Andrewartha and Birch</b>: weather and density-independent factors are often sufficient to explain observed dynamics — regulation may be an artifact of statistical analysis, not biology",
+      "The debate was never fully resolved — most modern ecologists accept that both density-dependent and density-independent factors operate simultaneously in most systems",
+      "This controversy foreshadows a theme we will revisit across the whole course: models are simplifications, and different simplifications highlight different truths"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 4 (L13-17)",
+    "title": "Age-Structured Populations",
+    "items": [
+      "Real populations are not homogeneous — individuals of different ages have different survival and fecundity rates",
+      "<b>Life tables</b> — age-specific survivorship (lx) and fecundity (mx) schedules; net reproductive rate R0 = Σ lx·mx",
+      "<b>Survivorship curves</b> (Type I, II, III) summarize the age pattern of mortality risk across taxa",
+      "<b>Leslie matrices</b> — project age-structured populations forward in time: nt+1 = A·nt, where the dominant eigenvalue of A gives λ",
+      "<b>Stable age distribution</b> and <b>reproductive value</b> — long-run structural properties independent of initial conditions",
+      "<b>Elasticity and sensitivity analysis</b> — which vital rate, if changed, has the largest proportional effect on λ? Central to conservation applications (Lecture 42)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap: Core Tool",
+    "title": "Leslie Matrix",
+    "term": "nt+1 = A · nt",
+    "def": "A matrix A of age-specific survival and fecundity rates projects a population vector n forward one time step; its dominant eigenvalue λ gives the asymptotic growth rate.",
+    "bullets": [
+      "Generalizes exponential growth to structured populations",
+      "Eigenvector gives the stable age (or stage) distribution",
+      "Extended to stage-based Lefkovitch matrices for organisms without clear age classes"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 5 (L18-20)",
+    "title": "Metapopulations",
+    "items": [
+      "Zooming out from a single population to a <b>network of populations</b> connected by dispersal across a fragmented landscape",
+      "<b>Levins model</b>: dp/dt = cp(1 − p) − ep, tracking the fraction of occupied patches p rather than N",
+      "Colonization rate c and extinction rate e determine whether the metapopulation persists (equilibrium p* = 1 − e/c) or collapses",
+      "<b>Source-sink dynamics</b> — source patches (births > deaths, net emigration) sustain sink patches (deaths > births, net immigration) that would otherwise go locally extinct",
+      "<b>Rescue effect</b> — immigration lowering local extinction probability; connects to corridor design in conservation planning"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap: Core Equation",
+    "title": "Levins Metapopulation Model",
+    "term": "dp/dt = cp(1 − p) − ep",
+    "def": "The fraction of occupied habitat patches p changes according to a colonization term (proportional to occupied × unoccupied patches) minus an extinction term (proportional to occupied patches).",
+    "bullets": [
+      "Structurally analogous to logistic growth, but p replaces N and patches replace individuals",
+      "Equilibrium occupancy p* = 1 − e/c; the metapopulation goes extinct if e > c",
+      "Assumes no spatial structure — every patch is equally reachable (relaxed in incidence-function and spatially explicit models)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 6 (L21-23)",
+    "title": "Life History Evolution",
+    "items": [
+      "The capstone of single-species theory: given the demographic and metapopulation machinery above, how does <b>natural selection</b> shape the timing of reproduction and death?",
+      "<b>Trade-offs</b> as the central organizing concept — current reproduction vs. survival, offspring number vs. offspring size, growth vs. reproduction",
+      "<b>Semelparity vs. iteroparity</b> — reproduce once at high investment, or repeatedly at lower investment per bout?",
+      "<b>r-selection vs. K-selection</b> — traits favored in uncrowded, variable environments vs. crowded, stable environments near K",
+      "<b>Offspring size-number trade-off</b> — a fixed reproductive budget can be split into many small offspring or few large ones, each strategy favored under different mortality regimes"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A Classic Life History Contrast",
+    "title": "Semelparity vs. Iteroparity",
+    "left": {
+      "h": "Semelparity",
+      "body": "One large reproductive event, then death (e.g., Pacific salmon, century plants, many annual insects). Favored when adult survival to a second bout is low, or when a single massive reproductive effort dramatically outperforms repeated smaller ones."
+    },
+    "right": {
+      "h": "Iteroparity",
+      "body": "Repeated reproduction across multiple seasons or years (e.g., most vertebrates, perennial plants). Favored when adult survival is relatively high and reliable, so that spreading reproductive investment across time reduces risk (bet-hedging)."
+    },
+    "footnote": "Cole's Paradox (semelparous organisms need only one extra offspring to match iteroparous fitness) motivated much of the later refinement of this theory using survival costs."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I, Unit 6, continued",
+    "title": "r/K Selection and the Size-Number Trade-off",
+    "items": [
+      "<b>r-selected traits</b>: early maturity, high fecundity, small body size, short lifespan — favored where density is unpredictable or often below K",
+      "<b>K-selected traits</b>: delayed maturity, lower fecundity, larger body size, longer lifespan, greater parental investment — favored near carrying capacity where competition is intense",
+      "The r/K framework is a useful heuristic, not a rigid dichotomy — most organisms sit on a continuum, and later theory (e.g., demographic models of age at maturity) largely superseded it",
+      "<b>Smith-Fretwell model</b> of offspring size vs. number formalizes the trade-off: optimal offspring size maximizes number × per-offspring fitness, given a fixed parental investment budget"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Part I Summary",
+    "title": "The Logical Progression of Single-Species Theory",
+    "headers": [
+      "Unit",
+      "Core Question",
+      "Key Models/Tools",
+      "Lectures"
+    ],
+    "rows": [
+      [
+        "Density-independent growth",
+        "How fast can populations grow unconstrained?",
+        "Geometric (Nt = N0λt), exponential (dN/dt = rN), stochastic growth",
+        "L1-4"
+      ],
+      [
+        "Density dependence & logistic growth",
+        "What limits growth as N increases?",
+        "Logistic equation, intraspecific competition, carrying capacity K",
+        "L5-8"
+      ],
+      [
+        "Population regulation",
+        "Is density dependence necessary for regulation?",
+        "Key factor analysis; the regulation vs. limitation controversy",
+        "L9-12"
+      ],
+      [
+        "Age structure",
+        "How does age/stage composition shape dynamics?",
+        "Life tables, survivorship curves, Leslie matrices, elasticity analysis",
+        "L13-17"
+      ],
+      [
+        "Metapopulations",
+        "How do spatially separated populations persist?",
+        "Levins model, source-sink dynamics, the rescue effect",
+        "L18-20"
+      ],
+      [
+        "Life history evolution",
+        "How do organisms allocate resources across the life cycle?",
+        "Trade-offs, semelparity/iteroparity, r/K selection, offspring size-number",
+        "L21-23"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART II — LECTURES 24-40",
+    "title": "Interspecific Interactions",
+    "sub": "Chapters 7-12: extending single-species theory to pairs and webs of species"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II, Unit 1 (L24-28)",
+    "title": "Interspecific Competition",
+    "items": [
+      "<b>Gause's competitive exclusion principle</b>, built on his Paramecium experiments — two species cannot indefinitely coexist on exactly one limiting resource",
+      "<b>Lotka-Volterra competition equations</b> extend the logistic model with competition coefficients α12 and α21, capturing the per-capita effect of each species on the other",
+      "<b>Isocline analysis</b> — plotting zero-growth isoclines in N1-N2 space reveals four possible outcomes: species 1 wins, species 2 wins, unstable coexistence, or stable coexistence",
+      "<b>R* rule</b> (Tilman) — the species that can persist at the lowest equilibrium resource concentration excludes competitors for that resource; coexistence on multiple resources requires trade-offs in R* values",
+      "Coexistence mechanisms — resource partitioning, spatial/temporal niche differentiation, and the storage effect"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap: Core Equations",
+    "title": "Lotka-Volterra Competition",
+    "term": "dN1/dt = r1N1(1 − (N1 + α12N2)/K1)",
+    "def": "Species 2 reduces species 1's growth in proportion to its density, scaled by the competition coefficient α12 (the per-capita competitive effect of species 2 on species 1, in units of species 1).",
+    "bullets": [
+      "A direct extension of the logistic model with an added competitive term",
+      "Symmetric equation for species 2: dN2/dt = r2N2(1 − (N2 + α21N1)/K2)",
+      "Outcome determined by comparing K1, K2, α12, α21 via isocline geometry"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II, Unit 2 (L29-31)",
+    "title": "Mutualism",
+    "items": [
+      "The +/+ interaction — both species benefit, in contrast to the −/− of competition and the +/− of exploitation",
+      "<b>Types of mutualism</b>: obligate vs. facultative; symbiotic vs. non-symbiotic; resource-resource, service-resource, service-service",
+      "<b>Mutualism models</b> — Lotka-Volterra-style equations with positive interaction terms; unlike competition, naive positive-feedback models can produce runaway (unstable) growth unless satiating (saturating) benefit functions are used",
+      "<b>Evolutionary stability of mutualism</b> — why doesn't cheating (taking benefits without reciprocating) destroy mutualistic partnerships? Partner choice, sanctions, and byproduct benefits are key stabilizing mechanisms",
+      "Classic examples: pollination, mycorrhizae, cleaner fish, nitrogen-fixing bacteria, ant-plant defense mutualisms"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II, Unit 3 (L32-34)",
+    "title": "Host-Parasite Interactions and Epidemiology",
+    "items": [
+      "Parasites and pathogens as a +/− interaction acting at a very different scale than predation — often not immediately lethal, transmission-dependent",
+      "<b>Parasite life cycles</b> — direct transmission vs. complex life cycles involving intermediate hosts and vectors",
+      "<b>Epidemiological models</b> (SIR, SIS) partition hosts into Susceptible, Infected, and Recovered compartments",
+      "<b>Basic reproductive number R0</b> — the expected number of secondary infections from one infected individual in an entirely susceptible population; R0 > 1 for an epidemic to grow",
+      "<b>Density-dependent transmission</b> links this unit directly back to the density-dependence theme from Part I — disease can regulate host populations just as intraspecific competition does",
+      "Herd immunity threshold: 1 − 1/R0, the vaccination/immune fraction needed to prevent sustained spread"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II, Unit 4 (L35-37)",
+    "title": "Predator-Prey Dynamics",
+    "items": [
+      "The classic +/− interaction studied through coupled differential equations",
+      "<b>Lotka-Volterra predation model</b> — produces neutrally stable cycles (a mathematical curiosity, not a robust prediction) driven purely by linear (Type I) functional response",
+      "<b>Functional response types</b> (Holling): Type I (linear), Type II (decelerating, handling-time limited), Type III (sigmoidal, prey-switching at low density)",
+      "<b>Numerical response</b> — how predator reproduction/aggregation responds to prey density, layered on top of the functional response",
+      "<b>Rosenzweig-MacArthur model</b> combines logistic prey growth with a Type II functional response, producing more realistic — and potentially destabilizing — dynamics",
+      "<b>Paradox of enrichment</b> — increasing prey carrying capacity can destabilize the predator-prey equilibrium into large-amplitude cycles, a cautionary result for resource managers"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recap: Core Concept",
+    "title": "Holling's Functional Response Types",
+    "term": "Type I / II / III",
+    "def": "The relationship between prey density and an individual predator's per-capita consumption rate.",
+    "bullets": [
+      "Type I: intake rises linearly with prey density (assumed by the classic Lotka-Volterra model)",
+      "Type II: intake decelerates and saturates due to handling time — the most common empirical pattern, and destabilizing at equilibrium",
+      "Type III: sigmoidal — low intake at low prey density (prey-switching, predator learning), which can stabilize prey populations at low density"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II, Unit 5 (L38-39)",
+    "title": "Plant-Herbivore Interactions",
+    "items": [
+      "A +/− interaction distinguished from predation because herbivory rarely kills the plant outright — plants can compensate or regrow",
+      "<b>Plant defenses</b> — constitutive vs. induced; physical (thorns, trichomes) vs. chemical (secondary metabolites, tannins, alkaloids)",
+      "<b>Tolerance</b> as an alternative strategy to resistance — investing in regrowth capacity rather than deterrence",
+      "<b>Optimal defense theory</b> — allocate defense to tissues with the highest fitness value and greatest risk of attack",
+      "Trade-offs between growth rate and defense investment link this unit back to the life history trade-off theme from Part I"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II, Unit 6 (L40)",
+    "title": "Multi-Trophic Interactions",
+    "items": [
+      "Moving beyond pairwise interactions to entire food webs — the capstone of Part II",
+      "<b>Trophic cascades</b> — predators indirectly benefit plants by suppressing herbivores (top-down control propagating through three or more levels)",
+      "<b>Keystone species</b> — species whose impact on community structure is disproportionately large relative to their abundance (e.g., sea otters and kelp forests, wolves and Yellowstone)",
+      "Indirect effects (apparent competition, trait-mediated indirect interactions) show that pairwise models, while foundational, cannot capture everything a real community does",
+      "This unit sets up Lecture 42's conservation applications, where keystone and cascade concepts inform reserve design and species reintroduction"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Illustrative Case Studies",
+    "title": "Keystone Species in Action",
+    "cards": [
+      {
+        "h": "Sea Otters & Kelp Forests",
+        "p": "Otters control sea urchin grazers; their removal (fur trade) triggered urchin barrens and kelp forest collapse — a textbook trophic cascade."
+      },
+      {
+        "h": "Wolves in Yellowstone",
+        "p": "Wolf reintroduction reduced elk browsing pressure, allowing riparian vegetation recovery — with cascading effects on beavers and stream morphology."
+      },
+      {
+        "h": "Sea Stars (Pisaster)",
+        "p": "Paine's original keystone predator concept: removal of this predatory sea star allowed mussels to competitively dominate and collapse intertidal diversity."
+      },
+      {
+        "h": "African Elephants",
+        "p": "Ecosystem engineers that convert woodland to savanna through browsing and trampling, restructuring habitat for countless other species."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Part II Summary",
+    "title": "The Six Interaction Types and Their Signature Models",
+    "headers": [
+      "Interaction Type",
+      "Effect (Sp.1 / Sp.2)",
+      "Signature Model",
+      "Key Outcome Concept"
+    ],
+    "rows": [
+      [
+        "Interspecific competition",
+        "−/−",
+        "Lotka-Volterra competition equations; R* rule",
+        "Competitive exclusion vs. stable coexistence"
+      ],
+      [
+        "Mutualism",
+        "+/+",
+        "Positive-feedback / saturating-benefit models",
+        "Evolutionary stability of cooperation"
+      ],
+      [
+        "Host-parasite",
+        "+ (parasite) / − (host)",
+        "SIR/SIS epidemiological models; R0",
+        "Disease persistence and epidemic thresholds"
+      ],
+      [
+        "Predator-prey",
+        "+ (predator) / − (prey)",
+        "Lotka-Volterra predation; Rosenzweig-MacArthur",
+        "Population cycles; paradox of enrichment"
+      ],
+      [
+        "Plant-herbivore",
+        "+ (herbivore) / − (plant)",
+        "Optimal defense theory; tolerance models",
+        "Defense-tolerance trade-offs"
+      ],
+      [
+        "Multi-trophic interactions",
+        "Indirect, cascading",
+        "Trophic cascade and keystone species models",
+        "Community-wide, indirect regulation"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART III — LECTURES 41-44",
+    "title": "Applied Population Ecology",
+    "sub": "Taking the theory into the field: harvesting, conservation, and the frontiers explored in student presentations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part III, Unit 1 (L41)",
+    "title": "Harvesting and Maximum Sustainable Yield",
+    "items": [
+      "Applying the logistic growth model directly to a management problem: how much can be harvested without depleting the population?",
+      "<b>Maximum sustainable yield (MSY)</b> occurs at N = K/2, where the logistic curve's growth rate rMSY = rK/4 is maximized",
+      "<b>Constant-effort vs. constant-quota harvesting</b> — constant-quota strategies are far more prone to catastrophic collapse if a population dips below the harvest level",
+      "Real-world complications ignored by the simple MSY model — age structure, environmental stochasticity, and economic incentives (the \"tragedy of the commons\") all push actual sustainable yields below the naive MSY prediction",
+      "This unit is a direct, applied descendant of Lecture 5-8's logistic growth model — the clearest example of theory translating into policy"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part III, Unit 2 (L42)",
+    "title": "Conservation Biology and Population Viability Analysis",
+    "items": [
+      "<b>Population viability analysis (PVA)</b> — using demographic and environmental data (often via Leslie/Lefkovitch matrices) to estimate extinction probability over a defined time horizon",
+      "<b>Minimum viable population (MVP)</b> size — balancing demographic stochasticity, environmental stochasticity, genetic drift/inbreeding depression, and catastrophes",
+      "<b>Extinction vortex</b> — small populations experience compounding, reinforcing threats that accelerate decline toward extinction",
+      "Elasticity/sensitivity analysis (from Lecture 13-17) directly informs conservation triage: which vital rate should management target for the largest gain in λ?",
+      "Reserve design draws on metapopulation theory (Lecture 18-20) — patch size, connectivity, and corridor placement"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part III, Unit 3 (L43-44)",
+    "title": "Student Presentations — Special Topics Synthesis",
+    "items": [
+      "The final two lectures before this synthesis were devoted to student-led explorations of specialized and emerging topics in population ecology",
+      "Common threads across presentations: applying core course models (logistic growth, Leslie matrices, Lotka-Volterra frameworks, metapopulation theory) to novel, real-world systems",
+      "Topics spanned climate change impacts on phenology and range shifts, genomic tools for estimating effective population size, computational/simulation approaches to population modeling, and applied conservation case studies",
+      "These presentations demonstrated that the toolkit built across Lectures 1-42 is genuinely extensible — the same handful of equations recur, adapted to new questions"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE TOOLKIT",
+    "title": "The Unifying Mathematical Toolkit",
+    "sub": "Nearly every model in this course is a variation on a small set of core ideas"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "From Simple to Complex",
+    "title": "The Population Ecology Model Hierarchy",
+    "levels": [
+      {
+        "label": "Multi-Trophic & Community Models (cascades, food webs, keystone effects)",
+        "color": "#8fc7de",
+        "width": "200px"
+      },
+      {
+        "label": "Two-Species Interaction Models (competition, predation, mutualism, host-parasite)",
+        "color": "#6cb0c9",
+        "width": "280px"
+      },
+      {
+        "label": "Spatially Structured Models (metapopulations: Levins, source-sink)",
+        "color": "#4f95b3",
+        "width": "360px"
+      },
+      {
+        "label": "Age/Stage-Structured Models (Leslie matrices, life tables)",
+        "color": "#3d7a99",
+        "width": "440px"
+      },
+      {
+        "label": "Exponential & Logistic Growth (single species, unstructured)",
+        "color": "#2c5f7c",
+        "width": "520px"
+      }
+    ],
+    "footnote": "Each layer takes the layer below it and adds one new dimension of biological realism — structure, space, or a second species — without discarding the base equation's logic."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Toolkit Works",
+    "title": "A Compact, Extensible Set of Ideas",
+    "items": [
+      "Almost every model this semester started from exponential growth (dN/dt = rN) and added exactly one new term or dimension",
+      "<b>Add self-limitation</b> → logistic growth (the (1 − N/K) term)",
+      "<b>Add age/stage structure</b> → Leslie matrix (a vector and matrix replace a scalar N and scalar r)",
+      "<b>Add space</b> → metapopulation models (patch occupancy p replaces individual count N)",
+      "<b>Add a second species</b> → competition, predation, mutualism, and host-parasite models (an interaction coefficient or functional response term is added to the logistic skeleton)",
+      "<b>Stack multiple extensions</b> → structured metapopulations, age-structured predator-prey models, multi-species community matrices — all built by combining the same basic pieces",
+      "This is why mastering the first third of the course pays dividends for the rest: the exponential/logistic \"chassis\" reappears in nearly every later model"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Seeing the Pattern",
+    "title": "How Complexity Is Added to the Base Equation",
+    "left": {
+      "h": "The Base: dN/dt = rN(1 − N/K)",
+      "body": "A single equation describing self-limited growth of one homogeneous population in one place. Two parameters (r, K) summarize the entire dynamic."
+    },
+    "right": {
+      "h": "The Extensions",
+      "body": "Age structure replaces N with a vector and r with a matrix. Space replaces N with occupancy p. A second species adds a competition coefficient (α) or a functional response term (f(N)) to the growth equation of each species. Each extension is additive, not a wholesale replacement."
+    },
+    "footnote": "Recognizing which extension a given exam question is testing is often the fastest way to identify the correct model."
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Model Comparison",
+    "title": "Six Landmark Models, Side by Side",
+    "headers": [
+      "Model",
+      "Base Equation Form",
+      "Added Complexity",
+      "What It Captures"
+    ],
+    "rows": [
+      [
+        "Exponential growth",
+        "dN/dt = rN",
+        "None — baseline",
+        "Unconstrained growth potential"
+      ],
+      [
+        "Logistic growth",
+        "dN/dt = rN(1 − N/K)",
+        "Density-dependent feedback term",
+        "Self-limitation, carrying capacity"
+      ],
+      [
+        "Leslie matrix",
+        "nt+1 = A · nt",
+        "Age/stage-structured vector and matrix",
+        "Population structure, λ, stable age distribution"
+      ],
+      [
+        "Levins metapopulation",
+        "dp/dt = cp(1 − p) − ep",
+        "Patch occupancy replacing N",
+        "Regional persistence via colonization-extinction balance"
+      ],
+      [
+        "Lotka-Volterra competition",
+        "dN1/dt = r1N1(1 − (N1+α12N2)/K1)",
+        "Interspecific competition coefficient α",
+        "Two-species coexistence conditions"
+      ],
+      [
+        "Rosenzweig-MacArthur predator-prey",
+        "Logistic prey growth + Type II functional response",
+        "Nonlinear consumption term",
+        "Population cycles, stability, paradox of enrichment"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CROSS-CUTTING THEMES",
+    "title": "Themes That Ran Through the Whole Course",
+    "sub": "Three ideas that resurfaced in nearly every unit, often disguised in new notation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 1",
+    "title": "Density Dependence as a Unifying Regulatory Concept",
+    "items": [
+      "First introduced in Chapters 2-3 as intraspecific competition limiting logistic growth",
+      "Reappeared in the regulation controversy (L9-12) as the central point of scientific disagreement",
+      "Reappeared in host-parasite models — transmission rate often scales with host density, making disease itself a density-dependent regulator",
+      "Reappeared in predator-prey models — the functional response is fundamentally a density-dependent process linking predator consumption to prey density",
+      "Reappeared in harvesting theory — MSY exploits the density-dependent shape of the logistic curve",
+      "Takeaway: density dependence is not a topic confined to one chapter — it is the mechanism that makes regulation possible everywhere it appears"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 2",
+    "title": "Trade-offs as a Recurring Organizing Principle",
+    "items": [
+      "Life history theory (L21-23) made trade-offs explicit: reproduction vs. survival, offspring size vs. number, growth vs. reproduction",
+      "Plant defense allocation (L38-39) is a trade-off between growth rate and investment in resistance or tolerance",
+      "R* competition theory embeds a trade-off assumption — coexistence on multiple resources requires that no single species has the lowest R* for every resource",
+      "Semelparity/iteroparity is itself a trade-off between reproductive intensity and survival probability",
+      "Takeaway: whenever a model produces a stable intermediate optimum rather than an \"all or nothing\" answer, a trade-off is almost always the reason"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 3",
+    "title": "Stability and Instability as a Recurring Dynamical Question",
+    "items": [
+      "Time-lagged logistic growth can produce damped oscillations, stable limit cycles, or chaos depending on the lag and growth rate — stability is not guaranteed just because density dependence exists",
+      "Lotka-Volterra predator-prey dynamics are neutrally stable (structurally fragile) cycles — a mathematical knife-edge, not a robust prediction",
+      "The <b>paradox of enrichment</b> shows that adding resources (increasing K) can destabilize an otherwise stable predator-prey equilibrium",
+      "Isocline analysis in both competition and predator-prey models is fundamentally a tool for answering one question: is this equilibrium stable, and if so, how?",
+      "Takeaway: population ecology is not just about finding equilibria — it is about determining whether those equilibria are dynamically robust to perturbation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "APPLICATIONS",
+    "title": "Real-World Relevance Synthesis",
+    "sub": "How the course's concepts inform decisions far beyond the classroom"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Where This Course Shows Up in the World",
+    "title": "Four Domains That Depend on Population Ecology",
+    "cards": [
+      {
+        "h": "Conservation Biology",
+        "p": "PVA, elasticity analysis, and metapopulation theory directly guide endangered species recovery plans and reserve network design."
+      },
+      {
+        "h": "Wildlife & Fisheries Management",
+        "p": "MSY and age-structured harvest models set legal quotas; overreliance on simplified MSY has driven real fishery collapses."
+      },
+      {
+        "h": "Public Health",
+        "p": "SIR models and R0 estimation underpin vaccination policy, outbreak forecasting, and epidemic response worldwide."
+      },
+      {
+        "h": "Agriculture & Pest Management",
+        "p": "Predator-prey and functional response theory guide biological control programs and integrated pest management."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Ultimate Application",
+    "title": "Global Sustainability and Human Population Ecology",
+    "items": [
+      "Human population growth is, at its core, an exponential/logistic growth problem — with the added complexity of technology repeatedly raising the effective carrying capacity K",
+      "The <b>demographic transition</b> (introduced via special topics in Lecture 43-44) links age-structured life table methods directly to real human population pyramids and fertility decline",
+      "Resource competition, disease dynamics, and habitat loss driven by human population growth connect back to nearly every model covered in Parts I and II",
+      "Understanding population ecology is a prerequisite — not an optional extra — for engaging seriously with climate change, food security, and biodiversity loss",
+      "This is the throughline of the entire semester: the same equations that describe a laboratory Paramecium population also describe the trajectory of our own species"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "The Full Course Arc",
+    "title": "Lectures 1-45 at a Glance",
+    "items": [
+      {
+        "y": "L1-2",
+        "t": "Foundations: what a population is, why study it quantitatively"
+      },
+      {
+        "y": "L3-5",
+        "t": "Density-independent growth: geometric, exponential, stochastic"
+      },
+      {
+        "y": "L6-9",
+        "t": "Density dependence, logistic growth, intraspecific competition"
+      },
+      {
+        "y": "L10-12",
+        "t": "Population regulation, key factor analysis, the regulation controversy"
+      },
+      {
+        "y": "L13-16",
+        "t": "Age structure: life tables, Leslie matrices, elasticity analysis"
+      },
+      {
+        "y": "L17-19",
+        "t": "Metapopulations: Levins model, source-sink dynamics"
+      },
+      {
+        "y": "L20-23",
+        "t": "Life history evolution: trade-offs, r/K selection, semelparity/iteroparity"
+      },
+      {
+        "y": "L24-27",
+        "t": "Interspecific competition: Gause, Lotka-Volterra, R*, coexistence"
+      },
+      {
+        "y": "L28-31",
+        "t": "Mutualism and host-parasite interactions/epidemiology"
+      },
+      {
+        "y": "L32-35",
+        "t": "Predator-prey dynamics: Lotka-Volterra, functional responses, Rosenzweig-MacArthur"
+      },
+      {
+        "y": "L36-40",
+        "t": "Plant-herbivore defenses and multi-trophic cascades/keystone species"
+      },
+      {
+        "y": "L41-45",
+        "t": "Applied ecology (harvest/MSY, PVA), student presentations, course synthesis (today)"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "EXAM PREP",
+    "title": "Final Exam Preparation",
+    "sub": "A comprehensive roadmap for the cumulative final"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Checklist, Part I",
+    "title": "Single-Species Topics to Master",
+    "items": [
+      "Derive and interpret dN/dt = rN and Nt = N0λt; convert between λ and r",
+      "Explain the biological meaning of every term in the logistic equation and locate K, r, and N=K/2 on a growth curve",
+      "Distinguish density-dependent from density-independent factors, and explain both sides of the regulation controversy",
+      "Construct and interpret a life table (lx, mx, R0), and explain what a Leslie matrix's dominant eigenvalue represents",
+      "State the Levins model, define equilibrium patch occupancy p*, and explain source-sink dynamics",
+      "Compare semelparity vs. iteroparity and r- vs. K-selected traits, and apply the offspring size-number trade-off logic"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Checklist, Part II & III",
+    "title": "Interaction and Applied Topics to Master",
+    "items": [
+      "Write the Lotka-Volterra competition equations, perform isocline analysis, and predict outcomes from K and α values",
+      "Explain why naive mutualism models can be unstable, and identify stabilizing mechanisms",
+      "Define R0 for an epidemic and compute the herd immunity threshold",
+      "Distinguish Type I, II, and III functional responses and predict their stabilizing/destabilizing effects",
+      "Explain the paradox of enrichment and why enrichment can destabilize predator-prey equilibria",
+      "Identify a trophic cascade or keystone species scenario and predict community-level consequences",
+      "Apply the logistic model to MSY harvesting and identify risks of constant-quota strategies",
+      "Explain the components of PVA and what elasticity analysis is used for in conservation triage"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Watch Out For These",
+    "title": "Common Areas of Confusion",
+    "items": [
+      "Confusing <b>r</b> (intrinsic rate of increase, continuous time) with <b>λ</b> (finite rate of increase, discrete time) — know the conversion (λ = er) and when each applies",
+      "Mixing up <b>regulation</b> (returning toward an equilibrium) with mere <b>limitation</b> (any factor that reduces N, regardless of density dependence)",
+      "Misreading competition coefficients — α12 measures the effect of species 2 <i>on</i> species 1, not the reverse; isocline slope errors are the most common exam mistake here",
+      "Assuming all functional responses are Type II by default — always check whether the question specifies linear, saturating, or sigmoidal",
+      "Forgetting that the Lotka-Volterra predator-prey model's cycles are <i>neutrally</i> stable (structurally fragile), unlike the damped or stable cycles of Rosenzweig-MacArthur",
+      "Treating r/K selection as a strict dichotomy rather than the continuum-based heuristic it actually is"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practice Yourself",
+    "title": "Practice-Question-Style Prompts",
+    "items": [
+      "Given a life table with lx and mx values, calculate R0 and the generation time, and explain what each tells you about population growth",
+      "Given two species' K and α values, sketch the isoclines and predict the outcome of competition",
+      "Given a Type II functional response and prey growth curve, explain whether increasing prey K is likely to destabilize the system",
+      "Given an R0 value for a hypothetical pathogen, calculate the vaccination coverage needed for herd immunity",
+      "Explain, using specific course models, why a small, isolated population is more vulnerable to extinction than a large, connected one",
+      "Trace a specific real-world scenario (e.g., a declining fishery, an invasive species, a disease outbreak) through the appropriate sequence of course models"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Logistics",
+    "title": "Exam Format and Study Strategy",
+    "items": [
+      "The final exam is cumulative and covers Lectures 1-44 in roughly equal proportion to the three Parts outlined today",
+      "Expect a mix of conceptual short answer, equation derivation/interpretation, and applied scenario questions modeled on the practice prompts above",
+      "<b>Strategy</b>: rebuild the compare tables from this lecture from memory — if you can reconstruct the Part I and Part II summary tables unaided, you have mastered the structural logic of the course",
+      "<b>Strategy</b>: for every named model, be able to state (1) what new biological reality it adds relative to the base logistic/exponential model, and (2) one real-world application",
+      "Review problem sets and quiz feedback from each unit — the areas of confusion above were compiled directly from recurring error patterns across the semester",
+      "Form study groups around the six-part timeline — teaching a unit to a peer is the fastest way to find gaps in your own understanding"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING FORWARD",
+    "title": "Where Population Ecology Goes Next",
+    "sub": "The frontiers this course only had time to survey"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Open Questions",
+    "title": "Modern Directions in the Field",
+    "items": [
+      "<b>Climate change ecology</b> — range shifts, phenological mismatch, and novel species interactions as historical climate envelopes break down, straining the density-dependence and life history frameworks built for stable environments",
+      "<b>Genomics and population ecology</b> — using genetic markers to estimate effective population size, connectivity, and inbreeding risk with far greater precision than demographic data alone",
+      "<b>Computational and simulation-based ecology</b> — individual-based models and machine learning approaches that relax the simplifying assumptions of the analytical models covered this semester",
+      "<b>Integrating multiple stressors</b> — most models this semester isolated one process at a time; frontier research increasingly combines density dependence, climate variability, and species interactions simultaneously",
+      "<b>Global change and human population ecology</b> — applying the demographic transition and carrying capacity concepts to questions of long-term global sustainability"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Emerging Frontiers",
+    "title": "Four Directions Beyond This Course",
+    "cards": [
+      {
+        "h": "Climate Change Ecology",
+        "p": "Modeling species range shifts and phenological mismatches as historical assumptions of environmental stability break down."
+      },
+      {
+        "h": "Conservation Genomics",
+        "p": "Genetic tools now estimate effective population size and connectivity with precision demographic data alone cannot match."
+      },
+      {
+        "h": "Computational Ecology",
+        "p": "Individual-based and machine-learning models relax the simplifying assumptions behind the analytical equations of this course."
+      },
+      {
+        "h": "Human Population Ecology",
+        "p": "Demographic transition theory and carrying capacity concepts applied to questions of long-term global sustainability."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Closing Thought",
+    "quote": "Every model in this course has been a deliberate simplification — and every simplification was chosen because it revealed something true. Carry that habit of mind forward: ask what a model leaves out, and you will understand not just population ecology, but how good science is done.",
+    "attrib": "Course Synthesis, Lecture 45"
+  },
+  {
+    "type": "quote",
+    "quote": "Thank you for a semester of curiosity, careful reasoning, and hard questions. Population ecology is, in the end, the study of how life persists — I hope you carry these tools with you well beyond this course.",
+    "attrib": "— With thanks, from your instructor"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 45</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 8: Time Lags and Complex Dynamics</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology · BIOL 4XX · Lecture 8",
+    "title": "Time Lags and Complex Dynamics",
+    "sub": "From smooth curves to oscillations, cycles, and chaos in population growth",
+    "footnote": "Rockwood, Introduction to Population Ecology, 2nd ed., Ch. 2"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 7",
+    "title": "The Continuous Logistic Model",
+    "items": [
+      "dN/dt = rN(1 − N/K) describes density-dependent growth toward a carrying capacity K",
+      "Per capita growth rate declines linearly as N approaches K",
+      "Produces a smooth, S-shaped (sigmoid) trajectory with no overshoot",
+      "Growth is fastest at N = K/2, then decelerates smoothly to zero at N = K",
+      "Crucially, the model assumes density dependence acts instantaneously — the population 'senses' its density and adjusts growth in real time"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · The Instantaneous Assumption",
+    "title": "Why 'Instantaneous' Is a Strong Assumption",
+    "items": [
+      "Continuous logistic growth assumes no delay between a change in N and its effect on the growth rate",
+      "In reality, organisms respond to conditions experienced earlier — during development, gestation, or a prior season",
+      "Resource depletion, competition, and predation often produce effects that are only expressed later in the life cycle",
+      "This lecture asks: what happens to population dynamics when we build a delay into the model?",
+      "Answer: the smooth sigmoid curve can give way to oscillations, cycles, or chaos"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Motivation",
+    "title": "Why Time Lags Matter",
+    "sub": "Real populations rarely respond to density instantaneously"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivating Idea",
+    "title": "Sources of Delay in Density Dependence",
+    "items": [
+      "Development time: an egg laid under crowded conditions may not become a competing adult for weeks or months",
+      "Resource depletion lag: food shortage caused by this generation may only reduce survival or fecundity of the next generation",
+      "Reporting/measurement lag: census intervals (e.g., annual counts) impose an effective time step even if biology were instantaneous",
+      "Maternal effects: a mother's nutritional state affects offspring quality one generation later",
+      "Any of these delays can decouple the timing of 'cause' (high density) from 'effect' (reduced growth)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case Study Revisited",
+    "title": "Nicholson's Blowflies (from Lecture 6)",
+    "term": "Delayed density dependence",
+    "def": "A. J. Nicholson's laboratory populations of the sheep blowfly (Lucilia cuprina) showed large, regular oscillations in adult numbers rather than settling at a stable carrying capacity.",
+    "bullets": [
+      "Adult flies competed intensely for a limited daily food supply",
+      "But the damage from that competition was expressed in the next generation — via reduced larval survival and delayed reproduction",
+      "This lag between cause (adult crowding) and effect (population decline) generated sustained boom-and-bust cycles",
+      "Nicholson's flies became the classic empirical example motivating time-lag models in population ecology"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Connecting the Dots",
+    "title": "From Blowflies to Mathematics",
+    "items": [
+      "Nicholson's data could not be explained by the simple continuous logistic model, which predicts smooth approach to K",
+      "Ecologists needed a model that could generate oscillations from density dependence alone — no external disturbance required",
+      "Two mathematical routes were developed: (1) add an explicit time lag to the continuous logistic equation, and (2) reformulate growth as a discrete-time (generation-by-generation) process",
+      "Both approaches, explored in this lecture, show that delay is a powerful and general source of population instability",
+      "This foreshadows a deeper idea: complex, fluctuating dynamics can arise from very simple, fully deterministic rules"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "The Discrete Logistic Model",
+    "sub": "What happens when population growth is tracked in discrete time steps"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Model",
+    "title": "The Discrete Logistic Equation",
+    "term": "Nt+1 = Nt + rNt(1 − Nt/K)",
+    "def": "The discrete-time analogue of the logistic model: population size next time step (Nt+1) equals current size (Nt) plus a density-dependent increment.",
+    "bullets": [
+      "N_t is population size at discrete time step t (e.g., generation t)",
+      "r is the intrinsic rate of increase (a discrete-time growth parameter)",
+      "K is carrying capacity",
+      "Unlike the continuous version, growth is calculated once per time step and then 'jumps' to the new value — there is no continuous, real-time adjustment"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Continuous vs. Discrete",
+    "title": "Why Discretizing Time Changes Everything",
+    "left": {
+      "h": "Continuous model",
+      "body": "dN/dt = rN(1 − N/K) updates growth rate instant by instant. As N approaches K, the growth rate smoothly shrinks toward zero, so the population eases into equilibrium with no overshoot."
+    },
+    "right": {
+      "h": "Discrete model",
+      "body": "Nt+1 = Nt + rNt(1 − Nt/K) calculates the entire step's growth using the density from the start of the interval. If Nt is still well below K, the population can add more individuals than are needed to reach K, overshooting it."
+    },
+    "footnote": "Overshoot is the mathematical seed of oscillation in the discrete model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism",
+    "title": "How Overshoot Arises",
+    "items": [
+      "At the start of a time step, growth is calculated based on the density at that moment — but that density may already be out of date by the end of the step",
+      "If r is large, a single step can add a big jump in numbers, carrying Nt+1 well past K",
+      "Once N exceeds K, the term (1 − N/K) becomes negative, so the population declines in the next step — potentially undershooting K",
+      "This push-pull dynamic (overshoot, then correction, then possible undershoot) is absent from the continuous model, where adjustments happen instantaneously and smoothly",
+      "The size of the overshoot/undershoot depends critically on the value of r"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Parameter",
+    "title": "r as a Dial for Dynamical Behavior",
+    "items": [
+      "In the discrete logistic model, r does more than set the growth rate — it determines the qualitative pattern of the population trajectory",
+      "Low r: population approaches K smoothly, much like the continuous model",
+      "Moderate r: population approaches K via damped oscillations",
+      "Higher r: population settles into a sustained, repeating cycle",
+      "Very high r: population trajectory becomes chaotic — bounded but never repeating",
+      "This single-parameter richness is one of the most celebrated results in theoretical ecology"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Conceptual Anchor",
+    "quote": "Simple deterministic equations can possess dynamical trajectories so complex, so nonrepeating, that they will simulate a random process.",
+    "attrib": "Robert May, 1976, describing simple population models with complicated dynamics"
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Time-Delayed Density Dependence",
+    "sub": "Building an explicit lag into the growth equation"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Formal Extension",
+    "title": "Introducing a Lag Term",
+    "term": "dN/dt = rN[1 − (Nt−τ / K)]",
+    "def": "A time-delayed version of the logistic model, in which the density-dependent feedback is based on population size at an earlier time (t − τ), not the current time t.",
+    "bullets": [
+      "τ (tau) represents the lag — the amount of time between a change in density and its effect on growth rate",
+      "When τ = 0, the equation collapses back to the standard continuous logistic model",
+      "As τ increases, the population's 'correction' to its own density is based on increasingly outdated information",
+      "This mismatch between current conditions and the information driving growth is what generates oscillatory behavior"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Lag",
+    "title": "What the Lag Represents Biologically",
+    "items": [
+      "τ can represent development time (e.g., time from egg to reproductive adult)",
+      "τ can represent the time needed for resource depletion to translate into reduced survival or fecundity",
+      "τ can represent gestation length, seasonal timing, or generation time in general",
+      "Longer lags mean the population is 'flying blind' for longer — reacting to density conditions that may no longer apply by the time the reaction occurs",
+      "Species with longer development times or generation times are, all else equal, more prone to lag-driven instability"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Interacting Parameters",
+    "title": "How r and Lag Length Jointly Determine Behavior",
+    "left": {
+      "h": "r (intrinsic rate of increase)",
+      "body": "Determines how strongly the population responds to a perceived density signal. Larger r means bigger corrective jumps each time step, amplifying any mismatch between actual and perceived density."
+    },
+    "right": {
+      "h": "τ (lag length)",
+      "body": "Determines how outdated the density signal is. Longer lags mean the correction is based on conditions further in the past, increasing the chance that the correction overshoots the current true equilibrium."
+    },
+    "footnote": "It is the combination rτ (or an analogous compound parameter) that predicts the qualitative dynamical regime"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Insight",
+    "title": "Neither Parameter Alone Determines Stability",
+    "items": [
+      "A high r with zero lag can still approach K smoothly (as in the standard continuous logistic model)",
+      "A long lag with a very small r may produce only weak, quickly-damped oscillations",
+      "It is the product of r and the lag (often written rτ) that predicts whether the system is stable, oscillatory, or chaotic",
+      "Small rτ: smooth or gently damped approach to K",
+      "Intermediate rτ: sustained oscillations (limit cycles)",
+      "Large rτ: irregular, chaotic fluctuations"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Damped Oscillations",
+    "sub": "Population overshoots and undershoots K, but the swings shrink over time"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Regime 1",
+    "title": "Damped Oscillations",
+    "term": "Oscillations that decrease in amplitude over successive time steps, eventually converging on K",
+    "def": "At moderate values of r (or rτ), the discrete/time-lagged logistic model overshoots K, corrects, overshoots less, corrects again — with each swing smaller than the last.",
+    "bullets": [
+      "The population still ends up at the same equilibrium (K) as the continuous model predicts",
+      "But the path to get there is oscillatory rather than smooth",
+      "This is the mildest departure from classical logistic behavior — instability is present but self-limiting",
+      "Real populations with moderate lags relative to their growth potential often show this pattern after a disturbance"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Conditions",
+    "title": "When Damped Oscillations Occur",
+    "items": [
+      "Occurs at relatively low-to-moderate values of r in the discrete logistic model (roughly 2 < r < 2.449 in the classic parameterization)",
+      "Requires enough overshoot potential to generate a swing, but not so much that the swings are sustained or amplified",
+      "Each successive peak and trough is closer to K than the last, so variance in N declines over time",
+      "Biologically, this might describe a population recovering from a perturbation and gradually settling into equilibrium",
+      "Distinguishing damped oscillation from a stable limit cycle in real data can require many generations of observation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Stable Limit Cycles",
+    "sub": "Population oscillates indefinitely in a regular, repeating pattern"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Regime 2",
+    "title": "Stable Limit Cycles",
+    "term": "A regime in which the population settles into a fixed, repeating oscillation (e.g., a 2-point or 4-point cycle) that persists indefinitely",
+    "def": "As r increases beyond the threshold for damped oscillations, the swings no longer shrink — instead they lock into a stable, repeating pattern that neither grows nor decays.",
+    "bullets": [
+      "A 2-point cycle: the population alternates between a high value and a low value every other time step, indefinitely",
+      "Increasing r further produces a 4-point cycle, then an 8-point cycle, then 16-point, and so on — a process called period-doubling",
+      "Unlike damped oscillations, limit cycles do not converge on K; they orbit around it permanently",
+      "This is a genuinely different long-term outcome from the classical logistic model's single stable equilibrium"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Biological Relevance",
+    "title": "Limit Cycles in Real Populations",
+    "items": [
+      "Some real populations show remarkably regular multi-year cycles — a signature consistent with limit-cycle dynamics",
+      "Nicholson's blowflies are a classic laboratory illustration of a sustained oscillatory pattern driven by delayed density dependence",
+      "Certain rodent and insect populations with strong, lagged density dependence exhibit cyclical outbreaks and crashes",
+      "A limit cycle is fully deterministic and, in principle, predictable once you know the underlying dynamics — but the amplitude and period can be very sensitive to the parameters"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Chaos",
+    "sub": "Bounded, non-repeating, deterministic — and effectively unpredictable"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Regime 3",
+    "title": "Deterministic Chaos",
+    "term": "Bounded, aperiodic fluctuations generated entirely by a deterministic equation with no random inputs",
+    "def": "At sufficiently high r, the period-doubling cascade accelerates until the population trajectory never repeats — yet it is produced by a purely deterministic rule with no randomness built in.",
+    "bullets": [
+      "Chaos is not randomness: the exact same starting conditions always produce the exact same trajectory",
+      "Chaos is not instability in the sense of unbounded growth — the population stays within bounds (it does not fly off to infinity)",
+      "The defining feature is sensitive dependence on initial conditions: two starting points that differ by a tiny amount diverge into completely different trajectories",
+      "This sensitivity means that, in practice, long-term prediction becomes impossible even though the underlying rule is fully known"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Sensitive Dependence",
+    "title": "Why Tiny Differences Matter Enormously",
+    "items": [
+      "Imagine two populations starting at N0 = 100 and N0 = 100.001 under the same chaotic parameter regime",
+      "For the first several time steps, their trajectories track closely together",
+      "But small differences are repeatedly amplified by the nonlinear feedback, and within a modest number of generations the two trajectories look completely unrelated",
+      "This is the population-dynamics analogue of the 'butterfly effect' famous from chaotic weather models",
+      "Practical implication: even perfect knowledge of the growth equation does not guarantee useful long-term forecasts if measurement of N0 has any error at all"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Misconceptions",
+    "title": "What Chaos Is Not",
+    "items": [
+      "Chaos is not the same as random or stochastic — it contains zero probabilistic elements; every value is fully determined by the equation and the prior value",
+      "Chaos is not evidence of a 'broken' or poorly specified model — it can emerge from the very same simple equation that, at other parameter values, produces smooth logistic growth",
+      "Chaos does not mean unbounded — chaotic trajectories in the logistic model stay within the range set by the equation's dynamics",
+      "Chaos does not mean patternless in every sense — chaotic time series have real statistical structure (e.g., a bounded range, a well-defined underlying attractor) even though they never exactly repeat"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "May's Bifurcation Diagram",
+    "sub": "Robert May (1976): 'Simple mathematical models with very complicated dynamics'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Historical Context",
+    "title": "Robert May's 1976 Paper",
+    "items": [
+      "Published in Nature, titled 'Simple mathematical models with very complicated dynamics'",
+      "May analyzed simple discrete population models (including the logistic map) and showed they could generate an enormous range of behaviors purely by varying one parameter",
+      "This was a landmark result: it showed ecologists (and mathematicians) that complexity does not require a complex model — complexity can be intrinsic to even the simplest nonlinear equations",
+      "May explicitly urged biologists, economists, and other scientists to become familiar with these dynamics before assuming that erratic real-world data must reflect noise or measurement error",
+      "The paper is now considered one of the most influential in the history of theoretical ecology"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Diagram",
+    "title": "What the Bifurcation Diagram Plots",
+    "term": "Long-term population behavior (y-axis) as a function of the growth parameter r (x-axis)",
+    "def": "For each value of r along the x-axis, the model is iterated for many time steps and the long-term (asymptotic) values of N are plotted as points directly above that r value.",
+    "bullets": [
+      "Low r: a single point is plotted — the population converges on one stable equilibrium value",
+      "At a threshold r: the single point splits into two points — the population now cycles between two values (a 2-point cycle)",
+      "At a higher r: each of those two points splits again, giving four points (a 4-point cycle), then eight, then sixteen — period doubling",
+      "Beyond a critical r: the plotted points form a dense, seemingly continuous smear — the chaotic regime"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Diagram, Left to Right",
+    "title": "The Route to Chaos: A Step-by-Step Walkthrough",
+    "items": [
+      "Region 1 — Stable point: for small r, all trajectories converge to a single equilibrium value regardless of starting N0",
+      "Region 2 — 2-point cycle: as r crosses the first bifurcation threshold, the equilibrium becomes unstable and the population settles into a stable alternation between two values",
+      "Region 3 — 4-point cycle: a second bifurcation splits each of the two points into two more, yielding a 4-point cycle; this doubling continues (8, 16, 32...) at an accelerating rate as r increases",
+      "Region 4 — Chaos: beyond the accumulation point of the period-doubling cascade, the system enters chaos, visible as a dense scatter of points",
+      "Embedded within the chaotic region are narrow 'windows' of r where periodic behavior briefly reappears — a striking and counterintuitive feature of the diagram"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Route to Chaos",
+    "title": "Period-Doubling as a Universal Pathway",
+    "items": [
+      "The sequence stable point -> 2-cycle -> 4-cycle -> 8-cycle -> ... -> chaos is called the period-doubling route to chaos",
+      "The r-intervals between successive bifurcations shrink by a roughly constant ratio (a pattern later shown by Mitchell Feigenbaum to be universal across many different nonlinear systems, not just the logistic map)",
+      "This universality is part of why May's result had such broad impact — it connected population biology to physics, chemistry, and beyond",
+      "Even though the diagram looks intricate, it is generated by the single simple discrete logistic equation with only one parameter (r) varied"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Bifurcation Diagram Summary",
+    "title": "Four Milestones Along the r-Axis",
+    "cards": [
+      {
+        "h": "Stable equilibrium",
+        "p": "Low r. All trajectories settle to a single value of N near K. Behavior mirrors the continuous logistic model."
+      },
+      {
+        "h": "First bifurcation",
+        "p": "r crosses a threshold (~2 to 2.449 in the classic parameterization). Equilibrium destabilizes into a 2-point cycle."
+      },
+      {
+        "h": "Period-doubling cascade",
+        "p": "Further increases in r rapidly produce 4-, 8-, 16-point cycles in a shrinking sequence of r-intervals."
+      },
+      {
+        "h": "Onset of chaos",
+        "p": "Beyond the cascade's accumulation point, trajectories become aperiodic; narrow periodic windows persist within the chaotic zone."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Comparing the Regimes",
+    "title": "Four Dynamical Regimes of the Discrete Logistic Model",
+    "headers": [
+      "Regime",
+      "r Range (conceptual)",
+      "Long-Term Pattern",
+      "Example / Analogy"
+    ],
+    "rows": [
+      [
+        "Damped oscillation",
+        "Low-moderate r (~2.0–2.449)",
+        "Overshoots/undershoots K but converges to a single equilibrium over time",
+        "A population recovering smoothly, with diminishing swings, after a disturbance"
+      ],
+      [
+        "2-point limit cycle",
+        "Moderate r (just above first bifurcation)",
+        "Alternates indefinitely between two fixed values, never converging",
+        "Nicholson's blowflies: regular boom-and-bust generational cycles"
+      ],
+      [
+        "Higher-order cycle (4-, 8-point...)",
+        "Higher r (period-doubling cascade)",
+        "Repeats a fixed sequence of several values before repeating again",
+        "Some rodent or insect populations with multi-year, multi-phase cycles"
+      ],
+      [
+        "Chaos",
+        "High r, beyond cascade's limit",
+        "Bounded but never exactly repeats; extreme sensitivity to initial conditions",
+        "Weather-like unpredictability despite a fully deterministic rule"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Zooming In",
+    "title": "Periodic Windows Within Chaos",
+    "items": [
+      "Even deep in the chaotic region of the bifurcation diagram, certain narrow bands of r produce clean periodic cycles again (e.g., a distinct 3-point cycle)",
+      "This shows that chaos is not simply 'more and more disorder' as r increases — the relationship between r and dynamical behavior is intricate, not monotonic",
+      "The existence of a stable 3-cycle within a chaotic regime has deep mathematical significance: it can be shown mathematically that period-3 behavior implies the potential for essentially all other periodicities and chaos ('period three implies chaos')",
+      "This finding, from a purely mathematical result by Li and Yorke (1975), helped set the stage for May's ecological application a year later"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 7",
+    "title": "Implications for Predicting Population Behavior",
+    "sub": "What complex dynamics mean for ecology and management"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical Consequences",
+    "title": "Why This Matters for Real Populations",
+    "items": [
+      "Wildlife managers and conservationists often assume that erratic population counts indicate an external disturbance (disease, weather, habitat loss)",
+      "May's work shows that wild fluctuations can arise purely from a population's own intrinsic growth dynamics, with no external cause required",
+      "This has direct implications for setting harvest quotas, pest-control thresholds, and conservation targets — a chaotic population cannot be reliably steered toward a fixed target using a single-year census",
+      "Distinguishing 'chaos driven by high r and delayed density dependence' from 'noise driven by environmental variability' is a genuine, ongoing empirical challenge",
+      "Species with high reproductive rates and pronounced developmental or seasonal lags (many insects, some fish, some rodents) are the best candidates for chaotic dynamics in nature"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limits of Predictability",
+    "title": "The Predictability Ceiling",
+    "items": [
+      "Even with a perfectly correct model and known parameters, chaotic dynamics impose a fundamental limit on how far into the future population size can be forecast",
+      "Prediction error grows exponentially with time in a chaotic regime, rather than staying bounded as it would in a stable or cyclic regime",
+      "This does not make short-term prediction impossible — near-term forecasts can still be quite accurate — but it does make long-term point predictions essentially meaningless",
+      "Ecologists therefore often shift from asking 'What will N be in year 20?' to asking 'What is the statistical distribution / bounded range of likely N values?'",
+      "This reframes population forecasting away from precise prediction and toward probabilistic and qualitative understanding"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Different Goals",
+    "title": "Prediction vs. Understanding",
+    "left": {
+      "h": "What chaos limits",
+      "body": "Precise, long-range, deterministic prediction of exact future population size. Because of sensitive dependence on initial conditions, small measurement errors in current N make specific numerical forecasts unreliable beyond a short horizon."
+    },
+    "right": {
+      "h": "What remains possible",
+      "body": "Understanding the qualitative regime (stable, cyclic, or chaotic), the bounded range of fluctuation, and how sensitive that regime is to r and lag length. This supports management strategies robust to uncertainty rather than fine-tuned to a single forecast."
+    },
+    "footnote": "Good population management plans for uncertainty rather than assuming precise predictability"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Management Applications",
+    "title": "Applying This to Conservation and Pest Management",
+    "items": [
+      "Harvest strategies that assume a smooth logistic approach to K can systematically overharvest a population that is actually cycling or chaotic, because true N at the time of harvest may differ greatly from the assumed equilibrium",
+      "Pest-control programs targeting insects with short generation times and strong density dependence should anticipate potential outbreak cycles rather than a single stable pest level",
+      "Conservation programs for small, fluctuating populations need buffer margins that account for the possibility of large deterministic swings, not just environmental stochasticity",
+      "Long-term monitoring across many generations is essential to distinguish a genuine cyclic/chaotic signal from short-term noise",
+      "Simple models (like the discrete logistic) remain valuable precisely because they reveal these dynamical possibilities with minimal assumptions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Putting It All Together",
+    "items": [
+      "The continuous logistic model (Lecture 7) is a special, simplified case: it assumes zero lag and produces smooth convergence to K",
+      "Introducing a time lag (via a discrete time step or an explicit delay term) reveals a much richer set of possible outcomes",
+      "The qualitative outcome — damped oscillation, stable cycle, or chaos — depends on the combination of the growth parameter r and the length of the lag",
+      "May's bifurcation diagram elegantly summarizes this entire spectrum of behavior as a function of a single parameter, r",
+      "The central takeaway: simple, fully deterministic biological models can generate dynamics complex enough to look random — a humbling and important lesson for anyone trying to forecast real populations"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Not only in research, but also in the everyday world of politics and economics, we would all be better off if more people realized that simple nonlinear systems do not necessarily possess simple dynamical properties.",
+    "attrib": "Robert May, 1976, Nature"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key Terms Review",
+    "title": "Vocabulary Checkpoint",
+    "cards": [
+      {
+        "h": "Discrete logistic model",
+        "p": "Nt+1 = Nt + rNt(1 − Nt/K); population growth calculated in fixed time steps, allowing overshoot of K."
+      },
+      {
+        "h": "Time lag (τ)",
+        "p": "The delay between a change in population density and its effect on the growth rate."
+      },
+      {
+        "h": "Limit cycle",
+        "p": "A stable, indefinitely repeating oscillation between two or more fixed population values."
+      },
+      {
+        "h": "Deterministic chaos",
+        "p": "Bounded, non-repeating fluctuations generated by a fully deterministic equation, with sensitive dependence on initial conditions."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Self-Check",
+    "title": "Questions to Test Your Understanding",
+    "items": [
+      "Why does discretizing time (rather than treating it continuously) make overshoot of K possible in the logistic model?",
+      "What roles do r and lag length (τ) each play in determining whether a population shows damped oscillation, a limit cycle, or chaos?",
+      "In May's bifurcation diagram, what does it mean when the plotted points at a given r-value split from one point into two?",
+      "Why is deterministic chaos fundamentally different from random noise, even though both can look 'irregular'?",
+      "What practical challenge does chaos pose for wildlife managers who want to set science-based harvest quotas?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Tips",
+    "title": "How to Prepare for Discussion",
+    "items": [
+      "Sketch, by hand, the four qualitative shapes of a population trajectory over time: smooth logistic approach, damped oscillation, stable 2-point cycle, and chaotic fluctuation",
+      "Practice explaining, in plain language (no equations), why a short development or resource-response lag can destabilize an otherwise stable population",
+      "Review the Nicholson's blowfly case from Lecture 6 and connect it explicitly to the concept of time-delayed density dependence covered today",
+      "Think of one real-world population (wildlife, pest, fishery) where you would predict cyclic or chaotic dynamics based on its life-history traits, and be ready to justify your reasoning",
+      "Re-read Rockwood Ch. 2 sections on discrete and time-lag models before next class"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Looking Ahead to Lecture 9",
+    "left": {
+      "h": "Today's takeaway",
+      "body": "Time lags — whether from discretizing time or from explicit delayed density dependence — can transform smooth logistic growth into damped oscillations, stable limit cycles, or deterministic chaos, fundamentally limiting long-term predictability even in fully deterministic models."
+    },
+    "right": {
+      "h": "Lecture 9 preview: Intraspecific Competition — Mechanisms",
+      "body": "We move from the mathematics of density dependence to its biological mechanisms. Lecture 9 examines how individuals of the same species actually compete for limited resources: scramble vs. contest competition, resource depletion, interference, and territoriality."
+    },
+    "footnote": "Reading for Lecture 9: consult syllabus / course site for the assigned chapter"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 1",
+    "title": "For Class Discussion",
+    "items": [
+      "Nicholson's blowfly populations, kept under constant laboratory conditions with a fixed daily food supply, still exhibited large, regular oscillations rather than settling at a stable K",
+      "Given everything covered today, what combination of biological traits (development time, reproductive rate, resource-response lag) likely made the blowfly system prone to this outcome?",
+      "If you were redesigning Nicholson's experiment to minimize oscillations while keeping the same food limitation, what single biological or experimental factor would you change, and why would you expect it to produce a more stable trajectory?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 2",
+    "title": "For Class Discussion",
+    "items": [
+      "A fisheries manager observes wide year-to-year swings in a fish population's abundance and initially assumes the cause must be variable ocean conditions (an external, stochastic explanation)",
+      "Based on today's material, what internal, purely deterministic explanation should the manager also consider before concluding the swings are environmentally driven?",
+      "What kind of data or experiment could help distinguish 'chaotic dynamics generated by the population's own growth parameters' from 'noise generated by a fluctuating environment'? Consider what each hypothesis would and would not predict about repeatability given identical starting conditions"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 8</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

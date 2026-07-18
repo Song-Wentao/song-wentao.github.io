@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 34: Predator-Prey Interactions III: Numerical Responses, Stability, and Rosenzweig-MacArthur</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 34",
+    "title": "Predator-Prey Interactions III: Numerical Responses, Stability, and the Rosenzweig-MacArthur Model",
+    "sub": "From individual feeding rates to population-level dynamics — why enrichment can destabilize predator-prey systems",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 10 — Predator-Prey Interactions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Recap of Lecture 33: Functional Responses",
+    "items": [
+      "Lecture 33 examined the <b>functional response</b> — how an individual predator's per-capita consumption rate changes with prey density",
+      "<b>Type I</b>: linear rise then abrupt plateau (filter feeders)",
+      "<b>Type II</b>: decelerating rise to an asymptote, driven by handling time (most predators) — destabilizing at low prey density",
+      "<b>Type III</b>: sigmoidal, with a low-density refuge from switching or learning — can be stabilizing",
+      "Functional response is about the <b>individual</b> predator's feeding rate — it says nothing about whether the predator population itself grows",
+      "Today we add the missing piece: how prey density translates into <b>predator population growth</b>"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "The Numerical Response",
+    "sub": "How predator populations track prey density"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY DEFINITION",
+    "title": "Numerical Response",
+    "term": "Numerical response",
+    "def": "The relationship between prey density and the growth rate (or density) of the predator population — i.e., how many predators there are, or how fast the predator population grows, as a function of prey availability.",
+    "bullets": [
+      "Contrasts directly with the <b>functional response</b>, which concerns an individual's consumption rate, not population growth",
+      "Numerical response operates on a population, not an individual, timescale",
+      "Two distinct mechanisms produce a numerical response: reproduction and aggregation (movement)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO RESPONSES, TWO SCALES",
+    "title": "Functional vs. Numerical Response",
+    "left": {
+      "h": "Functional response",
+      "body": "Individual-level. How many prey does ONE predator eat per unit time as prey density rises? Determined by search rate and handling time. Operates over short (ecological) timescales — hours to days."
+    },
+    "right": {
+      "h": "Numerical response",
+      "body": "Population-level. How does the SIZE or GROWTH RATE of the predator population change as prey density rises? Determined by reproduction and movement. Operates over longer (demographic) timescales — generations, or immigration events."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANISM 1",
+    "title": "Numerical Response via Reproduction",
+    "items": [
+      "More prey consumed per predator (a rising functional response) → more energy available for <b>growth, survival, and reproduction</b>",
+      "Predators convert consumed prey biomass into offspring — the <b>conversion efficiency</b> (b in our models) links feeding to birth rate",
+      "This is a <b>demographic</b> numerical response: predator birth rate rises with prey density, and death rate may fall (better body condition, lower starvation)",
+      "Operates on a generational timescale — lags behind changes in prey density by a predator generation or more",
+      "Example: raptor clutch size and fledging success track rodent density in vole/lemming cycles"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANISM 2",
+    "title": "Numerical Response via Aggregation",
+    "items": [
+      "Predators are mobile and can <b>redistribute themselves in space</b>, aggregating in patches of high prey density",
+      "This is a behavioral, not demographic, numerical response — no births or deaths required, just movement/immigration",
+      "Produces a much <b>faster</b> numerical response than reproduction — predators can arrive within days",
+      "Classic examples: ladybird beetles aggregating on aphid outbreaks; wading birds concentrating on productive mudflats; raptors converging on rodent irruptions",
+      "Aggregative responses can locally stabilize prey populations even without any change in total predator numbers"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "Why the Numerical Response Matters for Dynamics",
+    "items": [
+      "The basic Lotka-Volterra model (Lecture 32) already contains an implicit numerical response: predator growth dP/dt = baNP − dP, where consumed prey (aN per capita) is converted into predator growth at rate b",
+      "But the basic L-V model paired this numerical response with an <b>unrealistic</b> functional response — a Type I (linear, no saturation) response, and no self-limitation of prey",
+      "Today's task: build a more realistic model that pairs a <b>Type II functional response</b> with <b>logistic prey growth</b>, and ask how that changes the qualitative dynamics"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "NUMERICAL RESPONSE IN NATURE",
+    "title": "Real-World Examples of Numerical Response",
+    "cards": [
+      {
+        "h": "Snowy owls and lemmings",
+        "p": "Snowy owl clutch size and breeding success rise sharply in high-lemming years, and owls may skip breeding entirely in low-lemming years — a strong reproductive numerical response."
+      },
+      {
+        "h": "Ladybird beetle aggregation",
+        "p": "Coccinellid beetles rapidly aggregate on aphid-infested plants within days, tracking aphid outbreaks through movement rather than reproduction."
+      },
+      {
+        "h": "Coyotes and rodent prey",
+        "p": "Coyote litter size and pup survival increase with local rodent abundance, linking prey supply directly to predator population growth."
+      },
+      {
+        "h": "Nomadic raptors",
+        "p": "Species like the short-eared owl show nomadic, irruptive movements that track spatially and temporally unpredictable rodent outbreaks across large regions."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MODELING IMPLICATIONS",
+    "title": "Why Numerical Response Alone Is Not Enough",
+    "items": [
+      "A numerical response describes HOW predator numbers track prey, but by itself does not predict system-level stability — that also depends on the shape of the functional response and on self-limitation in prey",
+      "The basic L-V model has a numerical response (via reproduction) but produces neutral cycles because its functional response is Type I and prey growth is unlimited",
+      "This sets up the central question for the rest of the lecture: what happens to system stability once we combine a realistic (Type II) functional response with a realistic (logistic) prey growth model?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Rosenzweig-MacArthur Model",
+    "sub": "Logistic prey growth + Type II functional response"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Rosenzweig & MacArthur (1963)",
+    "items": [
+      "Michael Rosenzweig and Robert MacArthur proposed a refined predator-prey model that addressed two key weaknesses of the basic Lotka-Volterra model",
+      "<b>Weakness 1</b>: L-V assumes prey grow exponentially in the absence of predators — no carrying capacity, no self-limitation (fixed in Ch. 2's logistic model)",
+      "<b>Weakness 2</b>: L-V assumes a Type I functional response — predator consumption rises linearly forever, with no saturation from handling time",
+      "The Rosenzweig-MacArthur (R-M) model fixes both: it substitutes <b>logistic growth</b> for prey and a <b>Type II functional response</b> for predation",
+      "This single change transforms the qualitative behavior of the whole system"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE MODEL",
+    "title": "The Rosenzweig-MacArthur Equations",
+    "term": "dN/dt = rN(1 − N/K) − [aN / (1 + ahN)] P;   dP/dt = b[aN / (1 + ahN)] P − dP",
+    "def": "Prey growth is logistic (intrinsic rate r, carrying capacity K) minus predation loss described by a Type II functional response; predator growth is that same Type II intake converted to offspring at efficiency b, minus a constant per-capita death rate d.",
+    "bullets": [
+      "N = prey density, P = predator density, a = attack/search rate, h = handling time per prey item",
+      "aN/(1+ahN) is the Type II functional response from Lecture 33 — the per-predator consumption rate",
+      "b = conversion efficiency (prey eaten → predator offspring); d = predator per-capita death rate"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BUILDING THE MODEL",
+    "title": "What Each Term Contributes",
+    "left": {
+      "h": "Prey equation: dN/dt = rN(1−N/K) − f(N)P",
+      "body": "rN(1−N/K): logistic self-limitation from Ch. 2 — growth slows as N approaches K. f(N)P = [aN/(1+ahN)]P: total prey consumed by the whole predator population, using the Type II functional response per predator times P predators."
+    },
+    "right": {
+      "h": "Predator equation: dP/dt = b·f(N)·P − dP",
+      "body": "b·f(N)·P: predator numerical response through reproduction — prey converted into predator births at efficiency b. −dP: constant per-capita predator mortality, independent of prey density (simplifying assumption)."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMPARISON TO LECTURE 32",
+    "title": "What Changed from the Basic L-V Model?",
+    "items": [
+      "Basic L-V prey equation: dN/dt = rN − aNP (exponential growth, Type I predation)",
+      "R-M prey equation: dN/dt = rN(1−N/K) − aNP/(1+ahN) (logistic growth, Type II predation)",
+      "Both changes are independently well-motivated: logistic growth reflects real resource limitation; Type II reflects real handling-time constraints",
+      "But together they do something the individual pieces don't: they change the model from producing <b>neutral, structurally unstable cycles</b> to producing a rich range of qualitatively different, structurally stable dynamics"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "Finding the R-M Equilibrium",
+    "term": "Setting both dN/dt = 0 and dP/dt = 0",
+    "def": "At equilibrium, predator density P* is set by the prey equation (how many predators the current prey supply can support), and prey density N* is set by the predator equation (the prey density at which predator births exactly balance predator deaths).",
+    "bullets": [
+      "From dP/dt = 0: b·aN/(1+ahN) = d, which solves for a single fixed value N* = d/(a(b−hd)) — independent of P",
+      "From dN/dt = 0 (with N = N*): P* = r(1−N*/K)(1+ahN*)/a — the height of the hump-shaped prey isocline directly above N*",
+      "This is exactly why the predator isocline is vertical (fixed N*) while the prey isocline is a curve (P as a function of N)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Stability Analysis",
+    "sub": "Equilibrium, damped oscillations, or stable limit cycles"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECALL",
+    "title": "The Basic L-V Model's Neutral Stability",
+    "items": [
+      "In Lecture 32, the basic L-V model produced <b>neutrally stable</b> closed orbits — cycles that neither grow nor shrink over time",
+      "The amplitude of the cycle is fixed entirely by the initial conditions (starting N and P) — a small perturbation shifts the system to a permanently different cycle",
+      "This is a mathematical knife-edge, not a robust prediction — any small change to the model's assumptions destroys the neutral cycles",
+      "Real biological systems experience constant perturbation (weather, disease, immigration) — a model that is only neutrally stable is not a plausible description of a persistent, resilient system"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PAYOFF",
+    "title": "The R-M Model Breaks the Neutral-Stability Knife-Edge",
+    "items": [
+      "Because the R-M model is nonlinear in a richer way (logistic self-limitation + saturating predation), its equilibrium can be:",
+      "1) A <b>stable point equilibrium</b> — N and P settle to constant values and stay there after perturbation",
+      "2) A <b>stable equilibrium approached via damped oscillations</b> — N and P spiral inward toward the equilibrium after a perturbation",
+      "3) An <b>unstable equilibrium surrounded by a stable limit cycle</b> — the system is repelled from equilibrium but settles onto a fixed-amplitude cycle that is the same regardless of starting conditions",
+      "Which outcome occurs depends on parameter values — most importantly, the prey carrying capacity K relative to the predator's half-saturation prey density (1/ah)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Stable Limit Cycle",
+    "term": "Stable limit cycle",
+    "def": "A cycle in population sizes that the system returns to after any small perturbation — unlike the basic L-V model's neutral cycles, a limit cycle has a fixed amplitude and period that do NOT depend on initial conditions.",
+    "bullets": [
+      "Perturb a system on a limit cycle and it spirals back onto the same cycle — this is a structurally robust, biologically realistic form of persistent oscillation",
+      "Contrast with neutral cycles: perturb an L-V neutral cycle and the system moves to a different orbit permanently",
+      "Limit cycles are a well-defined feature of the equilibrium's local stability, not an artifact of starting conditions"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "VISUALIZING THE DYNAMICS",
+    "title": "Phase-Plane Pictures: Spiraling In vs. Spiraling Out",
+    "left": {
+      "h": "Damped oscillations (stable)",
+      "body": "Plot N vs. P as a trajectory over time. Starting away from equilibrium, the trajectory spirals INWARD, with each successive peak and trough smaller than the last, converging on the fixed point equilibrium."
+    },
+    "right": {
+      "h": "Stable limit cycle (unstable equilibrium)",
+      "body": "Starting near the (now unstable) equilibrium, the trajectory spirals OUTWARD until it reaches a fixed closed loop — the limit cycle — and then continues to trace that same loop indefinitely, regardless of exactly where it started."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Isocline Geometry",
+    "sub": "Why the prey isocline is hump-shaped, and what that means"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECALL FROM LECTURE 32",
+    "title": "Isoclines in the Basic L-V Model",
+    "items": [
+      "An isocline (zero-growth line) shows the combinations of N and P for which one population's growth rate is exactly zero",
+      "In the basic L-V model, the <b>prey isocline</b> (dN/dt = 0) is a <b>horizontal line</b> at P = r/a — flat because prey growth is exponential and predation is linear (Type I)",
+      "The <b>predator isocline</b> (dP/dt = 0) is a <b>vertical line</b> at N = d/(ba) — vertical because predator growth depends only on N, not P",
+      "Where these two straight lines cross is the (neutrally stable) equilibrium, encircled by closed orbits"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "NEW GEOMETRY",
+    "title": "The R-M Prey Isocline Is Hump-Shaped",
+    "left": {
+      "h": "Why it curves",
+      "body": "Setting dN/dt = 0 in the R-M model gives P as a function of N that first RISES (as N increases from zero, predators can be supported at low density because there is little self-limitation yet) and then FALLS (as N approaches K, logistic self-limitation dominates and fewer predators can be sustained). The result is a hump-shaped (unimodal) curve rather than a flat line."
+    },
+    "right": {
+      "h": "The predator isocline stays vertical",
+      "body": "Because predator growth in this model still depends only on prey density N (through the Type II functional response), not on P, the predator isocline dP/dt = 0 remains a VERTICAL line at a fixed N* — just as in the basic L-V model. Its horizontal position is set by a, h, b, and d."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CRITICAL GEOMETRIC RULE",
+    "title": "Where the Vertical Isocline Crosses the Hump Determines Stability",
+    "items": [
+      "The predator isocline (vertical line at N*) can intersect the humped prey isocline on its <b>rising left limb</b>, at its <b>peak</b>, or on its <b>falling right limb</b>",
+      "<b>Predator isocline to the RIGHT of the hump's peak</b> (N* close to K): the equilibrium is <b>stable</b> — perturbations damp out or the system sits at a stable point",
+      "<b>Predator isocline to the LEFT of the hump's peak</b> (N* well below K): the equilibrium is <b>unstable</b>, and trajectories spiral outward onto a <b>stable limit cycle</b>",
+      "<b>Predator isocline exactly at the peak</b>: the boundary case (Hopf bifurcation) between stable equilibrium and limit cycle",
+      "This single geometric rule is the graphical heart of the paradox of enrichment"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "The Paradox of Enrichment",
+    "sub": "Rosenzweig (1971): more food can destabilize the system"
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE PARADOX",
+    "title": "Paradox of Enrichment",
+    "term": "Paradox of enrichment (Rosenzweig 1971)",
+    "def": "Increasing a prey population's carrying capacity K — e.g., via nutrient enrichment, food supplementation, or habitat improvement — can destabilize an otherwise stable predator-prey equilibrium, driving the system into large-amplitude limit cycles and increasing the risk of extinction, especially of the predator.",
+    "bullets": [
+      "Named a 'paradox' because naive intuition says more food/resources should make a system more secure, not less",
+      "Derived directly from the R-M isocline geometry: increasing K stretches the hump-shaped prey isocline to the right, without moving the (vertical) predator isocline"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MECHANISM, STEP BY STEP",
+    "title": "Why Enrichment Destabilizes: The Isocline Logic",
+    "items": [
+      "1) Increasing K raises the prey's carrying capacity, which stretches the hump-shaped prey isocline further to the right (the peak of the hump shifts rightward and its position relative to N* changes)",
+      "2) The vertical predator isocline does not move — it depends on a, h, b, d, not on K",
+      "3) As K grows, the fixed predator isocline that once sat to the RIGHT of the hump's peak (stable case) can end up to the LEFT of the peak (unstable case)",
+      "4) The equilibrium therefore flips from stable to unstable purely because of enrichment — no change in predator biology at all",
+      "5) The system is pushed onto a stable limit cycle with amplitude that grows as K increases further — troughs get deeper and deeper, raising real extinction risk during the low phase"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CONSEQUENCES",
+    "title": "Why Larger-Amplitude Cycles Matter Ecologically",
+    "cards": [
+      {
+        "h": "Deeper troughs",
+        "p": "As K rises, the low point of each cycle in both prey and predator densities gets closer to zero, even though the average (or peak) density may rise."
+      },
+      {
+        "h": "Extinction risk",
+        "p": "Small populations at the trough are vulnerable to demographic stochasticity, environmental catastrophes, and Allee effects — enrichment can drive local extinction of the predator."
+      },
+      {
+        "h": "Counterintuitive management implication",
+        "p": "Well-meaning interventions (fertilizing a lake, supplemental feeding of prey) intended to help a predator-prey system could destabilize it."
+      },
+      {
+        "h": "A test of model realism",
+        "p": "The paradox is a strong, falsifiable prediction of the R-M model — a natural target for empirical testing."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EMPIRICAL EVIDENCE — SUPPORT",
+    "title": "Empirical Support for the Paradox of Enrichment",
+    "items": [
+      "<b>Laboratory microcosm/mesocosm studies</b> (e.g., protist and rotifer-algae chemostat systems) have repeatedly shown enrichment increasing oscillation amplitude, sometimes to extinction — among the cleanest experimental confirmations in population ecology",
+      "Nutrient-enrichment experiments in some plankton-zooplankton systems show larger, more destabilized cycles under higher nutrient loading, consistent with the theory",
+      "These controlled systems strip away many of the complicating factors present in nature, allowing the core R-M prediction to be tested more directly"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EMPIRICAL EVIDENCE — CRITIQUES",
+    "title": "Why Many Natural Systems Don't Show the Predicted Collapse",
+    "items": [
+      "Field observations of real enriched ecosystems (eutrophic lakes, fertilized agricultural landscapes) often show far <b>more resilience</b> than the paradox predicts — few clean field cases exist",
+      "<b>Prey refuges</b>: patches or life stages where prey are inaccessible to predators dampen amplitude regardless of K",
+      "<b>Diet switching / Type III functional responses</b>: many real predators are generalists that switch to alternative prey when a given prey type becomes rare, providing the low-density stabilization a Type III response supplies (Lecture 33)",
+      "<b>Spatial heterogeneity</b>: real landscapes are patchy; asynchronous local dynamics across patches average out into more stable regional dynamics",
+      "Net conclusion: the paradox is a real and demonstrable force in simple systems, but is frequently buffered by additional biological complexity in nature — an active area of debate"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORY OF AN IDEA",
+    "title": "From L-V to the Paradox of Enrichment",
+    "items": [
+      {
+        "y": "1925-26",
+        "t": "Lotka and Volterra independently derive the basic predator-prey model with neutrally stable cycles"
+      },
+      {
+        "y": "1959",
+        "t": "C.S. Holling formalizes Type I, II, and III functional responses from experimental feeding trials"
+      },
+      {
+        "y": "1963",
+        "t": "Rosenzweig and MacArthur combine logistic prey growth with a Type II functional response, introducing structurally robust stability"
+      },
+      {
+        "y": "1971",
+        "t": "Rosenzweig publishes 'Paradox of Enrichment,' showing that raising K can destabilize the R-M equilibrium"
+      },
+      {
+        "y": "1970s-2000s",
+        "t": "Lab mesocosm tests (e.g., chemostat protist systems) confirm the paradox under controlled conditions"
+      },
+      {
+        "y": "Ongoing",
+        "t": "Field ecologists debate the paradox's generality, pointing to refuges, switching, and spatial structure as buffers"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Other Stabilizing Mechanisms",
+    "sub": "How real predator-prey systems resist destabilization"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BEYOND THE BASIC MODEL",
+    "title": "Mechanisms That Stabilize Real Predator-Prey Systems",
+    "cards": [
+      {
+        "h": "Prey refuges",
+        "p": "Spatial or temporal refuges (dense vegetation, burrows, size/age classes too large to attack) place a floor under prey density that predation cannot erode, damping cycle amplitude."
+      },
+      {
+        "h": "Spatial heterogeneity / metapopulation structure",
+        "p": "Prey and predators distributed across many patches with dispersal between them rarely crash in synchrony; asynchronous local dynamics stabilize the regional total."
+      },
+      {
+        "h": "Predator interference",
+        "p": "Mutual interference among predators (competition for space, aggression, time lost interacting rather than hunting) reduces the EFFECTIVE per-capita attack rate as predator density rises — a self-limiting feedback absent from the basic R-M predator equation."
+      },
+      {
+        "h": "Alternative prey / generalist predators",
+        "p": "Predators that are not obligate specialists can switch to alternative prey species when a given prey population is rare, relieving predation pressure and allowing that prey to recover (links to Type III functional responses)."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Predator Interference",
+    "term": "Predator (mutual) interference",
+    "def": "A reduction in an individual predator's effective attack/search rate caused by the presence of other predators — through direct aggression, kleptoparasitism, or simply time and energy diverted from searching to interacting with conspecifics.",
+    "bullets": [
+      "Makes the predator's functional response depend on predator density P, not just prey density N — a departure from the standard Holling formulations",
+      "Introduces direct density dependence into predator growth, which is stabilizing because it caps predator numbers independent of prey supply",
+      "Ratio-dependent and Beddington-DeAngelis functional response models were developed partly to capture this effect explicitly"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "MODEL COMPARISON",
+    "title": "Basic Lotka-Volterra vs. Rosenzweig-MacArthur Model",
+    "headers": [
+      "Feature",
+      "Basic Lotka-Volterra (Ch. 9)",
+      "Rosenzweig-MacArthur (1963)"
+    ],
+    "rows": [
+      [
+        "Prey growth (no predators)",
+        "Exponential, unlimited",
+        "Logistic, capped at K"
+      ],
+      [
+        "Functional response",
+        "Type I (linear, unsaturated)",
+        "Type II (saturating, handling time h)"
+      ],
+      [
+        "Prey isocline shape",
+        "Horizontal line (P = r/a)",
+        "Hump-shaped curve, peak set by K"
+      ],
+      [
+        "Predator isocline shape",
+        "Vertical line (N = d/ba)",
+        "Vertical line (N* set by a, h, b, d)"
+      ],
+      [
+        "Equilibrium stability",
+        "Neutrally stable (structurally fragile)",
+        "Stable point, damped oscillation, or stable limit cycle"
+      ],
+      [
+        "Effect of increasing K",
+        "Not applicable (no K in model)",
+        "Can destabilize equilibrium — paradox of enrichment"
+      ],
+      [
+        "Response to perturbation",
+        "Shifts permanently to a new orbit",
+        "Returns to same equilibrium or same limit cycle"
+      ]
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "MODEL COMPARISON",
+    "title": "Stabilizing vs. Destabilizing Forces in Predator-Prey Systems",
+    "headers": [
+      "Force",
+      "Effect on stability",
+      "Mechanism"
+    ],
+    "rows": [
+      [
+        "Logistic prey self-limitation (K)",
+        "Stabilizing at low K, destabilizing at high K",
+        "Caps exponential growth, but a humped isocline with distant peak favors cycles"
+      ],
+      [
+        "Type II functional response",
+        "Destabilizing at low prey density",
+        "Saturation removes the brake on prey growth once predators are satiated"
+      ],
+      [
+        "Type III functional response",
+        "Stabilizing at low prey density",
+        "Low-density refuge from switching/learning suppresses predation when prey are scarce"
+      ],
+      [
+        "Prey refuges",
+        "Stabilizing",
+        "Floor under prey density that predation cannot remove"
+      ],
+      [
+        "Predator interference",
+        "Stabilizing",
+        "Direct density dependence caps effective predator impact"
+      ],
+      [
+        "Spatial heterogeneity",
+        "Stabilizing",
+        "Asynchronous local dynamics average out regionally"
+      ],
+      [
+        "Nutrient enrichment (raising K)",
+        "Destabilizing (paradox of enrichment)",
+        "Shifts hump-shaped isocline peak past the predator isocline"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DIET SWITCHING IN DETAIL",
+    "title": "How Diet Switching Stabilizes: A Closer Look",
+    "items": [
+      "A generalist predator facing multiple prey types often shows disproportionate preference for whichever prey is currently most abundant — a behavioral pattern called <b>positive frequency-dependent switching</b>",
+      "When the focal prey species is rare, the predator preferentially attacks alternative prey instead, relieving predation pressure and allowing the rare prey to recover — mathematically, this produces a sigmoidal (Type III-like) response to that prey species specifically",
+      "This is functionally equivalent to adding a low-density refuge, even though no literal spatial refuge exists — the 'refuge' is created by the predator's own behavior",
+      "Diet switching is one reason multi-prey, generalist-predator communities can be more resistant to the paradox of enrichment than simple one-predator-one-prey systems"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Putting It Together",
+    "sub": "From functional response to system-level stability"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONCEPTUAL THREAD",
+    "title": "How the Pieces Fit Together",
+    "items": [
+      "Functional response (Lecture 33) sets how an individual predator's intake scales with prey density — the microscopic ingredient",
+      "Numerical response (today) sets how the predator POPULATION grows or redistributes in response to that intake — via reproduction and aggregation",
+      "The Rosenzweig-MacArthur model combines a Type II functional response with logistic prey growth and a reproduction-based numerical response into a single dynamical system",
+      "The geometry of the resulting isoclines (a horizontal-line vs. hump-shaped prey isocline) is what separates the basic L-V model's fragile neutral cycles from the R-M model's richer, more realistic stability landscape",
+      "The paradox of enrichment is the model's most famous, and most tested, emergent prediction — and the debate over its generality has driven decades of empirical work"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FRAMING THE DEBATE",
+    "quote": "Enrichment of a predator-prey system... may result in destruction of the steady state.",
+    "attrib": "Michael Rosenzweig, 'Paradox of Enrichment' (1971)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION",
+    "title": "Discussion Questions",
+    "items": [
+      "If a lake ecosystem shows large-amplitude phytoplankton-zooplankton cycles after fertilizer runoff increases, how would you test whether the paradox of enrichment (vs. some other cause) is responsible?",
+      "A wildlife manager proposes supplemental feeding to boost a declining prey population for an endangered predator. Using the R-M isocline framework, what should the manager check before proceeding?",
+      "Why might a spatially structured landscape (many small patches) be more resistant to the paradox of enrichment than a single well-mixed pond?",
+      "How would adding a Type III functional response (instead of Type II) into the R-M prey equation change the shape of the prey isocline near N = 0, and what would that predict for stability at low K?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS MATTERS",
+    "title": "Applied and Conservation Relevance",
+    "items": [
+      "Fertilizer runoff, aquaculture waste, and agricultural nutrient loading enrich aquatic systems — the paradox predicts this could destabilize predator-prey (or plankton-zooplankton) dynamics, not just cause simple eutrophication",
+      "Supplemental feeding programs for endangered predators' prey base could, in theory, backfire by amplifying boom-bust cycles rather than stabilizing populations",
+      "Understanding which stabilizing mechanisms (refuges, spatial structure, diet switching) are present in a given system is essential before predicting how it will respond to enrichment or habitat change",
+      "The paradox is a cautionary example of how a seemingly beneficial intervention can have a non-intuitive, destabilizing systems-level consequence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Key Distinctions to Master",
+    "items": [
+      "Explain the difference between a functional response and a numerical response, and name the two mechanisms that generate a numerical response",
+      "Write out the Rosenzweig-MacArthur equations and identify which term represents logistic self-limitation and which represents the Type II functional response",
+      "Explain why the R-M prey isocline is hump-shaped while the predator isocline remains vertical",
+      "State the isocline rule that determines stability: predator isocline right of the hump's peak = stable; left of the peak = limit cycle",
+      "Explain, step by step, why raising K can shift the system from a stable equilibrium to a limit cycle (the paradox of enrichment)",
+      "List at least three mechanisms that can stabilize real predator-prey systems against the paradox of enrichment"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MODEL LIMITATIONS",
+    "title": "What the Rosenzweig-MacArthur Model Still Leaves Out",
+    "left": {
+      "h": "Simplifications retained",
+      "body": "Constant predator death rate d, independent of prey density. No predator interference (attack rate depends only on N, not P). No explicit space — the model is well-mixed. Single prey, single predator species — no alternative prey or diet switching."
+    },
+    "right": {
+      "h": "Extensions in the literature",
+      "body": "Ratio-dependent and Beddington-DeAngelis functional responses add predator interference directly into the consumption term. Spatially explicit and metapopulation versions add patch structure and dispersal. Multi-species extensions add alternative prey and diet switching, often producing Type III-like stabilization at the community level."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Preview: Lecture 35 — Case Studies and Unit Synthesis",
+    "items": [
+      "Lecture 35 closes out the predator-prey unit (Ch. 10) with two classic empirical case studies that test these models against real data",
+      "<b>Canada lynx and snowshoe hare</b>: the ~10-year population cycle recorded in Hudson's Bay Company fur-trapping records — a natural experiment in predator-prey (and food-limitation) cycling",
+      "<b>Isle Royale wolves and moose</b>: one of the longest-running predator-prey studies in the world, revealing complications including disease, genetics, and climate that go beyond the basic models",
+      "We will ask how well L-V and Rosenzweig-MacArthur dynamics — including the paradox of enrichment — explain these real systems, and where additional mechanisms are clearly needed",
+      "The unit will close with a synthesis connecting predator-prey dynamics back to the broader themes of the course: density dependence, population regulation, and community structure"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Recap: Numerical Responses, Stability, and the Paradox of Enrichment",
+    "items": [
+      "<b>Numerical response</b>: how predator population growth or density tracks prey density, via reproduction (demographic) or aggregation (behavioral) — distinct from the individual-level functional response",
+      "<b>Rosenzweig-MacArthur model</b>: combines logistic prey growth with a Type II functional response; dN/dt = rN(1−N/K) − aNP/(1+ahN), dP/dt = b·aNP/(1+ahN) − dP",
+      "<b>Stability outcomes</b>: stable equilibrium, damped oscillations, or a stable limit cycle, depending on where the (vertical) predator isocline falls relative to the peak of the (hump-shaped) prey isocline",
+      "<b>Paradox of enrichment</b>: raising K stretches the prey isocline's peak rightward, which can flip a stable equilibrium into a destabilizing limit cycle — supported in lab mesocosms, but often buffered in nature by refuges, diet switching, and spatial heterogeneity",
+      "<b>Other stabilizers</b>: prey refuges, predator interference, spatial/metapopulation structure, and generalist/switching predators all counteract the destabilizing tendencies of enrichment"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT",
+    "title": "Lecture 35",
+    "sub": "Predator-Prey Case Studies: Lynx-Hare, Wolves-Moose, and Unit Synthesis"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 34</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

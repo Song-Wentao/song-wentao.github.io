@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 31: Host-Parasite Interactions II: Epidemiological Models and Unit Synthesis</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 31",
+    "title": "Host-Parasite Interactions II: Epidemiological Models and Unit Synthesis",
+    "sub": "From life cycles to dynamics — SIR models, R0, host-population regulation by disease, coevolution, and closing out the Host-Parasite unit before Midterm II",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 9 — Host-Parasite Interactions; unit synthesis"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Where We Left Off",
+    "sub": "Recap of Lecture 30 and today's roadmap"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 30 Review: The Building Blocks",
+    "items": [
+      "Parasites classified by size/strategy: <b>microparasites</b> (viruses, bacteria, protozoa — reproduce within host, small, short generation time) vs. <b>macroparasites</b> (helminths, arthropods — reproduce largely outside host or via free-living stages, larger, longer generation time)",
+      "Parasite <b>life cycles</b>: direct (single host) vs. indirect (require one or more intermediate hosts); definitive host = site of sexual reproduction",
+      "<b>Transmission modes</b>: direct contact, vector-borne, environmental (free-living infective stages), trophic (predation/ingestion)",
+      "<b>Density-dependent transmission</b>: contact rate rises with host density — sets up today's epidemic threshold logic",
+      "<b>Virulence evolution</b>: trade-off hypothesis — virulence is not simply selected to be low; optimal virulence balances transmission gain against host-damage cost",
+      "Today: we formalize these ideas into <b>population-level dynamical models</b> and close the unit"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Roadmap",
+    "title": "Lecture 31 Roadmap",
+    "items": [
+      "<b>Part 2</b>: The SIR framework — compartmental structure and dynamics for microparasites",
+      "<b>Part 3</b>: The basic reproductive number R0 — epidemiological definition, threshold theorem, and the demographic-R0 naming coincidence",
+      "<b>Part 4</b>: Macroparasite models — why worm burden, not presence/absence, matters",
+      "<b>Part 5</b>: Host-parasite feedback — parasites as population regulators, classic field examples",
+      "<b>Part 6</b>: Coevolution — the Red Queen hypothesis",
+      "<b>Part 7</b>: Applied relevance — vaccination thresholds, wildlife disease, conservation",
+      "<b>Part 8</b>: Unit Synthesis (Ch. 9) and Broader Synthesis (Lectures 20–31)",
+      "<b>Part 9</b>: Midterm II logistics and preview of Lecture 32"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The SIR Framework",
+    "sub": "Compartmental models for microparasite dynamics"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Compartmental Models",
+    "term": "SIR Model",
+    "def": "A host population is divided into discrete disease-status compartments, and individuals move between compartments as infection proceeds; the classic microparasite model has three: Susceptible (S), Infected (I), and Recovered/immune (R).",
+    "bullets": [
+      "Developed by Kermack & McKendrick (1927) for epidemic dynamics; adapted extensively for wildlife and human disease ecology",
+      "Assumes each infected individual is simply 'infected' or 'not' — appropriate for microparasites, where within-host parasite load is not tracked explicitly",
+      "Total host population N = S + I + R (in the simplest closed-population version)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Structure",
+    "title": "Flows Between Compartments",
+    "items": [
+      "<b>S → I</b>: susceptible individuals become infected upon effective contact with an infected individual — the transmission term",
+      "<b>I → R</b>: infected individuals recover (and gain immunity) or are removed (death, isolation) at some rate",
+      "<b>R</b> individuals are assumed immune and do not re-enter S in the basic model (permanent immunity)",
+      "Arrows are one-directional: S → I → R — hence 'SIR'",
+      "Variants exist: <b>SIS</b> (no lasting immunity — recovered return to susceptible, e.g., many bacterial infections), <b>SEIR</b> (adds an Exposed/latent class)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Model Structure",
+    "title": "The Transmission Term",
+    "left": {
+      "h": "Density-Dependent Transmission",
+      "body": "New infections arise at rate β·S·I, where β is the transmission coefficient (probability of infection per S–I contact × contact rate). This is the mass-action assumption: contact rate scales with the density of both S and I — directly inherited from Lecture 30's density-dependent transmission idea."
+    },
+    "right": {
+      "h": "Why β·S·I?",
+      "body": "The rate of new infections must depend on (1) how many susceptibles are available to be infected, and (2) how many infected individuals are out there transmitting. The product S·I represents the frequency of S–I encounters under random mixing; β scales that encounter rate into an actual infection rate."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Equations",
+    "title": "The SIR Differential Equations",
+    "items": [
+      "<b>dS/dt = −βSI</b>: susceptibles are lost only by becoming infected",
+      "<b>dI/dt = βSI − γI</b>: infecteds gained by new infection, lost by recovery/removal at rate γ",
+      "<b>dR/dt = γI</b>: recovereds accumulate as infecteds recover",
+      "γ is the recovery rate; <b>1/γ</b> is the average infectious period",
+      "Note the symmetry with Lotka-Volterra-style consumer-resource equations from earlier in the course — S is 'resource,' I is 'consumer,' and the βSI term plays the same mathematical role as a predation term"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Equations",
+    "title": "What the Model Tells Us",
+    "items": [
+      "Whether an epidemic grows or fades depends entirely on the sign of dI/dt at the start: dI/dt > 0 requires βSI > γI, i.e., βS > γ",
+      "This condition — βS > γ — is the mathematical seed of the threshold theorem (Part 3)",
+      "As S is depleted (susceptibles get infected and move to I or R), the epidemic eventually turns over even without intervention — this is the mechanism behind a single-outbreak epidemic curve",
+      "Extended (open) versions add host births (replenishing S) and deaths, allowing endemic (persistent) disease dynamics rather than a single epidemic wave"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "R0 and the Threshold Theorem",
+    "sub": "When does an epidemic take off — and how does this R0 relate to the R0 you already know?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "The Basic Reproductive Number (Epidemiological)",
+    "term": "R0 (epidemiology)",
+    "def": "The expected number of secondary infections produced by a single infected individual introduced into an entirely susceptible population.",
+    "bullets": [
+      "R0 = β·N/γ in the simple mass-action SIR model (N = total, fully susceptible population size)",
+      "Equivalently: R0 = (transmission rate) × (duration of infectiousness) × (number of susceptible contacts)",
+      "A property of both the pathogen (β, γ) and the host population context (N, contact structure) — R0 is not a fixed constant of a pathogen alone"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Don't Confuse These",
+    "title": "Demographic R0 (Lecture 14) vs. Epidemiological R0",
+    "headers": [
+      "Feature",
+      "Demographic R0",
+      "Epidemiological R0"
+    ],
+    "rows": [
+      [
+        "Full name",
+        "Net reproductive rate",
+        "Basic reproductive number"
+      ],
+      [
+        "What it counts",
+        "Expected number of <b>daughters</b> produced by a female over her lifetime",
+        "Expected number of <b>secondary infections</b> caused by one infected individual"
+      ],
+      [
+        "Population it's calculated in",
+        "A population with its current age-specific survivorship (lx) and fecundity (mx) schedule",
+        "A fully <b>susceptible</b>, disease-free population"
+      ],
+      [
+        "Threshold meaning",
+        "R0 > 1: population grows generation over generation; R0 = 1: replacement; R0 < 1: decline",
+        "R0 > 1: epidemic spreads; R0 = 1: disease holds steady; R0 < 1: disease dies out"
+      ],
+      [
+        "Units",
+        "Daughters per female per generation",
+        "New infections per infected host"
+      ],
+      [
+        "Field",
+        "Demography / life history (Ch. 4)",
+        "Epidemiology / host-parasite dynamics (Ch. 9)"
+      ]
+    ],
+    "footnote": "Same symbol, same 'per-capita replacement' logic, entirely different currency — daughters vs. infections. The naming is not a coincidence: both ask 'does this lineage/chain replace itself?'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Conceptual Parallel",
+    "title": "Why the Same Symbol Makes Sense",
+    "items": [
+      "Both R0's answer a structurally identical question: <b>does one 'unit' successfully replace itself with more than one 'unit' in the next generation/cycle?</b>",
+      "Demographic R0: one female → how many daughters (next generation of reproducers)?",
+      "Epidemiological R0: one infection → how many new infections (next generation of the outbreak)?",
+      "In both cases, R0 = 1 is the tipping point between growth and decline — this is why threshold logic recurs across population biology",
+      "Keep them separate in exam answers: always state <b>which</b> R0 you mean and in what context"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Threshold Theorem",
+    "term": "Epidemic Threshold Theorem",
+    "def": "An epidemic can only occur (I increases) if R0 > 1; equivalently, if the susceptible host population size/density exceeds a critical threshold NT.",
+    "bullets": [
+      "Derived directly from dI/dt = βSI − γI > 0 ⟺ S > γ/β",
+      "Define the threshold host density <b>NT = γ/β</b> — the minimum susceptible population size required for the disease to invade and spread",
+      "Below NT, an introduced pathogen fails to spread (R0 < 1) and fades out even though contact still occurs"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Threshold Theorem",
+    "title": "NT and Density-Dependent Transmission",
+    "left": {
+      "h": "Why a Threshold Exists",
+      "body": "Because transmission is density-dependent (βSI), the per-capita rate at which an infected individual encounters new susceptibles falls as host density falls. Below NT, an infected individual simply doesn't encounter enough susceptibles during its infectious period to replace itself."
+    },
+    "right": {
+      "h": "Direct Link to Lecture 30",
+      "body": "This is the population-level payoff of the density-dependent transmission assumption introduced last lecture. It explains real patterns: crowded host populations (high density) sustain epidemics; sparse, low-density populations can escape disease even when the pathogen is present regionally."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applications of the Threshold",
+    "title": "Why NT Matters Ecologically and Practically",
+    "items": [
+      "Predicts that disease introduction into a low-density or fragmented host population may simply fail to establish — relevant to reintroduction and translocation programs",
+      "Predicts that host aggregation (e.g., at feeding sites, breeding colonies) can push local density above NT and trigger outbreaks even when average density is low",
+      "Underpins <b>culling</b> and <b>habitat dispersal</b> strategies in wildlife disease management — reduce S below NT to extinguish a disease",
+      "Same logic underlies vaccination strategy (Part 7) — vaccination doesn't need to reach 100% coverage, only enough to push effective susceptible density below threshold"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Macroparasite Models",
+    "sub": "Why counting worms is different from counting infections"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Problem",
+    "title": "Why SIR Doesn't Fit Macroparasites",
+    "items": [
+      "SIR assumes infection is binary: an individual is S, I, or R — appropriate when parasite presence alone determines pathology and transmission (most microparasites)",
+      "For macroparasites (helminths, ticks, lice), <b>intensity of infection matters</b>: a host with 5 gut nematodes behaves very differently from one with 500",
+      "Pathology, host fecundity/survival effects, and parasite reproductive output usually scale with worm <b>burden</b>, not simple presence/absence",
+      "Macroparasites also typically do not reproduce directly within the host to the point of overwhelming numbers (unlike microparasites) — free-living or intermediate-host stages regulate the cycle"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Tracking Mean Burden Instead of Categories",
+    "term": "Mean Parasite Burden Model",
+    "def": "Macroparasite population models track the mean number of parasites per host (M) and its distribution across the host population, rather than sorting hosts into infected/uninfected categories.",
+    "bullets": [
+      "Typically modeled with two coupled variables: host population size (H) and mean parasite burden per host (M)",
+      "Parasite distribution among hosts is usually highly <b>aggregated</b> (overdispersed) — most hosts carry few or no parasites, a few carry very many — commonly described by the negative binomial distribution",
+      "Aggregation itself has a stabilizing effect on host-parasite dynamics, a key theoretical result (Anderson & May)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Model Contrast",
+    "title": "Microparasite (SIR) vs. Macroparasite Models",
+    "headers": [
+      "Feature",
+      "Microparasite / SIR",
+      "Macroparasite / Burden Models"
+    ],
+    "rows": [
+      [
+        "State variable tracked",
+        "Discrete host categories: S, I, R",
+        "Continuous mean parasite burden per host (M), plus host number (H)"
+      ],
+      [
+        "What matters for pathology",
+        "Presence/absence of infection",
+        "Intensity (worm burden) — dose-dependent effects"
+      ],
+      [
+        "Within-host reproduction",
+        "Often extensive (drives infectiousness)",
+        "Usually limited; relies on external/intermediate stages to multiply"
+      ],
+      [
+        "Typical distribution across hosts",
+        "Not usually a focus",
+        "Aggregated / overdispersed (negative binomial)"
+      ],
+      [
+        "Example taxa",
+        "Viruses, bacteria, protozoa",
+        "Helminths (nematodes, cestodes, trematodes), arthropod ectoparasites"
+      ],
+      [
+        "Regulatory mechanism modeled",
+        "Depletion of S; recovery/immunity",
+        "Density-dependent parasite establishment, fecundity, or mortality within host"
+      ]
+    ],
+    "footnote": "Both frameworks share the same conceptual root — density-dependent transmission and a replacement threshold — but require different state variables to capture what actually damages the host."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridging the Two Frameworks",
+    "title": "Shared Logic, Different Currency",
+    "items": [
+      "Both model families rest on the same core idea: transmission/establishment success depends on encounter rates between hosts and infective stages",
+      "Both generate a threshold-like condition for parasite population maintenance, though macroparasite thresholds are usually expressed in terms of a critical mean burden or basic reproductive number for the parasite (R0 defined per parasite, not per infected host)",
+      "Choice of model type is a modeling decision driven by parasite biology, not an arbitrary label — always ask 'does intensity of infection matter here?'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Parasites as Population Regulators",
+    "sub": "Closing the loop back to Chapter 3 population regulation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Big Idea",
+    "title": "Density-Dependent Transmission = A Regulatory Mechanism",
+    "items": [
+      "Recall Lectures 10–12: density dependence is the signature of a <b>regulating</b> factor — one whose intensity increases with population density and can drive a population back toward equilibrium",
+      "Because transmission rate scales with host density (βSI), parasite-induced mortality or fecundity reduction is itself density dependent — more hosts means more transmission means more disease impact per capita",
+      "This makes parasites a legitimate, general mechanism of population regulation, alongside competition and predation covered earlier in the course",
+      "For parasites to regulate rather than merely track host populations, they typically must reduce host survival or fecundity substantially — not all parasitism is regulatory in a population-dynamic sense"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Classic Case Study",
+    "title": "Soay Sheep and Their Parasites (St Kilda)",
+    "left": {
+      "h": "The System",
+      "body": "Soay sheep on Hirta (St Kilda, Scotland) show dramatic population crashes roughly every 3–4 years, historically attributed mainly to overgrazing and winter starvation. Long-term studies revealed that gastrointestinal nematode burden (especially Teladorsagia circumcincta) interacts strongly with body condition and food limitation."
+    },
+    "right": {
+      "h": "The Insight",
+      "body": "Parasite burden and nutritional stress act together: poor body condition increases susceptibility to parasitism, and heavy parasite burdens further reduce condition and overwinter survival — a synergistic mechanism amplifying crashes. This is a textbook example of parasites and resource limitation interacting to regulate an unmanaged ungulate population."
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Classic Case Study",
+    "title": "Red Grouse and Trichostrongylus tenuis",
+    "left": {
+      "h": "The System",
+      "body": "Red grouse (Lagopus lagopus scoticus) in the UK uplands undergo regular multi-year population cycles. The caecal nematode T. tenuis reduces female grouse fecundity (egg production/hatching success) in a dose-dependent way as worm burden rises."
+    },
+    "right": {
+      "h": "The Experimental Test",
+      "body": "Field experiments (Hudson and colleagues) directly reduced worm burdens in grouse populations using anthelmintic treatment. Treated populations showed dampened or abolished cycles compared to untreated controls — direct experimental evidence that a macroparasite can drive host population cycles, a landmark result in host-parasite population ecology."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why These Cases Matter",
+    "title": "What Grouse and Sheep Teach Us",
+    "items": [
+      "Both systems demonstrate that parasitism is not merely a passive consequence of host density — it can be a <b>driver</b> of host population dynamics, including cycles",
+      "The grouse system is especially important because it involved <b>manipulative field experimentation</b> (not just correlation) — treatment (deworming) vs. control populations",
+      "Both connect macroparasite intensity models (Part 4) to real regulatory outcomes: mean worm burden, not simple presence, predicted fecundity/survival costs",
+      "General lesson for Ch. 3 population regulation: parasites belong on the same list as predation, competition, and food limitation as density-dependent regulating factors"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Coevolution",
+    "sub": "The ongoing arms race between host and parasite"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "An Evolutionary Arms Race",
+    "term": "Red Queen Hypothesis",
+    "def": "The idea that hosts and parasites are locked in continuous reciprocal coevolution — host resistance and parasite infectivity each evolve in response to the other — such that neither side achieves lasting advantage; relative fitness stays roughly constant even as both are constantly evolving ('running to stay in place').",
+    "bullets": [
+      "Named for the Red Queen in Lewis Carroll's Through the Looking-Glass ('it takes all the running you can do, to keep in the same place')",
+      "Originally proposed by Van Valen (1973) in a broader evolutionary context; widely applied to host-parasite systems",
+      "Predicts genotype-specific interactions: a host genotype resistant to today's common parasite genotype loses its advantage as parasites evolve to overcome it, favoring rare host genotypes next (negative frequency-dependent selection)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanisms",
+    "title": "How the Arms Race Plays Out",
+    "items": [
+      "<b>Parasite side</b>: selection favors genotypes that can infect the most common host defense phenotypes — an advantage to novel infectivity alleles",
+      "<b>Host side</b>: selection favors resistance alleles that are currently rare (because common resistance genotypes are the ones parasites have adapted to defeat) — this is negative frequency-dependent selection",
+      "The result can be sustained genetic polymorphism at resistance/infectivity loci in both host and parasite populations, rather than fixation of a single 'best' allele",
+      "Often invoked as a leading explanation for the maintenance of <b>sexual reproduction</b> — sex generates novel genotype combinations faster than asexual reproduction, helping hosts stay ahead of fast-evolving parasites"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Linking Back",
+    "title": "Coevolution Meets Virulence Evolution (L30)",
+    "items": [
+      "Lecture 30's trade-off hypothesis for virulence evolution operates within a Red Queen context: as hosts evolve resistance/tolerance, the transmission-virulence trade-off curve itself can shift, reshaping the parasite's evolutionary optimum",
+      "Coevolutionary dynamics help explain why virulence is rarely static over long time scales — both partners are moving targets",
+      "Real-world signature: local host populations are often better defended against their local, coevolving parasite strains than against novel/foreign strains ('local adaptation' of parasites, tested via reciprocal cross-infection experiments)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Applied Relevance",
+    "sub": "From theory to wildlife management and public health"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Herd Immunity",
+    "term": "Vaccination (Herd Immunity) Threshold",
+    "def": "The proportion of a population that must be immune (via vaccination or prior infection) to reduce the effective reproductive number below 1 and stop sustained transmission, given by the formula pc = 1 − 1/R0.",
+    "bullets": [
+      "Derived directly from the threshold theorem: vaccination effectively removes individuals from S, reducing the susceptible pool below NT",
+      "Higher-R0 pathogens require higher vaccination coverage to achieve herd immunity (e.g., a pathogen with R0 = 15 requires ~93% coverage; R0 = 3 requires ~67%)",
+      "Does not require 100% vaccination coverage to eliminate transmission — this is the direct practical payoff of the threshold theorem introduced in Part 3"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Logic",
+    "title": "Applying pc = 1 − 1/R0",
+    "items": [
+      "R0 = 2 → pc = 1 − 1/2 = 0.50 (50% coverage needed)",
+      "R0 = 5 → pc = 1 − 1/5 = 0.80 (80% coverage needed)",
+      "R0 = 10 → pc = 1 − 1/10 = 0.90 (90% coverage needed)",
+      "As R0 rises, required coverage rises steeply and asymptotically approaches 100% — highly transmissible pathogens leave very little margin for under-vaccination",
+      "The same formula and logic apply to wildlife vaccination/bait-vaccine programs (e.g., rabies control in fox and raccoon populations) as to human public health"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Wildlife and Conservation Applications",
+    "title": "Disease Ecology Meets Conservation Biology",
+    "items": [
+      "<b>Threshold density management</b>: reducing host density below NT (culling, habitat dispersal, reduced aggregation at feeding/watering sites) can extinguish disease in managed wildlife populations",
+      "<b>Emerging infectious diseases</b> (EIDs) are a major modern conservation concern: e.g., chytrid fungus (Batrachochytrium dendrobatidis) in amphibians, white-nose syndrome in bats, facial tumor disease in Tasmian devils — all cases where introduced or novel pathogens caused severe host population declines with little coevolved resistance",
+      "<b>Small/fragmented populations</b> face a double bind: reduced genetic diversity can limit Red Queen coevolutionary capacity, while conservation interventions (translocation, captive breeding, reintroduction) can inadvertently move pathogens between populations",
+      "Disease models (SIR and macroparasite burden models) are now standard tools in wildlife management plans, reserve design, and reintroduction risk assessment"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8",
+    "title": "Unit Synthesis",
+    "sub": "Pulling together the full Host-Parasite unit (Lectures 30–31)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Unit Recap",
+    "title": "The Host-Parasite Unit, Start to Finish",
+    "items": [
+      "<b>Lecture 30 — Foundations</b>: micro- vs. macroparasite classification; direct vs. indirect life cycles; transmission modes (direct, vector, environmental, trophic); density-dependent transmission; virulence trade-off hypothesis",
+      "<b>Lecture 31 — Dynamics</b>: SIR compartmental model (dS/dt, dI/dt, dR/dt); epidemiological R0 and the threshold theorem; macroparasite burden models; host regulation by parasites (Soay sheep, red grouse); Red Queen coevolution; applied thresholds (herd immunity, wildlife management)",
+      "<b>The throughline</b>: transmission biology (L30) determines the mathematical structure of population models (L31); density-dependence in transmission is the mechanistic bridge connecting individual-level parasitology to population-level regulation and evolutionary arms races"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Unit Synthesis",
+    "title": "Levels of Analysis in Host-Parasite Ecology",
+    "levels": [
+      {
+        "label": "Coevolutionary dynamics (Red Queen)",
+        "color": "#7c3aed",
+        "width": "260px"
+      },
+      {
+        "label": "Population regulation & cycles",
+        "color": "#2563eb",
+        "width": "320px"
+      },
+      {
+        "label": "Epidemiological models (SIR, R0, NT)",
+        "color": "#0891b2",
+        "width": "380px"
+      },
+      {
+        "label": "Transmission mode & density dependence",
+        "color": "#059669",
+        "width": "440px"
+      },
+      {
+        "label": "Parasite classification & life cycle",
+        "color": "#65a30d",
+        "width": "500px"
+      }
+    ],
+    "footnote": "Each level builds on the one below it — life cycle and classification (base) ultimately shape long-term coevolutionary outcomes (apex)."
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Unit Synthesis",
+    "title": "Four Big Ideas From Chapter 9",
+    "cards": [
+      {
+        "h": "Transmission Governs Everything",
+        "p": "How a parasite moves between hosts (contact, vector, environment, trophic) sets the mathematical form of both the epidemic model and the regulatory potential of the parasite."
+      },
+      {
+        "h": "Thresholds Are Universal",
+        "p": "R0 > 1 and N > NT are two faces of the same replacement-threshold logic seen throughout population biology, from demography to epidemiology."
+      },
+      {
+        "h": "Parasites Regulate Hosts",
+        "p": "Density-dependent transmission makes parasitism a genuine population-regulating force, empirically demonstrated in systems like red grouse and Soay sheep."
+      },
+      {
+        "h": "Coevolution Never Stops",
+        "p": "Host and parasite are locked in a continuous Red Queen arms race, shaping virulence, resistance, and even the evolution of host reproductive strategy."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8b",
+    "title": "Broader Synthesis",
+    "sub": "The species interactions arc: Lectures 20–31"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Course Arc",
+    "title": "Species Interactions: Lectures 20–31",
+    "items": [
+      {
+        "y": "L20–22",
+        "t": "Life History Strategies — r/K selection, trade-offs, reproductive strategies as the individual-level foundation for interactions"
+      },
+      {
+        "y": "L23–25",
+        "t": "Interspecific Competition — Lotka-Volterra competition, competitive exclusion, niche theory, coexistence mechanisms"
+      },
+      {
+        "y": "L26–29",
+        "t": "Mutualism — types of mutualism, obligate vs. facultative, mathematical models, cheating and stability"
+      },
+      {
+        "y": "L30–31",
+        "t": "Host-Parasite Interactions — classification and life cycles, then epidemiological models, regulation, and coevolution"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Broader Synthesis",
+    "title": "The Common Thread Across the Interactions Arc",
+    "items": [
+      "Every interaction type in this arc (competition, mutualism, host-parasite) has been formalized with <b>paired differential equations</b> describing reciprocal effects between two populations — the same Lotka-Volterra-style architecture recurs, just with different sign structures and mechanisms",
+      "Each interaction type generates its own <b>threshold or equilibrium conditions</b>: competitive exclusion criteria, mutualism stability conditions, and now the epidemic threshold R0 > 1 / N > NT",
+      "Life history theory (L20–22) underlies all of it — the pace of an organism's life history shapes its vulnerability to competitors, its reliance on mutualists, and its exposure/resistance to parasites",
+      "Across the whole arc: population dynamics of any two interacting species can rarely be understood by studying either species alone — this is the core message to carry into Midterm II"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Broader Synthesis",
+    "title": "Comparing the Interaction Types",
+    "headers": [
+      "Interaction",
+      "Effect on Species 1",
+      "Effect on Species 2",
+      "Key Threshold/Outcome Concept"
+    ],
+    "rows": [
+      [
+        "Competition",
+        "Negative (−)",
+        "Negative (−)",
+        "Competitive exclusion principle; coexistence requires niche differentiation"
+      ],
+      [
+        "Mutualism",
+        "Positive (+)",
+        "Positive (+)",
+        "Stability depends on saturating benefit functions; risk of over-dependence/cheating"
+      ],
+      [
+        "Host-Parasite",
+        "Negative (−) for host",
+        "Positive (+) for parasite",
+        "R0 > 1 / N > NT threshold for epidemic spread or parasite maintenance"
+      ]
+    ],
+    "footnote": "Predation/herbivory (+/−, upcoming in Lecture 32) will complete this comparative table."
+  },
+  {
+    "type": "section",
+    "tag": "PART 9",
+    "title": "Midterm II Prep",
+    "sub": "Logistics and scope"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Midterm II",
+    "title": "Exam Logistics and Coverage",
+    "items": [
+      "<b>Coverage</b>: Lectures 20–31 — Life History Strategies, Interspecific Competition, Mutualism, and Host-Parasite Interactions",
+      "<b>Format</b>: mix of short-answer conceptual questions, equation identification/interpretation (e.g., label terms in the Lotka-Volterra competition, mutualism, or SIR equations), and applied problem-solving (e.g., calculate herd immunity threshold from a given R0)",
+      "<b>Bring</b>: non-programmable calculator; equation sheet will be provided (blank of interpretation — know what each term means)",
+      "<b>Study strategy</b>: for each interaction type, be able to state the governing equations, the equilibrium/threshold condition, and one classic empirical example",
+      "Office hours and review session details will be posted on the course site — attend the review session for a worked-problem walkthrough of R0 and threshold calculations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Midterm II",
+    "title": "High-Yield Concepts to Review",
+    "items": [
+      "The distinction between demographic R0 (Lecture 14) and epidemiological R0 (this lecture) — a favorite source of exam confusion",
+      "Derivation logic of the epidemic threshold theorem (why S > γ/β ⟺ R0 > 1)",
+      "Herd immunity formula pc = 1 − 1/R0 and how to apply it numerically",
+      "Distinguishing microparasite (SIR) vs. macroparasite (burden) modeling logic and when each applies",
+      "Named empirical case studies: Soay sheep, red grouse/Trichostrongylus tenuis, plus the mutualism and competition case studies from earlier lectures",
+      "Being able to connect each unit's population model back to the general density-dependence framework from Chapter 3 (Lectures 10–12)"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Framing Thought",
+    "quote": "It takes all the running you can do, to keep in the same place.",
+    "attrib": "Lewis Carroll, Through the Looking-Glass — the origin of the Red Queen hypothesis in evolutionary biology"
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Closing the Unit",
+    "sub": "Recap and what comes next"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 31 Recap",
+    "title": "What We Covered Today",
+    "items": [
+      "The <b>SIR framework</b>: S, I, R compartments and the dS/dt, dI/dt, dR/dt equations governing microparasite dynamics",
+      "<b>Epidemiological R0</b> — expected secondary infections per infected individual — carefully distinguished from demographic R0 despite the shared name and shared replacement-threshold logic",
+      "The <b>threshold theorem</b>: epidemics require R0 > 1, equivalently host density above NT",
+      "<b>Macroparasite models</b> track mean worm burden rather than simple infection categories, because intensity drives pathology",
+      "<b>Host-parasite feedback</b>: parasites regulate host populations via density-dependent transmission, demonstrated experimentally in red grouse and observationally in Soay sheep",
+      "<b>Red Queen coevolution</b>: an unending reciprocal arms race between host resistance and parasite infectivity",
+      "<b>Applied tools</b>: herd immunity threshold (1 − 1/R0), wildlife disease management, emerging infectious disease and conservation concerns",
+      "Closed the Host-Parasite unit and reviewed the full species-interactions arc (Lectures 20–31) ahead of Midterm II"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "Preview: Lecture 32 — Predator-Prey Interactions I",
+    "items": [
+      "Immediately following Midterm II, we open <b>Chapter 10 — Predator-Prey Interactions</b>",
+      "Lecture 32 begins with the classic <b>Lotka-Volterra predator-prey model</b>: coupled equations for prey growth and predator numerical response",
+      "We will examine the model's signature prediction — <b>neutral oscillations</b> in predator and prey abundance — and why real predator-prey systems rarely show perfectly neutral cycles",
+      "This continues the same modeling architecture used throughout the interactions arc (paired differential equations, equilibrium/threshold analysis), now applied to a (−/+) interaction type",
+      "Come to Lecture 32 having reviewed basic phase-plane thinking (isoclines) from the competition unit — the same graphical tool returns for predator-prey analysis"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 31</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

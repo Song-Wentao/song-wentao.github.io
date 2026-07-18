@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 2: The Concept of a Population</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology — BIOL 4XX — Lecture 2",
+    "title": "The Concept of a Population",
+    "sub": "Boundaries, size, density, dispersion, and how ecologists actually count organisms",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Chapter 1"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Where We Left Off in Lecture 1",
+    "items": [
+      "Population ecology asks how and why the abundance of organisms changes in space and time.",
+      "Malthus (1798) framed the core tension: populations grow geometrically while resources grow arithmetically.",
+      "Verhulst (1838) introduced the logistic equation and the idea of a carrying capacity.",
+      "Lotka and Volterra independently derived equations for interacting species (competition, predation) in the 1920s.",
+      "Nicholson (and Bailey) formalized density-dependent regulation and host-parasitoid dynamics.",
+      "We previewed the quantitative toolkit: difference and differential equations, exponential and logistic models, life tables, and matrix models."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Question",
+    "title": "Before We Can Model a Population, We Have to Define One",
+    "items": [
+      "Every equation from Lecture 1 has an N in it — population size. But what exactly are we counting, and over what boundary?",
+      "Today is about the empirical and conceptual foundation beneath all the math: what is a population, how is it structured in space, and how do we actually measure it?",
+      "This is Chapter 1 of Rockwood — the chapter every subsequent chapter quietly assumes you've internalized."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Defining Population Boundaries",
+    "sub": "What makes a group of organisms \"a population\"?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definition",
+    "title": "What Is a Population?",
+    "term": "Population",
+    "def": "A group of individuals of the same species occupying a defined area at the same time, capable of interbreeding and sharing a common gene pool.",
+    "bullets": [
+      "The species criterion: individuals must belong to the same species (interbreeding, or potentially interbreeding, group).",
+      "The spatial criterion: individuals must occupy a definable geographic area.",
+      "The temporal criterion: the group is defined at a particular point or interval in time — populations grow, shrink, and turn over.",
+      "This is a textbook definition, but in practice ecologists must operationalize it for each study system."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Interbreeding Criterion",
+    "title": "Why Interbreeding Matters",
+    "items": [
+      "A population is often treated as the basic unit of evolution: it is the group within which genes are actually exchanged.",
+      "Interbreeding creates a shared gene pool, which is why population genetics and population ecology both start from the same unit.",
+      "But interbreeding is a potential, not always an observed, event — two individuals separated by a mountain range may be reproductively compatible yet ecologically isolated.",
+      "For many organisms (asexual, self-fertilizing, or clonal species), the interbreeding criterion breaks down, and ecologists fall back on spatial or genetic criteria instead."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Axes of Boundary-Setting",
+    "title": "Spatial Scale and Temporal Scale",
+    "left": {
+      "h": "Spatial Scale",
+      "body": "Where do you draw the line? A population of deer mice could be defined at the scale of a single field, a forest fragment, a watershed, or an entire mountain range. The 'correct' scale depends on the organism's dispersal ability and the question being asked — a scale appropriate for a soil mite is absurd for a migratory whale."
+    },
+    "right": {
+      "h": "Temporal Scale",
+      "body": "Populations are not static. A population defined during breeding season may look very different in winter (many birds and insects). Census timing must be standardized so that counts are comparable across years — ecologists often fix a sampling window (e.g., peak breeding season) as part of the operational definition."
+    },
+    "footnote": "Rockwood Ch. 1: population boundaries are drawn by the observer, not given by nature"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Working Definitions",
+    "title": "How Ecologists Operationalize \"Population\" in Practice",
+    "items": [
+      "Because natural boundaries are often fuzzy, ecologists frequently use operational definitions tied to the study design rather than a strict biological definition.",
+      "Political or management boundaries: e.g., \"the white-tailed deer population of Rock Creek Park\" — a boundary set by land management, not biology.",
+      "Habitat-patch boundaries: individuals occupying a discrete patch of suitable habitat (a pond, a woodlot, an island).",
+      "Sampling-area boundaries: the population is effectively defined as \"everything within my quadrats/transects/trap grid\" — a pragmatic necessity for fieldwork.",
+      "Genetic/demographic boundaries: individuals sharing measurably similar allele frequencies or synchronized birth-death dynamics.",
+      "None of these is more \"correct\" than the others — the right choice depends on the organism's biology and the question being asked."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Worked Examples",
+    "title": "The Same Species, Different Population Boundaries",
+    "cards": [
+      {
+        "h": "Brook trout in a headwater stream",
+        "p": "Bounded naturally by the stream reach between two barriers (waterfalls, culverts) — dispersal is physically constrained, so the boundary is almost given by the landscape."
+      },
+      {
+        "h": "White-tailed deer in a suburban park",
+        "p": "Bounded by a management unit; deer can technically leave, but for harvest and density-management purposes the park boundary is the operational population."
+      },
+      {
+        "h": "Dandelions in a lawn",
+        "p": "Reproduce clonally and by wind-dispersed seed; \"population\" may be defined at the scale of a single yard, a neighborhood, or a whole region depending on the study question."
+      },
+      {
+        "h": "Atlantic cod on a fishing bank",
+        "p": "Defined by a genetically and demographically distinct stock, identified through tagging and genetic studies, not by an obvious physical boundary."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Individuals, Patches, and Metapopulations",
+    "sub": "How populations are structured in space"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Spatial Structure",
+    "title": "The Patch Concept",
+    "term": "Patch",
+    "def": "A discrete area of habitat suitable for a species, embedded within a broader landscape of unsuitable or lower-quality habitat.",
+    "bullets": [
+      "Most real landscapes are not homogeneous — suitable habitat occurs in patches separated by matrix (roads, fields, water, unsuitable substrate).",
+      "Individuals within a patch interact frequently (mating, competition, resource use); individuals in different patches interact rarely, if ever.",
+      "The patch, not the entire species range, is often the most natural unit for measuring density and dispersion.",
+      "Patch size, quality, and isolation all influence local population dynamics — a theme picked up heavily in landscape ecology and later in this course."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From Individuals to Patches",
+    "title": "Building Up Spatial Structure",
+    "items": [
+      "Individual organisms occupy specific locations (a burrow, a territory, a rooted spot).",
+      "Individuals cluster into local populations occupying a single patch of habitat.",
+      "Local populations may be connected to other local populations by occasional dispersal (migration between patches).",
+      "This hierarchy — individual, local population, collection of local populations — is the conceptual bridge to metapopulation theory.",
+      "Whether patches are truly isolated or loosely connected has huge consequences for extinction risk and long-term persistence."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Scaling Up",
+    "title": "Local Population vs. Metapopulation",
+    "left": {
+      "h": "Local Population",
+      "body": "The set of individuals occupying a single patch, interacting through birth, death, and local interactions. This is usually what a single field study measures directly — density and dispersion are properties of a local population."
+    },
+    "right": {
+      "h": "Metapopulation (preview)",
+      "body": "A \"population of populations\": a set of local populations occupying separate patches, linked by occasional dispersal (colonization) and subject to local extinction. Some patches may be empty at any given time; persistence of the metapopulation as a whole does not require any single patch to be permanently occupied."
+    },
+    "footnote": "Full treatment of metapopulation dynamics — Levins model, colonization-extinction balance, source-sink structure — comes in Lectures 17-19"
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Looking Ahead",
+    "quote": "A metapopulation is best imagined as a population of populations, which becomes extinct only when all local populations become extinct simultaneously.",
+    "attrib": "Richard Levins, 1969 (paraphrased framing used throughout the metapopulation literature)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Forward Reference",
+    "title": "Why We're Previewing This Now",
+    "items": [
+      "You cannot fully appreciate metapopulation theory (Lectures 17-19) without first being comfortable with the basic idea of a population boundary and a patch.",
+      "Key metapopulation vocabulary to file away for later: colonization rate, local extinction rate, patch occupancy, source patches, sink patches, and rescue effect.",
+      "For now, the essential takeaway is simpler: populations are rarely uniform blobs across a landscape — they are structured by patches, and that structure matters for how we sample and interpret density.",
+      "Every sampling method we discuss today (quadrats, mark-recapture) implicitly assumes you have already decided what patch or area you are sampling."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Population Size and Density",
+    "sub": "Two related but distinct measurements"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Fundamental Quantity",
+    "title": "Population Size (N)",
+    "term": "Population Size",
+    "def": "The total number of individuals in a defined population at a given time, symbolized N.",
+    "bullets": [
+      "N is the raw count — the number that appears directly in every growth-rate equation from Lecture 1 (dN/dt, Nt+1, etc.).",
+      "N by itself says nothing about how crowded a population is — 500 elk in a state is very different from 500 elk on a single ranch.",
+      "For most natural populations, N cannot be counted exactly; it must be estimated using the sampling methods covered later in this lecture.",
+      "N is always tied to the population boundary chosen — change the boundary and N changes, even if nothing biological has changed."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Fundamental Quantity",
+    "title": "Population Density (D)",
+    "term": "Population Density",
+    "def": "The number of individuals per unit area (or per unit volume, for aquatic/aerial organisms), D = N / area.",
+    "bullets": [
+      "Density standardizes population size by the space it occupies, making comparisons across sites, times, or species meaningful.",
+      "Units vary by taxon and scale: individuals per square meter (plants, invertebrates), per hectare (trees, deer), per cubic meter (plankton), per stream kilometer (fish).",
+      "Density is the quantity most directly linked to resource competition, intraspecific interactions, and density-dependent regulation — the subject of Lecture 4 and beyond.",
+      "Two populations can have identical N but wildly different D if their occupied areas differ."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A Key Distinction",
+    "title": "Crude Density vs. Ecological (Specific) Density",
+    "left": {
+      "h": "Crude Density",
+      "body": "Number of individuals divided by the total area of the study region, including unsuitable habitat. Easy to calculate, but can be misleading if much of the area is unusable (e.g., a lake within a \"terrestrial\" study plot)."
+    },
+    "right": {
+      "h": "Ecological Density",
+      "body": "Number of individuals divided by the area of habitat actually usable by the species (the \"specific habitat\"). More biologically meaningful, but requires additional knowledge of habitat suitability — and is harder to measure."
+    },
+    "footnote": "Rockwood Ch. 1: the choice between crude and ecological density can change interpretation of crowding and resource limitation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Distinction Matters",
+    "title": "Size, Density, and What They Tell Us",
+    "items": [
+      "Wildlife management decisions (harvest quotas, carrying-capacity estimates) are almost always based on density, not raw size, because density predicts resource competition.",
+      "Conservation status assessments (e.g., IUCN listings) often care more about total N and trend, since a species can have low density but a huge total range and still be secure — or high local density but be functionally extinct range-wide.",
+      "Comparing density across habitats reveals habitat quality: higher density in one patch versus another suggests (but does not prove) better resources or lower predation.",
+      "Because density depends on the area estimate, errors in delineating the population's boundary propagate directly into density estimates — this connects back to Part 1."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Practical Units",
+    "title": "Density Units Across Taxa",
+    "headers": [
+      "Organism",
+      "Typical Density Unit",
+      "Typical Method",
+      "Example Value"
+    ],
+    "rows": [
+      [
+        "Songbirds",
+        "individuals / hectare",
+        "point counts, territory mapping",
+        "2-8 pairs/ha"
+      ],
+      [
+        "Deer",
+        "individuals / km²",
+        "aerial survey, pellet-group counts",
+        "5-15 deer/km²"
+      ],
+      [
+        "Soil invertebrates",
+        "individuals / m²",
+        "quadrat + extraction",
+        "100s-1000s/m²"
+      ],
+      [
+        "Zooplankton",
+        "individuals / m³",
+        "net tows, water sampling",
+        "10-10,000/m³"
+      ],
+      [
+        "Stream fish",
+        "individuals / 100 m of stream",
+        "electrofishing, mark-recapture",
+        "20-80/100 m"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Spatial Dispersion",
+    "sub": "Random, uniform, and clumped distributions of individuals"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Third Descriptor",
+    "title": "Beyond Size and Density: Dispersion Pattern",
+    "items": [
+      "Two populations can share identical N and identical D yet look completely different on the ground — this is because they differ in dispersion, the spatial arrangement of individuals within the occupied area.",
+      "Dispersion reflects underlying biology: resource distribution, social behavior, reproductive mode, and interactions among individuals.",
+      "Ecologists recognize three idealized dispersion patterns: random, uniform (regular), and clumped (aggregated).",
+      "Real populations often show different dispersion patterns at different spatial scales — clumped at a broad scale (habitat patches) but nearly random within a patch."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Dispersion Pattern 1",
+    "title": "Random Dispersion",
+    "term": "Random Dispersion",
+    "def": "Each individual's position is independent of every other individual's position — no attraction, no repulsion.",
+    "bullets": [
+      "Occurs when resources are uniformly and unpredictably distributed and individuals do not interact strongly (no territoriality, no clustering behavior).",
+      "Statistically corresponds to a Poisson process: the probability of finding an individual in any small area is constant and independent of others.",
+      "True randomness is relatively uncommon in nature — it requires an unusual combination of homogeneous environment and neutral social behavior.",
+      "Example: wind-dispersed seedlings establishing on a uniform, resource-rich plain with no competitive exclusion yet occurring."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Dispersion Pattern 2",
+    "title": "Uniform (Regular) Dispersion",
+    "term": "Uniform Dispersion",
+    "def": "Individuals are more evenly spaced than random, typically because of active repulsion or competition.",
+    "bullets": [
+      "Arises from territoriality, allelopathy (chemical inhibition in plants), or competition for a limiting, evenly distributed resource.",
+      "Produces spacing patterns that look almost gridded or evenly dispersed, minimizing nearest-neighbor overlap.",
+      "Classic examples: nesting seabirds spaced by pecking-distance territoriality; desert shrubs spaced by root competition for scarce water.",
+      "Uniform dispersion is the least common pattern in nature — most organisms benefit in some way from proximity to conspecifics (mating, defense, resource discovery)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Dispersion Pattern 3",
+    "title": "Clumped (Aggregated) Dispersion",
+    "term": "Clumped Dispersion",
+    "def": "Individuals are grouped together in patches, with gaps of low or zero density between clumps.",
+    "bullets": [
+      "By far the most common pattern observed in natural populations.",
+      "Arises from patchy resource distribution, social behavior (herding, schooling, flocking), clonal reproduction, or limited seed/offspring dispersal near the parent.",
+      "Clumping directly connects to the patch concept from Part 2 — clumped dispersion at a landscape scale is essentially what generates patch structure.",
+      "Examples: fish schools, elk herds, dandelion patches from clonal spread, insect aggregations around a host plant."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Comparing the Three Patterns",
+    "title": "Random vs. Uniform vs. Clumped Dispersion",
+    "headers": [
+      "Pattern",
+      "Primary Cause",
+      "Variance-to-Mean Ratio",
+      "Typical Example"
+    ],
+    "rows": [
+      [
+        "Random",
+        "No interaction; resources uniform and unpredictable",
+        "≈ 1 (variance = mean)",
+        "Wind-dispersed seedlings on homogeneous substrate"
+      ],
+      [
+        "Uniform (regular)",
+        "Territoriality, competition, allelopathy",
+        "< 1 (variance less than mean)",
+        "Nesting seabird colonies; desert shrub spacing"
+      ],
+      [
+        "Clumped (aggregated)",
+        "Patchy resources, social behavior, limited dispersal",
+        "> 1 (variance greater than mean)",
+        "Fish schools, elk herds, insect aggregations"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Simple Statistical Test",
+    "title": "The Variance-to-Mean Ratio (Conceptual)",
+    "items": [
+      "Ecologists formalize dispersion by comparing the variance (s²) of counts across sample plots to the mean (x̄) count per plot.",
+      "For a truly random (Poisson) distribution, variance equals the mean, so s²/x̄ ≈ 1.",
+      "A ratio significantly less than 1 indicates uniform dispersion — counts per plot are more consistent than random chance would predict.",
+      "A ratio significantly greater than 1 indicates clumped dispersion — some plots are packed with individuals while others are nearly empty, inflating variance.",
+      "This index (sometimes called the coefficient of dispersion) is a quick diagnostic; formal statistical tests (e.g., chi-square goodness-of-fit to a Poisson distribution) confirm whether a deviation from randomness is significant."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Interpreting the Ratio",
+    "title": "Reading the Variance-to-Mean Ratio in the Field",
+    "left": {
+      "h": "What You Compute",
+      "body": "Divide your study area into many equal-sized quadrats, count individuals in each, then calculate the mean count per quadrat and the variance across quadrats. The ratio s²/x̄ is your dispersion index."
+    },
+    "right": {
+      "h": "What It Tells You",
+      "body": "The ratio is a screening tool, not proof of mechanism. A clumped pattern (ratio > 1) tells you individuals are aggregated, but you still need field observation or experiments to determine whether the cause is resource patchiness, social behavior, or reproductive mode."
+    },
+    "footnote": "Sample size and quadrat size both affect the ratio — this is revisited when we discuss sampling error later in this lecture"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Biological Drivers",
+    "title": "What Causes Each Dispersion Pattern?",
+    "cards": [
+      {
+        "h": "Resource distribution",
+        "p": "Uniform, predictable resources tend to produce random or uniform dispersion; patchy resources (water holes, nutrient hotspots, host plants) produce clumped dispersion."
+      },
+      {
+        "h": "Social behavior",
+        "p": "Herding, flocking, schooling, and colonial nesting actively pull individuals together, producing strong clumping even when resources are uniform."
+      },
+      {
+        "h": "Territoriality and competition",
+        "p": "Active defense of space or exploitation of a shared limiting resource pushes individuals apart, producing uniform dispersion."
+      },
+      {
+        "h": "Reproductive mode and dispersal",
+        "p": "Clonal growth and limited seed/offspring dispersal concentrate new individuals near their parents, generating clumped patterns even without any behavioral interaction."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Sampling Methods",
+    "sub": "How ecologists actually estimate N and D in the field"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why We Can't Just Count",
+    "title": "The Case for Sampling",
+    "items": [
+      "A true census — counting every individual in a population — is rarely feasible: populations are large, mobile, cryptic, or spread across inaccessible terrain.",
+      "Instead, ecologists sample a subset of the population or area and use statistical methods to estimate the whole.",
+      "The choice of method depends heavily on the organism's mobility, detectability, and habitat: sessile organisms (plants, sessile invertebrates) are sampled differently than mobile animals.",
+      "Every method covered today produces an estimate, not a true count — understanding the assumptions behind each estimate is as important as the arithmetic itself."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Method 1",
+    "title": "Quadrat Sampling",
+    "term": "Quadrat Sampling",
+    "def": "A method in which population density is estimated by counting individuals within a series of fixed-size sample plots (quadrats) and extrapolating to the full study area.",
+    "bullets": [
+      "Best suited to sessile or slow-moving organisms: plants, fungi, sessile marine invertebrates, slow-moving terrestrial invertebrates.",
+      "Quadrat size and shape are chosen based on the organism's size and dispersion pattern — too small and rare organisms are missed; too large and counting becomes impractical.",
+      "Quadrats should be placed randomly (or systematically with a random start) across the study area to avoid observer bias toward obviously dense or sparse patches.",
+      "Density is estimated as mean individuals per quadrat, divided by quadrat area, then extrapolated to the total study area."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method",
+    "title": "Quadrat Sampling: Step by Step",
+    "items": [
+      "1. Define the population boundary and total study area.",
+      "2. Choose quadrat size and shape appropriate to the organism (e.g., 1 m² for herbaceous plants, 100 m² for trees).",
+      "3. Randomly place a set of quadrats across the study area (random coordinates or a randomized grid).",
+      "4. Count all individuals within each quadrat, applying a consistent rule for boundary individuals (e.g., count only those with >50% inside the quadrat).",
+      "5. Calculate mean density per quadrat and its variance; extrapolate to the full study area to estimate total N."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example",
+    "title": "Quadrat Sampling in Practice: Setup",
+    "left": {
+      "h": "The Scenario",
+      "body": "A botanist wants to estimate the density of a wildflower species in a 2-hectare (20,000 m²) meadow. She lays out ten randomly placed 1 m² quadrats and counts the number of flowering individuals in each."
+    },
+    "right": {
+      "h": "The Raw Counts",
+      "body": "Quadrat counts (individuals per 1 m²): 4, 6, 3, 5, 7, 4, 5, 6, 4, 6.\nSum = 50 individuals across 10 quadrats.\nMean = 50 / 10 = 5.0 individuals per m²."
+    },
+    "footnote": "Worked example follows the standard quadrat-extrapolation approach in Rockwood Ch. 1"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example (continued)",
+    "title": "Quadrat Sampling: From Sample to Population Estimate",
+    "items": [
+      "Mean density = 5.0 individuals / m² (from the previous slide).",
+      "Total study area = 20,000 m² (2 hectares).",
+      "Estimated population size: N̂ = mean density × total area = 5.0 × 20,000 = 100,000 individuals.",
+      "Variance across the ten quadrats can also be calculated (here, values range 3-7, a fairly tight spread) — a tight spread suggests dispersion close to random or slightly uniform, worth checking with the variance-to-mean ratio.",
+      "Confidence in N̂ depends on quadrat number and placement: more randomly placed quadrats shrink the standard error of the estimate, at the cost of more field time."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Method 2",
+    "title": "Mark-Recapture",
+    "term": "Mark-Recapture",
+    "def": "A method for estimating population size in mobile animals by capturing, marking, releasing, and later recapturing individuals, using the proportion of marked recaptures to infer total population size.",
+    "bullets": [
+      "Suited to mobile organisms that cannot be counted in fixed plots: fish, small mammals, insects, birds.",
+      "The core logic: if a known number of individuals are marked and released, the proportion of marked individuals recaptured in a second sample reflects the proportion of the total population that was originally marked.",
+      "Requires physically capturing animals twice (or more), which introduces handling stress and logistical demands not present in quadrat sampling.",
+      "Forms the basis of the most widely used population-estimation formula in wildlife ecology: the Lincoln-Petersen index."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method",
+    "title": "Mark-Recapture: Step by Step",
+    "items": [
+      "1. Capture a sample of individuals from the population (sample size M).",
+      "2. Mark each captured individual with a unique, harmless, and durable marker (leg band, ear tag, fin clip, paint dot).",
+      "3. Release the marked individuals back into the population and allow time for them to remix randomly with unmarked individuals.",
+      "4. Take a second capture sample (sample size C), and record how many of those captured are marked (recaptures, R).",
+      "5. Use the Lincoln-Petersen formula to estimate total population size from M, C, and R."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Key Formula",
+    "title": "The Lincoln-Petersen Index",
+    "term": "Lincoln-Petersen Index",
+    "def": "N̂ = (M × C) / R, where M is the number marked in the first sample, C is the total number captured in the second sample, and R is the number of marked (recaptured) individuals in the second sample.",
+    "bullets": [
+      "Derived from the assumption that the proportion of marked individuals in the second sample (R/C) should approximate the proportion of the whole population that was originally marked (M/N).",
+      "Rearranging M/N = R/C gives N̂ = (M × C) / R — the standard Lincoln-Petersen (also called Petersen or Lincoln index) estimator.",
+      "A corrected version (the Chapman estimator) adjusts for small sample sizes and avoids division-by-zero when R is small: N̂ = [(M+1)(C+1)/(R+1)] − 1.",
+      "The formula is elegant, but its accuracy depends entirely on a set of assumptions we examine in Part 6."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Logic",
+    "title": "Why the Lincoln-Petersen Formula Works",
+    "left": {
+      "h": "The Proportional Reasoning",
+      "body": "If M individuals out of a total population N are marked, the fraction marked is M/N. If the second sample of C individuals is representative of the whole population, the same fraction, R/C, should appear as marked recaptures. Setting M/N = R/C and solving for N gives the estimator."
+    },
+    "right": {
+      "h": "Intuition",
+      "body": "Think of it as a dilution problem: you 'spike' the population with M marked individuals, let them mix in, then see how diluted your marked individuals appear in a fresh sample. If marked animals are rare in the recapture sample, the population must be large; if marked animals are common, the population must be small."
+    },
+    "footnote": "This is directly analogous to the Petersen estimator used across fisheries and wildlife biology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Lincoln-Petersen Calculation: The Scenario",
+    "items": [
+      "A biologist wants to estimate the number of sunfish in a small pond.",
+      "First sample: 80 sunfish are captured, fin-clipped as a mark, and released. So M = 80.",
+      "After allowing several days for the marked fish to redistribute randomly through the pond, a second sample is taken.",
+      "Second sample: 100 sunfish are captured. So C = 100.",
+      "Of those 100, 20 bear the fin-clip mark from the first sample. So R = 20."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example",
+    "title": "Lincoln-Petersen Calculation: The Result",
+    "left": {
+      "h": "The Arithmetic",
+      "body": "N̂ = (M × C) / R = (80 × 100) / 20 = 8,000 / 20 = 400.\nThe estimated sunfish population in the pond is 400 individuals."
+    },
+    "right": {
+      "h": "Sanity Check",
+      "body": "20 of the 100 recaptured fish (20%) were marked. Since 80 fish were originally marked, if 20% represents the marked fraction of the whole population, then 80 is 20% of N, so N = 80 / 0.20 = 400 — consistent with the formula."
+    },
+    "footnote": "Try the Chapman correction yourself: [(80+1)(100+1)/(20+1)] − 1 ≈ 392 — close to, but distinct from, the raw Lincoln-Petersen value"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Other Approaches",
+    "title": "Additional Sampling Methods (Brief Survey)",
+    "cards": [
+      {
+        "h": "Line and belt transects",
+        "p": "Observers walk a fixed line (or corridor) and record all individuals seen or detected within a set distance; widely used for birds, large mammals, and marine surveys. Density is estimated from encounter rate and detection distance."
+      },
+      {
+        "h": "Removal sampling",
+        "p": "Successive samples are taken from a closed population without replacement (individuals are removed rather than marked and released); as sampling continues, catch per effort declines, and the decline is used to estimate the original population size."
+      },
+      {
+        "h": "Catch-per-unit-effort (CPUE) indices",
+        "p": "Rather than estimating absolute N, CPUE tracks relative abundance over time (e.g., fish caught per net-hour) — useful for trend monitoring when absolute density is hard to measure directly."
+      },
+      {
+        "h": "Distance sampling",
+        "p": "An extension of transect methods that explicitly models the declining probability of detecting an individual as distance from the observer increases, correcting for animals missed farther away."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Sources of Error in Population Estimation",
+    "sub": "Why every N̂ comes with uncertainty"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "General Error Sources",
+    "title": "Sampling Bias and Detection Problems",
+    "items": [
+      "Non-random sampling: if quadrats or trap locations are placed near trails, water, or other convenient access points rather than randomly, density estimates are systematically biased toward whatever habitat those locations represent.",
+      "Edge effects: inconsistent rules for counting individuals that straddle a quadrat or transect boundary introduce small but cumulative bias.",
+      "Observer variability: different observers may differ in their ability to detect cryptic, camouflaged, or fast-moving organisms, especially in visual survey methods.",
+      "Seasonal and diel timing: sampling during the wrong season or time of day can systematically undercount organisms that are dormant, hidden, or inactive at that time."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Central Concept",
+    "title": "Detection Probability",
+    "term": "Detection Probability",
+    "def": "The probability that an individual present in the sampled area is actually observed and recorded by the sampling method, typically denoted p (0 < p ≤ 1).",
+    "bullets": [
+      "No method has perfect detection (p = 1) — cryptic coloration, dense vegetation, nocturnal activity, and observer fatigue all reduce p below 1.",
+      "If detection probability is not accounted for, raw counts systematically underestimate true population size — the estimate reflects N × p, not N.",
+      "Modern methods (distance sampling, repeated-visit occupancy models, N-mixture models) explicitly estimate p alongside N rather than assuming p = 1.",
+      "For quadrat sampling, detection probability interacts with quadrat size and observer thoroughness; for mark-recapture, it interacts directly with capture probability during both sampling occasions."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Mark-Recapture Assumptions",
+    "title": "Lincoln-Petersen Assumptions and What Happens When They're Violated",
+    "headers": [
+      "Assumption",
+      "What It Means",
+      "Consequence If Violated"
+    ],
+    "rows": [
+      [
+        "Closed population",
+        "No births, deaths, immigration, or emigration between the two sampling occasions",
+        "N̂ becomes a blend of population sizes at two different times, not a clean estimate of either"
+      ],
+      [
+        "Equal catchability",
+        "Marked and unmarked individuals have the same probability of capture in the second sample",
+        "Trap-happy or trap-shy behavior biases N̂ up or down, since capture probability differs by mark status"
+      ],
+      [
+        "No tag loss or misidentification",
+        "Marks remain visible and are correctly read at recapture",
+        "Lost or misread tags cause marked individuals to be miscounted as unmarked, inflating N̂"
+      ],
+      [
+        "Random mixing",
+        "Marked individuals redistribute randomly throughout the population before the second sample",
+        "Incomplete mixing means the second sample oversamples the marking location, biasing N̂"
+      ],
+      [
+        "Marking has no effect on survival or behavior",
+        "Handling and marking do not change an animal's mortality risk or activity",
+        "Marking-induced stress or predation risk changes the very population being estimated"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Digging Deeper",
+    "title": "Why Assumption Violations Are So Common in Practice",
+    "items": [
+      "Population closure is nearly always violated to some degree over realistic field timescales — the assumption is really a matter of degree, not all-or-nothing; short intervals between samples help minimize this problem.",
+      "Equal catchability often fails because capture itself changes behavior: some individuals become 'trap-shy' after a bad experience, others become 'trap-happy' if traps offer food or shelter.",
+      "Tag loss is a bigger problem for external marks (leg bands, ear tags) than internal ones (PIT tags, genetic markers), which is why long-term studies increasingly use genetic or electronic marking.",
+      "Violations don't necessarily invalidate a study — but they do mean N̂ should be reported with appropriate caveats, confidence intervals, and sensitivity analysis rather than as a single precise number."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Best Practices",
+    "title": "Minimizing Error in Population Estimation",
+    "cards": [
+      {
+        "h": "Randomize sampling locations",
+        "p": "Use random or systematic-random placement of quadrats, transects, or traps to avoid conscious or unconscious bias toward convenient or 'good-looking' habitat."
+      },
+      {
+        "h": "Increase sample size and replication",
+        "p": "More quadrats or more mark-recapture sessions reduce the variance of the estimate and allow the calculation of meaningful confidence intervals."
+      },
+      {
+        "h": "Match method to organism and timescale",
+        "p": "Keep mark-recapture sampling intervals short relative to birth/death/movement rates to better approximate a closed population."
+      },
+      {
+        "h": "Use corrected estimators and model detection explicitly",
+        "p": "Apply the Chapman correction for small samples, and where possible use methods (distance sampling, occupancy models) that estimate detection probability rather than assuming perfect detection."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Putting It All Together: Key Takeaways",
+    "items": [
+      "A population is bounded by species (interbreeding), space, and time — and ecologists often must operationalize these boundaries pragmatically.",
+      "Individuals aggregate into patches; collections of patch-level local populations set up the metapopulation framework we return to in Lectures 17-19.",
+      "Population size (N) and density (D = N/area) are related but distinct — density is what drives most ecological and evolutionary interactions.",
+      "Dispersion — random, uniform, or clumped — reflects underlying biology and can be diagnosed conceptually with the variance-to-mean ratio.",
+      "Quadrat sampling and mark-recapture (via the Lincoln-Petersen index) are the two workhorse methods for estimating N in the field.",
+      "Every estimate of N carries error from sampling bias, imperfect detection, and violated assumptions — understanding these sources is as essential as knowing the formulas."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 3 — Density-Independent Growth I",
+    "left": {
+      "h": "What We Covered Today",
+      "body": "We built the conceptual and methodological foundation: what a population is, how it's structured spatially, and how to measure its size, density, and dispersion in the field, including the arithmetic behind the Lincoln-Petersen index."
+    },
+    "right": {
+      "h": "What's Coming Next",
+      "body": "Lecture 3 puts N to work: we derive the exponential (density-independent) growth model in both discrete and continuous time, connect it back to Malthus's original argument from Lecture 1, and examine when and why density-independent growth is a reasonable approximation for real populations."
+    },
+    "footnote": "Reading for Lecture 3: Rockwood Ch. 2"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question",
+    "title": "For Class Discussion (1 of 2)",
+    "items": [
+      "A city wants to estimate its urban coyote population to inform management policy. The coyotes range widely, are mostly nocturnal, and avoid humans.",
+      "Would quadrat sampling or mark-recapture be more appropriate here, and why?",
+      "What specific assumptions of your chosen method are most likely to be violated in this system, and how might you redesign the study to minimize that violation?",
+      "Consider: camera traps, GPS collars, and scat/genetic sampling as alternative or supplementary tools — how might each affect detection probability?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question",
+    "title": "For Class Discussion (2 of 2)",
+    "items": [
+      "Two researchers survey the same 5-hectare forest plot for a rare orchid species using different quadrat sizes: one uses 0.25 m² quadrats, the other uses 4 m² quadrats.",
+      "How might quadrat size alone change the estimated dispersion pattern (random vs. clumped) even if the underlying spatial arrangement of orchids is identical?",
+      "What does this imply about the relationship between spatial scale and dispersion pattern more generally — can a population be 'clumped' at one scale and 'random' at another?",
+      "How would you design a sampling scheme to test whether dispersion pattern is scale-dependent in this orchid population?"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 2</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

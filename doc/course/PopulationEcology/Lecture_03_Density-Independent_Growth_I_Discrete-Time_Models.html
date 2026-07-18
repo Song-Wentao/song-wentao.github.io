@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 3: Density-Independent Growth I: Discrete-Time Models</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology · BIOL 4XX · Lecture 3",
+    "title": "Density-Independent Growth I: Discrete-Time Models",
+    "sub": "Geometric growth, the finite rate of increase λ, and populations with non-overlapping generations",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Chapter 1"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 2",
+    "title": "Where We Left Off: The Concept of a Population",
+    "items": [
+      "A population is a group of interbreeding individuals of one species occupying a defined area at a given time",
+      "Defining population boundaries is often the hardest and most consequential step in any study",
+      "Key state variables: population size (N), density (N per unit area/volume), and dispersion (spatial pattern: uniform, random, clumped)",
+      "We covered sampling methods for estimating N: quadrat counts, plotless methods, and mark-recapture",
+      "The Lincoln-Petersen index estimates N from two capture sessions using the proportion of marked individuals recaptured",
+      "Today we move from measuring populations to modeling how they change in size over time"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Setting Up Discrete-Time Growth",
+    "sub": "Why some organisms are naturally modeled generation by generation, not continuously"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discrete vs. Continuous Time",
+    "title": "Two Ways Populations Change Through Time",
+    "items": [
+      "Continuous-time models track population size as a smooth function of time — appropriate for organisms that reproduce year-round with overlapping generations (e.g., humans, many mammals)",
+      "Discrete-time models track population size at fixed intervals — typically once per generation — appropriate when reproduction is synchronized and generations do not overlap",
+      "The choice of model is not arbitrary: it should match the biology of the organism's life cycle",
+      "Lecture 3 focuses on discrete-time (geometric) growth; Lecture 4 will introduce the continuous-time (exponential) analog"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Non-Overlapping Generations",
+    "term": "Non-overlapping generations",
+    "def": "A life-history pattern in which all individuals of one generation die (or cease reproducing) before their offspring begin reproducing, so that generations are cleanly separated in time.",
+    "bullets": [
+      "Reproduction is typically synchronized to a single breeding season per year (or per generation)",
+      "Population size can only be sensibly measured once per generation — there is no meaningful 'population size' halfway between generations",
+      "This is precisely the situation the discrete-time (geometric) growth model was built to describe"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Biological Examples",
+    "title": "Organisms With Discrete, Non-Overlapping Generations",
+    "cards": [
+      {
+        "h": "Annual plants",
+        "p": "Germinate, grow, flower, set seed, and die within a single year; the parent plants are gone before the next cohort germinates"
+      },
+      {
+        "h": "Univoltine insects",
+        "p": "Species with exactly one generation per year (e.g., many temperate grasshoppers and butterflies); adults die after laying eggs, well before the next generation emerges"
+      },
+      {
+        "h": "Some semelparous fish",
+        "p": "Pacific salmon reproduce once and die; each cohort is a distinct, non-overlapping generation censused at spawning"
+      },
+      {
+        "h": "Periodical cicadas",
+        "p": "An extreme case — 13- or 17-year synchronized generations with essentially zero overlap between broods"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters for Modeling",
+    "title": "Discrete Time Is a Natural Fit for These Life Histories",
+    "items": [
+      "Because reproduction happens in a single synchronized pulse, we can census the population at the same life stage each generation (e.g., seeds produced, or adults counted at spawning)",
+      "Time advances in whole-generation steps: t = 0, 1, 2, 3, … rather than as a continuous variable",
+      "This lets us describe population change with a simple multiplicative rule relating Nt (this generation) to Nt+1 (the next generation)",
+      "That multiplicative rule is the geometric growth model — the subject of the rest of this lecture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Deriving Geometric Growth From First Principles",
+    "sub": "From a single per-generation rule to a general formula for any generation t"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Building the Model",
+    "title": "Step 1: A Population's Fate Depends on Births and Deaths",
+    "items": [
+      "Consider a population censused once per generation, with size N0 at the start (generation 0)",
+      "Between generation t and generation t+1, individuals reproduce and then die (non-overlapping generations)",
+      "The number of individuals in generation t+1 is simply the number produced by generation t's individuals",
+      "If, on average, each individual in generation t leaves behind a constant number of individuals in generation t+1, that constant relationship is the key to the model"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Building the Model",
+    "title": "Step 2: The Recursive Growth Equation",
+    "left": {
+      "h": "The rule",
+      "body": "Nt+1 = λNt\n\nEach generation's size is the previous generation's size multiplied by a constant, λ (the finite rate of increase). λ summarizes net reproduction — births minus deaths — over one generation."
+    },
+    "right": {
+      "h": "Why multiplicative",
+      "body": "If a population doubles every generation, N1 = 2N0. If it then doubles again, N2 = 2N1 = 2(2N0) = 4N0. Growth compounds multiplicatively, not additively — exactly like compound interest in finance."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Building the Model",
+    "title": "Step 3: Applying the Rule Generation After Generation",
+    "items": [
+      "N1 = λN0",
+      "N2 = λN1 = λ(λN0) = λ²N0",
+      "N3 = λN2 = λ(λ²N0) = λ³N0",
+      "Following the pattern, after t generations: Nt = N0λᵗ",
+      "This is the geometric growth equation — the central formula of discrete-time density-independent growth"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Core Equation",
+    "title": "The Geometric Growth Equation",
+    "term": "Nt = N0λt",
+    "def": "Population size at generation t equals the initial population size N0 multiplied by the finite rate of increase λ raised to the power t (the number of generations elapsed).",
+    "bullets": [
+      "N0 = population size at the starting generation (t = 0)",
+      "λ = finite rate of increase per generation (a constant, dimensionless multiplier)",
+      "t = number of generations (or discrete time steps) elapsed",
+      "Nt = predicted population size after t generations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Equation",
+    "title": "Reading the Geometric Growth Formula",
+    "items": [
+      "Nt = N0λᵗ is a purely multiplicative model — no addition of immigrants or subtraction of harvested individuals, just repeated multiplication by λ",
+      "Because it involves an exponent (λᵗ), the model predicts J-shaped growth or decline when plotted on an arithmetic scale — population change accelerates over time",
+      "Plotted on a log scale, Nt = N0λᵗ becomes a straight line, since log(Nt) = log(N0) + t·log(λ) — a useful diagnostic for detecting geometric growth in real data",
+      "This equation applies strictly to populations with discrete, non-overlapping generations — it is the discrete-time counterpart to exponential growth (Lecture 4)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "The Finite Rate of Increase, λ",
+    "sub": "What λ means biologically, and how its value determines a population's fate"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Parameter",
+    "title": "Defining λ",
+    "term": "Finite rate of increase (λ)",
+    "def": "The factor by which a population's size is multiplied over one discrete time interval (one generation); λ = Nt+1 / Nt.",
+    "bullets": [
+      "λ is dimensionless — it is a ratio of population sizes, not a rate with units of time⁻¹ (that is r, used in continuous models — Lecture 4)",
+      "λ incorporates both reproduction and survival: it is the net per-capita replacement rate over one generation",
+      "Because λ is defined per generation, it is only meaningful for organisms censused once per generation — i.e., those with non-overlapping generations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Estimating λ",
+    "title": "Estimating λ From Data",
+    "items": [
+      "If you know population size in two consecutive generations, λ = Nt+1 / Nt",
+      "Example: if N0 = 200 and N1 = 260, then λ = 260/200 = 1.3",
+      "If you have counts over several generations, λ can be estimated from the geometric mean of successive ratios, or from the slope of log(Nt) vs. t",
+      "λ is assumed constant across generations under the basic density-independent model — a simplifying assumption we will scrutinize shortly"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Interpreting λ",
+    "title": "The Four Regimes of λ",
+    "headers": [
+      "Value of λ",
+      "Population Trend",
+      "Interpretation",
+      "Example"
+    ],
+    "rows": [
+      [
+        "λ > 1",
+        "Growing",
+        "Each generation produces more individuals than the last; population increases geometrically",
+        "λ = 1.3: an annual plant population growing 30% per generation"
+      ],
+      [
+        "λ = 1",
+        "Stable",
+        "Births and deaths exactly balance; population size stays constant generation to generation",
+        "λ = 1.0: a univoltine insect population at long-term equilibrium"
+      ],
+      [
+        "0 < λ < 1",
+        "Declining",
+        "Each generation produces fewer individuals than the last; population shrinks geometrically toward zero",
+        "λ = 0.7: an endangered population losing 30% of its size each generation"
+      ],
+      [
+        "λ = 0",
+        "Extinct",
+        "No individuals survive to the next generation; the population is extirpated after one time step",
+        "λ = 0: a crop population that fails completely due to catastrophic frost before seed set"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Note on λ vs. r",
+    "title": "λ and r Are Related But Not the Same",
+    "items": [
+      "λ is the discrete-time (per-generation) multiplier used in Nt = N0λᵗ",
+      "r is the continuous-time instantaneous rate of increase used in exponential growth, Nt = N0e^(rt) — the subject of Lecture 4",
+      "The two are mathematically linked: λ = e^r, or equivalently r = ln(λ)",
+      "When λ > 1, r > 0 (growth); when λ = 1, r = 0 (stability); when λ < 1, r < 0 (decline) — the same biological story, two mathematical languages"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Worked Numeric Example",
+    "sub": "Tracking a hypothetical annual plant population over six generations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Setting Up the Problem",
+    "items": [
+      "Suppose an annual plant population begins with N0 = 100 individuals",
+      "Field data from a similar population indicate a finite rate of increase of λ = 1.5 per generation (each plant, on average, leaves 1.5 replacements)",
+      "We want to predict population size at generations 1 through 6 using Nt = N0λᵗ",
+      "This is exactly the kind of calculation used to forecast early invasive-species spread or to set conservation targets for recovering populations"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Worked Example",
+    "title": "Predicted Population Size Over Six Generations (λ = 1.5)",
+    "headers": [
+      "Generation (t)",
+      "λt",
+      "Nt = N0λt",
+      "Individuals Added"
+    ],
+    "rows": [
+      [
+        "0",
+        "1.00",
+        "100",
+        "—"
+      ],
+      [
+        "1",
+        "1.50",
+        "150",
+        "+50"
+      ],
+      [
+        "2",
+        "2.25",
+        "225",
+        "+75"
+      ],
+      [
+        "3",
+        "3.38",
+        "338",
+        "+113"
+      ],
+      [
+        "4",
+        "5.06",
+        "506",
+        "+168"
+      ],
+      [
+        "5",
+        "7.59",
+        "759",
+        "+253"
+      ],
+      [
+        "6",
+        "11.39",
+        "1,139",
+        "+380"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Reading the Table and Graph",
+    "items": [
+      "Notice that the number of individuals added each generation keeps increasing, even though λ is constant — this is the hallmark of geometric (multiplicative) growth",
+      "If plotted on an arithmetic-scale graph of Nt vs. t, the curve is J-shaped: nearly flat at first, then sweeping steeply upward",
+      "If instead we plot log(Nt) vs. t, the six points fall on a straight line with slope log(1.5) ≈ 0.176 — confirming the growth is geometric",
+      "This log-linear diagnostic is exactly how ecologists test field data for geometric or exponential growth patterns"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example — Decline Case",
+    "title": "The Same Math, Running in Reverse",
+    "items": [
+      "Now suppose λ = 0.6 for a declining population starting at N0 = 1,000 (e.g., a population impacted by habitat loss)",
+      "N1 = 1,000 × 0.6 = 600; N2 = 1,000 × 0.6² = 360; N3 = 1,000 × 0.6³ = 216; N4 = 1,000 × 0.6⁴ ≈ 130",
+      "The population loses a shrinking absolute number of individuals each generation but the same 40% proportion — again, this is geometric, not linear, decline",
+      "Plotted on an arithmetic scale this produces a decelerating decline curve; on a log scale it is still a straight line, now with negative slope"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Assumptions of Density-Independent Growth",
+    "sub": "Nt = N0λt is only as good as the biological assumptions behind it"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Assumption 1",
+    "title": "No Resource Limitation",
+    "items": [
+      "The model assumes unlimited food, space, water, light, and other resources — every individual can reproduce and survive at its maximum potential rate regardless of population size",
+      "In reality, as N grows, competition for resources typically increases and per-capita growth rate declines — this is density dependence, the subject of Chapter 2 / Lecture 5-6",
+      "Density-independent growth is therefore only realistic over the short term, or when a population is far below the environment's carrying capacity (e.g., early in an invasion)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Assumption 2",
+    "title": "Constant λ Across Generations",
+    "items": [
+      "λ is treated as a fixed constant — the same birth and death rates apply in every generation",
+      "Real populations experience year-to-year variation in weather, predation, disease, and resource availability, all of which can change λ from one generation to the next",
+      "When λ varies stochastically among generations, we move into the realm of stochastic demography — an important extension covered later in the course"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Assumption 3",
+    "title": "Closed Population (or Constant Migration)",
+    "items": [
+      "The basic model assumes no immigration or emigration — the only inputs to Nt+1 are births, and the only losses are deaths, within a closed population",
+      "If migration occurs, it must be constant and already folded into λ for the simple model to hold; large or variable migration requires an extended model with separate immigration/emigration terms",
+      "This connects directly back to Lecture 2's discussion of defining population boundaries — an open population with substantial cross-boundary movement violates this assumption"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Assumption 4",
+    "title": "No Age or Stage Structure Effects",
+    "items": [
+      "The model treats all individuals in a generation as demographically identical — same probability of surviving and reproducing — with no differences due to age, size, or stage",
+      "Real populations often have age-structured survival and fecundity (e.g., older annual plants may produce more seeds); geometric growth ignores this heterogeneity",
+      "Age-structured models (Leslie matrices, life tables) relax this assumption and will be introduced later in the course as a refinement of these basic growth models"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Assumptions Summary",
+    "title": "The Four Core Assumptions at a Glance",
+    "headers": [
+      "Assumption",
+      "What It Means",
+      "Typical Violation"
+    ],
+    "rows": [
+      [
+        "No resource limitation",
+        "λ does not decline as N increases",
+        "Crowding, food shortage, or space limitation as population grows"
+      ],
+      [
+        "Constant λ",
+        "Birth and death rates are the same every generation",
+        "Weather variability, disease outbreaks, resource pulses"
+      ],
+      [
+        "Closed population",
+        "No net immigration/emigration beyond what is built into λ",
+        "Dispersal between subpopulations, colonization events"
+      ],
+      [
+        "No age structure effects",
+        "All individuals contribute equally to λ regardless of age/stage",
+        "Differential fecundity or survival by age class"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Assumptions Matter",
+    "title": "Reading the Assumptions as a Checklist",
+    "items": [
+      "Before applying Nt = N0λᵗ to a real dataset, ask: is this population's growth currently unconstrained by resources?",
+      "Is there reason to think λ has been roughly stable across the generations being modeled?",
+      "Is the population effectively closed, or is migration a major driver of size change?",
+      "If the answer to any of these is 'no,' the geometric model may still be a useful first approximation, but predictions beyond a few generations should be treated cautiously"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "Doubling Time",
+    "sub": "How long does it take a growing population to double in size?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Doubling Time",
+    "term": "Doubling time (tdouble)",
+    "def": "The number of generations required for a geometrically growing population to reach exactly twice its starting size, given a constant λ > 1.",
+    "bullets": [
+      "Doubling time is a convenient, intuitive way to communicate how fast a population is growing without citing λ directly",
+      "It is only defined when λ > 1 (a growing population); for λ < 1 the analogous concept is 'halving time'",
+      "Doubling time is inversely related to λ — larger λ means shorter doubling time"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Deriving the Formula",
+    "title": "From Nt = N0λt to the Doubling-Time Formula",
+    "left": {
+      "h": "Set up the equation",
+      "body": "We want the time t at which Nt = 2N0.\n\nSubstitute into Nt = N0λᵗ:\n2N0 = N0λᵗ\n\nDivide both sides by N0:\n2 = λᵗ"
+    },
+    "right": {
+      "h": "Solve for t",
+      "body": "Take the natural log of both sides:\nln(2) = t·ln(λ)\n\nSolve for t:\nt_double = ln(2) / ln(λ)\n\nSince ln(2) ≈ 0.693, this is often written:\nt_double ≈ 0.693 / ln(λ)"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Doubling Time in Practice",
+    "items": [
+      "Suppose an insect population has λ = 1.2 per generation",
+      "t_double = ln(2) / ln(1.2) = 0.693 / 0.182 ≈ 3.8 generations",
+      "So this population will roughly double in size after about 4 generations, all else being equal",
+      "Compare a faster-growing population with λ = 2.0: t_double = ln(2) / ln(2) = 1 generation — by definition, when λ = 2 the population doubles every single generation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Doubling Time",
+    "title": "Why Doubling Time Is a Useful Communication Tool",
+    "items": [
+      "Doubling time translates an abstract multiplier (λ) into an intuitive timescale that non-specialists (and policymakers) can grasp",
+      "It is widely used in invasive-species risk assessment: 'this population could double within 2 generations' is more actionable than 'λ = 1.4'",
+      "The same math (with a sign change) gives 'halving time' for declining populations — useful for communicating extinction risk in conservation biology",
+      "Caution: doubling time assumes λ stays constant — it is a projection under current conditions, not a guarantee"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 7",
+    "title": "Real-World Applications",
+    "sub": "Where geometric growth models are actually used in ecology and management"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Applications",
+    "title": "Three Domains Where Nt = N0λt Is Put to Work",
+    "cards": [
+      {
+        "h": "Invasive species",
+        "p": "Early in an invasion, a founding population typically has abundant resources and little competition — near-ideal conditions for density-independent geometric growth, making λ and doubling time key tools for predicting spread"
+      },
+      {
+        "h": "Pest outbreaks",
+        "p": "Agricultural pests with univoltine or short generation times can show explosive geometric increase within a growing season when λ is large, informing the timing of control measures"
+      },
+      {
+        "h": "Endangered species decline",
+        "p": "Conservation biologists use λ < 1 to project how quickly a small population may decline toward extinction if current conditions (habitat loss, poaching, disease) persist"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study — Invasive Species",
+    "title": "Modeling Early Establishment of an Invasive Insect",
+    "items": [
+      "A newly introduced univoltine beetle establishes with N0 = 50 individuals in a resource-rich habitat with no natural predators",
+      "Field surveys estimate λ = 1.8 per generation during the establishment phase",
+      "Using Nt = N0λᵗ, managers project N5 = 50 × 1.8⁵ ≈ 50 × 18.9 ≈ 945 individuals after just 5 generations — illustrating why rapid early intervention is critical",
+      "This early phase is precisely where the density-independent assumption (no resource limitation) is most defensible, since the population is far below any local carrying capacity"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study — Endangered Species",
+    "title": "Projecting Decline in a Small Vertebrate Population",
+    "items": [
+      "A population of an endangered ground-nesting bird numbers N0 = 400 breeding adults",
+      "Ongoing nest predation and habitat degradation yield an estimated λ = 0.85 per generation",
+      "Nt = N0λᵗ predicts N10 = 400 × 0.85¹⁰ ≈ 400 × 0.197 ≈ 79 individuals after 10 generations if conditions do not change",
+      "Such projections (even though simplified) are commonly used to justify listing decisions, set recovery targets, and evaluate whether management interventions are shifting λ back toward or above 1"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study — Pest Management",
+    "title": "Timing Control Measures Using λ",
+    "items": [
+      "An agricultural aphid population (multiple generations per growing season, but treated here as discretely censused per generation for simplicity) shows λ = 2.5 under warm, dry conditions",
+      "Left uncontrolled, N4 = N0 × 2.5⁴ ≈ 39×N0 within just four generations — explaining why aphid outbreaks can seem to appear almost overnight",
+      "Understanding the geometric nature of this growth (not linear!) is essential for growers deciding when early intervention is far more cost-effective than late-season control",
+      "This also illustrates a general lesson: because growth is multiplicative, delaying action by even one generation can dramatically increase the population managers must control"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 8",
+    "title": "Limitations and Critique",
+    "sub": "Why geometric growth cannot describe a population forever"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Problem",
+    "title": "No Population Grows Geometrically Forever",
+    "items": [
+      "Nt = N0λᵗ with λ > 1 predicts unbounded exponential-style increase — given enough generations, Nt approaches infinity",
+      "No real environment has infinite resources, so this prediction cannot hold indefinitely",
+      "Eventually, rising density triggers negative feedback — increased competition, disease transmission, predation, or resource depletion — that reduces λ toward 1",
+      "This feedback loop, where the growth rate itself depends on population density, is what Chapter 2 formalizes as density-dependent growth"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "When the Model Still Applies",
+    "title": "Geometric Growth Is a Good Short-Term Approximation When…",
+    "items": [
+      "The population is well below the environment's carrying capacity (e.g., a new invasion, a recovering reintroduced population, or a pest at the start of a growing season)",
+      "Resources, predation, and disease pressures have not yet responded to the population's size",
+      "The time horizon of interest is short relative to how quickly density-dependent effects would set in",
+      "Beyond these conditions, using Nt = N0λᵗ to extrapolate far into the future will systematically overpredict growth (or overpredict decline)"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Guiding Caution",
+    "quote": "All models are simplifications; the geometric growth model is valuable precisely because its simplicity reveals what density dependence must eventually override.",
+    "attrib": "Adapted from Rockwood, Introduction to Population Ecology, Ch. 1"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Looking Ahead",
+    "title": "Density-Independent vs. Density-Dependent Growth: A Preview",
+    "headers": [
+      "Feature",
+      "Density-Independent (Ch. 1)",
+      "Density-Dependent (Ch. 2)"
+    ],
+    "rows": [
+      [
+        "Growth rate (λ)",
+        "Constant, regardless of N",
+        "Changes as a function of N"
+      ],
+      [
+        "Long-term shape",
+        "Unbounded J-shaped increase or decline",
+        "Bounded, S-shaped (logistic) approach to a limit"
+      ],
+      [
+        "Resource limitation",
+        "Assumed absent",
+        "Explicitly modeled"
+      ],
+      [
+        "Best used for",
+        "Short-term projections, low-density populations",
+        "Populations near or approaching carrying capacity"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridging the Gap",
+    "title": "What the Geometric Model Sets Up",
+    "items": [
+      "Understanding geometric growth is a prerequisite for understanding density dependence — you need a clear baseline of 'unconstrained' growth before you can recognize when growth is being constrained",
+      "The gap between predicted geometric growth and observed growth in a crowded population is itself a measure of the strength of density dependence",
+      "Many practical questions in conservation and pest management hinge on knowing which regime a population is in right now",
+      "We will formalize this comparison mathematically when we reach the logistic growth model later in the course"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 9",
+    "title": "Synthesis",
+    "sub": "Pulling the lecture's key ideas together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "What You Should Be Able to Do After Today",
+    "items": [
+      "Explain why discrete-time models are the natural choice for organisms with non-overlapping generations",
+      "Derive Nt = N0λᵗ from the recursive rule Nt+1 = λNt",
+      "Interpret λ > 1, λ = 1, 0 < λ < 1, and λ = 0 in terms of population trend and biological meaning",
+      "List and explain the four core assumptions of density-independent growth",
+      "Calculate doubling time from λ, and vice versa",
+      "Apply Nt = N0λᵗ to worked numeric examples and real-world scenarios (invasive species, pests, endangered species)"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Formula Recap",
+    "title": "The Toolkit From Today",
+    "cards": [
+      {
+        "h": "Nt = N0λt",
+        "p": "Population size at generation t, given initial size N0 and constant finite rate of increase λ"
+      },
+      {
+        "h": "λ = Nt+1 / Nt",
+        "p": "The finite rate of increase, estimated directly from two consecutive generation counts"
+      },
+      {
+        "h": "t_double = ln(2) / ln(λ)",
+        "p": "Number of generations required for a growing population (λ > 1) to double in size"
+      },
+      {
+        "h": "r = ln(λ)",
+        "p": "Conversion between the discrete-time λ and the continuous-time instantaneous rate r, bridging into Lecture 4"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Pitfalls",
+    "title": "Mistakes to Avoid",
+    "items": [
+      "Do not confuse λ (a per-generation multiplier, dimensionless) with r (an instantaneous rate, units of time⁻¹) — they answer different questions and are used in different equations",
+      "Do not apply Nt = N0λᵗ to organisms with overlapping generations — that requires continuous-time models (Lecture 4) or age-structured models (later in the course)",
+      "Do not extrapolate geometric growth far into the future without checking whether the no-resource-limitation assumption is still reasonable",
+      "Remember that λ = 1 does NOT mean the population is unhealthy — it means births and deaths are in balance, which can be a perfectly stable, sustainable state"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 4 — Density-Independent Growth II",
+    "left": {
+      "h": "Today (Lecture 3)",
+      "body": "Discrete-time geometric growth: Nt = N0λᵗ, for organisms with non-overlapping generations. λ as the finite rate of increase; doubling time; assumptions and limitations."
+    },
+    "right": {
+      "h": "Next time (Lecture 4)",
+      "body": "Continuous-time exponential growth: Nt = N0e^(rt), for organisms with overlapping generations. The instantaneous rate of increase r; how r relates to λ; continuous doubling time."
+    },
+    "footnote": "Reading for Lecture 4: Rockwood, Ch. 1 (continued)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Next Class",
+    "title": "Preparation for Lecture 4",
+    "items": [
+      "Review the relationship r = ln(λ) covered today — Lecture 4 builds directly on this bridge between discrete and continuous models",
+      "Read the remainder of Chapter 1, focusing on the derivation of the exponential growth equation",
+      "Bring a calculator or laptop with graphing capability — we will compare geometric and exponential growth curves side by side",
+      "Think about which organisms from your own field of interest have overlapping vs. non-overlapping generations, and why that distinction matters for choosing a model"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 1",
+    "title": "Applying the Model to a New Scenario",
+    "items": [
+      "A population of an annual desert wildflower is monitored for three years: N0 = 500, N1 = 650, N2 = 845",
+      "Calculate λ from these data. Is it consistent across both intervals?",
+      "Using this λ, predict N5. What is the doubling time?",
+      "Under what field conditions would you expect this λ to hold for many more generations, and under what conditions would you expect it to break down?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 2",
+    "title": "Critiquing the Assumptions",
+    "items": [
+      "An invasive univoltine moth is introduced to a new region with N0 = 30 individuals and an estimated λ = 2.2",
+      "A land manager uses Nt = N0λᵗ to argue the population will exceed 100,000 individuals within 13 generations and therefore requires no near-term intervention because 'the model shows it will crash on its own once resources run out'",
+      "Evaluate this argument: which assumption of the density-independent model is being implicitly (and incorrectly) invoked? What would you recommend instead?",
+      "How would your answer change if the moth were instead being reintroduced as part of a conservation program?"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 3</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

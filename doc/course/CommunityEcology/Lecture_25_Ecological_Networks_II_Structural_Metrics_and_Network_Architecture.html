@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 25: Ecological Networks II: Structural Metrics and Network Architecture</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 25",
+    "title": "Ecological Networks II: Structural Metrics and Network Architecture",
+    "sub": "From vocabulary to pattern: connectance, degree distributions, nestedness, modularity, motifs, and null models",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 10 — Ecological networks"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where we are",
+    "title": "Recap of Lecture 24",
+    "items": [
+      "Ecological networks represent species (nodes) and their interactions (links) as graphs",
+      "<b>Unipartite</b> networks: one interaction type among all taxa (e.g., food webs); <b>bipartite</b> networks: two guilds interacting across a divide (e.g., plants × pollinators)",
+      "<b>Connectance</b> (C = L/S², or L/(S₁×S₂) for bipartite) introduced as the fraction of possible links realized",
+      "We previewed that not all links are equal, and not all network structures look alike — today we go deeper into the shape of that structure",
+      "Key question for today: is ecological network structure random, or does it follow predictable, recurring architectural rules?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Connectance and Degree Distribution",
+    "sub": "How many links, and who holds them?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Revisiting a core metric",
+    "title": "Connectance in depth",
+    "term": "Connectance (C)",
+    "def": "The proportion of all possible links that are actually realized in a network: C = L / S² for a unipartite network of S species and L links (or L / (S₁S₂) for a bipartite network with S₁ and S₂ species per side).",
+    "bullets": [
+      "Ranges from 0 (no links) to 1 (fully connected, every possible interaction realized)",
+      "A single number that compresses an entire adjacency matrix into one summary statistic — useful, but coarse",
+      "Sets the baseline against which other structural metrics (nestedness, modularity) must be judged"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A scaling law",
+    "title": "How connectance scales with network size",
+    "items": [
+      "Empirically, connectance tends to <b>decline</b> as species richness (S) increases across real food webs and mutualistic networks",
+      "Early food-web literature proposed the <b>“constant connectance” hypothesis</b>: C stays roughly constant (~0.1) regardless of S, implying L scales as S²",
+      "An earlier, competing idea was the <b>“link-species scaling law”</b>: the average number of links per species (L/S) is roughly constant, implying L scales linearly with S, so C = L/S² declines as ~1/S",
+      "Better-resolved modern datasets tend to support declining connectance with richness, though the exact scaling relationship remains debated and may depend on network type and sampling effort",
+      "Practical consequence: comparing raw link counts (L) across networks of different size is misleading — connectance (or other size-corrected metrics) is the fairer currency"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What values look like in nature",
+    "title": "Typical connectance values in real networks",
+    "items": [
+      "Most empirical food webs have connectance in the rough range of <b>0.03–0.30</b>, with well-resolved webs often clustering around 0.05–0.15",
+      "Highly resolved, intensively sampled food webs (e.g., some marine and stream systems) can push connectance higher simply because more real, weak links are detected — connectance is partly a <b>sampling-effort artifact</b>",
+      "Plant-pollinator and plant-frugivore mutualistic networks are frequently sparser in relative terms once matrix size is large, but can show locally dense modules within them",
+      "Bottom line: connectance values are not directly comparable across studies unless sampling intensity and taxonomic resolution are similar"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Beyond the single summary number",
+    "title": "Degree distribution",
+    "term": "Degree distribution",
+    "def": "The frequency distribution of the number of links (the “degree,” k) per node across all species in the network — i.e., how many species have 1 link, how many have 2, how many have 20, and so on.",
+    "bullets": [
+      "Connectance tells you the average density of links; degree distribution tells you how that density is <b>partitioned among species</b>",
+      "Two networks can have identical connectance but wildly different degree distributions — one where every species has a similar number of partners, one where a few species have vastly more than others"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two contrasting architectures",
+    "title": "Random networks vs. real ecological networks",
+    "left": {
+      "h": "If networks were random (Erdős–Rényi)",
+      "body": "Links assigned independently and with equal probability among all possible species pairs. Degree distribution would follow a <b>Poisson (binomial)</b> shape — most species cluster tightly around the mean degree, with a thin, rapidly-decaying tail. No species would be dramatically more connected than typical."
+    },
+    "right": {
+      "h": "What real ecological networks show",
+      "body": "Degree distributions are consistently <b>skewed / heavy-tailed</b> (often approximated by power-law or exponential forms). The vast majority of species have <b>few</b> interaction partners, while a small minority — “hub” or generalist species — have disproportionately <b>many</b>."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The hub phenomenon",
+    "title": "Hub species and skewed degree",
+    "items": [
+      "A <b>hub</b> (or highly generalized) species interacts with a large fraction of the other guild — e.g., a common, morphologically unspecialized flower visited by dozens of pollinator species, or a generalist predator eating from many prey species",
+      "Skewed degree distributions are a hallmark of many real-world complex networks beyond ecology — the internet, social networks, protein interaction networks — suggesting shared generative processes (e.g., preferential attachment, abundance effects)",
+      "In ecological networks, skew is often driven by species <b>abundance</b>: common species simply encounter more potential partners more often, and by <b>trait matching breadth</b> (generalized morphology or physiology allows more partner types)",
+      "Hub species are disproportionately important for network function and, as we will see in Lecture 26, for network robustness to species loss"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Why hubs arise",
+    "title": "Proposed mechanisms generating degree skew",
+    "cards": [
+      {
+        "h": "Neutral / abundance-driven",
+        "p": "Species that are locally abundant simply have more chance encounters with potential partners, generating more recorded links independent of any special traits."
+      },
+      {
+        "h": "Trait-matching breadth",
+        "p": "Some species have generalized traits (unspecialized flower morphology, broad diet, wide phenological window) that make them compatible with many partner species."
+      },
+      {
+        "h": "Sampling / detection bias",
+        "p": "Common species are more likely to be observed interacting at all — rare links involving rare species are easy to miss, artificially inflating apparent skew."
+      },
+      {
+        "h": "Evolutionary history",
+        "p": "Some lineages evolve toward generalization as a strategy, especially where reliable specialist partners are unpredictable in space or time."
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Scales of network organization",
+    "title": "From single species to whole-network architecture",
+    "levels": [
+      {
+        "label": "Pairwise interaction (Ch. 5–9)",
+        "color": "#2E5339",
+        "width": "620px"
+      },
+      {
+        "label": "Motif (3–4 species sub-structure)",
+        "color": "#3D5A80",
+        "width": "500px"
+      },
+      {
+        "label": "Module / compartment",
+        "color": "#5C8374",
+        "width": "380px"
+      },
+      {
+        "label": "Whole-network architecture (nestedness, modularity, degree distribution)",
+        "color": "#98C1D9",
+        "width": "260px"
+      }
+    ],
+    "footnote": "Each level is built from combinations of the level below it — today's metrics describe the top of this hierarchy."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "An important refinement",
+    "title": "Beyond binary links: weighted networks",
+    "items": [
+      "Everything discussed so far treats a link as present/absent (binary) — but real interactions vary enormously in <b>strength</b> (visitation frequency, interaction frequency, per-capita effect)",
+      "A <b>weighted network</b> assigns each link a numeric weight reflecting interaction strength or frequency, not just presence/absence",
+      "Weighting matters for structural metrics: a binary matrix can look nested or modular, but weighting can reveal that most of the interaction “mass” is concentrated on just a few strong links even within an apparently dense binary matrix",
+      "Weighted extensions of nestedness (e.g., weighted NODF) and modularity exist, and generally show that architecture is often even more concentrated on hub species/strong links than the binary picture alone suggests"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Nestedness",
+    "sub": "When specialists are subsets of generalists"
+  },
+  {
+    "type": "term",
+    "eyebrow": "A defining architecture of mutualistic networks",
+    "title": "Nestedness",
+    "term": "Nestedness",
+    "def": "A structural pattern in which the set of interaction partners of specialist species is a nested subset of the partners of more generalist species — specialists tend to interact with a subset of the same, typically common, partners that generalists also use, rather than with idiosyncratic partners of their own.",
+    "bullets": [
+      "Picture a bipartite interaction matrix with rows and columns sorted from most- to least-connected: a perfectly nested matrix forms a triangular “staircase” of filled cells in the upper-left, with empty cells filling out the lower-right",
+      "First and most famously documented in plant-pollinator and plant-frugivore mutualistic networks (Bascompte and colleagues, early 2000s), and since found broadly across mutualistic systems"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading a nested matrix",
+    "title": "What nestedness looks like structurally",
+    "items": [
+      "Order species by degree (most links to fewest) on both rows and columns of the interaction matrix",
+      "In a maximally nested network, the partner list of any given species is a subset of the partner list of every more-generalized species",
+      "Generalist species interact with both other generalists AND specialists; specialist species interact almost exclusively with generalists, rarely with other specialists",
+      "This creates a <b>core</b> of generalist-generalist interactions plus a periphery of specialist-generalist interactions, and very few specialist-specialist interactions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Quantifying the pattern",
+    "title": "Measuring nestedness (conceptual)",
+    "items": [
+      "Nestedness must be measured relative to what would be expected simply from network size and connectance — a purely visual “staircase” impression is not enough for rigorous comparison",
+      "<b>NODF</b> (Nestedness metric based on Overlap and Decreasing Fill) is the most widely used modern metric — it compares each pair of rows (and each pair of columns) for both (a) decreasing fill (does the less-connected one have fewer links than the more-connected one?) and (b) paired overlap (does the less-connected one's partner set overlap strongly with the more-connected one's?)",
+      "We will not derive NODF's formula in full — the key conceptual point is that it yields a single score (0–100) summarizing overall nested structure, robust to matrix size and orientation",
+      "Older metrics (e.g., “temperature” of the matrix, borrowed from biogeography) are largely superseded by NODF because temperature was sensitive to matrix size and species ordering algorithm",
+      "As with connectance, an observed nestedness score is only meaningful when compared against a null-model expectation (Part 5, below)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Explanation 1",
+    "title": "Why nestedness? Abundance-based partner choice",
+    "items": [
+      "If interactions form opportunistically in proportion to species' relative abundances, common species (of either guild) will simply accumulate more links, and rare species will interact primarily with those common partners because they are the ones most often encountered",
+      "This <b>neutral, abundance-driven</b> process alone can generate substantial nestedness without invoking any specialized behavior or coevolution",
+      "Supports the idea that nestedness, at least in part, may be an emergent statistical consequence of skewed abundance distributions rather than a strictly adaptive outcome"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Explanation 2",
+    "title": "Why nestedness? Phylogenetic constraint and trait matching",
+    "items": [
+      "Related species often share similar traits (morphology, phenology, physiology) due to common descent, so partner compatibility is phylogenetically conserved",
+      "If ancestral lineages were generalized and specialization evolved repeatedly within clades that retained compatibility with the ancestral partner set, specialist descendants would naturally interact with a subset of the partners their generalist relatives use",
+      "This predicts a signature of <b>phylogenetic nestedness</b> that should correlate with trait-based nestedness — a testable prediction that has received mixed but often supportive empirical evidence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Explanation 3",
+    "title": "Why nestedness? Convergence toward generalized partners",
+    "items": [
+      "Selection may favor specialists interacting with the <b>most reliable</b> partners available — and the most reliable partners, almost by definition, are the common generalists that are dependably present across space and time",
+      "Reliance on unpredictable, rare specialist partners is evolutionarily risky in variable environments; converging onto shared, dependable generalists reduces that risk",
+      "This is an <b>ecological/evolutionary convergence</b> explanation, distinct from but not mutually exclusive with the abundance and phylogenetic explanations — all three mechanisms likely operate simultaneously to differing degrees across systems"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why mutualisms specifically?",
+    "title": "Nestedness is disproportionately a mutualistic-network pattern",
+    "items": [
+      "Nestedness is most strongly and consistently documented in <b>mutualistic</b> networks (pollination, seed dispersal, plant-ant protection) rather than antagonistic ones",
+      "In mutualism, there is no strong penalty (and often a direct benefit) to interacting with the same widely-used partners as everyone else — a plant does not “lose” anything by being pollinated by a hub pollinator that many other plants also use",
+      "This contrasts sharply with antagonistic interactions, where shared use of the same partner often means direct exploitative or apparent competition — a cost that discourages convergence onto identical partner sets",
+      "This asymmetry sets up the key architectural contrast with modularity in Part 3"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Modularity and Compartmentalization",
+    "sub": "When networks split into subgroups"
+  },
+  {
+    "type": "term",
+    "eyebrow": "An alternative organizing principle",
+    "title": "Modularity",
+    "term": "Modularity",
+    "def": "The tendency of a network to be organized into semi-distinct subgroups (modules, or compartments) such that links WITHIN a module are dense, while links BETWEEN modules are comparatively sparse.",
+    "bullets": [
+      "A modular network is not one undifferentiated web — it is closer to a set of tightly-knit clusters loosely stitched together",
+      "Modules often correspond to recognizable ecological or functional groupings: a set of host species and their specialist parasites, a guild of plants sharing a distinct pollinator syndrome, a spatial or habitat-based subunit of a larger food web"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Quantifying modularity (conceptual)",
+    "title": "Measuring modularity",
+    "items": [
+      "Modularity is typically quantified with a metric like <b>Newman's Q</b>, which compares the observed fraction of links falling within proposed modules to the fraction expected if links were distributed at random given each species' degree",
+      "Finding the best division of a network into modules is itself an optimization problem (algorithms search over possible groupings to maximize Q) — we will not derive the algorithm, only interpret the output",
+      "Q ranges roughly from 0 (no more within-module clustering than random) up to just under 1 (near-total separation into isolated modules); real ecological networks typically fall in an intermediate range",
+      "As with nestedness, an observed Q value is only meaningful relative to a null-model expectation — a topic we return to in Part 5"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The central empirical contrast",
+    "title": "Nestedness vs. modularity: two architectures, two interaction types",
+    "headers": [
+      "Feature",
+      "Nestedness",
+      "Modularity"
+    ],
+    "rows": [
+      [
+        "Typically dominant in",
+        "Mutualistic networks (pollination, seed dispersal)",
+        "Antagonistic networks (food webs, host-parasite, host-parasitoid)"
+      ],
+      [
+        "Core structural feature",
+        "Specialists' partners are a nested subset of generalists' partners",
+        "Dense sub-clusters (modules) with sparse links between them"
+      ],
+      [
+        "Underlying driver",
+        "Shared benefit from using common, reliable partners; no cost to overlap",
+        "Cost of shared exploitation/apparent competition; benefit to specializing within a subgroup"
+      ],
+      [
+        "Typical metric",
+        "NODF",
+        "Newman's modularity, Q"
+      ],
+      [
+        "Consequence for perturbation spread",
+        "Generalist “core” buffers overall network but concentrates dependency on hubs",
+        "Modularity confines cascades largely within the affected module (“firebreak” effect)"
+      ]
+    ],
+    "footnote": "Many real networks show both patterns to some degree, and some networks are nested WITHIN modules — the two are not mutually exclusive."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A key empirical generalization",
+    "title": "Why do antagonistic and mutualistic networks diverge?",
+    "items": [
+      "In <b>antagonistic</b> interactions (predation, parasitism, herbivory), sharing a natural enemy or a resource with another species can generate <b>apparent competition</b> or exploitative competition — a real fitness cost to interacting broadly with the same partners as many other species",
+      "This cost favors <b>partitioning</b>: subsets of species interacting densely among themselves while avoiding heavy overlap with other subsets — producing modular structure",
+      "In <b>mutualistic</b> interactions, sharing a partner does not generate an equivalent cost (and can even increase partner reliability/abundance through diffuse positive feedbacks), so there is little pressure against convergence onto the same generalist hubs — producing nested structure",
+      "This is one of the most robust cross-system generalizations in modern network ecology, though exceptions and mixed nested-modular architectures are increasingly well documented as more networks are analyzed"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Compartments as firebreaks",
+    "title": "Compartmentalization and the spread of perturbations",
+    "items": [
+      "If a perturbation (species extinction, invasive species arrival, disease outbreak, environmental shock) hits one species in a modular network, its direct effects propagate most strongly to the other species sharing its module",
+      "Sparse between-module links act as a bottleneck, slowing or damping transmission of indirect effects into other modules — a structural analog of a <b>firebreak</b> in a forest, or compartments in a ship's hull",
+      "This is a fundamentally different robustness mechanism than nestedness provides: nestedness buffers the network by concentrating redundancy around generalist hubs, while modularity buffers the network by physically limiting how far a disturbance can travel",
+      "Both properties will be central when we formalize network robustness and stability in Lecture 26 — today's job is to understand the architectures themselves before we quantify their consequences for extinction cascades"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two distinct robustness logics",
+    "title": "How nestedness and modularity each confer stability — differently",
+    "left": {
+      "h": "Nestedness's robustness logic",
+      "body": "Concentrates the network's resilience in a well-connected generalist core. As long as hub species persist, most of the network's connectivity persists too. Vulnerability arises specifically if a hub itself is lost — its removal can be disproportionately damaging."
+    },
+    "right": {
+      "h": "Modularity's robustness logic",
+      "body": "Limits how far damage travels rather than concentrating resilience in specific species. A disturbance within one module does comparatively little damage to species in other modules, even if within-module effects are severe."
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical development",
+    "title": "Milestones in ecological network structure research",
+    "items": [
+      {
+        "y": "1959",
+        "t": "Erdős & Rényi formalize random graph theory, providing the null baseline (Poisson degree distribution) against which real-world networks are later compared"
+      },
+      {
+        "y": "1970s–80s",
+        "t": "Early food-web compilations (Cohen, Pimm) spark debate over connectance scaling — constant connectance vs. link-species scaling law"
+      },
+      {
+        "y": "1998–1999",
+        "t": "Watts & Strogatz and Barabási & Albert describe small-world and scale-free (skewed degree) properties in networks generally, reshaping expectations for degree distributions across all complex systems including ecological ones"
+      },
+      {
+        "y": "2003",
+        "t": "Bascompte, Jordano, and colleagues formally document widespread nestedness in plant-pollinator and plant-frugivore mutualistic networks"
+      },
+      {
+        "y": "2004",
+        "t": "Newman formalizes the modularity metric (Q) and community-detection algorithms, soon applied broadly to ecological networks"
+      },
+      {
+        "y": "2007–2009",
+        "t": "NODF nestedness metric (Almeida-Neto et al.) and comparative nestedness-vs-modularity studies across mutualistic and antagonistic networks establish the key empirical generalization covered today"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Motifs",
+    "sub": "The small building blocks of large networks"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Zooming into the smallest scale",
+    "title": "Network motifs",
+    "term": "Motif",
+    "def": "A small, recurring sub-structure (typically involving 3–4 species and their links) that appears in a network far more often than would be expected by chance, and that combines with other motifs to build the network's larger architecture.",
+    "bullets": [
+      "Motifs are, quite literally, the small interaction modules we studied in Ch. 5–9 (predator-prey pairs, competitive pairs, simple three-species chains) reframed as the fundamental units out of which whole networks are assembled",
+      "The motif concept bridges the “nitty-gritty” small-module material of the earlier part of this course with the whole-network, “putting the pieces together” material of Ch. 10"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Three-species motifs in food webs",
+    "title": "Common food-web motifs",
+    "cards": [
+      {
+        "h": "Apparent competition chain",
+        "p": "Two prey species share a common predator (predator eats prey A and prey B) without any direct interaction between A and B — the indirect negative effect on each prey mediated through the shared predator is apparent competition, first formalized in Ch. 6."
+      },
+      {
+        "h": "Exploitative competition chain",
+        "p": "Two consumer species share a common resource (consumer A and consumer B both eat resource R) without direct interaction between A and B — indirect competition mediated through resource depletion, the classic competition module of Ch. 7."
+      },
+      {
+        "h": "Omnivory triangle",
+        "p": "A top predator consumes both an intermediate consumer AND the resource that the intermediate consumer also eats, forming a three-level loop rather than a strict linear chain — omnivory motifs are consistently over- or under-represented relative to random expectation in real food webs, a long-running empirical puzzle."
+      },
+      {
+        "h": "Tri-trophic chain",
+        "p": "A strict linear predator → intermediate consumer → resource pathway with no shortcut interaction — the simplest possible food chain motif, and the baseline against which omnivory and other departures are compared."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From motifs to networks",
+    "title": "Motifs as building blocks of network architecture",
+    "items": [
+      "Large real-world networks are not simply assembled from single-interaction pairs — they are assembled from combinations of these small, recurring multi-species motifs stacked and overlapped across many species",
+      "Different motifs are not equally frequent: some (e.g., certain apparent-competition configurations) are consistently over-represented relative to a random network of the same size and connectance, while others (e.g., certain omnivory configurations) are consistently under-represented — suggesting motif frequency itself is shaped by dynamical stability constraints from Ch. 5–8, not simply by chance assembly",
+      "The motif concept reinforces a core theme of this course: whole-community structure is not an independent phenomenon layered on top of pairwise interactions — it emerges directly from the aggregate behavior of many pairwise and small-module interactions operating simultaneously",
+      "This connects the population-dynamic stability results for simple modules (e.g., which three-species configurations are dynamically stable) to the statistical over/under-representation patterns observed in real multi-species network data"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Real-world examples",
+    "title": "Nestedness and modularity in named study systems",
+    "cards": [
+      {
+        "h": "Caribbean plant-pollinator networks",
+        "p": "Among the original systems used to characterize nestedness quantitatively — a small set of generalist pollinators (e.g., honeybees, common bumblebees) service the great majority of plant species, including highly specialized ones."
+      },
+      {
+        "h": "Host-parasitoid networks",
+        "p": "Frequently show strong modularity, with distinct compartments corresponding to phylogenetically or ecologically related groups of host insects and their more specialized parasitoid wasps."
+      },
+      {
+        "h": "Coral reef food webs",
+        "p": "Show both trophic modularity (habitat- and size-based compartments) and locally nested sub-structure among generalist mesopredators, illustrating that the two patterns can coexist at different scales within a single system."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Null Models for Network Structure",
+    "sub": "Is the pattern real, or just what you'd expect by chance?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A recurring methodological theme",
+    "title": "Why null models, again",
+    "items": [
+      "Recall from Ch. 7 (Lecture 16) the general null-model logic: build a randomized version of your system that preserves certain baseline properties but scrambles the property of interest, then ask whether the real system deviates from that randomized expectation",
+      "The same logic applies directly to network structure: any observed nestedness score or modularity (Q) score is essentially meaningless in isolation — larger networks, or networks with higher connectance, can show elevated nestedness or modularity purely as a mathematical byproduct of size and density, without any special biological process at work",
+      "Null models let us ask the sharper question: is this network MORE nested (or MORE modular) than a random network of the <b>same size and connectance</b> would be, just by chance?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Building the null",
+    "title": "Constructing an ecological network null model",
+    "items": [
+      "The simplest null model randomizes the interaction matrix while holding total network size (S species) and total number of links (L) — and therefore connectance — fixed, redistributing those L links among all possible cells with equal probability",
+      "More refined null models additionally preserve each species' observed degree (its row/column sum) while randomizing which specific partners it interacts with — this controls for the fact that abundant or generalist species will accumulate more links even in a random world",
+      "Because degree distributions are themselves skewed in real networks (Part 1), a null model that ignores degree can create spurious “significant” nestedness or modularity that is really just an artifact of skewed degree, not a genuine structural pattern — so the choice of null model matters enormously and is itself an active area of methodological debate",
+      "Running the randomization many times (e.g., 1,000 iterations) generates a distribution of nestedness or modularity scores expected under the null; the observed value is then compared to this distribution (e.g., via a z-score) to assess statistical significance"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What the comparisons show",
+    "title": "Findings from real-vs-null comparisons",
+    "items": [
+      "Across a large majority of studied mutualistic networks, observed nestedness significantly exceeds null-model expectations — nestedness is not simply an artifact of size and connectance, but a genuine, repeatedly-evolved architectural feature",
+      "Across a large majority of studied antagonistic networks (particularly host-parasite and some food webs), observed modularity significantly exceeds null-model expectations in the same way",
+      "Some networks show BOTH nestedness and modularity beyond null expectations simultaneously — for example, a network with several internally-nested modules — indicating the two architectures are not mutually exclusive design principles but can operate at different structural scales within the same system",
+      "The null-model comparison is what elevates “this matrix looks nested/modular” from a visual impression to a defensible scientific claim — precisely the same epistemic move made with null models for competition and co-occurrence patterns back in Ch. 7"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Methodological continuity",
+    "title": "Connecting back to Chapter 7's null-model logic",
+    "left": {
+      "h": "Ch. 7 / Lecture 16 (co-occurrence)",
+      "body": "Null models asked whether observed patterns of species co-occurrence across sites (checkerboard patterns, C-scores) departed from random assembly, to infer whether competition structures community composition."
+    },
+    "right": {
+      "h": "Ch. 10 / today (network structure)",
+      "body": "Null models ask whether observed nestedness or modularity of an interaction network departs from random link placement (given size/connectance/degree), to infer whether biological processes (partner choice, coevolution, apparent competition) structure network architecture."
+    },
+    "footnote": "Same statistical philosophy, applied at a different level of biological organization — from presence/absence patterns to interaction-matrix patterns."
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Putting the Architecture Together",
+    "sub": "From single metrics to whole-network structure"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Integrating the pieces",
+    "title": "How today's metrics relate to one another",
+    "items": [
+      "<b>Connectance</b> sets the overall density baseline and must be controlled for before comparing any other metric across networks of different size",
+      "<b>Degree distribution</b> describes how that density is distributed among species — skewed, with a few generalist hubs, in essentially all well-studied ecological networks",
+      "<b>Nestedness</b> describes a specific higher-order consequence of degree skew common in mutualistic networks: specialists cluster their few links onto the same hub generalists",
+      "<b>Modularity</b> describes an alternative (and in antagonistic networks, more common) higher-order pattern: dense sub-clusters with limited connections between them",
+      "<b>Motifs</b> are the small-scale, few-species sub-structures that aggregate to generate all of the above larger-scale patterns",
+      "<b>Null models</b> are the statistical tool that lets us distinguish genuine biological architecture from artifacts of network size and connectance at every one of these levels"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A word on caveats",
+    "title": "Limits of these structural metrics",
+    "items": [
+      "All of today's metrics are sensitive to <b>sampling effort</b> — undersampled networks systematically appear less connected, less nested, and can show spuriously high modularity simply because rare links go undetected",
+      "Static structural snapshots can obscure important <b>temporal turnover</b>: many mutualistic networks are highly dynamic within and across seasons, with species and links appearing and disappearing, even though aggregate structural metrics (nestedness, modularity) can remain relatively stable",
+      "Binary and even weighted network metrics say nothing directly about the underlying <b>population dynamics</b> — a structurally nested or modular network still requires dynamical models (as in Ch. 5–9) to predict how species abundances actually respond to perturbation",
+      "These caveats motivate Lecture 26's shift from purely structural description toward dynamic robustness and stability analysis"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A framing thought",
+    "quote": "Ecological networks are not random collections of interactions; they are structured objects whose architecture — who is connected to whom, and how densely — carries information about the evolutionary and ecological processes that assembled them.",
+    "attrib": "Paraphrased framing, after Bascompte & Jordano and Mittelbach & McGill, Ch. 10"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Study skills check",
+    "title": "Can you distinguish these four terms?",
+    "cards": [
+      {
+        "h": "Connectance",
+        "p": "A single whole-network number: fraction of possible links realized."
+      },
+      {
+        "h": "Degree distribution",
+        "p": "Per-species: how many links does each species have, and how skewed is that across species?"
+      },
+      {
+        "h": "Nestedness",
+        "p": "A relationship between specialist and generalist partner sets — subset structure."
+      },
+      {
+        "h": "Modularity",
+        "p": "A partitioning of the whole network into densely-linked subgroups with sparser connections between them."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common misconceptions, addressed",
+    "title": "Careful distinctions worth remembering",
+    "items": [
+      "High connectance does NOT automatically imply high nestedness or high modularity — they are independent axes of structure, even though all three tend to correlate with network size in practice",
+      "Nestedness and modularity are not opposites on a single continuum in the strict mathematical sense, even though they are empirically anti-correlated across many mutualistic-vs-antagonistic comparisons — a network can in principle show elements of both at different structural scales",
+      "A skewed degree distribution is necessary but not sufficient for nestedness — degree skew makes nestedness structurally possible (hubs exist for specialists to converge on), but the actual convergence pattern (specialists choosing generalist partners specifically) is an additional, separate observation",
+      "“Significant” nestedness or modularity always means significant <b>relative to a stated null model</b> — always ask which null model was used, since results can be sensitive to that choice"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 24 vs. Lecture 25: what we added today",
+    "items": [
+      "Lecture 24 gave us the vocabulary: nodes, links, connectance (introduced), bipartite vs. unipartite structure",
+      "Lecture 25 (today) went deeper on four structural properties: connectance scaling with size, degree distribution and hub species, nestedness (with mechanism), and modularity/compartmentalization (with mechanism)",
+      "We introduced motifs as the small-scale sub-structures that compose larger network architecture, tying network ecology back to the pairwise and small-module material of Ch. 5–9",
+      "We reinforced the null-model methodology from Ch. 7 (Lecture 16) as the statistical backbone for testing whether any of these structural patterns are biologically meaningful or simply expected by chance"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PREVIEW",
+    "title": "Looking Ahead",
+    "sub": "Lecture 26 — Network Stability and Robustness"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming next",
+    "title": "Preview of Lecture 26: Network Stability, Robustness, and Chapter 10 Synthesis",
+    "items": [
+      "We will formalize how the architectural properties covered today — degree skew, nestedness, modularity — translate into quantitative predictions about network <b>stability</b> and <b>robustness to species loss</b>",
+      "Central question: does removing a species (especially a hub) trigger a cascade of secondary extinctions, and how does that cascade risk depend on network architecture?",
+      "We will examine simulated extinction sequences (random-order vs. most-connected-first removal) and the resulting robustness curves, connecting directly to today's hub and modularity concepts",
+      "We will revisit the classic complexity-stability debate (May 1972 and successors) in light of modern network structure findings, and use it to synthesize Chapter 10 before moving to Chapter 11 (food chains and food webs)",
+      "Bring your notes on both Lecture 24's vocabulary and today's structural metrics — Lecture 26 builds on both directly"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Summary",
+    "title": "Key takeaways from Lecture 25",
+    "items": [
+      "Connectance typically <b>declines</b> with network size across real ecological networks, and typical values cluster roughly in the 0.03–0.30 range depending on resolution",
+      "Degree distributions in real ecological networks are consistently <b>skewed</b>, not random/Poisson — a minority of hub species hold a majority of the links",
+      "<b>Nestedness</b> (specialists nested within generalists' partner sets) is the dominant architecture of mutualistic networks, driven by abundance effects, phylogenetic constraint, and convergence on reliable partners",
+      "<b>Modularity</b> (dense subgroups, sparse between-group links) is the dominant architecture of antagonistic networks, driven by the fitness costs of shared exploitation",
+      "Modularity acts as a structural firebreak limiting the spread of perturbations; nestedness buffers via a resilient generalist core — two distinct robustness logics",
+      "<b>Motifs</b> (three-species chains and triangles) are the small building blocks from which larger network architecture is assembled",
+      "All of these patterns must be tested against <b>null models</b> that control for network size and connectance before being interpreted as genuine biological structure"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 25</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

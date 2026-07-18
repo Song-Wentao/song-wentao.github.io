@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 37: Plant-Herbivore Interactions II: Population Dynamics and Unit Synthesis</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 37",
+    "title": "Plant-Herbivore Interactions II: Population Dynamics, Tolerance, and Unit Synthesis",
+    "sub": "From individual defense to population-level consequences — tolerance, overcompensation, feedback dynamics, and the classic case studies that shaped plant-herbivore theory",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 11 — Plant-Herbivore Interactions; unit synthesis"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING BACK",
+    "title": "Recap: Lecture 36",
+    "items": [
+      "Plants defend themselves through <b>constitutive</b> defenses (always present) and <b>induced</b> defenses (triggered by damage)",
+      "Defense types included physical/structural (thorns, trichomes, tough tissue) and chemical (secondary metabolites — tannins, alkaloids, terpenoids, cyanogenic glycosides)",
+      "Herbivores evolve <b>counter-adaptations</b>: detoxification enzymes, specialized gut microbiomes, behavioral avoidance, sequestration of plant toxins for their own defense",
+      "This sets up a <b>coevolutionary arms race</b> — reciprocal selection pressure between plant and herbivore lineages",
+      "Today: what happens at the population level, and a second major strategy plants use that isn't about reducing damage at all"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART I",
+    "title": "Resistance vs. Tolerance",
+    "sub": "Two fundamentally different plant strategies for coping with herbivores"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE DISTINCTION",
+    "title": "Two Ways to Cope with Herbivory",
+    "term": "Resistance vs. Tolerance",
+    "def": "Resistance traits reduce the AMOUNT of damage a plant experiences; tolerance traits reduce the FITNESS COST of a given amount of damage.",
+    "bullets": [
+      "Resistance = Lecture 36's territory: thorns, toxins, trichomes — anything that deters, injures, or poisons the herbivore",
+      "Tolerance = today's new concept: the plant lets itself get eaten but recovers fitness anyway",
+      "A plant can be highly resistant and low-tolerance, low-resistant and high-tolerance, or some mix of both",
+      "Critically, these are not just two flavors of the same thing — they operate through entirely different mechanisms"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TOLERANCE MECHANISMS",
+    "title": "How Plants Compensate for Damage",
+    "items": [
+      "<b>Compensatory regrowth</b>: rapid replacement of lost tissue using stored carbohydrate reserves (roots, rhizomes, crown)",
+      "<b>Resource reallocation</b>: shifting nutrients and photosynthate from undamaged tissues (especially roots) to rebuild damaged parts",
+      "<b>Increased photosynthetic rate</b> in remaining leaf tissue — surviving leaves can up-regulate CO2 fixation to partially offset lost leaf area",
+      "<b>Increased branching or tillering</b>: apical dominance is often broken by damage, releasing dormant meristems to produce new shoots/tillers",
+      "<b>Extended growing season</b> or delayed senescence, allowing more time to recover lost biomass",
+      "<b>Altered allocation to reproduction</b>: some species can maintain seed output even when vegetative tissue is reduced"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE TRADE-OFF",
+    "title": "Why Plants Don't Just Do Both",
+    "items": [
+      "Resistance and tolerance both carry metabolic costs (defense compounds, structural tissue vs. stored carbohydrate reserves, meristem maintenance)",
+      "Under a fixed resource budget, investment in one often comes at the expense of the other — a classic <b>allocation trade-off</b>",
+      "Comparative studies across populations and species frequently (though not universally) find a negative correlation between resistance and tolerance",
+      "Environmental context matters: resource-rich environments tend to favor tolerance (regrowth is cheap when nutrients/water are abundant); resource-poor environments often favor resistance (tissue is too costly to lose)",
+      "This mirrors a broader theme from earlier in the course: life-history trade-offs under resource limitation (recall r/K and reproductive allocation discussions)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SIDE BY SIDE",
+    "title": "Resistance vs. Tolerance as Plant Strategies",
+    "headers": [
+      "Feature",
+      "Resistance",
+      "Tolerance"
+    ],
+    "rows": [
+      [
+        "Primary effect",
+        "Reduces amount of tissue damage",
+        "Reduces fitness cost of damage already incurred"
+      ],
+      [
+        "Mechanism examples",
+        "Thorns, trichomes, toxins, tough tissue",
+        "Regrowth, reallocation, increased photosynthesis, tillering"
+      ],
+      [
+        "Effect on herbivore",
+        "Deters, injures, poisons, or repels",
+        "No direct effect — herbivore feeds unimpeded"
+      ],
+      [
+        "Selective pressure on herbivore",
+        "Strong — drives counter-adaptation (arms race)",
+        "Weak or absent — no coevolutionary arms race expected"
+      ],
+      [
+        "Best favored in",
+        "Resource-poor, low-growth-rate environments",
+        "Resource-rich environments with fast regrowth capacity"
+      ],
+      [
+        "Population-level signature",
+        "Lower realized herbivory rates",
+        "Similar herbivory rates but weaker fitness impact"
+      ]
+    ],
+    "footnote": "Rockwood Ch. 11; many real populations show intermediate or mixed strategies rather than pure extremes"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE EXAMPLES",
+    "title": "Resistance-Leaning vs. Tolerance-Leaning Species",
+    "cards": [
+      {
+        "h": "Resistance-Leaning: Milkweed",
+        "p": "Invests heavily in cardenolide toxins and latex exudate; relatively slow regrowth after heavy defoliation, consistent with resource-poor allocation trade-offs."
+      },
+      {
+        "h": "Tolerance-Leaning: Many Prairie Grasses",
+        "p": "Low chemical defense investment, but basal meristems below grazing height and rapid tillering allow near-complete recovery of biomass within a single season."
+      },
+      {
+        "h": "Mixed Strategy: Many Woody Browse Species",
+        "p": "Combine moderate chemical/structural resistance (thorns, tannins) with epicormic resprouting capacity after severe browsing damage."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART II",
+    "title": "Overcompensation and the Grazing Optimization Hypothesis",
+    "sub": "Can herbivory ever be GOOD for a plant?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE SURPRISING CASE",
+    "title": "Beyond Tolerance",
+    "term": "Overcompensation",
+    "def": "A phenomenon in which a plant's fitness (growth, seed output, or fecundity) is HIGHER under moderate levels of herbivory than under no herbivory at all.",
+    "bullets": [
+      "This goes beyond simply tolerating damage — the plant appears to benefit from being grazed",
+      "First widely documented and debated in grasses subjected to grazing by large mammalian herbivores",
+      "Not universal — most plant-herbivore systems show simple compensation (partial or full recovery) or undercompensation (net fitness loss), with true overcompensation being comparatively rare and context-dependent"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY MIGHT THIS HAPPEN?",
+    "title": "Proposed Mechanisms for Overcompensation",
+    "items": [
+      "Grazing removes older, less photosynthetically efficient leaf tissue, stimulating growth of younger, more efficient tissue",
+      "Herbivore saliva or dung/urine deposition can add growth-limiting nutrients (especially nitrogen) back to the plant's local environment",
+      "Removal of apical dominance releases dormant meristems, increasing total number of growing points (tillers) and thus long-term reproductive potential",
+      "Grazing can reduce shading/competition from neighboring plant tissue or from the plant's own older growth, improving light capture for new tissue",
+      "In grasses specifically, basal meristems are often below grazing height, so aboveground removal has minimal direct cost to the plant's growing points"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE HYPOTHESIS",
+    "title": "A Grassland Ecology Hypothesis",
+    "term": "Grazing Optimization Hypothesis (GOH)",
+    "def": "The proposal that plant (and grassland) productivity is maximized at an INTERMEDIATE level of grazing intensity — too little grazing and too much grazing both reduce productivity relative to a moderate grazing regime.",
+    "bullets": [
+      "Predicts a hump-shaped (unimodal) relationship between grazing intensity and net primary productivity",
+      "Historically associated with debates over the co-evolution of grasses and large grazing mammals on grasslands and savannas",
+      "Would imply grazers are not simply a drain on plant populations but can act as a mutualistic-like regulator of grassland function"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A CONTESTED IDEA",
+    "title": "Critiques of the Grazing Optimization Hypothesis",
+    "items": [
+      "Much of the original supporting evidence came from short-term, single-season experiments that may not reflect long-term population fitness",
+      "Overcompensation in individual tillers or shoots does not necessarily translate into higher fitness for the whole plant, or higher population growth rate for the species",
+      "Meta-analyses across many grassland studies find that true overcompensation (net fitness INCREASE) is uncommon; compensation (fitness roughly unchanged) is more typical",
+      "Results are highly sensitive to grazing timing, intensity, frequency, and background resource availability (water, nitrogen) — the same species can overcompensate under one regime and undercompensate under another",
+      "Confounding with nutrient inputs from herbivore excreta makes it hard to separate a true grazing effect from a fertilization effect",
+      "Current consensus: overcompensation is real in some systems but is the exception, not the rule — treat GOH as a testable hypothesis, not an established law"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "EXPERIMENTAL DESIGN",
+    "title": "How Ecologists Test for Overcompensation",
+    "left": {
+      "h": "Typical Approach",
+      "body": "Apply a gradient of clipping or grazing intensities (none, light, moderate, heavy) to replicate plots or individual plants, then measure fitness proxies — seed set, biomass, or survival — at season's end or across multiple years."
+    },
+    "right": {
+      "h": "Common Pitfalls",
+      "body": "Single-season studies may miss delayed costs to root reserves. Measuring aboveground biomass alone can overstate recovery if belowground reserves are depleted. Comparisons often lack the multi-year, whole-plant-fitness data needed to distinguish true overcompensation from simple compensation."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART III",
+    "title": "Modeling Plant-Herbivore Population Dynamics",
+    "sub": "Why the predator-prey toolkit from Chapter 10 needs modification"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BORROWING FROM CHAPTER 10",
+    "title": "Starting Point: Lotka-Volterra-Style Models",
+    "items": [
+      "Chapter 10's predator-prey framework treats the herbivore as a 'predator' consuming the plant as 'prey'",
+      "Basic Lotka-Volterra assumes prey grows exponentially absent predation, and predation removes prey individuals entirely (mortality)",
+      "Predator-prey L-V dynamics classically produce coupled oscillations — predator and prey cycle with a phase lag",
+      "Naively applying this framework to plants and herbivores captures some patterns (cyclic outbreaks) but breaks down in important ways specific to plant biology"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE SIMPLE MODEL FAILS",
+    "title": "Key Differences: Plants Are Not Like Animal Prey",
+    "items": [
+      "Herbivory on plants is rarely lethal in the way predation is lethal to animal prey — most herbivory removes PART of an individual (a leaf, a branch) rather than killing it outright",
+      "Plants can REGROW the consumed tissue (tolerance, compensatory regrowth) — there's no equivalent in classic predator-prey models where consumed prey are simply gone",
+      "Plant modules (leaves, shoots, meristems) function almost like semi-independent sub-units, so 'population size' of edible tissue can change on a much faster timescale than whole-plant demographic rates",
+      "Plant tissue QUALITY changes dynamically in response to damage (induced defenses), altering herbivore intake rate without changing plant density at all — a feedback with no direct L-V analog",
+      "Because of these differences, plant-herbivore models must be modified to include a regrowth/compensation term and often a tissue-quality or nutrient-feedback term"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MODEL MODIFICATIONS",
+    "title": "Building a More Realistic Plant-Herbivore Model",
+    "left": {
+      "h": "What Classic L-V Assumes",
+      "body": "Prey population grows exponentially without predators. Each predation event permanently removes one prey individual. Predator growth is a simple function of consumption rate. No distinction between tissue removal and individual death."
+    },
+    "right": {
+      "h": "What Plant-Herbivore Models Add",
+      "body": "A regrowth/compensation function describing how quickly consumed plant tissue is replaced, often density- and resource-dependent. A tissue-quality variable that declines with cumulative damage (induced defense) and recovers over time. Explicit separation of 'plant population size' from 'edible plant biomass available.'"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONSEQUENCES FOR DYNAMICS",
+    "title": "What These Modifications Change",
+    "items": [
+      "Compensatory regrowth acts like a stabilizing negative feedback, damping the amplitude of population cycles compared to naive L-V predictions",
+      "Strong tolerance/overcompensation can decouple herbivore population growth from plant population decline — herbivores can persist at high density without driving plants toward extinction",
+      "Induced quality feedback can produce delayed density dependence — herbivore population growth slows generations AFTER heavy feeding, not immediately, because chemical induction and recovery take time",
+      "These delayed feedbacks are a key ingredient in generating multi-year OUTBREAK CYCLES rather than smooth equilibria — a bridge to the case studies coming up"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MODELING NUANCE",
+    "title": "A Middle Ground Between Prey and Resource",
+    "term": "Plants as Semi-Renewable Resources",
+    "def": "In modified plant-herbivore models, plants are often treated not as discrete countable prey (as in classic predator-prey theory) nor as a purely renewable abiotic resource (as in simple resource-consumer models), but as a hybrid: a population of individuals, each of which also contains a partially renewable pool of edible biomass.",
+    "bullets": [
+      "This hybrid framing borrows structure from both predator-prey models (Ch. 10) and resource-consumer models used elsewhere in the course",
+      "Edible biomass pool dynamics (growth, depletion, quality change) operate on a faster timescale than whole-plant birth/death dynamics",
+      "Getting this timescale separation right is essential for models to correctly predict outbreak frequency and amplitude"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART IV",
+    "title": "Plant Quality Feedback Loops",
+    "sub": "Induced defense as a form of density dependence"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY MECHANISM",
+    "title": "Feeding Back on the Feeder",
+    "term": "Induced Density Dependence via Plant Quality",
+    "def": "A regulatory loop in which herbivory triggers induced plant defenses that lower the nutritional quality or palatability of remaining/regrown tissue, which in turn suppresses herbivore population growth — making the plant's own damage response act as a negative feedback on the herbivore population.",
+    "bullets": [
+      "Mechanistically similar in outcome to classic density dependence, but the 'signal' is plant chemistry, not direct competition among herbivores for food quantity",
+      "Can operate at the level of a single damaged plant (localized induction) or spread systemically through a plant, or even signal to neighboring undamaged plants via airborne cues",
+      "Because induction and its reversal both take time, this feedback is often DELAYED rather than instantaneous — a critical detail for generating cyclic dynamics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE FEEDBACK LOOP, STEP BY STEP",
+    "title": "How Quality Feedback Drives a Cycle",
+    "items": [
+      "Step 1: Herbivore population grows, feeding intensity on plants increases",
+      "Step 2: Cumulative damage triggers induced chemical/structural defenses in plant tissue, lowering its nutritional quality",
+      "Step 3: Lower tissue quality reduces herbivore growth, survival, or fecundity (a lag effect, since damage in this generation affects tissue quality experienced possibly by offspring or later feeding bouts)",
+      "Step 4: Herbivore population declines",
+      "Step 5: Reduced herbivory pressure allows induced defenses to fade and plant tissue quality to recover",
+      "Step 6: Cycle can restart as herbivore population rebounds on now higher-quality tissue",
+      "This delayed negative feedback loop is a leading hypothesized driver of multi-year outbreak-and-crash cycles seen in real insect-plant systems"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND CHEMISTRY",
+    "title": "Other Contributors to Delayed Feedback",
+    "items": [
+      "Nutrient depletion in heavily grazed/browsed plants can lower subsequent tissue nitrogen content, independent of active chemical induction",
+      "Herbivore population structure itself can introduce delay: time lags in reproduction, development, or dispersal mean a population's numerical response to changing plant quality is not instantaneous",
+      "Predators and parasitoids of the herbivore can be entrained by the same cycle, adding additional lagged terms that interact with the plant-quality feedback (a preview of multi-trophic complexity in Ch. 12)",
+      "Because multiple delayed feedbacks can stack, real systems often show more irregular or noisier cycles than clean model predictions"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART V",
+    "title": "Case Studies in Plant-Herbivore Population Dynamics",
+    "sub": "From forests to grasslands to farms"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE STUDY",
+    "title": "A Textbook Example of Complex Dynamics",
+    "term": "Spruce Budworm Outbreak Cycles",
+    "def": "Periodic, dramatic outbreaks of the spruce budworm (a forest insect defoliator) in North American conifer (fir/spruce) forests, recurring roughly every 30-40 years, in which budworm populations erupt from low background densities to extremely high densities before collapsing.",
+    "bullets": [
+      "Outbreaks cause widespread defoliation and can kill large areas of mature forest, followed by decades of forest regrowth before the next outbreak cycle",
+      "Long studied as one of the foundational examples of complex, non-equilibrium population dynamics in ecology",
+      "Connects directly back to Ch. 2-3 material on complex dynamics: this system is a classic illustration of MULTIPLE STABLE STATES and HYSTERESIS in population ecology"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY BUDWORM DYNAMICS ARE SPECIAL",
+    "title": "Multiple Stable States and Hysteresis",
+    "items": [
+      "Budworm population growth is regulated differently at low density (predator/parasitoid control holds numbers down) versus high density (predators become saturated and lose control, plant/tree defense dynamics take over)",
+      "This creates the possibility of TWO stable equilibria — a low-density 'endemic' state and a high-density 'outbreak' state — separated by an unstable threshold",
+      "Slow changes in forest age structure and tree susceptibility can push the system past the threshold, triggering a rapid transition ('outbreak') that does not simply reverse when conditions return to their prior state — this asymmetric response is hysteresis",
+      "Tree/forest quality and age structure interact with budworm density: mature, dense conifer stands are highly susceptible, so the outbreak cycle is partly paced by the FOREST's regrowth and maturation timescale, not just budworm demography alone",
+      "Illustrates why simple single-equilibrium models fail for many real plant-herbivore systems — the system's history matters, not just its current state"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "TIMESCALE OF AN OUTBREAK",
+    "title": "Phases of a Spruce Budworm Outbreak Cycle",
+    "items": [
+      {
+        "y": "Endemic phase",
+        "t": "Budworm at low density, held down by generalist predators and parasitoids; can persist for decades"
+      },
+      {
+        "y": "Release phase",
+        "t": "A run of favorable weather or forest maturation allows budworm to escape predator control; population begins rapid growth"
+      },
+      {
+        "y": "Outbreak phase",
+        "t": "Budworm density peaks; widespread defoliation occurs; mature, susceptible trees suffer heavy mortality over several years"
+      },
+      {
+        "y": "Collapse phase",
+        "t": "Food (foliage) becomes scarce and induced tree defenses intensify; budworm population crashes back toward endemic levels"
+      },
+      {
+        "y": "Forest recovery",
+        "t": "Surviving and new trees regrow over decades, resetting forest age structure until conditions again favor a release phase"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE STUDY",
+    "title": "Large Mammalian Grazers and Grassland Dynamics",
+    "term": "The Serengeti Wildebeest-Grassland System",
+    "def": "One of the best-studied large-mammal grazing systems in the world, in which migratory wildebeest (and other ungulates) interact with Serengeti grassland productivity in a tightly coupled, large-scale dynamic.",
+    "bullets": [
+      "Wildebeest population size is strongly regulated by dry-season food (grass) availability — a bottom-up, resource-limited system rather than a simple predator-driven one",
+      "Grazing by wildebeest can stimulate grass regrowth and maintain short, high-quality grassland swards (a real-world example connected to the grazing optimization debate)",
+      "Heavy grazing also recycles nutrients rapidly via dung and urine, and can suppress woody plant encroachment, helping maintain grassland (vs. shrubland) as the dominant vegetation type — herbivory as a vegetation-structuring force",
+      "Large predators (lions, hyenas) act on wildebeest, adding a THIRD trophic level to this plant-herbivore story — a preview of the multi-trophic/cascade framework in Lecture 38"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "APPLIED CASE STUDY",
+    "title": "Agricultural Pest-Crop Dynamics",
+    "term": "Insect Pests and Crop Population Dynamics",
+    "def": "Agricultural systems provide some of the most economically important and intensively studied plant-herbivore dynamics, where crop plants (often with reduced resistance and tolerance traits due to selective breeding for yield) interact with insect pest populations.",
+    "bullets": [
+      "Domesticated crop varieties frequently have LOWER constitutive resistance than wild relatives, because breeding historically prioritized yield/palatability over defense investment — a real-world illustration of the resistance-tolerance-yield trade-off",
+      "Pest population dynamics in monoculture fields often lack the natural enemy diversity and plant quality heterogeneity of wild systems, removing some of the delayed feedbacks discussed earlier and enabling faster, larger outbreaks",
+      "Integrated Pest Management (IPM) strategies increasingly draw on population ecology concepts from this unit — encouraging tolerance-like compensation in crop varieties, and preserving natural enemy communities to restore density-dependent regulation",
+      "This case study directly connects the theoretical unit content to applied, economically consequential population ecology"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "CASE STUDY COMPARISON",
+    "title": "Three Case Studies Side by Side",
+    "headers": [
+      "Feature",
+      "Spruce Budworm",
+      "Serengeti Wildebeest",
+      "Agricultural Pests"
+    ],
+    "rows": [
+      [
+        "System type",
+        "Forest insect defoliator",
+        "Large mammalian grazer",
+        "Managed crop-insect system"
+      ],
+      [
+        "Dominant dynamic pattern",
+        "Multi-decade outbreak-collapse cycles, hysteresis",
+        "Bottom-up, resource-regulated population with migration",
+        "Often rapid, large-amplitude outbreaks in monoculture"
+      ],
+      [
+        "Key regulating feedback",
+        "Predator saturation + delayed tree defense/quality change",
+        "Dry-season food limitation; nutrient recycling via dung/urine",
+        "Reduced natural enemy diversity weakens density dependence"
+      ],
+      [
+        "Connection to unit themes",
+        "Hysteresis / multiple stable states (Ch. 2-3 link)",
+        "Vegetation structuring, grazing optimization debate",
+        "Resistance-tolerance-yield trade-off in domesticated crops"
+      ]
+    ],
+    "footnote": "Rockwood Ch. 11 case studies; illustrates the range of scales and contexts in which plant-herbivore theory applies"
+  },
+  {
+    "type": "section",
+    "tag": "PART VI",
+    "title": "Community and Ecosystem Consequences",
+    "sub": "Herbivory as a force that shapes more than just two populations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND THE PAIRWISE INTERACTION",
+    "title": "Herbivory as a Community-Structuring Force",
+    "items": [
+      "Herbivores don't just affect the population dynamics of one plant species — selective feeding can shift the competitive balance among multiple plant species in a community",
+      "Preferential grazing on competitively dominant plant species can prevent competitive exclusion, maintaining higher plant diversity (an early preview of the diversity-maintenance themes ahead)",
+      "Herbivore-driven changes in vegetation structure (height, density, woody vs. herbaceous cover) can create or destroy habitat for other organisms, extending effects well beyond the plant community itself",
+      "Herbivory can alter nutrient cycling rates (via dung, urine, and altered plant litter quality), feeding back on ecosystem-level productivity"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "ADDITIONAL EXAMPLES",
+    "title": "More Herbivore-Driven Community Effects",
+    "cards": [
+      {
+        "h": "Sea Urchins and Kelp Forests",
+        "p": "Overgrazing by sea urchins (often released from predator control) can convert diverse kelp forests into 'urchin barrens' with drastically lower productivity and diversity."
+      },
+      {
+        "h": "Beavers as Ecosystem Engineers via Herbivory",
+        "p": "Selective browsing and tree-felling by beavers reshapes hydrology and creates wetland habitat, illustrating herbivory's role beyond simple biomass removal."
+      },
+      {
+        "h": "Fire-Grazer Interactions in Savanna",
+        "p": "Grazing intensity interacts with fire frequency to determine whether savanna vegetation is grass-dominated or shrub-encroached, a coupled disturbance-herbivory system."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A USEFUL CONCEPT",
+    "title": "When One Herbivore Species Matters Disproportionately",
+    "term": "Keystone Herbivore",
+    "def": "A herbivore species whose grazing or browsing activity has an effect on community structure and composition that is disproportionately large relative to its own abundance or biomass — analogous to the keystone predator concept but acting at the plant-herbivore level.",
+    "bullets": [
+      "Removal or decline of a keystone herbivore can trigger cascading shifts in vegetation structure, competitive outcomes among plants, and downstream effects on other consumers",
+      "The Serengeti wildebeest and, in other systems, elephants (through tree-knocking and browsing) are commonly cited examples of herbivores with outsized community-level influence",
+      "This concept is a direct bridge to Lecture 38's central topic: trophic cascades, where effects propagate not just within one trophic level but across multiple linked levels of a food web"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "LOOKING AHEAD TO CH. 12",
+    "title": "A Preview: Extending the Pairwise Interaction to a Food Chain",
+    "levels": [
+      {
+        "label": "Top predator (e.g., lion)",
+        "color": "#7a2e2e",
+        "width": "180px"
+      },
+      {
+        "label": "Herbivore (e.g., wildebeest)",
+        "color": "#b5533c",
+        "width": "260px"
+      },
+      {
+        "label": "Primary producer (grassland plants)",
+        "color": "#4c7a3f",
+        "width": "340px"
+      }
+    ],
+    "footnote": "Today's plant-herbivore pair is one link in a longer chain — Lecture 38 adds the predator level and asks how effects cascade"
+  },
+  {
+    "type": "section",
+    "tag": "UNIT SYNTHESIS",
+    "title": "Bringing the Plant-Herbivore Unit Together",
+    "sub": "Lectures 36-37 in one coherent picture"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE ARC OF THE UNIT",
+    "title": "How L36 and L37 Fit Together",
+    "items": [
+      "<b>L36 — Defense and Counter-Adaptation:</b> plants evolve constitutive and induced RESISTANCE traits (structural, chemical); herbivores evolve counter-adaptations (detoxification, sequestration, behavior); together these drive a coevolutionary arms race",
+      "<b>L37 — Population Dynamics and Synthesis:</b> plants also deploy TOLERANCE strategies that don't reduce damage but preserve fitness; under some conditions this tips into overcompensation (grazing optimization hypothesis, contested); population-level models must incorporate regrowth and quality feedback, not just simple consumption",
+      "Together, resistance (L36) and tolerance (L37) represent the two broad axes along which plants respond to herbivore pressure, and real species combine both in varying proportions depending on their ecological context",
+      "Case studies (spruce budworm, Serengeti, agricultural pests) show these mechanisms playing out at real population and landscape scales, producing outbreak cycles, hysteresis, and grassland structuring"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "UNIT SYNTHESIS",
+    "title": "Plant-Herbivore Dynamics vs. Classic Predator-Prey Dynamics (Ch. 10)",
+    "headers": [
+      "Feature",
+      "Classic Predator-Prey (Ch. 10)",
+      "Plant-Herbivore (Ch. 11)"
+    ],
+    "rows": [
+      [
+        "Effect of consumption event",
+        "Prey individual typically dies",
+        "Plant tissue removed; individual plant usually survives"
+      ],
+      [
+        "Recovery capacity",
+        "None — dead prey cannot regenerate",
+        "Regrowth/tolerance can substantially offset losses"
+      ],
+      [
+        "Key feedback type",
+        "Direct numerical response (predator eats more prey → more predators)",
+        "Delayed induced quality feedback (damage changes tissue chemistry, not just quantity)"
+      ],
+      [
+        "Typical dynamic outcome",
+        "Coupled oscillations of similar timescale for both species",
+        "Often longer, forest/landscape-scale cycles with possible multiple stable states"
+      ],
+      [
+        "Possibility of positive fitness effect on the 'prey'",
+        "Not applicable — being eaten is never beneficial to prey fitness",
+        "Overcompensation possible under grazing optimization hypothesis (though contested)"
+      ],
+      [
+        "Community role",
+        "Predator regulates prey numbers directly",
+        "Herbivore can restructure plant community composition and diversity, not just plant numbers"
+      ]
+    ],
+    "footnote": "Rockwood Ch. 10 vs. Ch. 11; the plant-herbivore case requires richer models than the baseline Lotka-Volterra framework"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "UNIT TAKEAWAYS",
+    "title": "Four Big Ideas from the Plant-Herbivore Unit",
+    "cards": [
+      {
+        "h": "Two Strategies, Not One",
+        "p": "Resistance (reduce damage) and tolerance (reduce the cost of damage) are distinct, sometimes trade-off-linked strategies that together determine a plant's response to herbivory."
+      },
+      {
+        "h": "Overcompensation Is Real but Rare",
+        "p": "Some grazing systems show genuine fitness benefits under moderate herbivory, but most studies find compensation or undercompensation — treat the grazing optimization hypothesis critically."
+      },
+      {
+        "h": "Feedbacks, Not Just Consumption",
+        "p": "Plant-herbivore models need regrowth terms and induced-quality feedback loops; simple Lotka-Volterra consumption terms miss essential biology and dynamics."
+      },
+      {
+        "h": "Scale Matters",
+        "p": "From spruce budworm hysteresis to Serengeti grassland structuring, plant-herbivore dynamics play out at landscape and multi-decade scales, with real consequences for community structure."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MANAGEMENT IMPLICATIONS",
+    "title": "Why This Theory Matters Outside the Classroom",
+    "left": {
+      "h": "Conservation and Rangeland Management",
+      "body": "Understanding tolerance and grazing optimization informs stocking rate decisions on rangelands, restoration of native grazer regimes, and predictions of vegetation change when large herbivores are removed or reintroduced."
+    },
+    "right": {
+      "h": "Forestry and Pest Management",
+      "body": "Recognizing outbreak hysteresis in systems like spruce budworm shapes forest management strategies (age-structure diversification) and informs early-warning monitoring, while resistance-tolerance trade-offs guide crop breeding and IPM design."
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A GUIDING PRINCIPLE",
+    "quote": "A plant does not need to win the fight against a herbivore to succeed — it only needs to survive it with enough fitness intact to reproduce.",
+    "attrib": "A framing for the resistance/tolerance distinction, Rockwood Ch. 11"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Questions to Test Your Grasp of This Unit",
+    "items": [
+      "Could you explain, in your own words, why resistance and tolerance are not simply two versions of the same defensive strategy?",
+      "Can you list at least three specific mechanisms of compensatory regrowth, and explain why each helps restore fitness after damage?",
+      "Could you critique the grazing optimization hypothesis using at least two specific methodological concerns from the literature?",
+      "Can you explain why classic Lotka-Volterra predator-prey equations are a poor fit for plant-herbivore systems, and name the two main model modifications needed?",
+      "Could you walk through the spruce budworm system as an example of hysteresis and multiple stable states, connecting it back to Ch. 2-3 concepts?",
+      "Can you define 'keystone herbivore' and explain how it previews the trophic cascade concept coming in Lecture 38?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OPEN QUESTIONS",
+    "title": "What Remains Unresolved in This Field",
+    "items": [
+      "How generalizable is the grazing optimization hypothesis across taxa and biomes — is it a real, widespread phenomenon or an artifact of specific grassland systems?",
+      "Can plant-herbivore models be parameterized well enough from field data to make reliable predictions about outbreak timing, or are systems like spruce budworm fundamentally difficult to forecast?",
+      "How do climate change-driven shifts in plant growth rates and induced-defense chemistry alter the balance between resistance and tolerance strategies going forward?",
+      "How much do multi-trophic interactions (natural enemies of herbivores) alter the simple two-species feedbacks discussed today — a question we begin to answer starting next lecture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING AHEAD",
+    "title": "From Two Trophic Levels to Many",
+    "sub": "Closing this unit and opening Chapter 12"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Full Recap of Lecture 37",
+    "items": [
+      "Distinguished RESISTANCE (reducing damage) from TOLERANCE (reducing the fitness cost of damage), including specific tolerance mechanisms: regrowth, reallocation, increased photosynthesis, tillering",
+      "Examined OVERCOMPENSATION and the grazing optimization hypothesis, along with major critiques and the current scientific consensus that it is context-dependent and not universal",
+      "Explored how plant-herbivore population models must be MODIFIED from baseline Lotka-Volterra predator-prey equations to include regrowth capacity and plant-quality feedback",
+      "Detailed the INDUCED DENSITY DEPENDENCE feedback loop, where herbivory-triggered defenses lower tissue quality and delay herbivore population growth",
+      "Worked through three case studies: spruce budworm outbreak cycles (hysteresis/multiple stable states), Serengeti wildebeest-grassland dynamics (bottom-up regulation, vegetation structuring), and agricultural pest-crop systems (applied relevance)",
+      "Introduced the KEYSTONE HERBIVORE concept as a bridge from single plant-herbivore pairs to whole-community and ecosystem consequences",
+      "Synthesized the full Plant-Herbivore unit (L36-37) and directly contrasted it with the classic predator-prey framework from Chapter 10"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NEXT TIME",
+    "title": "Preview: Lecture 38 — Multi-Trophic Interactions I",
+    "items": [
+      "Moves into Chapter 12: Multi-Trophic Interactions, the final major content chapter before the course turns to applied topics",
+      "Central focus: TROPHIC CASCADES — how effects of one species propagate up or down through multiple linked levels of a food web, not just between two adjacent levels",
+      "Will build directly on today's keystone herbivore concept and the Serengeti three-level (grass-wildebeest-lion) example",
+      "Introduces food web structure concepts: connectance, food chain length, and top-down vs. bottom-up control debates",
+      "Sets the stage for Lectures 39-40, which will extend multi-trophic theory to additional real-world food web case studies"
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 37",
+    "title": "End of Chapter 11: Plant-Herbivore Interactions",
+    "sub": "Next: Chapter 12 begins — Multi-Trophic Interactions and Trophic Cascades (Lecture 38)",
+    "footnote": "Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 11 complete"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 37</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

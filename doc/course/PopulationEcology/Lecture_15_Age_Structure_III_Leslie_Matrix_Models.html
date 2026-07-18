@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 15: Age Structure III: Leslie Matrix Models</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 15",
+    "title": "Age Structure III: Leslie Matrix Models",
+    "sub": "From summary statistics to dynamic projection — building and iterating the population projection matrix",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 4 — Age Structure"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Why We Need More Than R0 and r",
+    "sub": "The limits of life-table summary statistics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Where We Left Off: Lecture 14",
+    "items": [
+      "Built a <b>fecundity schedule</b> mx: expected offspring produced by a female of age x",
+      "Combined survivorship lx and fecundity mx into <b>net reproductive rate</b>, R0 = Σ lx·mx",
+      "Estimated <b>generation time</b> T and the intrinsic rate of increase r via the <b>Euler-Lotka equation</b>",
+      "These are all <b>single numbers</b> — they summarize a population's long-run growth tendency"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PROBLEM",
+    "title": "What Summary Statistics Don't Tell Us",
+    "items": [
+      "R0 and r describe growth <b>averaged over the whole life cycle</b>, once the population has settled into a steady pattern",
+      "They say nothing about the population's <b>age distribution</b> right now, or how it will change year to year",
+      "A population can have R0 > 1 and still <b>decline temporarily</b> if its current age structure is unfavorable (e.g., too few reproductive adults)",
+      "Managers, conservationists, and forecasters often need to know <b>numbers by age class</b>, not just a growth rate"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE SOLUTION",
+    "title": "A Tool for Dynamic Projection",
+    "term": "Matrix Population Model",
+    "def": "A method that tracks the number of individuals in each age class simultaneously and projects the entire age distribution forward in time, one time step at a time.",
+    "bullets": [
+      "Built directly from the same life table data used in Lecture 14 (lx, mx → survival and fecundity)",
+      "Output is not one number but an entire <b>vector</b> of age-class abundances at every time step",
+      "Developed by Patrick H. Leslie (1945) — hence the <b>Leslie matrix</b>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ROADMAP",
+    "title": "What This Lecture Builds Toward",
+    "items": [
+      "Define the structure of the <b>Leslie matrix</b>: where fecundities and survival probabilities go",
+      "Define the <b>population vector</b> and the matrix projection equation n(t+1) = L·n(t)",
+      "Work a numerical example by hand, iterating the projection several time steps",
+      "Introduce the <b>dominant eigenvalue λ</b> as the long-run growth rate — the bridge to Lecture 16"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Leslie Matrix",
+    "sub": "Structure, notation, and the projection equation"
+  },
+  {
+    "type": "term",
+    "eyebrow": "NOTATION",
+    "title": "The Population Vector",
+    "term": "n(t)",
+    "def": "A column vector listing the number of individuals in each age class at time t.",
+    "bullets": [
+      "n(t) = [n0(t), n1(t), n2(t), ..., nk(t)]ᵀ, where ni(t) is the count in age class i",
+      "Total population size N(t) is simply the sum of all entries in n(t)",
+      "The vector changes shape (its <b>proportions</b>) as well as its total as the population ages and reproduces"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "NOTATION",
+    "title": "The Projection Matrix",
+    "term": "Leslie Matrix, L",
+    "def": "A square matrix whose entries encode how individuals in each age class contribute to each age class one time step later.",
+    "bullets": [
+      "<b>Top row</b>: fecundity values Fx — offspring contributed to age class 0 by each age class x",
+      "<b>Subdiagonal</b>: survival probabilities Px — the fraction of age class x that survives to become age class x+1",
+      "<b>Everywhere else</b>: zeros — individuals cannot skip age classes or regress to a younger one"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "STRUCTURE",
+    "title": "Anatomy of a Leslie Matrix (4 Age Classes)",
+    "left": {
+      "h": "Row and column meaning",
+      "body": "Rows index the age class being produced (at t+1); columns index the age class contributing (at t). Reading across the top row multiplies each age class's abundance by its fecundity and sums the results — this becomes the new age-0 class."
+    },
+    "right": {
+      "h": "Layout",
+      "body": "F0  F1  F2  F3\nP0   0   0   0\n 0  P1   0   0\n 0   0  P2   0\n\nFx = fecundity of age x\nPx = survival probability age x to x+1"
+    },
+    "footnote": "Note: the last age class typically has no Px (individuals leave the projection when they die of old age, unless a terminal self-loop is modeled)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BUILDING BLOCKS",
+    "title": "Where Fx and Px Come From",
+    "items": [
+      "<b>Px</b> (survival probability, age x to x+1) = lx+1 / lx, taken directly from the survivorship schedule",
+      "<b>Fx</b> (fecundity entry) is built from mx, the per-capita fecundity schedule from Lecture 14",
+      "In the simplest formulation, Fx = mx for reproductive ages; more refined versions adjust for the timing of a census relative to the birth pulse",
+      "Every entry in L is therefore just a repackaging of the <b>same life-table data</b> you already calculated in Lecture 14"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE CORE EQUATION",
+    "title": "Projecting the Population Forward",
+    "term": "n(t+1) = L · n(t)",
+    "def": "Multiplying the Leslie matrix by the current population vector produces the population vector one time step later.",
+    "bullets": [
+      "Applying it once advances the population by one time step; applying it repeatedly (Lⁿ·n(0)) projects n time steps into the future",
+      "This is the matrix-model analog of Nt+1 = λNt from Lecture 3 — but now tracking age structure, not just total size"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE ARITHMETIC",
+    "title": "What Matrix Multiplication Actually Does",
+    "items": [
+      "Each entry in the new vector n(t+1) is a <b>weighted sum</b> of every entry in the old vector n(t)",
+      "The weights are the corresponding row of L: multiply each age class's current abundance by its matrix entry, then add",
+      "New age-0 individuals: n0(t+1) = F0·n0(t) + F1·n1(t) + F2·n2(t) + ...",
+      "Individuals surviving into age x+1: nx+1(t+1) = Px·nx(t) — only one nonzero term, because survival moves individuals one age class at a time"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WARM-UP",
+    "title": "A Simple Numeric Example, No Biology Yet",
+    "left": {
+      "h": "A 2×2 matrix and vector",
+      "body": "L = | 1  2 |\n    | 0.5 0 |\n\nn(0) = | 4 |\n       | 6 |"
+    },
+    "right": {
+      "h": "One multiplication",
+      "body": "n1(1) = 1(4) + 2(6) = 16\nn2(1) = 0.5(4) + 0(6) = 2\n\nn(1) = | 16 |\n       |  2 |\n\nEach new entry: multiply row by vector, then sum"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONCEPT CHECK",
+    "title": "Two Kinds of Row in the Matrix",
+    "left": {
+      "h": "The fecundity row (row 1)",
+      "body": "Sums contributions from ALL reproductive age classes at once. A wide age distribution of breeders each adds newborns proportional to its own fecundity and abundance."
+    },
+    "right": {
+      "h": "The survival rows (rows 2+)",
+      "body": "Each survival row has only ONE nonzero entry (Px on the subdiagonal). Age class x+1 next time step comes only from age class x now — nothing else."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ASSUMPTIONS",
+    "title": "What the Basic Leslie Model Assumes",
+    "items": [
+      "<b>Discrete time steps</b> matching the age-class interval (e.g., annual census, annual age classes)",
+      "<b>Constant vital rates</b>: Fx and Px do not change across time steps (no density dependence, no environmental variation)",
+      "<b>Female-only</b> (or one-sex) accounting is typical — Fx and Px describe the female segment, assuming a stable sex ratio",
+      "Individuals in the oldest age class either die (no further Px) or, in some formulations, remain and reproduce (a terminal self-loop)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A SUBTLETY",
+    "title": "Pre-Breeding vs. Post-Breeding Census",
+    "term": "Census Timing",
+    "def": "Whether the population is counted just before or just after the annual reproductive pulse changes exactly how Fx is defined.",
+    "bullets": [
+      "<b>Pre-breeding census</b>: age-0 individuals are counted right after birth, before the next round of mortality — Fx = mx·Px is often used to account for survival of both mother and offspring to the count",
+      "<b>Post-breeding census</b>: age-0 individuals are counted at the end of the year, so Fx = mx alone (the convention used in today's example)",
+      "Always check which convention a data source or software package assumes before building L"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "A Worked Numerical Example",
+    "sub": "From life table to Leslie matrix to population projection"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SETUP",
+    "title": "Starting From the Lecture 14 Life Table",
+    "items": [
+      "Recall a simple 3-age-class life table (ages 0, 1, 2) with survivorship lx and fecundity mx",
+      "lx: l0 = 1.0, l1 = 0.5, l2 = 0.2 — the same schedule used to calculate R0 in Lecture 14",
+      "mx: m0 = 0 (pre-reproductive), m1 = 2.0 offspring/female, m2 = 3.0 offspring/female",
+      "We will convert these into the entries of a 3×3 Leslie matrix"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "STEP 1",
+    "title": "Converting Survivorship Into Px",
+    "term": "Px = lx+1 / lx",
+    "def": "Survival probability is the conditional chance of surviving from age x to age x+1, given survival to age x.",
+    "bullets": [
+      "P0 = l1 / l0 = 0.5 / 1.0 = 0.5",
+      "P1 = l2 / l1 = 0.2 / 0.5 = 0.4",
+      "These become the subdiagonal entries of the Leslie matrix"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "STEP 2",
+    "title": "Assigning the Fecundity Row",
+    "term": "F1 = 2.0, F2 = 3.0",
+    "def": "Using the simplified convention Fx = mx, the fecundity values from Lecture 14 populate the top row directly.",
+    "bullets": [
+      "F0 = 0 (age-0 individuals do not reproduce)",
+      "F1 = m1 = 2.0",
+      "F2 = m2 = 3.0"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "STEP 3",
+    "title": "The Assembled 3×3 Leslie Matrix",
+    "left": {
+      "h": "Matrix L",
+      "body": "| 0    2.0  3.0 |\n| 0.5   0    0  |\n|  0   0.4   0  |\n\nRow 1 = fecundities (F0, F1, F2)\nRow 2 = P0 on the subdiagonal\nRow 3 = P1 on the subdiagonal"
+    },
+    "right": {
+      "h": "Initial population vector",
+      "body": "Start with a hypothetical cohort of 100 newborns and no older individuals:\n\nn(0) = [100, 0, 0]ᵀ\n\nN(0) = 100"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ITERATION 1",
+    "title": "Projecting One Time Step: n(1) = L·n(0)",
+    "items": [
+      "n0(1) = F0·100 + F1·0 + F2·0 = 0(100) + 2(0) + 3(0) = 0",
+      "n1(1) = P0·n0(0) = 0.5 × 100 = 50",
+      "n2(1) = P1·n1(0) = 0.4 × 0 = 0",
+      "Result: n(1) = [0, 50, 0]ᵀ, N(1) = 50 — the whole cohort simply aged forward one step"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ITERATION 2",
+    "title": "Projecting the Next Step: n(2) = L·n(1)",
+    "items": [
+      "n0(2) = 2(50) + 3(0) = 100 — the age-1 survivors now reproduce",
+      "n1(2) = 0.5 × 0 = 0",
+      "n2(2) = 0.4 × 50 = 20",
+      "Result: n(2) = [100, 0, 20]ᵀ, N(2) = 120 — the population has grown and now spans all three age classes"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ITERATIONS 3–5",
+    "title": "Continuing the Projection by Hand",
+    "items": [
+      "n(3): n0 = 2(0)+3(20) = 60; n1 = 0.5(100) = 50; n2 = 0.4(0) = 0 → n(3) = [60, 50, 0]ᵀ, N(3) = 110",
+      "n(4): n0 = 2(50)+3(0) = 100; n1 = 0.5(60) = 30; n2 = 0.4(50) = 20 → n(4) = [100, 30, 20]ᵀ, N(4) = 150",
+      "n(5): n0 = 2(30)+3(20) = 120; n1 = 0.5(100) = 50; n2 = 0.4(30) = 12 → n(5) = [120, 50, 12]ᵀ, N(5) = 182",
+      "Each step is the same mechanical operation: multiply the matrix by the current vector to get the next"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE FULL PROJECTION",
+    "title": "Age Distribution Over Six Time Steps",
+    "headers": [
+      "t",
+      "n0 (age 0)",
+      "n1 (age 1)",
+      "n2 (age 2)",
+      "Total N(t)"
+    ],
+    "rows": [
+      [
+        "0",
+        "100",
+        "0",
+        "0",
+        "100"
+      ],
+      [
+        "1",
+        "0",
+        "50",
+        "0",
+        "50"
+      ],
+      [
+        "2",
+        "100",
+        "0",
+        "20",
+        "120"
+      ],
+      [
+        "3",
+        "60",
+        "50",
+        "0",
+        "110"
+      ],
+      [
+        "4",
+        "100",
+        "30",
+        "20",
+        "150"
+      ],
+      [
+        "5",
+        "120",
+        "50",
+        "12",
+        "182"
+      ]
+    ],
+    "footnote": "Each row computed as n(t) = L·n(t-1) using the 3×3 matrix built from Lecture 14's life table"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "AGE STRUCTURE",
+    "title": "Proportional Age Distribution Over Time",
+    "headers": [
+      "t",
+      "Proportion age 0",
+      "Proportion age 1",
+      "Proportion age 2"
+    ],
+    "rows": [
+      [
+        "0",
+        "1.00",
+        "0.00",
+        "0.00"
+      ],
+      [
+        "1",
+        "0.00",
+        "1.00",
+        "0.00"
+      ],
+      [
+        "2",
+        "0.83",
+        "0.00",
+        "0.17"
+      ],
+      [
+        "3",
+        "0.55",
+        "0.45",
+        "0.00"
+      ],
+      [
+        "4",
+        "0.67",
+        "0.20",
+        "0.13"
+      ],
+      [
+        "5",
+        "0.66",
+        "0.27",
+        "0.07"
+      ]
+    ],
+    "footnote": "Proportions = each age class's abundance divided by N(t); note the early swings settling toward a more consistent pattern"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE OUTPUT",
+    "title": "What This Projection Tells Us",
+    "items": [
+      "Starting from a single-age cohort, the population <b>swings wildly</b> in age structure for the first several time steps",
+      "<b>Total N(t)</b> does not grow smoothly either — it dips (t=1, t=3) before climbing again, because the initial vector is far from any long-run pattern",
+      "By t = 4–5, the <b>proportions</b> begin to settle into a more consistent pattern rather than oscillating between extremes",
+      "This settling behavior is not a coincidence — it is a general property of Leslie matrices, previewed in the next section"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE EARLY SWINGS?",
+    "title": "Transient Dynamics from an Unrealistic Start",
+    "items": [
+      "n(0) = [100, 0, 0]ᵀ is a <b>biologically extreme</b> starting point — an entire population born in the same instant",
+      "Real populations rarely start this skewed, but transient swings still occur after any disturbance that distorts age structure (e.g., a mass mortality event, a harvest, a reintroduction)",
+      "These early, matrix-dependent fluctuations are called <b>transient dynamics</b>",
+      "Transient dynamics matter for management: a population can look like it's declining or booming in the short term even while its long-run trajectory is stable"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "The Dominant Eigenvalue λ",
+    "sub": "From transient swings to a long-run growth rate"
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE KEY RESULT",
+    "title": "The Dominant Eigenvalue",
+    "term": "λ (lambda)",
+    "def": "The single number that a Leslie matrix's projected population growth rate converges to, once the age distribution has stabilized.",
+    "bullets": [
+      "For large t, N(t+1)/N(t) approaches a constant value — this constant is λ, the <b>dominant eigenvalue</b> of the matrix L",
+      "λ plays exactly the role that the finite rate of increase λ played in the simple, unstructured models of Lecture 3 — but now it is derived from age-specific vital rates",
+      "λ > 1: population grows in the long run; λ = 1: stationary; λ < 1: declines — same interpretation as before"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING THE DOTS",
+    "title": "λ, r, and R0 — One Family of Growth Measures",
+    "items": [
+      "λ (from the Leslie matrix) and r (from the Euler-Lotka equation, Lecture 14) describe the <b>same underlying growth process</b>, related by λ = e^r",
+      "R0 (net reproductive rate) tells you growth <b>per generation</b>; λ tells you growth <b>per time step</b> (e.g., per year)",
+      "All three converge on the same long-run answer because they are all built from the identical set of age-specific lx and mx values",
+      "The matrix approach adds something the other two lack: it also tells you <b>how the age structure itself evolves</b> along the way"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THREE MEASURES OF GROWTH",
+    "title": "R0, r, and λ Side by Side",
+    "headers": [
+      "Measure",
+      "What it captures",
+      "Time scale",
+      "Source"
+    ],
+    "rows": [
+      [
+        "R0",
+        "Net reproductive rate — offspring per individual per generation",
+        "Per generation",
+        "Σ lx·mx (Lecture 14)"
+      ],
+      [
+        "r",
+        "Intrinsic rate of increase — instantaneous growth rate",
+        "Per unit time (continuous)",
+        "Euler-Lotka equation (Lecture 14)"
+      ],
+      [
+        "λ",
+        "Finite growth rate — multiplicative growth rate",
+        "Per time step (discrete)",
+        "Dominant eigenvalue of L (this lecture)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE λ COMES FROM",
+    "title": "Finding λ: A Preview of the Algebra",
+    "items": [
+      "Formally, λ is a solution to the characteristic equation of L: det(L − λI) = 0",
+      "For small matrices (2×2, 3×3) this can be solved by hand; for realistic matrices with many age classes it is solved numerically",
+      "λ is the <b>largest (dominant)</b> eigenvalue in magnitude — a matrix can have multiple eigenvalues, but only the dominant one governs long-run behavior",
+      "The full mechanics of extracting λ (and its companion eigenvectors) are developed in Lecture 16"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO REGIMES",
+    "title": "Transient Behavior vs. Asymptotic Growth",
+    "left": {
+      "h": "Transient phase (early t)",
+      "body": "Age structure and total N(t) fluctuate; growth rate N(t+1)/N(t) varies step to step; behavior depends heavily on the starting vector n(0)."
+    },
+    "right": {
+      "h": "Asymptotic phase (large t)",
+      "body": "Age proportions settle into a fixed pattern (the stable age distribution); N(t+1)/N(t) converges to the constant λ, independent of the starting vector."
+    },
+    "footnote": "How quickly a matrix reaches the asymptotic phase depends on the structure of its eigenvalues — some matrices converge in a handful of steps, others take much longer"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS MATTERS",
+    "title": "Practical Implications of λ and Transients",
+    "items": [
+      "A single snapshot of population growth (this year vs. last year) can be misleading if the population is still in a <b>transient phase</b>",
+      "Wildlife and fisheries managers use λ from Leslie/Lefkovitch matrices to evaluate whether a harvest or conservation regime is sustainable in the <b>long run</b>",
+      "Because λ is derived from age-specific survival and fecundity, it also shows <b>which age classes matter most</b> for growth — the basis of sensitivity and elasticity analysis (Lecture 16)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Scaling Up: Software and Synthesis",
+    "sub": "From hand calculation to computational tools, and tying the lecture together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SOFTWARE NOTE",
+    "title": "Why We Don't Do This by Hand in Practice",
+    "items": [
+      "Our worked example used a 3×3 matrix and 5 time steps — manageable with pencil and paper",
+      "Realistic demographic matrices can have <b>dozens of age classes</b> (or stage classes) and are projected over many time steps",
+      "Matrix multiplication, eigenvalue extraction, and convergence diagnostics are all standard operations in <b>R</b> (e.g., the popbio and popdemo packages), MATLAB, and Python (NumPy)",
+      "The biology and the algebra you learned by hand here are exactly what these tools automate — understanding the mechanics makes the software output interpretable rather than a black box"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "COMPUTATIONAL TOOLS",
+    "title": "What Software Adds at Scale",
+    "cards": [
+      {
+        "h": "Matrix multiplication",
+        "p": "Vectorized operations project population structure forward hundreds of time steps in a fraction of a second."
+      },
+      {
+        "h": "Eigenanalysis",
+        "p": "Built-in linear algebra routines return λ and its eigenvectors directly, no characteristic-equation algebra required."
+      },
+      {
+        "h": "Stochastic simulation",
+        "p": "Vital rates can be resampled each time step to explore how environmental variability affects projected growth."
+      },
+      {
+        "h": "Sensitivity tools",
+        "p": "Packages compute which matrix entries most affect λ, ranking age classes by management importance."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "APPLICATIONS",
+    "title": "Leslie/Lefkovitch Matrices in Real Conservation Work",
+    "cards": [
+      {
+        "h": "Loggerhead sea turtles",
+        "p": "A classic stage-based (Lefkovitch) matrix analysis identified juvenile survival, not just adult or egg-stage protection, as the key lever for population recovery."
+      },
+      {
+        "h": "Northern spotted owl",
+        "p": "Age-structured matrix models informed old-growth forest management by showing which age classes most limited population growth."
+      },
+      {
+        "h": "Fisheries stock assessment",
+        "p": "Age-structured projection matrices underlie many quota-setting models, translating age-specific catch and survival data into sustainable harvest limits."
+      },
+      {
+        "h": "Endangered plant populations",
+        "p": "Stage-based matrices (seed, seedling, juvenile, adult) guide where limited conservation resources have the largest effect on λ."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "HISTORICAL NOTE",
+    "quote": "The Leslie matrix reduced the entire life history of a population to a single mathematical object — one that could be multiplied, iterated, and eventually decomposed to reveal both its growth rate and its equilibrium structure.",
+    "attrib": "Adapted from P. H. Leslie's original 1945 and 1948 formulations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LIMITATIONS",
+    "title": "What the Basic Leslie Model Leaves Out",
+    "items": [
+      "Assumes <b>constant</b> Fx and Px — no density dependence, no environmental stochasticity (extensions relax this)",
+      "Requires clean, discrete <b>age classes</b> — species with indeterminate growth or complex life stages (e.g., many plants, invertebrates) often use a <b>stage-based</b> Lefkovitch matrix instead",
+      "Assumes a closed population, or requires separate terms for immigration/emigration",
+      "These extensions build directly on the same n(t+1) = L·n(t) framework introduced today"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "EXTENSION",
+    "title": "Beyond Age: The Lefkovitch Matrix",
+    "term": "Stage-Based Projection Matrix",
+    "def": "A generalization of the Leslie matrix that uses life-history stages (e.g., seed, seedling, juvenile, adult) instead of strict chronological age classes.",
+    "bullets": [
+      "Useful for organisms where age is hard to measure or where stage better predicts survival and fecundity (many plants, insects, some reptiles)",
+      "Allows individuals to remain in the same stage across a time step (a nonzero diagonal entry), not just move to the next class",
+      "Same projection equation, n(t+1) = L·n(t), and the same eigenvalue interpretation of λ apply unchanged"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BIG PICTURE",
+    "title": "Leslie Matrix vs. the Simple Exponential Model",
+    "left": {
+      "h": "Nt+1 = λNt (Lecture 3)",
+      "body": "Tracks only total population size. Assumes the population behaves as if every individual is demographically identical. Fast, simple, but blind to age structure."
+    },
+    "right": {
+      "h": "n(t+1) = L·n(t) (this lecture)",
+      "body": "Tracks abundance in every age class separately. Built from the same kind of vital-rate data, but reveals age structure, transient dynamics, and which ages drive growth."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON PITFALLS",
+    "title": "Common Mistakes When Building a Leslie Matrix",
+    "items": [
+      "Confusing <b>Px</b> (survival probability, x to x+1) with <b>lx</b> (cumulative survivorship from birth) — Px is always lx+1/lx, not lx itself",
+      "Placing survival probabilities in the wrong position — they belong strictly on the <b>subdiagonal</b>, one row below the corresponding column",
+      "Forgetting that the last age class usually has <b>no</b> Px (no next age class to survive into), unless a terminal self-loop is explicitly modeled",
+      "Mixing pre-breeding and post-breeding census conventions for Fx within the same matrix"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "Core Ideas to Carry Forward",
+    "items": [
+      "The Leslie matrix packages fecundities (top row) and survival probabilities (subdiagonal) built from the same lx, mx data as Lecture 14",
+      "The projection equation n(t+1) = L·n(t) advances the entire age-structured population one step at a time",
+      "Repeated projection reveals <b>transient dynamics</b> before the population settles into a <b>stable pattern</b>",
+      "The dominant eigenvalue λ is the asymptotic growth rate — the matrix-model counterpart of r and R0"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "A Preview: What Is the Population Settling Into?",
+    "term": "Stable Age Distribution",
+    "def": "The fixed set of age-class proportions that a population converges to under constant vital rates, regardless of its starting age structure.",
+    "bullets": [
+      "Our example was heading toward such a pattern by t = 4–5, though it had not fully arrived",
+      "The stable age distribution is given by the <b>dominant eigenvector</b> of L, paired with the dominant eigenvalue λ",
+      "Lecture 16 develops this concept, along with <b>reproductive value</b> and <b>sensitivity/elasticity analysis</b>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Lecture 14 → Lecture 15: From Numbers to Structure",
+    "items": [
+      "Lecture 14 built the <b>fecundity schedule</b>, R0, generation time, and r from age-specific survivorship and fecundity",
+      "Lecture 15 repackaged that same data into a <b>Leslie matrix</b> and used it to project the full age-structured population forward in time",
+      "Iterating n(t+1) = L·n(t) revealed <b>transient dynamics</b> early on, settling toward a consistent pattern over successive time steps",
+      "The <b>dominant eigenvalue λ</b> is the asymptotic growth rate that ties this matrix approach back to r and R0"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NEXT LECTURE",
+    "title": "Preview: Lecture 16 — Stable Age Distribution and Beyond",
+    "items": [
+      "Formally derive the <b>stable age distribution</b> as the dominant eigenvector of the Leslie matrix",
+      "Introduce <b>reproductive value</b>: the expected future contribution of an individual in a given age class to population growth",
+      "Cover <b>sensitivity and elasticity analysis</b> — which matrix entries matter most for λ, and why that matters for conservation and management decisions",
+      "Close out Chapter 4 (Age Structure) before moving to Chapter 5, Metapopulation Ecology, in Lecture 17"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 15</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

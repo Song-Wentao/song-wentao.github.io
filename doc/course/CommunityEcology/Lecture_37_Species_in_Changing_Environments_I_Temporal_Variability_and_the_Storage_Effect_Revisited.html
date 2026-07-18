@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 37: Species in Changing Environments I: Temporal Variability and the Storage Effect Revisited</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 37",
+    "title": "Species in Changing Environments I: Temporal Variability and the Storage Effect Revisited",
+    "sub": "Mittelbach & McGill, Community Ecology 2nd ed., Ch. 15 (1 of 2) — Opening Part V: Species in Changing Environments",
+    "footnote": "Reading: Mittelbach & McGill Ch. 15, pp. TBD; recommend re-reading Ch. 8 storage-effect section"
+  },
+  {
+    "type": "section",
+    "tag": "Part V — Species in Changing Environments",
+    "title": "From constant-environment theory to a variable world",
+    "sub": "Everything we've built (niche differences, coexistence, competition-colonization) so far mostly assumed environments were constant or averaged. Now we ask: what happens when the environment itself fluctuates in time?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why revisit the storage effect now",
+    "items": [
+      "You first met the storage effect in Ch. 8 as one item on a list of coexistence mechanisms — today it becomes the central case study",
+      "Temporal environmental variability is not a nuisance to be averaged away — it can be a coexistence mechanism in its own right",
+      "Classic Lotka-Volterra competition theory assumes constant parameters; real environments vary seasonally, interannually, and stochastically",
+      "Chesson's framework (1994, 2000) formalized how fluctuations generate 'fluctuation-dependent' coexistence mechanisms not possible in constant environments",
+      "This lecture: variability types, life-history responses (bet-hedging), the storage effect in depth, relative nonlinearity, and empirical tests",
+      "Next lecture (L38): spatial variability and the spatial storage effect, plus synthesis of temporal + spatial mechanisms"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "15.1",
+    "title": "Types of environmental variability",
+    "sub": "Not all fluctuation is created equal — predictability and temporal structure matter as much as magnitude"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Predictable vs. unpredictable variation",
+    "items": [
+      "Predictable (deterministic) variation: seasonal cycles, diel cycles, tidal cycles — recurring at fixed, learnable periods",
+      "Organisms can track predictable variation with cued life-history switches: photoperiod-triggered diapause, migration, flowering time",
+      "Unpredictable (stochastic) variation: interannual rainfall anomalies, El Niño/La Niña events, disturbance timing (fire, storms)",
+      "Stochastic variation cannot be reliably cued — favors risk-spreading strategies rather than precise timing",
+      "Real environments combine both: a predictable seasonal envelope with unpredictable deviations superimposed year to year",
+      "The distinction matters because coexistence mechanisms discussed today depend on the unpredictable component, not the seasonal mean cycle itself"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Environmental (spectral) color",
+    "term": "Environmental (spectral) color",
+    "def": "A description of the temporal autocorrelation structure of environmental noise, borrowed from the 'color' analogy of light spectra: how similar is the environment this year to last year, and how does that similarity decay over time?",
+    "bullets": [
+      "Quantified via the power spectrum of an environmental time series — the distribution of variance across temporal frequencies"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "White noise",
+    "term": "White noise",
+    "def": "Environmental fluctuations with no temporal autocorrelation — each year's conditions are statistically independent of the previous year's. Equal variance at all frequencies.",
+    "bullets": [
+      "The default null assumption in most classical stochastic coexistence models (including Chesson's original storage-effect derivations)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Red and blue noise",
+    "term": "Red and blue noise",
+    "def": "Red (reddened) noise: positive autocorrelation — good years cluster with good years, bad with bad (variance concentrated at low frequencies), producing multi-year runs. Blue noise: negative autocorrelation — conditions alternate directionally between good and bad more than expected by chance (variance concentrated at high frequencies).",
+    "bullets": [
+      "Named by analogy to visible light spectra, where red = long wavelength/low frequency and blue = short wavelength/high frequency"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Noise color and its ecological signature",
+    "headers": [
+      "Noise type",
+      "Autocorrelation",
+      "Pattern over years",
+      "Ecological consequence"
+    ],
+    "rows": [
+      [
+        "White noise",
+        "None (zero lag-1)",
+        "Random year-to-year",
+        "Baseline case in most storage-effect models"
+      ],
+      [
+        "Red noise",
+        "Positive",
+        "Runs of good/bad years cluster",
+        "Can increase extinction risk; lengthens effective 'memory' of bad periods"
+      ],
+      [
+        "Blue noise",
+        "Negative",
+        "Years alternate good-bad-good",
+        "Can dampen population swings via built-in compensation"
+      ],
+      [
+        "Climate change trend",
+        "Non-stationary mean + variance",
+        "Systematic drift, not just noise",
+        "Erodes assumptions of stationarity underlying most coexistence models"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Predictable seasonal cycles vs. stochastic interannual variation",
+    "left": {
+      "h": "Predictable / cyclic",
+      "body": "<ul><li>Wet season vs. dry season in the tropics</li><li>Temperate winter-summer temperature cycle</li><li>Tidal exposure cycles for intertidal organisms</li><li>Photoperiod-driven flowering and breeding windows</li><li>Organisms evolve fixed, cued responses (phenology)</li></ul>"
+    },
+    "right": {
+      "h": "Stochastic / interannual",
+      "body": "<ul><li>Year-to-year rainfall totals in deserts</li><li>El Niño-driven productivity pulses on coral reefs</li><li>Fire return interval variability</li><li>Recruitment pulses tied to unpredictable oceanographic events</li><li>Organisms evolve risk-spreading (bet-hedging) rather than precise cues</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "15.2",
+    "title": "Variability, life history, and bet-hedging",
+    "sub": "How should an organism's demography respond when the future environment cannot be predicted?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Bet-hedging",
+    "term": "Bet-hedging",
+    "def": "A strategy that reduces the variance in fitness across unpredictable environmental states, often at the cost of lowering the arithmetic mean fitness, because it is variance in reproductive success — not mean success alone — that determines long-term (geometric mean) fitness in a fluctuating environment.",
+    "bullets": [
+      "Formalized by Cohen (1966), Seger & Brockmann (1987); central to understanding why organisms in variable environments look 'suboptimal' by mean-fitness standards"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Diversified vs. conservative bet-hedging",
+    "headers": [
+      "Feature",
+      "Diversified bet-hedging",
+      "Conservative bet-hedging"
+    ],
+    "rows": [
+      [
+        "Mechanism",
+        "Spread risk across offspring/phenotypes within a generation",
+        "Reduce risk by adopting a uniformly low-risk, low-reward phenotype"
+      ],
+      [
+        "Within-generation variance",
+        "High (some offspring succeed, some fail)",
+        "Low (all individuals perform similarly, modestly)"
+      ],
+      [
+        "Classic example",
+        "Variable seed dormancy fractions in desert annuals",
+        "Iteroparity / long adult lifespan buffering single bad years"
+      ],
+      [
+        "Analogy",
+        "Diversifying an investment portfolio across risky assets",
+        "Choosing a single low-volatility asset"
+      ],
+      [
+        "Effect on mean fitness",
+        "Can retain higher mean while cutting variance",
+        "Typically sacrifices mean fitness for reduced variance"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Bet-hedging in action",
+    "cards": [
+      {
+        "h": "Desert annual seed dormancy",
+        "p": "Many desert annual species germinate only a fraction of their seed bank each year, leaving the rest dormant — a diversified bet against germinating into a drought year that kills the whole cohort."
+      },
+      {
+        "h": "Coral mass spawning synchrony",
+        "p": "Broadcast-spawning corals concentrate reproduction into narrow lunar windows, spreading larval risk across many individuals releasing gametes simultaneously to swamp predators and variable currents."
+      },
+      {
+        "h": "Insect diapause polymorphism",
+        "p": "Variable diapause duration within a single egg clutch ensures that not all offspring emerge into the same, potentially unfavorable, season."
+      },
+      {
+        "h": "Iteroparity as conservative hedging",
+        "p": "Long-lived perennial plants and vertebrates spread reproductive attempts across many years, so that any single bad year affects only one of many lifetime opportunities."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Demographic consequences of variability",
+    "items": [
+      "In a fluctuating environment, long-term population growth is governed by the geometric mean of yearly growth rates, not the arithmetic mean",
+      "High variance in yearly fitness lowers the geometric mean even if the arithmetic mean is unchanged — variance itself is costly",
+      "This is why bet-hedging can be favored by selection even when it lowers average per-year reproductive output",
+      "Life-history traits (seed banks, dormancy, longevity, iteroparity) can evolve specifically as variance-reduction devices",
+      "These same traits — especially dormancy and storage — turn out to be the demographic engine behind the storage effect coexistence mechanism"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Geometric mean fitness",
+    "term": "Geometric mean fitness",
+    "def": "The long-term multiplicative growth rate of a population across a sequence of varying environments, calculated as the geometric (not arithmetic) mean of per-generation growth rates; it is always ≤ the arithmetic mean and is reduced by variance in growth rate.",
+    "bullets": [
+      "Formal basis of Cohen's (1966) bet-hedging theory and of the storage effect's low-density growth rate advantage"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "15.3",
+    "title": "The storage effect, in depth",
+    "sub": "Chesson (1994, 2000): how three ingredients combine to convert environmental noise into a stabilizing coexistence mechanism"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Recap: the storage effect as fluctuation-dependent coexistence",
+    "items": [
+      "In Ch. 8 you saw the storage effect briefly, defined loosely as 'competitors coexist by doing well in different years'",
+      "Peter Chesson formalized this intuition into a rigorous mathematical framework using invasion (low-density growth rate) analysis",
+      "The storage effect is a fluctuation-DEPENDENT mechanism: it only generates a coexistence advantage when the environment actually varies — it vanishes in a constant environment",
+      "It requires species to differ in how they respond to the environment, not merely in resource use",
+      "Classic empirical systems: desert winter annual plants (Venable, Chesson) and coral reef fishes (Warner, Chesson, Sale)",
+      "Today's goal: understand precisely what the three required ingredients are and how each contributes"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "The three ingredients of the storage effect",
+    "levels": [
+      {
+        "label": "1. Species-specific environmental responses",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "2. Covariance between environment and competition",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "3. Buffered population growth (storage)",
+        "color": "#3f7d5c",
+        "width": "440px"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Species-specific environmental responses",
+    "term": "Species-specific environmental responses",
+    "def": "Ingredient 1 of the storage effect: competing species must differ in which environmental conditions favor their reproduction or recruitment, so that no single year is uniformly good or bad for all competitors at once.",
+    "bullets": [
+      "Without this differential response, environmental variation would simply raise or lower all species' fortunes in lockstep, generating no relative advantage for anyone"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Covariance between environment and competition",
+    "term": "Covariance between environment and competition",
+    "def": "Ingredient 2: the correlation between how favorable the environment is for a species and how intense competition is on that species in the same period. Typically this covariance is positive — a good year triggers a population boom that itself intensifies competition — which caps how much any one species can benefit and creates a self-limiting, stabilizing effect.",
+    "bullets": [
+      "This covariance is what converts 'differing environmental responses' into an actual negative-density-dependent, coexistence-promoting force"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Buffered population growth (storage)",
+    "term": "Buffered population growth (storage)",
+    "def": "Ingredient 3: a mechanism — long lifespan, seed/egg dormancy, overlapping generations — that lets a species' population avoid crashing during bad years by relying on a resistant life stage, effectively 'storing' the gains from good years across time.",
+    "bullets": [
+      "This is the literal source of the name 'storage effect': populations store the demographic benefit of favorable periods to carry them through unfavorable ones"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "How each ingredient contributes to coexistence",
+    "left": {
+      "h": "Without the ingredient",
+      "body": "<ul><li>No differential environmental response → fluctuations affect all species equally, no relative advantage created</li><li>No environment-competition covariance → good years for a species aren't checked by intensified competition, so the superior competitor simply wins outright</li><li>No buffering/storage → a species crashes to extinction in a single bad run of years before it can recover</li></ul>"
+    },
+    "right": {
+      "h": "With the ingredient",
+      "body": "<ul><li>Each species has years where it is specifically favored relative to competitors</li><li>Being favored also self-limits via increased intraspecific/conspecific competition, capping dominance</li><li>Long-lived stages or dormant propagules carry a species through its bad years until its good years return</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The invasion analysis logic",
+    "items": [
+      "Coexistence via storage effect is diagnosed the same way as other mechanisms: can each species increase from rare (low density) while the other is common?",
+      "At low density, a species experiences reduced intraspecific competition but still faces environmental variation and the resident's competitive effects",
+      "The storage effect boosts the low-density growth rate specifically because a rare species can exploit its own favorable years without those years being ruined by self-imposed competition (since it's rare, its density-dependent competition is weak)",
+      "Meanwhile the buffering ingredient prevents the rare species from being driven extinct during the resident's favorable / its own unfavorable stretches",
+      "The mathematical decomposition of the low-density growth rate explicitly separates out a 'storage effect' term — this is what makes the concept rigorous rather than metaphorical"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Low-density (invasion) growth rate",
+    "term": "Low-density (invasion) growth rate",
+    "def": "The expected long-term population growth rate of a species when rare, surrounded by a resident competitor at its typical (fluctuating) abundance; a positive average low-density growth rate for all competitors is the modern coexistence criterion, and Chesson's framework decomposes this rate into additive components including the storage effect.",
+    "bullets": [
+      "This decomposition approach — partitioning Δr into named mechanistic terms — is the technical core of modern coexistence theory (MCT), covered further when we discuss coexistence-theory synthesis later in the course"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Storage effect ingredients: summary",
+    "headers": [
+      "Ingredient",
+      "What it requires",
+      "What it prevents"
+    ],
+    "rows": [
+      [
+        "Species-specific environmental responses",
+        "Niche differentiation in environmental (not just resource) axis",
+        "Fluctuations from creating a universal winner"
+      ],
+      [
+        "Environment-competition covariance",
+        "Good years trigger self-limiting competitive response",
+        "Runaway dominance by whichever species has the best year"
+      ],
+      [
+        "Buffered population growth",
+        "Long-lived stage, dormancy, or overlapping generations",
+        "Extinction during runs of unfavorable years"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "15.4",
+    "title": "Relative nonlinearity of competition",
+    "sub": "A second, distinct fluctuation-dependent coexistence mechanism"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Relative nonlinearity of competition",
+    "term": "Relative nonlinearity of competition",
+    "def": "A coexistence mechanism arising when competing species have differently shaped (nonlinear) functional responses to a shared, fluctuating resource or competitive pressure — species differ in the CURVATURE of their response, not just in mean tolerance — so that environmental variance itself differentially affects each species' average competitive performance via Jensen's inequality.",
+    "bullets": [
+      "Unlike the storage effect, relative nonlinearity does not require species-specific environmental responses per se — it requires species-specific nonlinear responses to variation in competition intensity"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The mechanism, intuitively",
+    "items": [
+      "By Jensen's inequality, a nonlinear function of a fluctuating variable has an average value that differs from the function evaluated at the average value",
+      "If species differ in the convexity/concavity of their growth response to competitor density, variance in that density benefits or penalizes them differently",
+      "A species with a more convex (accelerating) response suffers disproportionately from high-competition periods; a more linear or concave responder is relatively buffered",
+      "Coexistence emerges when each species' own presence generates the pattern of competitive variance that most favors its rival's growth-rate shape at low density — a subtler, less intuitive mechanism than the storage effect",
+      "Relative nonlinearity can act alone or combine additively with the storage effect within the same Δr decomposition"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Storage effect vs. relative nonlinearity",
+    "left": {
+      "h": "Storage effect",
+      "body": "<ul><li>Driven by species-specific responses to the ENVIRONMENT</li><li>Requires environment-competition covariance</li><li>Requires a buffering/storage life-history trait</li><li>Classic examples: desert annuals, reef fish recruitment</li></ul>"
+    },
+    "right": {
+      "h": "Relative nonlinearity",
+      "body": "<ul><li>Driven by species-specific (nonlinear) responses to COMPETITION intensity itself</li><li>Requires variance in competitive pressure, from any source (environmental or density fluctuations)</li><li>Does not require a storage/buffering trait</li><li>Fewer clean empirical demonstrations; more often invoked theoretically</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Two fluctuation-dependent mechanisms compared",
+    "headers": [
+      "Property",
+      "Storage effect",
+      "Relative nonlinearity"
+    ],
+    "rows": [
+      [
+        "Requires species-env. differences?",
+        "Yes — essential",
+        "Not necessarily"
+      ],
+      [
+        "Requires buffering (storage)?",
+        "Yes — essential",
+        "No"
+      ],
+      [
+        "Source of exploited variance",
+        "Environmental fluctuations",
+        "Fluctuations in competition intensity"
+      ],
+      [
+        "Mathematical basis",
+        "Covariance term in Δr decomposition",
+        "Jensen's inequality / nonlinear averaging term"
+      ],
+      [
+        "Empirical support strength",
+        "Strong (desert annuals, reef fish)",
+        "Weaker, mostly theoretical/experimental microcosms"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "15.5",
+    "title": "Empirical tests: desert annuals and coral reef fish",
+    "sub": "Two classic systems where the storage effect has been quantitatively measured, not just inferred"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Desert winter annual plants",
+    "items": [
+      "Sonoran Desert winter annual community, long-term study by D. Venable and colleagues (decades of permanent plot data)",
+      "Species differ strongly in germination cues and germination fraction responses to rainfall timing and amount — satisfying ingredient 1",
+      "Seed banks provide the buffering ingredient: ungerminated seeds survive bad years dormant in the soil, satisfying ingredient 3",
+      "Per-germinant reproductive success drops sharply in high-density (high-germination) years, providing the environment-competition covariance of ingredient 2",
+      "Statistical decomposition of long-term demographic data confirmed a measurable, positive storage-effect contribution to low-density growth rates for multiple species pairs"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Desert annual plant findings",
+    "cards": [
+      {
+        "h": "Differential germination fractions",
+        "p": "Species vary in what fraction of their seed bank germinates in a given year depending on rainfall amount and timing — a direct signature of species-specific environmental response."
+      },
+      {
+        "h": "Seed banks as storage",
+        "p": "Long-lived soil seed banks (years to decades) buffer populations through strings of poor germination years, the literal 'storage' in storage effect."
+      },
+      {
+        "h": "Density-dependent seed set",
+        "p": "Per-capita seed production declines steeply as germinant density rises in favorable years, generating the required environment-competition covariance."
+      },
+      {
+        "h": "Quantitative decomposition",
+        "p": "Venable and colleagues used long-term data to statistically partition low-density growth rates, showing storage effect contributions large enough to plausibly maintain observed diversity."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Coral reef fish recruitment variability",
+    "items": [
+      "Reef fish populations are notoriously characterized by highly variable, unpredictable larval recruitment pulses driven by oceanographic conditions",
+      "Adults of many reef fish species are long-lived and territorial on fixed reef space — a buffering life history (ingredient 3) against recruitment failure years",
+      "Species differ in spawning timing, larval duration, and settlement cues, generating species-specific responses to the same variable ocean conditions (ingredient 1)",
+      "Strong recruitment pulses can trigger density-dependent post-settlement mortality (space/predation limitation), providing environment-competition covariance (ingredient 2)",
+      "Warner & Chesson's lottery model formalized how a fluctuating, unpredictable supply of recruits competing for a limited number of vacant territories can maintain diversity among functionally similar competitors"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Coral reef fish studies",
+    "cards": [
+      {
+        "h": "Warner & Chesson (1985) lottery model",
+        "p": "Formalized how storage-effect-like dynamics (buffered adult survival + variable recruitment) allow many competing species to coexist on a shared, limited resource (reef space)."
+      },
+      {
+        "h": "Sale's original lottery hypothesis",
+        "p": "Sale (1977) first proposed that reef fish diversity is maintained by chance settlement into vacant space rather than niche partitioning — later refined by Chesson's storage-effect math."
+      },
+      {
+        "h": "Long adult lifespan as buffer",
+        "p": "Many reef fish live many years past a single recruitment event, so a single bad recruitment year does not translate into local extinction."
+      },
+      {
+        "h": "Empirical recruitment variability",
+        "p": "Field studies document order-of-magnitude year-to-year variation in larval settlement for the same reef patch, confirming the strong environmental variance the theory requires."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Desert annuals vs. coral reef fish as test systems",
+    "left": {
+      "h": "Desert winter annuals",
+      "body": "<ul><li>Buffering trait: dormant seed bank in soil</li><li>Environmental driver: rainfall timing/amount</li><li>Data type: multi-decade permanent plot censuses</li><li>Strength: direct demographic parameter estimation</li></ul>"
+    },
+    "right": {
+      "h": "Coral reef fish",
+      "body": "<ul><li>Buffering trait: long-lived, site-attached adults</li><li>Environmental driver: oceanographic recruitment pulses</li><li>Data type: settlement tile / census time series</li><li>Strength: clear mechanistic link to lottery-style space competition</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Lottery model",
+    "term": "Lottery model",
+    "def": "A model of coexistence among competitors for a shared, spatially limited resource (e.g., reef space, canopy gaps) where recruitment is stochastic and vacant sites are filled essentially at random among available recruits, with adult longevity buffering populations against runs of poor recruitment — a special case that generates storage-effect-like dynamics.",
+    "bullets": [
+      "Originally proposed by Sale (1977) for reef fish; later given rigorous coexistence-theory grounding by Chesson & Warner (1981) and Warner & Chesson (1985)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "15.6",
+    "title": "Does variability promote or erode diversity?",
+    "sub": "The honest answer: it depends on which ingredients are present and how the community is structured"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Conditions favoring each outcome",
+    "headers": [
+      "Condition",
+      "Variability tends to PROMOTE diversity",
+      "Variability tends to ERODE diversity"
+    ],
+    "rows": [
+      [
+        "Species environmental responses",
+        "Strongly divergent among competitors",
+        "Similar/shared among competitors"
+      ],
+      [
+        "Buffering life history present?",
+        "Yes — dormancy, longevity, overlapping generations",
+        "No — short-lived, single-cohort life histories"
+      ],
+      [
+        "Environment-competition covariance",
+        "Present and stabilizing",
+        "Absent or destabilizing"
+      ],
+      [
+        "Autocorrelation (noise color)",
+        "Moderate, allows recovery between bad runs",
+        "Strong reddening — long runs of bad years overwhelm buffering"
+      ],
+      [
+        "Disturbance/variance magnitude",
+        "Moderate, within demographic tolerance",
+        "Extreme — exceeds buffering capacity, causes extinction"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "When variability erodes diversity",
+    "items": [
+      "If competing species share similar environmental responses, fluctuations simply raise and lower everyone's fortunes together — no relative advantage, no coexistence benefit",
+      "Without a buffering trait, a single severe bad year (or run of them, especially under red/autocorrelated noise) can drive a population to local extinction before its good years return",
+      "Increasing variance can widen the gap between the average competitor and the best competitor if there's no compensating covariance mechanism, accelerating competitive exclusion",
+      "Climate change trends (non-stationary shifts in mean and variance, increasing extremes) can push variability beyond the range over which historical buffering traits evolved",
+      "Habitat fragmentation can remove the spatial or demographic 'rescue' processes that would otherwise let storage-effect buffering work"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "When variability promotes diversity",
+    "items": [
+      "When all three storage-effect ingredients are present, variability actively generates a coexistence-stabilizing force that would not exist in a constant environment",
+      "Moderate, exploitable environmental variation combined with strong buffering traits (seed banks, long adult lifespan) is close to the classic promoting scenario",
+      "Relative nonlinearity can add an additional, independent stabilizing contribution when species differ in the shape of their competitive response",
+      "Intermediate disturbance-style logic overlaps here: variability that resets competitive dominance before exclusion completes can maintain diversity (see Ch. 11 material on the Intermediate Disturbance Hypothesis)",
+      "The net effect on diversity is the SUM of fluctuation-independent (e.g., simple resource niche differences) and fluctuation-dependent mechanisms — variability adds to, rather than replaces, other coexistence forces"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "Fluctuations in the environment do not simply add noise to community dynamics — they can be a fundamental, quantifiable source of the very coexistence they might naively be expected to disrupt.",
+    "attrib": "paraphrasing Chesson (2000), Annual Review of Ecology and Systematics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Synthesis: context-dependency is the point, not a caveat",
+    "items": [
+      "The storage effect and relative nonlinearity are mechanisms, not guarantees — their sign and magnitude depend on measurable ingredients present (or absent) in a given system",
+      "This is why community ecologists now emphasize DECOMPOSING coexistence into named, quantifiable components rather than asking a yes/no question about whether 'variability matters'",
+      "The same axis of environmental variability that stabilizes coexistence in desert annuals (via seed banks) could destabilize a similarly variable system lacking dormancy",
+      "Predicting real-world responses to increasing climate variability requires knowing which ingredients a focal community actually possesses",
+      "This sets up next lecture's extension: spatial variability and the spatial storage effect, where 'good patches' substitute for 'good years'"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "Development of storage-effect theory",
+    "items": [
+      {
+        "y": "1966",
+        "t": "Cohen — geometric mean fitness and bet-hedging theory in variable environments"
+      },
+      {
+        "y": "1977",
+        "t": "Sale — lottery hypothesis for reef fish diversity"
+      },
+      {
+        "y": "1981",
+        "t": "Chesson & Warner — formal stochastic lottery competition model"
+      },
+      {
+        "y": "1985",
+        "t": "Warner & Chesson — storage effect formalized for reef fish recruitment"
+      },
+      {
+        "y": "1994",
+        "t": "Chesson — general multispecies formalization of the storage effect"
+      },
+      {
+        "y": "2000",
+        "t": "Chesson — Annual Review synthesis: mechanisms of maintenance of species diversity"
+      },
+      {
+        "y": "2000s",
+        "t": "Venable & colleagues — long-term desert annual plant demographic tests"
+      },
+      {
+        "y": "2010s",
+        "t": "Broader empirical decomposition studies across plants, plankton, and reef systems"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Critiques and open empirical challenges",
+    "items": [
+      "Estimating storage-effect strength requires long time series and detailed demographic data — genuinely quantitative tests remain rare outside a handful of well-studied systems",
+      "Disentangling the storage effect from relative nonlinearity and from simple fluctuation-independent niche differences in field data is statistically demanding",
+      "Some critics argue the storage effect's practical importance for maintaining diversity has been oversold relative to how few systems have rigorous quantitative confirmation",
+      "Noise color (red/white/blue) is rarely characterized explicitly in empirical tests, even though theory shows it changes predicted outcomes",
+      "Nonstationary environments (directional climate trends) violate the stationarity assumptions underlying most of the classical mathematics — an active area of theoretical development"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Theory vs. empirical support: where we stand",
+    "left": {
+      "h": "Well supported",
+      "body": "<ul><li>Bet-hedging life histories are widespread and match theoretical predictions</li><li>Desert annual seed banks generate a measurable storage-effect contribution</li><li>Reef fish lottery dynamics broadly consistent with buffered-recruitment framework</li></ul>"
+    },
+    "right": {
+      "h": "Less resolved",
+      "body": "<ul><li>Relative nonlinearity's real-world magnitude is rarely isolated empirically</li><li>General importance of storage effect across whole communities (not just focal species pairs) is hard to scale up</li><li>Effects of climate-driven changes in noise color/autocorrelation remain mostly theoretical</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Looking ahead: Lecture 38",
+    "items": [
+      "Next time: the SPATIAL storage effect and other spatially fluctuation-dependent mechanisms",
+      "Same logic, different axis: instead of 'good years,' species exploit 'good patches' in a spatially heterogeneous, non-equilibrium landscape",
+      "We will connect temporal and spatial storage effects into a unified fluctuation-dependent coexistence framework",
+      "This closes out our tour of modern coexistence theory before moving to Part V's remaining topics on disturbance and non-equilibrium dynamics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key takeaways",
+    "items": [
+      "Environmental variability has structure — predictability and autocorrelation (noise color) shape its ecological consequences, not just its magnitude",
+      "Organisms respond to unpredictable variation with bet-hedging strategies (diversified or conservative) that trade mean fitness for reduced variance",
+      "The storage effect requires three ingredients together: species-specific environmental responses, environment-competition covariance, and buffered population growth",
+      "Relative nonlinearity of competition is a distinct, second fluctuation-dependent mechanism based on differing nonlinear responses to competition intensity",
+      "Desert annual plants and coral reef fish provide the strongest quantitative empirical support for storage-effect coexistence",
+      "Variability is not inherently diversity-promoting or diversity-eroding — the outcome depends on which specific ingredients a community possesses"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Summary",
+    "items": [
+      "Today: types of environmental variability (predictable/stochastic, noise color); bet-hedging life histories; the storage effect's three ingredients in depth; relative nonlinearity as a second mechanism; and empirical tests in desert annuals and reef fish",
+      "The storage effect converts environmental noise from a disruptive force into a quantifiable, stabilizing coexistence mechanism — but only when species differ appropriately and possess buffering traits",
+      "Variability can promote OR erode diversity depending on context — this is a feature of a rigorous, mechanistic framework, not an unresolved contradiction",
+      "Next lecture extends this logic into space: the spatial storage effect and patch-based fluctuation-dependent coexistence",
+      "Reading for next time: finish Ch. 15; review the spatial heterogeneity material from Ch. 9 for context"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 37</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

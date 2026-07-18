@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 45: Course Synthesis: The Architecture of Community Ecology</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 45",
+    "title": "Course Synthesis: The Architecture of Community Ecology",
+    "sub": "Bringing together 44 lectures, five course Parts, and Mittelbach & McGill Ch. 1-17 into one integrated picture",
+    "footnote": "Final lecture — capstone review and course closing"
+  },
+  {
+    "type": "section",
+    "tag": "OPENING",
+    "title": "Why a capstone lecture?",
+    "sub": "Not new material — a map of how everything we learned fits together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing",
+    "title": "The question this course has been answering all along",
+    "items": [
+      "Why are there so many species, and why do they coexist where they do?",
+      "Every lecture — density dependence, predation, competition, networks, space, time, evolution — is a different lens on that one question",
+      "Community ecology is not one theory but a toolkit of complementary, sometimes competing, explanations",
+      "Today: assemble the toolkit, see the connections, and prepare you to think like a community ecologist under exam (and research) conditions",
+      "We will move through five course Parts, then Ch. 17's 'concluding remarks', then close"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "The whole course, top to bottom",
+    "title": "From pattern to process to prediction",
+    "levels": [
+      {
+        "label": "Biodiversity patterns",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Pairwise interactions",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Networks & assembly",
+        "color": "#3f7d5c",
+        "width": "440px"
+      },
+      {
+        "label": "Space: patches & metacommunities",
+        "color": "#568f6d",
+        "width": "380px"
+      },
+      {
+        "label": "Time & evolutionary feedback",
+        "color": "#6ea883",
+        "width": "320px"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART I  ·  L1–8  ·  CH. 1–3",
+    "title": "The Big Picture",
+    "sub": "What is a community, and what patterns must any theory explain?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Part I recap",
+    "title": "Defining the object of study",
+    "term": "Community",
+    "def": "A group of co-occurring species that interact directly or indirectly, bounded pragmatically by taxon, trophic level, or spatial scale for study purposes.",
+    "bullets": [
+      "No single 'correct' community boundary — Clements (superorganism) vs. Gleason (individualistic) debate never fully resolved",
+      "Modern view: communities are open, dynamic, and defined relative to the question being asked"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part I recap",
+    "title": "The patterns every theory must explain",
+    "items": [
+      "Species richness varies enormously across space — the latitudinal diversity gradient (tropics > temperate > polar)",
+      "Species abundance distributions are consistently right-skewed: few common species, many rare ones (log-series, log-normal)",
+      "Species-area relationships (SAR): richness increases with area as a power law (z ≈ 0.25 typical)",
+      "Island biogeography (MacArthur & Wilson): richness = dynamic equilibrium of immigration and extinction, set by island size and isolation",
+      "These are the 'facts on the ground' that density-dependence, competition, and neutral theory all try to explain"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Part I recap",
+    "title": "Biodiversity and ecosystem functioning (BEF)",
+    "left": {
+      "h": "The empirical pattern",
+      "body": "<ul><li>Higher diversity generally increases productivity, nutrient cycling, and stability of ecosystem function</li><li>Saturating relationship — most function gained at modest richness</li><li>Sampling effect vs. complementarity/niche partitioning as competing mechanisms</li></ul>"
+    },
+    "right": {
+      "h": "The diversity-stability debate",
+      "body": "<ul><li>Early view (MacArthur, Elton): diversity begets stability via more pathways for energy flow</li><li>May (1972): complexity can destabilize in random model webs</li><li>Resolution: real webs are structured, not random — diversity often stabilizes aggregate properties even as individual populations fluctuate more (insurance hypothesis)</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Part I closing thought",
+    "quote": "The patterns of diversity are the fossil record of process — every gradient, every skewed abundance curve, is a clue to the mechanisms we spent the rest of the course dissecting.",
+    "attrib": "Course framing, after Rosenzweig 1995"
+  },
+  {
+    "type": "section",
+    "tag": "PART II  ·  L9–23  ·  CH. 4–9",
+    "title": "The Nitty-Gritty",
+    "sub": "The pairwise interactions that build communities from the ground up"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II recap",
+    "title": "Density dependence: the engine of regulation",
+    "items": [
+      "Negative density dependence (intraspecific competition) is necessary for population regulation and, by extension, community stability",
+      "Discrete logistic and Ricker models introduced complex dynamics (stable points → cycles → chaos) as a function of growth rate r",
+      "Conspecific negative density dependence (CNDD) at the community level — Janzen-Connell — helps maintain tree diversity in tropical forests",
+      "Density dependence is the conceptual hinge connecting population ecology (prerequisite course) to community ecology"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Part II recap",
+    "title": "Predator-prey dynamics and selective predation",
+    "left": {
+      "h": "Dynamics",
+      "body": "<ul><li>Lotka-Volterra predator-prey: neutrally stable cycles, unrealistic without added realism</li><li>Functional responses (Type I, II, III) and the paradox of enrichment</li><li>Predator-prey cycles observed in real systems (lynx-hare) but rarer than models predict</li></ul>"
+    },
+    "right": {
+      "h": "Selective predation & coevolution",
+      "body": "<ul><li>Keystone predation (Paine, Pisaster) can maintain prey diversity by suppressing a dominant competitor</li><li>Apparent competition: shared predators link prey species negatively, mimicking competition</li><li>Predator-prey coevolution drives arms races (toxin resistance, defense-offense trait pairs)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part II recap",
+    "title": "Competition and coexistence: the theoretical core",
+    "items": [
+      "Lotka-Volterra competition and the competitive exclusion principle — complete competitors cannot coexist indefinitely",
+      "Modern coexistence theory (Chesson): coexistence requires niche differences to exceed fitness differences",
+      "Stabilizing mechanisms (niche partitioning, resource use differences) vs. equalizing mechanisms (reduce fitness differences)",
+      "The storage effect: species coexist via buffered population growth + covariance between environment and competition + differential responses to environmental fluctuations",
+      "Storage effect is the bridge from 'static' niche theory into fluctuation-dependent, temporal coexistence (foreshadowing Part V)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Part II recap",
+    "title": "Beyond antagonism",
+    "term": "Mutualism & facilitation",
+    "def": "Positive interspecific interactions (pollination, dispersal mutualisms, nurse-plant facilitation) that can be just as important as competition and predation in structuring communities, especially under environmental stress.",
+    "bullets": [
+      "Stress-gradient hypothesis: facilitation becomes more important relative to competition as abiotic stress increases",
+      "Mutualisms can be modeled with modified Lotka-Volterra equations but risk destabilizing runaway growth without saturating benefits"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Part II recap",
+    "title": "Pairwise interaction types at a glance",
+    "headers": [
+      "Interaction",
+      "Sign (i, j)",
+      "Key model/concept",
+      "Community consequence"
+    ],
+    "rows": [
+      [
+        "Competition",
+        "(-, -)",
+        "Lotka-Volterra, Chesson's coexistence theory",
+        "Exclusion or niche-differentiated coexistence"
+      ],
+      [
+        "Predation",
+        "(+, -)",
+        "Functional responses, keystone predation",
+        "Top-down control, cascades, diversity maintenance"
+      ],
+      [
+        "Mutualism",
+        "(+, +)",
+        "Modified LV, stress-gradient hypothesis",
+        "Facilitation, range expansion, network stability"
+      ],
+      [
+        "Apparent competition",
+        "(-, -) indirect",
+        "Shared enemies/predators",
+        "Indirect exclusion without direct competition"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART III  ·  L24–32  ·  CH. 10–12",
+    "title": "Putting the Pieces Together",
+    "sub": "From pairs to networks: food webs, cascades, and community assembly"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part III recap",
+    "title": "Ecological networks as the natural extension of pairwise theory",
+    "items": [
+      "Every pairwise interaction from Part II is an edge in a larger network — networks are where community ecology becomes genuinely 'community-level'",
+      "Network structure: connectance, nestedness (mutualistic networks), modularity, degree distributions",
+      "Nestedness in plant-pollinator networks promotes robustness to species loss but can reduce coexistence stability",
+      "Random matrix theory (May) revisited: network architecture, not just diversity, determines stability"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Part III recap",
+    "title": "Food webs and trophic cascades",
+    "left": {
+      "h": "Food chains → food webs",
+      "body": "<ul><li>Linear food-chain models (HSS: green world hypothesis) predict top-down alternation of control across trophic levels</li><li>Real food webs are reticulate, omnivorous, and defy simple chain logic</li></ul>"
+    },
+    "right": {
+      "h": "Trophic cascades",
+      "body": "<ul><li>Classic cases: sea otters-urchins-kelp; wolves-elk-riparian vegetation (Yellowstone)</li><li>Cascades are strongest in simple, low-diversity, strongly top-down systems; damped in complex diverse webs</li><li>Direct link to Part II's keystone predation and apparent competition</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part III recap",
+    "title": "Community assembly: trait-based and phylogenetic approaches",
+    "items": [
+      "Assembly rules: which subsets of a regional species pool can co-occur locally, given environmental filtering and biotic interactions",
+      "Environmental filtering selects for trait similarity (habitat filtering); limiting similarity/competition selects for trait divergence",
+      "Phylogenetic community ecology uses relatedness as a proxy for niche similarity — phylogenetic clustering vs. overdispersion as signatures of filtering vs. competition (with caveats about trait conservatism)",
+      "Null models and randomizations are essential to distinguish assembly signal from chance",
+      "This is where trait-based thinking, introduced piecemeal in Parts I-II, becomes a systematic framework"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Part III recap",
+    "title": "Two scales of assembly logic",
+    "cards": [
+      {
+        "h": "Regional → local filtering",
+        "p": "The regional species pool is filtered by dispersal ability, then environment, then biotic interactions — a nested sieve."
+      },
+      {
+        "h": "Network-level emergent structure",
+        "p": "Assembly outcomes feed back into network structure (who interacts with whom), which in turn shapes future assembly and invasion resistance."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART IV  ·  L33–36  ·  CH. 13–14",
+    "title": "Spatial Ecology",
+    "sub": "Adding a spatial dimension to coexistence and assembly theory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part IV recap",
+    "title": "Patchy environments and the competition-colonization tradeoff",
+    "items": [
+      "Fugitive species theory (Hutchinson): inferior competitors persist regionally by colonizing disturbed/empty patches faster than superior competitors arrive",
+      "Competition-colonization tradeoff generates regional coexistence even without local coexistence — a spatial storage effect analogue",
+      "Levins metapopulation model: patch occupancy dynamics (colonization vs. extinction) as the spatial extension of single-species population models",
+      "Spatial heterogeneity (patch quality, disturbance regime) is a diversity-maintaining force, echoing the environmental heterogeneity theme from Parts I-II"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Part IV recap",
+    "title": "Metacommunities: the four paradigms",
+    "left": {
+      "h": "Patch dynamics & species sorting",
+      "body": "<ul><li><b>Patch dynamics:</b> identical patches, coexistence via colonization-competition tradeoffs and disturbance</li><li><b>Species sorting:</b> patches differ in environment; local communities track environmental gradients, dispersal is moderate</li></ul>"
+    },
+    "right": {
+      "h": "Mass effects & neutral",
+      "body": "<ul><li><b>Mass effects:</b> high dispersal allows source-sink dynamics; species persist in sink patches via immigration</li><li><b>Neutral:</b> all species are demographically equivalent; diversity maintained by dispersal limitation and drift alone (Hubbell)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part IV recap",
+    "title": "Neutral theory as the spatial synthesis' foil",
+    "items": [
+      "Hubbell's Unified Neutral Theory of Biodiversity and Biogeography assumes ecological equivalence among species at the same trophic level",
+      "Remarkably, neutral models reproduce species-area curves and species abundance distributions from Part I — a sobering lesson about pattern vs. process",
+      "The niche-vs-neutral debate is not resolved but productively reframed: both processes likely operate simultaneously, at different scales and for different traits",
+      "Metacommunity theory formally unifies the niche and neutral extremes along a dispersal-rate/environmental-heterogeneity axis"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART V  ·  L37–40  ·  CH. 15–16",
+    "title": "Species in Changing Environments",
+    "sub": "Time as the final axis: fluctuation-dependent coexistence and evolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Part V recap",
+    "title": "Temporal variability and fluctuation-dependent coexistence",
+    "items": [
+      "Environments vary in time (weather, resource pulses, disturbance) just as they vary in space — temporal heterogeneity is diversity-maintaining by the same logic as spatial heterogeneity",
+      "Revisit the storage effect (Part II) as the general theory of fluctuation-dependent coexistence: species must differ in their responses to environmental fluctuations AND buffer bad years",
+      "Relative nonlinearity of competition: species differ in the shape (not just level) of their response to resource fluctuation, generating coexistence",
+      "Intermediate disturbance hypothesis revisited with more rigor: disturbance regime interacts with successional trait differences to maintain diversity"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Part V recap",
+    "title": "Closing the loop between ecology and evolution",
+    "term": "Eco-evolutionary dynamics",
+    "def": "Feedback loops in which ecological interactions (competition, predation) drive evolutionary change over observable timescales, and that evolutionary change feeds back to alter ecological dynamics.",
+    "bullets": [
+      "Character displacement: competition drives trait divergence, which then reduces competition (a stabilizing eco-evo feedback)",
+      "Rapid evolution (e.g., guppies, Darwin's finches, Daphnia-parasite systems) can occur fast enough to matter for contemporary community dynamics",
+      "Coevolution across the network — not just pairwise — reshapes interaction strengths community-wide over time",
+      "This closes the loop back to Part II's predator-prey coevolution, now formalized as a general community-evolution feedback"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Part V closing thought",
+    "quote": "Ecology and evolution are not sequential processes on different timescales — they are simultaneous, intertwined feedbacks operating on the same communities we have been studying all semester.",
+    "attrib": "Synthesis of Ch. 16, after Hairston et al. 2005 and Schoener 2011"
+  },
+  {
+    "type": "section",
+    "tag": "APPLIED ECOLOGY  ·  L41–42",
+    "title": "Theory Into Practice",
+    "sub": "Restoration, invasion, climate change, and conservation planning"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied ecology recap",
+    "title": "Where theory meets management",
+    "items": [
+      "Restoration ecology applies assembly theory (Part III) directly: which species, in what order, given filtering and priority effects, rebuild a functioning community?",
+      "Invasive species are a natural experiment in competition, enemy release, and network integration (or disruption) — apparent competition and cascades reappear as management problems",
+      "Climate change shifts species ranges asynchronously, disrupting coevolved interactions and metacommunity dynamics (Part IV) — phenological mismatch as an eco-evolutionary (Part V) problem in real time",
+      "Conservation planning uses SAR/island biogeography (Part I) directly: reserve size, connectivity, and corridors are metapopulation/metacommunity design problems (Part IV)",
+      "Applied ecology is not a separate topic — it is every theoretical tool in this course, redeployed under real-world constraints and urgency"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Applied ecology recap",
+    "title": "Two case studies as worked syntheses",
+    "left": {
+      "h": "Invasive species",
+      "body": "<ul><li>Enemy release hypothesis (competition/predation, Part II)</li><li>Network disruption and rewiring (Part III)</li><li>Spread as a spatial colonization process (Part IV)</li><li>Rapid evolution of invaders and native responses (Part V)</li></ul>"
+    },
+    "right": {
+      "h": "Reserve design",
+      "body": "<ul><li>SLOSS debate rooted in SAR theory (Part I)</li><li>Corridors as dispersal conduits (metacommunity theory, Part IV)</li><li>Maintaining trophic cascades and keystone species within reserves (Part III)</li><li>Climate-adaptive planning requires eco-evolutionary foresight (Part V)</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Cross-Cutting Themes",
+    "sub": "The ideas that appeared again and again, in different costumes"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 1",
+    "title": "Deterministic/niche-based vs. stochastic/neutral processes",
+    "items": [
+      "This tension ran through nearly every Part: competitive exclusion vs. drift, environmental filtering vs. dispersal limitation, coevolved structure vs. random network assembly",
+      "Neutral theory (Part IV) is the sharpest formal statement of the stochastic pole; modern coexistence theory (Part II) is the sharpest formal statement of the niche pole",
+      "The current consensus is pluralistic: both operate, their relative importance shifting with spatial scale, taxon, and disturbance regime",
+      "Exam tip: when asked 'is this pattern niche-driven or neutral?', the correct answer is almost always 'here's how you would test it' — not a binary claim"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 2",
+    "title": "Scale-dependence",
+    "items": [
+      "Diversity-stability relationships flip sign depending on whether you measure population-level or aggregate ecosystem-level stability (Part I)",
+      "Competitive exclusion applies locally but fugitive coexistence and metacommunity paradigms operate regionally (Parts II & IV)",
+      "Phylogenetic clustering vs. overdispersion signals can reverse across spatial grain (Part III)",
+      "A pattern that looks like 'the answer' at one scale is often just one slice of a scale-dependent process — always state the scale of your claim"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 3",
+    "title": "Environmental heterogeneity — in space AND time — as a diversity-maintaining force",
+    "items": [
+      "Spatial heterogeneity: patchy environments, species sorting, competition-colonization tradeoffs (Part IV)",
+      "Temporal heterogeneity: the storage effect, relative nonlinearity, intermediate disturbance (Parts II & V)",
+      "These are mathematically parallel mechanisms — both require species to differ in their responses to a fluctuating factor and to 'store' the benefit of good conditions",
+      "This is arguably the single most unifying mechanistic idea in the entire course"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theme 4",
+    "title": "Feedback loops at every level",
+    "items": [
+      "Population level: density dependence is a feedback of abundance on itself (Part II)",
+      "Interaction level: character displacement is a feedback of competition on trait evolution, which feeds back on competition (Parts II & V)",
+      "Network level: species loss reshapes network structure, which reshapes vulnerability to further loss (Part III)",
+      "Community-ecosystem level: diversity affects function, function affects environment, environment affects diversity (Part I ↔ Part V)",
+      "Community ecology is fundamentally a science of feedback, not one-way causation"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The whole course in one table",
+    "title": "Five Parts, one integrated field",
+    "headers": [
+      "Part",
+      "Chapters",
+      "Core Question",
+      "Key Mechanism(s)"
+    ],
+    "rows": [
+      [
+        "I. The Big Picture",
+        "1–3",
+        "What patterns of diversity need explaining?",
+        "SAR, island biogeography, BEF, diversity-stability"
+      ],
+      [
+        "II. The Nitty-Gritty",
+        "4–9",
+        "How do pairwise interactions permit coexistence?",
+        "Density dependence, coexistence theory, storage effect"
+      ],
+      [
+        "III. Putting the Pieces Together",
+        "10–12",
+        "How do pairs combine into networks and communities?",
+        "Food webs, trophic cascades, trait/phylogenetic assembly"
+      ],
+      [
+        "IV. Spatial Ecology",
+        "13–14",
+        "How does space create/maintain diversity?",
+        "Competition-colonization tradeoff, metacommunity paradigms"
+      ],
+      [
+        "V. Changing Environments",
+        "15–16",
+        "How does time, including evolutionary time, matter?",
+        "Fluctuation-dependent coexistence, eco-evolutionary feedback"
+      ],
+      [
+        "Applied Ecology",
+        "—",
+        "How is theory used to solve real problems?",
+        "Restoration, invasion biology, climate adaptation, reserve design"
+      ]
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Course arc",
+    "title": "The semester in five moves",
+    "items": [
+      {
+        "y": "Part I",
+        "t": "Establish the patterns: diversity gradients, SAR, BEF"
+      },
+      {
+        "y": "Part II",
+        "t": "Build the pairwise mechanisms: density dependence, predation, competition, coexistence"
+      },
+      {
+        "y": "Part III",
+        "t": "Scale up to networks, food webs, and assembly rules"
+      },
+      {
+        "y": "Part IV",
+        "t": "Add space: patches and metacommunity paradigms"
+      },
+      {
+        "y": "Part V",
+        "t": "Add time and evolution: fluctuation-dependent coexistence, eco-evo feedback"
+      },
+      {
+        "y": "Applied",
+        "t": "Deploy theory: restoration, invasion, climate change, conservation"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CH. 17",
+    "title": "Mittelbach & McGill's Concluding Remarks",
+    "sub": "Where the textbook itself lands, and what it leaves open"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ch. 17 theme 1",
+    "title": "A history of pluralism, not one grand unified theory",
+    "items": [
+      "Community ecology has never converged on a single dominant paradigm the way, say, population genetics converged on the modern synthesis",
+      "Multiple frameworks coexist and are all 'true' in different domains: niche theory, neutral theory, metacommunity theory, network theory, coexistence theory",
+      "Mittelbach & McGill argue this pluralism is not a failure of the field but a reflection of genuinely multi-causal, context-dependent ecological reality",
+      "The job of a community ecologist is not to pick the one correct theory, but to know which tool fits which system and question"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ch. 17 theme 2",
+    "title": "Open questions the field has not resolved",
+    "items": [
+      "How general are coexistence mechanisms across taxa and biomes — do plant results transfer to animals, microbes?",
+      "What is the relative quantitative importance of niche vs. neutral processes in real assemblages, not just which can in principle occur?",
+      "Can we predict, not just explain post hoc, how communities will reassemble under rapid global change?",
+      "How do we scale from well-studied pairwise/small-network experiments to whole, hyperdiverse natural communities?"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Ch. 17 theme 3",
+    "title": "Promising future directions",
+    "cards": [
+      {
+        "h": "Trait-based ecology",
+        "p": "Moving from species identity to quantitative functional traits as the universal currency for comparing communities across systems."
+      },
+      {
+        "h": "Network science",
+        "p": "Borrowing tools from statistical physics and social network analysis to find general structural rules across food webs, mutualistic webs, and beyond."
+      },
+      {
+        "h": "Genomics & eco-evo integration",
+        "p": "Genomic tools now let us watch evolution happen in real communities, merging Part V's eco-evolutionary dynamics with mechanistic detail."
+      },
+      {
+        "h": "Big data & macroecology",
+        "p": "Remote sensing, citizen science, and global databases enable tests of community theory at continental-to-global scales once impossible."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Ch. 17 in the authors' words (paraphrased)",
+    "quote": "Community ecology's future lies not in discovering the one rule that governs all communities, but in mapping precisely when and where each of our many good rules applies.",
+    "attrib": "Synthesis of Mittelbach & McGill, Ch. 17"
+  },
+  {
+    "type": "section",
+    "tag": "COURSE CONNECTIONS",
+    "title": "How This Course Fits the Ecology Sequence",
+    "sub": "Principles → Population Ecology → Community Ecology"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Sibling courses",
+    "title": "Building outward across the sequence",
+    "left": {
+      "h": "Principles of Ecology (foundation)",
+      "body": "<ul><li>Gave you the vocabulary: populations, individuals, abiotic factors, basic energy flow</li><li>Introduced the levels-of-organization framework this course operationalized in depth</li><li>First exposure to the idea that ecology spans individual to biosphere scales</li></ul>"
+    },
+    "right": {
+      "h": "Population Ecology (single-species/pairwise foundation)",
+      "body": "<ul><li>Gave you the mathematical toolkit: exponential/logistic growth, density dependence, life tables, single- and two-species dynamics</li><li>Community Ecology built directly outward: Lotka-Volterra pairs → multispecies networks; single-population regulation → storage effect and metacommunities</li><li>Every model you built for one or two species in that course reappears here, embedded in a many-species context</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Sibling courses",
+    "title": "The sequence as one continuous argument",
+    "items": [
+      "Principles of Ecology: what are the players and levels of organization?",
+      "Population Ecology: how does a single population, or a pair of interacting populations, behave over time?",
+      "Community Ecology (this course): what happens when dozens to thousands of populations interact simultaneously, in space, and over evolutionary time?",
+      "If you go on to Ecosystem Ecology or Landscape Ecology, you will scale up again — from community structure to energy/nutrient flux and spatial mosaics",
+      "You now have the conceptual and quantitative vocabulary to read primary community ecology literature"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "EXAM PREPARATION",
+    "title": "Review Structure and Checklist",
+    "sub": "How to study efficiently across all five Parts"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exam prep",
+    "title": "Part-by-part checklist — can you...",
+    "items": [
+      "Part I: define a community, describe and explain the latitudinal diversity gradient, derive/interpret a species-area curve, state the diversity-stability debate's two positions and its resolution?",
+      "Part II: write the Lotka-Volterra competition and predator-prey equations, state the modern coexistence theory criterion (niche differences > fitness differences), explain the storage effect's three ingredients?",
+      "Part III: distinguish nestedness from modularity, explain a trophic cascade with a real example, distinguish environmental filtering from limiting similarity using phylogenetic signal?",
+      "Part IV: state the competition-colonization tradeoff logic, name and distinguish all four metacommunity paradigms, explain what neutral theory assumes and predicts?",
+      "Part V: explain fluctuation-dependent coexistence and relative nonlinearity, give an example of rapid/contemporary evolution altering community dynamics?",
+      "Applied: connect at least one management practice to at least one theoretical concept from each of the five Parts"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Exam prep",
+    "title": "Study strategy",
+    "left": {
+      "h": "Concept-first review",
+      "body": "<ul><li>Re-derive, don't just re-read, every core model (LV competition, LV predator-prey, patch occupancy)</li><li>For each concept, be able to state: the mechanism, the classic empirical test, and one limitation/critique</li><li>Practice explaining the niche-vs-neutral tension in your own words with a concrete example</li></ul>"
+    },
+    "right": {
+      "h": "Integration questions to expect",
+      "body": "<ul><li>'Trace how [a mechanism from Part II] reappears in Part IV or V' — practice these threads</li><li>'Given this dataset/pattern, which of the five Parts' frameworks would you apply, and why?'</li><li>Comparative essay questions across paradigms (e.g., species sorting vs. neutral) are common capstone formats</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exam prep",
+    "title": "Common pitfalls to avoid",
+    "items": [
+      "Treating niche and neutral theory as mutually exclusive rather than complementary hypotheses to be tested against data",
+      "Forgetting that scale (spatial grain/extent, temporal window) changes which mechanism dominates and which pattern you observe",
+      "Describing trophic cascades or keystone effects as universal rather than context-dependent on food web complexity",
+      "Confusing the storage effect's spatial and temporal versions, or omitting one of its three required ingredients",
+      "Forgetting that community assembly and network structure are two-way feedbacks, not a one-time filtering event"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CLOSING",
+    "title": "Where Community Ecology Goes From Here",
+    "sub": "For those of you continuing in ecology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking forward",
+    "title": "If you continue in ecology",
+    "items": [
+      "Global change ecology needs community-level thinking: climate, land use, and invasion all act on interacting assemblages, not isolated species",
+      "Methodological frontiers — environmental DNA, remote sensing, network inference, and genomics — are making previously untestable community hypotheses testable now",
+      "Community ecology increasingly informs applied fields: restoration, biosecurity, agroecology, and conservation planning all draw directly on the frameworks from this course",
+      "The unresolved pluralism you learned about today is not a weakness to memorize past — it is the frontier where new research careers begin",
+      "Whatever direction you take — bench, field, or computational — you now have a shared conceptual language with the entire discipline"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Parting toolkit",
+    "title": "Three questions to carry forward",
+    "cards": [
+      {
+        "h": "What maintains this diversity?",
+        "p": "Always ask which stabilizing and equalizing mechanisms, across space and time, could be operating."
+      },
+      {
+        "h": "At what scale does this claim hold?",
+        "p": "Every community pattern and mechanism is scale-dependent — state your scale before you generalize."
+      },
+      {
+        "h": "Niche, neutral, or both?",
+        "p": "Resist false dichotomies; design tests that can distinguish, weight, or combine explanatory frameworks."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Final word",
+    "quote": "A community is not a list of species — it is a web of ongoing negotiations, played out across space and time, that we are only ever partway through understanding. Thank you for spending a semester learning to read that story.",
+    "attrib": "Course closing, BIOL 4XX Community Ecology"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 45</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

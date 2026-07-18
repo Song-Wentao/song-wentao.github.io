@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 24: Interspecific Competition I: Gause's Principle and Competitive Exclusion</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 24",
+    "title": "Interspecific Competition I: Gause's Principle and the Competitive Exclusion Principle",
+    "sub": "Opening Chapter 7 — how species interact when they compete for the same limiting resources",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 7 — Interspecific Competition"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1 OF 5",
+    "title": "From One Species to Many",
+    "sub": "Closing out single-species dynamics, opening the study of species interactions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Course Roadmap",
+    "title": "Where We've Been, Where We're Going",
+    "items": [
+      "<b>Part 1 (Lectures 1-23):</b> modeled populations of a single species in isolation — growth, regulation, age structure, metapopulations, life history strategy",
+      "That approach is a deliberate simplification: real populations never exist alone",
+      "<b>Part 2 (Lectures 24 onward):</b> populations embedded in a web of interacting species",
+      "We begin with <b>interspecific competition</b> — one of the most intensively studied interactions in ecology, and historically foundational to the whole discipline",
+      "Later units extend this framework to mutualism, host-parasite dynamics, predator-prey cycles, and plant-herbivore interactions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Start Here",
+    "title": "Competition as the Gateway Interaction",
+    "items": [
+      "Interspecific competition connects directly back to concepts you already know: carrying capacity, resource limitation, and intraspecific competition (Lecture 9)",
+      "The mathematical tools (Lecture 25's Lotka-Volterra competition model) are direct extensions of the logistic model (Lecture 7)",
+      "Early 20th-century ecology largely developed as a debate about whether — and how — competing species could coexist",
+      "That debate produced some of ecology's most famous experiments and its first rigorous theoretical predictions",
+      "Understanding competition sets up nearly everything that follows: niche theory, community assembly, and biodiversity patterns"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definition",
+    "title": "What Is Interspecific Competition?",
+    "term": "Interspecific Competition",
+    "def": "A negative reciprocal interaction between individuals of two or more different species, arising because they use a shared resource that is in limited supply.",
+    "bullets": [
+      "<b>Negative:</b> both species suffer reduced growth, survival, or reproduction as a result",
+      "<b>Reciprocal:</b> each species affects the other (though not necessarily equally — asymmetric competition is common)",
+      "<b>Shared, limiting resource:</b> food, water, light, nesting sites, space — anything in short supply relative to demand",
+      "Distinguished from predation (one species consumes another directly) and from amensalism (one-sided harm)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Setting the Stage",
+    "title": "The Central Question of This Unit",
+    "items": [
+      "If two species compete for the same limiting resource, what happens to their populations over time?",
+      "Can they settle into a stable coexistence, each maintaining a population indefinitely?",
+      "Or does one species inevitably drive the other toward local extinction?",
+      "The answer, developed across Lectures 24-27, turns out to depend critically on <b>how similar</b> the two species' resource use really is",
+      "Today we build the conceptual and historical foundation; later lectures formalize it mathematically"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Terminology Check",
+    "title": "Competition vs. Other Species Interactions",
+    "items": [
+      "Ecologists classify pairwise species interactions by the sign of their effect on each partner: (-,-), (+,+), (+,-), (0,-), etc.",
+      "<b>Competition</b> is a (-,-) interaction: both species are harmed",
+      "<b>Predation and parasitism</b> are (+,-): one benefits, one is harmed — covered in later units",
+      "<b>Mutualism</b> is (+,+): both benefit — covered in Chapter 8",
+      "Keeping this sign convention in mind will help distinguish competition from superficially similar interactions later in the course"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2 OF 5",
+    "title": "Two Mechanisms of Competition",
+    "sub": "Extending intraspecific competition (Lecture 9) to interactions between species"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "From Lecture 9: Two Mechanisms, One Framework",
+    "items": [
+      "Lecture 9 distinguished <b>exploitation</b> and <b>interference</b> competition within a single species",
+      "The same two mechanisms operate — often simultaneously — between different species",
+      "The distinction matters because it determines <i>how</i> competition is expressed: through resource depletion, or through direct confrontation",
+      "Both mechanisms reduce fitness in competing individuals, but the pathway to that reduction differs"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism 1",
+    "title": "Exploitation Competition",
+    "term": "Exploitation (Scramble) Competition",
+    "def": "An indirect form of competition in which species reduce each other's success solely by consuming or depleting a shared resource — individuals never interact directly.",
+    "bullets": [
+      "Also called <b>scramble competition</b> or <b>resource competition</b>",
+      "Mediated entirely through the resource: species A depletes resource X, leaving less for species B",
+      "No direct behavioral interaction is required — competitors may never even encounter one another",
+      "Classic examples: two herbivore species grazing the same plant community; filter-feeders competing for suspended plankton",
+      "This is the mechanism formalized later by resource-based (R*) competition theory (Lecture 26)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism 2",
+    "title": "Interference Competition",
+    "term": "Interference Competition",
+    "def": "A direct form of competition in which individuals of one species actively prevent individuals of another species from accessing a resource, independent of resource depletion.",
+    "bullets": [
+      "Mediated through direct behavioral or physiological confrontation, not just resource depletion",
+      "<b>Aggression and territoriality:</b> physically excluding a competitor from space or resources",
+      "<b>Allelopathy:</b> chemical suppression — plants and microbes releasing toxins that inhibit competitors (e.g., Juglans/black walnut, many phytoplankton)",
+      "<b>Interspecific aggression</b> in animals: chasing, fighting, or displacing a heterospecific from a foraging territory",
+      "Effects can occur even when resources are abundant — the harm comes from the interaction itself"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Side by Side",
+    "title": "Exploitation vs. Interference Competition",
+    "headers": [
+      "Feature",
+      "Exploitation Competition",
+      "Interference Competition"
+    ],
+    "rows": [
+      [
+        "Mechanism",
+        "Indirect — via shared resource depletion",
+        "Direct — via behavior or chemistry"
+      ],
+      [
+        "Contact required?",
+        "No — competitors may never meet",
+        "Often yes — direct confrontation or chemical contact"
+      ],
+      [
+        "Example mechanisms",
+        "Consuming the same food, water, or light",
+        "Territoriality, aggression, allelopathy"
+      ],
+      [
+        "Effect when resource is abundant",
+        "Minimal — competition scales with scarcity",
+        "Can still occur even if resource is abundant"
+      ],
+      [
+        "Theoretical framework",
+        "Resource competition theory / R* (Lecture 26)",
+        "Behavioral & chemical ecology models"
+      ],
+      [
+        "Classic example",
+        "Paramecium species competing for bacteria",
+        "Chthamalus barnacles excluded from low zone by Balanus"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Nuance",
+    "title": "In Practice, the Two Overlap",
+    "items": [
+      "Most natural competitive interactions involve <b>both</b> mechanisms to varying degrees",
+      "Barnacle zonation (previewed later this lecture) is driven by interference — but the underlying stakes are exploitative access to substrate and food",
+      "Plant communities often combine allelopathic interference with straightforward resource (light, nutrient, water) exploitation",
+      "The distinction is conceptually useful, but field ecologists usually need to tease the two apart experimentally",
+      "Gause's experiments, up next, focus on exploitation competition — species sharing a single depletable food source in a closed culture"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Asymmetry",
+    "title": "Competition Is Rarely Symmetric",
+    "items": [
+      "Textbook definitions describe competition as reciprocal, but the <i>magnitude</i> of harm is often very unequal between the two species",
+      "One species may be only mildly affected while the other suffers severe declines — as in Gause's aurelia/caudatum result",
+      "Asymmetric competition is the norm in nature, not the exception; perfectly symmetric competition is a simplifying assumption used mainly in early models",
+      "The degree of asymmetry often reflects underlying differences in resource-use efficiency, body size, or life history",
+      "This matters directly for predicting outcomes — the more asymmetric the competition, the faster and more predictable the exclusion"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3 OF 5",
+    "title": "Gause's Experiments",
+    "sub": "The classic 1934 protozoan cultures that gave the field its founding data"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Scientist",
+    "title": "G. F. Gause, 1934",
+    "items": [
+      "Georgii Frantsevich Gause, a Russian ecologist, conducted a landmark series of laboratory experiments using <i>Paramecium</i> protozoan cultures",
+      "Published in <i>The Struggle for Existence</i> (1934) — among the most influential empirical works in ecology's history",
+      "Gause's approach: grow single species alone to establish baseline logistic growth, then grow pairs of species together in the same culture medium",
+      "Cultures were fed a constant, limited supply of bacteria — a single shared, depletable resource",
+      "The experimental design isolated exploitation competition in a simplified, controlled system"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Experiment 1",
+    "title": "Paramecium aurelia vs. P. caudatum",
+    "cards": [
+      {
+        "h": "Setup",
+        "p": "Two closely related species grown together in the same tube, competing for the same bacterial food supply."
+      },
+      {
+        "h": "Grown alone",
+        "p": "Each species independently follows a logistic growth curve, reaching its own stable carrying capacity."
+      },
+      {
+        "h": "Grown together",
+        "p": "P. aurelia consistently increases while P. caudatum declines toward local extinction in the culture."
+      },
+      {
+        "h": "Outcome",
+        "p": "Coexistence never occurs — one species always wins. The result is repeatable across trials."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Experiment 1",
+    "title": "Why Did P. aurelia Win?",
+    "items": [
+      "Both species used the <b>same</b> limiting resource (the same bacterial food) in the <b>same</b> way — essentially identical niches",
+      "P. aurelia had a modest demographic edge (faster population growth rate on the shared food), sufficient to tip the outcome decisively over time",
+      "Because their resource use was identical, there was no way for P. caudatum to escape the competitive pressure",
+      "This is the experimental signature of <b>complete niche overlap</b>: exclusion is the only possible long-term outcome",
+      "Gause's result matched a theoretical prediction made independently just a few years earlier — more on that shortly"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Experiment 2",
+    "title": "P. caudatum vs. P. bursaria",
+    "cards": [
+      {
+        "h": "Setup",
+        "p": "Same basic design — two species sharing a culture tube and nominally the same bacterial food supply."
+      },
+      {
+        "h": "Key difference",
+        "p": "P. bursaria tends to feed in different parts of the tube (settling near the bottom/sides) and can also host symbiotic algae as a supplemental resource."
+      },
+      {
+        "h": "Grown together",
+        "p": "Both species persist — population sizes stabilize at levels lower than when grown alone, but neither is excluded."
+      },
+      {
+        "h": "Outcome",
+        "p": "Stable coexistence is possible when the two species differ enough in resource use or spatial niche."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Experiment 2",
+    "title": "Why Could They Coexist?",
+    "items": [
+      "P. caudatum and P. bursaria did not use resources in an identical way — some degree of niche differentiation existed between them",
+      "Spatial partitioning within the tube reduced the intensity of direct resource overlap",
+      "Each species experienced <i>less</i> competition from the other than it would from a conspecific — the essential condition for coexistence, formalized later in Lecture 27",
+      "This single contrast — Experiment 1 vs. Experiment 2 — is the empirical seed of nearly all subsequent coexistence theory",
+      "Gause himself recognized the general pattern and stated it as a principle"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method Matters",
+    "title": "Why Laboratory Microcosms Were the Right First Step",
+    "items": [
+      "Protozoan cultures grow fast (generation times of hours), allowing many generations to be observed within weeks — impossible with most field organisms",
+      "Culture conditions (food supply, temperature, volume) can be tightly controlled, isolating the variable of interest: interspecific resource overlap",
+      "This simplicity is also the key limitation — Gause's tubes lack the spatial complexity, multiple resources, and environmental fluctuation of real habitats",
+      "The trade-off between experimental control and realism recurs throughout ecology, and will resurface when we discuss field tests of these ideas",
+      "Later researchers (e.g., Thomas Park, using flour beetles) extended Gause's approach to other taxa with generally consistent results"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Gause's Two Outcomes",
+    "title": "Comparing Gause's Two Paramecium Experiments",
+    "headers": [
+      "Feature",
+      "P. aurelia vs. P. caudatum",
+      "P. caudatum vs. P. bursaria"
+    ],
+    "rows": [
+      [
+        "Resource use",
+        "Identical — same bacterial food, same feeding zone",
+        "Differentiated — spatial and dietary differences"
+      ],
+      [
+        "Niche overlap",
+        "Complete",
+        "Partial"
+      ],
+      [
+        "Outcome together",
+        "P. caudatum excluded",
+        "Both persist at reduced densities"
+      ],
+      [
+        "Population trend",
+        "One species rises, the other falls to zero",
+        "Both stabilize below their solo carrying capacities"
+      ],
+      [
+        "General lesson",
+        "Complete competitors cannot coexist",
+        "Sufficient niche difference permits coexistence"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Gause's Conclusion",
+    "quote": "As a result of competition two similar species scarcely ever occupy similar niches, but displace each other in such a manner that each takes possession of certain peculiar kinds of food and modes of life in which it has an advantage over its competitor.",
+    "attrib": "G. F. Gause, The Struggle for Existence (1934)"
+  },
+  {
+    "type": "section",
+    "tag": "PART 4 OF 5",
+    "title": "The Competitive Exclusion Principle",
+    "sub": "From two experiments to a general rule about coexistence"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Principle",
+    "title": "Competitive Exclusion Principle",
+    "term": "Competitive Exclusion Principle (Gause's Principle)",
+    "def": "Two species that compete for exactly the same limiting resource, in the same way, cannot coexist indefinitely in a stable environment — one species will always eventually exclude the other.",
+    "bullets": [
+      "Also called the <b>Volterra-Gause Principle</b>, reflecting its dual mathematical and experimental origins",
+      "Sometimes stated informally as: <i>\"complete competitors cannot coexist\"</i>",
+      "Applies strictly when niches fully overlap — identical resource requirements, identical resource use patterns",
+      "The principle is an idealization: real species rarely have perfectly identical niches, which is precisely why coexistence is so commonly observed in nature"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Roots",
+    "title": "Theory Before Experiment: Volterra and Lotka",
+    "items": [
+      {
+        "y": "1925-1926",
+        "t": "Alfred Lotka and Vito Volterra independently derive coupled differential equations for two competing species, extending the logistic model."
+      },
+      {
+        "y": "1926",
+        "t": "Volterra's mathematical analysis predicts that two species competing for an identical resource cannot stably coexist — one must go extinct."
+      },
+      {
+        "y": "1932-1934",
+        "t": "Gause designs Paramecium experiments explicitly to test the Lotka-Volterra prediction empirically."
+      },
+      {
+        "y": "1934",
+        "t": "Gause publishes The Struggle for Existence — his results confirm the theoretical prediction and add the crucial niche-differentiation nuance."
+      },
+      {
+        "y": "1960",
+        "t": "Garrett Hardin popularizes the principle as \"complete competitors cannot coexist,\" cementing its place in ecological theory."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Historical Sidebar",
+    "title": "Volterra's Unlikely Starting Point",
+    "items": [
+      "Volterra was a physicist and mathematician, not a biologist — he was drawn into ecology by his son-in-law, marine biologist Umberto D'Ancona",
+      "D'Ancona had noticed that predatory fish catches in the Adriatic Sea rose sharply during World War I, when fishing pressure dropped — a puzzle Volterra set out to explain mathematically",
+      "That work produced the predator-prey equations (covered later in the course) and, as a natural extension, the analogous two-species competition equations",
+      "Lotka arrived at essentially the same competition equations independently, working from physical chemistry and general population dynamics rather than fisheries data",
+      "This convergent, cross-disciplinary origin is why the model is often called the <b>Lotka-Volterra</b> framework rather than being credited to either alone"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Theory Meets Experiment",
+    "title": "Why This Convergence Mattered",
+    "items": [
+      "Volterra's mathematics (developed for very different reasons — inspired by fisheries data) predicted exclusion <b>before</b> anyone had tested it experimentally",
+      "Gause's cultures gave that abstract prediction a concrete, reproducible biological demonstration",
+      "This alignment of independent theory and controlled experiment gave the Competitive Exclusion Principle unusual authority for a field still establishing its scientific credibility in the 1930s",
+      "It also set the pattern for how population ecology would develop from here forward: verbal/experimental insight paired with formal mathematical models",
+      "Lecture 25 builds the Lotka-Volterra competition model in full — the equations Volterra derived and Gause's data confirmed"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Paradox",
+    "title": "The Paradox of Coexistence",
+    "items": [
+      "If complete competitors cannot coexist, why does nature contain so many similar species living side by side?",
+      "Forests hold dozens of tree species competing for the same light and soil nutrients; plankton communities can contain hundreds of species competing for a handful of resources",
+      "This apparent contradiction between theoretical prediction and observed diversity became one of ecology's most productive open questions",
+      "The resolution, previewed here and developed fully in Lecture 27, lies in recognizing that species rarely compete for <i>exactly</i> the same resource in <i>exactly</i> the same way"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Resolution",
+    "title": "The Niche as the Key to Coexistence",
+    "term": "Ecological Niche (preview)",
+    "def": "The full set of resources and conditions a species uses and requires to persist — its 'role' or resource-use profile within the community.",
+    "bullets": [
+      "Gause's P. caudatum/P. bursaria result already hinted at this: sufficient niche <i>difference</i> permits coexistence",
+      "If two species differ enough in resource use, each limits itself (via intraspecific competition) more than it limits the other — this is the formal coexistence condition derived in Lecture 27",
+      "The degree of niche overlap, not mere co-occurrence, is what determines competitive outcome",
+      "This reframes the exclusion principle: it is not that competition prevents diversity — it is that competition <i>selects for</i> niche differentiation among coexisting species",
+      "Full development of niche theory and coexistence mechanisms is the capstone of this unit (Lecture 27)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Precision",
+    "title": "What the Principle Does and Doesn't Claim",
+    "items": [
+      "The principle applies specifically to species limited by the <i>same</i> resource in the <i>same</i> way — not to species that merely co-occur or interact loosely",
+      "It describes an <b>equilibrium</b> outcome — the long-term result if conditions remain constant long enough for competitive dynamics to play out fully",
+      "It does <i>not</i> predict which species wins in advance — only that stable coexistence under complete overlap is not possible",
+      "It says nothing about the <i>speed</i> of exclusion — this can range from a few generations (Gause's protozoa) to a scale that may exceed the lifespan of a stable environment",
+      "Precision about these limits prevents common misapplications of the principle to systems where overlap is only partial"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5 OF 5",
+    "title": "Testing Exclusion in Nature",
+    "sub": "Field evidence, complications, and the limits of a laboratory-derived principle"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Preview Concept",
+    "title": "Fundamental vs. Realized Niche",
+    "term": "Fundamental Niche vs. Realized Niche",
+    "def": "The fundamental niche is the full range of conditions and resources a species could use in the absence of competitors; the realized niche is the narrower range it actually occupies once competition is accounted for.",
+    "bullets": [
+      "Chthamalus's fundamental niche includes the entire intertidal zone; its realized niche is restricted to the upper zone because Balanus excludes it from the lower zone",
+      "This distinction gives precise language for what 'competitive exclusion' does to a species' distribution: it shrinks the realized niche relative to the fundamental niche",
+      "The gap between fundamental and realized niche is, in effect, a direct measure of the strength of competitive exclusion in a given system",
+      "This concept will be central to Lecture 27's full treatment of niche differentiation and coexistence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the Lab",
+    "title": "Does Exclusion Happen in the Field?",
+    "items": [
+      "Gause's results came from simplified, closed laboratory cultures — a single resource, constant conditions, no immigration",
+      "Natural communities are messier: multiple resources, fluctuating environments, spatial heterogeneity, and species arriving from outside the local patch",
+      "Ecologists have sought field examples where exclusion can be directly observed or experimentally demonstrated, and cases where it appears not to occur",
+      "Both kinds of evidence are informative — apparent failures of exclusion often reveal hidden niche differences or non-equilibrium dynamics"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Field Example — Preview",
+    "title": "Connell's Barnacles: Chthamalus and Balanus",
+    "cards": [
+      {
+        "h": "The setup",
+        "p": "Two barnacle species occupy overlapping but distinct zones on rocky Scottish shores: Chthamalus stellatus higher, Balanus balanoides lower."
+      },
+      {
+        "h": "The experiment",
+        "p": "Joseph Connell (1961) removed Balanus from the lower zone and found Chthamalus larvae could settle and survive there too."
+      },
+      {
+        "h": "The mechanism",
+        "p": "Balanus physically outcompetes (interference: smothering/undercutting) Chthamalus in the lower, wetter zone — a directly observed case of exclusion."
+      },
+      {
+        "h": "The twist",
+        "p": "Chthamalus persists in the upper zone not because it prefers it, but because it tolerates desiccation better than Balanus — a physiological refuge from competition."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Barnacles Matter Here",
+    "title": "A Field Demonstration of Exclusion — and Its Escape",
+    "items": [
+      "Connell's experiment is a rare case where competitive exclusion was demonstrated directly in the field, not just inferred",
+      "It illustrates <b>interference</b> competition (physical crowding out) determining a species' realized distribution",
+      "It also shows how a species can persist despite being competitively inferior: by occupying a zone where the superior competitor cannot survive",
+      "This previews a recurring theme: coexistence is often maintained by trade-offs (here, competitive ability vs. stress tolerance) rather than by resource partitioning alone",
+      "We will return to this study in more depth when the unit covers interference-driven exclusion and habitat segregation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "When Exclusion Seems to Fail",
+    "title": "The Paradox of the Plankton (Preview)",
+    "items": [
+      "G. E. Hutchinson (1961) posed a famous puzzle: dozens of phytoplankton species coexist in relatively uniform, well-mixed open water, all apparently competing for the same handful of limiting nutrients and light",
+      "Under strict competitive exclusion logic, this diversity should collapse to a small number of winners — yet it persists",
+      "Proposed resolutions include: fine-scale niche differences invisible to the observer, non-equilibrium dynamics (the system never reaches the theoretical endpoint), temporal fluctuation in which species has the advantage, and predation/grazing that prevents any one competitor from dominating",
+      "The paradox illustrates that competitive exclusion is not automatic or instantaneous — the <i>rate</i> at which it happens, and whether the environment stays constant long enough for it to complete, both matter",
+      "This is a recurring caution for the rest of the unit: exclusion is a prediction about long-term equilibrium, not a guarantee about any particular snapshot in time"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "More Field Evidence",
+    "title": "Other Documented Cases of Competitive Exclusion",
+    "cards": [
+      {
+        "h": "Red vs. grey squirrel (UK)",
+        "p": "Introduced eastern grey squirrels have displaced native red squirrels across most of Britain via exploitation competition for shared mast/nut resources, compounded by disease."
+      },
+      {
+        "h": "Darwin's finches (Galapagos)",
+        "p": "Peter and Rosemary Grant documented character displacement in beak size on islands where competing finch species co-occur, consistent with competition shaping resource use."
+      },
+      {
+        "h": "Ant community turnover",
+        "p": "Removal experiments in ant communities repeatedly show competitively dominant species expanding into vacated territory when a competitor is removed."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method",
+    "title": "How Ecologists Test for Competition in the Field",
+    "items": [
+      "<b>Removal/addition experiments:</b> remove one species from a plot (as Connell did with Balanus) and observe whether the other expands into the vacated space or resource — the gold standard for demonstrating exclusion",
+      "<b>Natural experiments:</b> compare sites where a competitor is present vs. naturally absent (e.g., islands with and without a given species)",
+      "<b>Correlational surveys:</b> look for negative co-occurrence patterns across many sites — suggestive but not conclusive on their own, since habitat preference can produce the same pattern",
+      "<b>Character displacement:</b> look for morphological or resource-use divergence in sympatry (where species co-occur) compared to allopatry (where they don't) — indirect evidence competition has shaped niches over evolutionary time",
+      "Robust conclusions typically require converging evidence from more than one of these approaches"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Complications Summary",
+    "title": "Why Exclusion Is Not Always Observed",
+    "items": [
+      "<b>Fine-scale niche differentiation:</b> species may differ in ways too subtle for the observer to detect but sufficient for coexistence",
+      "<b>Non-equilibrium dynamics:</b> environments change faster than competitive exclusion can run to completion",
+      "<b>Spatial heterogeneity:</b> patchy environments allow inferior competitors to persist in refuges (as with Chthamalus)",
+      "<b>Disturbance and predation:</b> external mortality can prevent any one species from monopolizing the resource",
+      "These complications don't refute the Competitive Exclusion Principle — they define the conditions under which it does, and doesn't, run to completion"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Skills",
+    "title": "Common Misconceptions to Avoid",
+    "items": [
+      "Misconception: competitive exclusion means the losing species goes globally extinct — in reality, it is typically excluded only from the specific patch or resource zone in question",
+      "Misconception: any two species that eat similar food are 'complete competitors' — true complete competitors share every dimension of resource use, which is rare",
+      "Misconception: coexistence proves the exclusion principle is wrong — more often it reveals a niche difference the observer hasn't yet identified",
+      "Misconception: exclusion always happens quickly — the paradox of the plankton shows it can be arrested indefinitely by non-equilibrium conditions",
+      "Keep the principle's precise scope (identical resource use, constant environment, sufficient time) in mind heading into Lecture 25's formal model"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "Two Experiments, One Principle, Many Real-World Nuances",
+    "left": {
+      "h": "The Core Result",
+      "body": "Gause's cultures and Volterra's mathematics agree: complete competitors — species with identical resource use — cannot coexist indefinitely. One will always exclude the other given enough time in a constant environment."
+    },
+    "right": {
+      "h": "The Real-World Caveat",
+      "body": "Perfect niche overlap is rare in nature. Field systems show both direct exclusion (barnacles) and puzzling persistence of similar competitors (plankton) — pointing to niche differentiation, refuges, and non-equilibrium dynamics as the resolution."
+    },
+    "footnote": "Both halves of this picture will be formalized mathematically starting next lecture."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters",
+    "title": "Broader Significance of Competitive Exclusion",
+    "items": [
+      "The principle underlies major questions in conservation biology: why do invasive species so often displace natives with similar niches?",
+      "It informs community ecology's central puzzle of species diversity — how many similar species can a given set of resources support?",
+      "It shapes agricultural and pest-management thinking: introducing a species with overlapping resource use can be used deliberately to competitively exclude a pest",
+      "It connects to evolutionary biology through character displacement — competition is a selective force that can drive niche divergence over generations",
+      "Understanding when exclusion will or won't occur is thus practically important well beyond pure theory"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "UNIT ROADMAP",
+    "title": "The Interspecific Competition Unit (Ch. 7)",
+    "sub": "Four lectures, from foundational concepts to full coexistence theory"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Lectures 24-27",
+    "title": "Roadmap for This Unit",
+    "items": [
+      {
+        "y": "L24 (Today)",
+        "t": "Foundational concepts: exploitation vs. interference competition, Gause's experiments, and the Competitive Exclusion Principle."
+      },
+      {
+        "y": "L25",
+        "t": "The Lotka-Volterra competition model — the mathematical formalization of these ideas, isoclines, and the four possible qualitative outcomes."
+      },
+      {
+        "y": "L26",
+        "t": "Resource competition theory — the R* concept, mechanistic models of exploitation competition for a shared resource."
+      },
+      {
+        "y": "L27",
+        "t": "Coexistence mechanisms and niche differentiation — resolving the paradox of coexistence; unit synthesis."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Vocabulary Check",
+    "title": "Terms You Should Now Be Able to Define",
+    "items": [
+      "Interspecific competition, exploitation competition, interference competition, allelopathy",
+      "Competitive Exclusion Principle (Gause's Principle / Volterra-Gause Principle)",
+      "Niche, fundamental niche, realized niche, niche overlap, niche differentiation",
+      "Character displacement, asymmetric competition, non-equilibrium dynamics",
+      "If any of these feel unfamiliar, revisit the relevant section before Lecture 25 — the mathematical model builds directly on this vocabulary"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Key Takeaways from Today",
+    "items": [
+      "Interspecific competition is a negative, reciprocal interaction between species over a shared limiting resource",
+      "Exploitation competition acts indirectly through resource depletion; interference competition acts directly through aggression, territoriality, or chemistry",
+      "Gause's 1934 Paramecium experiments showed exclusion is inevitable under complete niche overlap (aurelia/caudatum), but coexistence is possible with sufficient niche differentiation (caudatum/bursaria)",
+      "The Competitive Exclusion Principle (Gause's/Volterra-Gause Principle) formalizes this: complete competitors cannot coexist indefinitely",
+      "Volterra's mathematics predicted this outcome before Gause's experiments confirmed it — an early triumph of theory-experiment convergence in ecology",
+      "Field evidence is mixed: direct exclusion is observable (Connell's barnacles), but apparent coexistence of similar competitors (paradox of the plankton) shows exclusion isn't automatic or instantaneous",
+      "The niche concept — how species differ in resource use — is the key to resolving the paradox, and is the thread connecting the rest of this unit"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Next Lecture",
+    "title": "Preview: The Lotka-Volterra Competition Model",
+    "items": [
+      "Lecture 25 formalizes today's ideas mathematically, extending the logistic growth model (Lecture 7) to two interacting species",
+      "We introduce the <b>competition coefficients</b> (alpha, beta) that quantify how strongly each species suppresses the other relative to itself",
+      "Using <b>zero-growth isoclines</b>, we will derive all four possible qualitative outcomes of two-species competition — including stable coexistence and both directions of exclusion",
+      "This gives precise, testable conditions for exactly when the Competitive Exclusion Principle applies — and when it doesn't",
+      "Bring your logistic-model intuition from Lecture 7; today's biology becomes tomorrow's equations"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 24</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 3: Patterns of Biological Diversity I: Measuring Species Richness and Diversity</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 3",
+    "title": "Patterns of Biological Diversity I: Measuring Species Richness and Diversity",
+    "sub": "Counting and comparing biodiversity — richness, evenness, diversity indices, and the problem of unequal sampling",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 2 — Patterns of biological diversity"
+  },
+  {
+    "type": "section",
+    "tag": "PART I · THE BIG PICTURE",
+    "title": "From Chapter 1 to Chapter 2",
+    "sub": "Roots, succession, and assembly give way to the question: how do we measure diversity itself?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Where We Left Off in Lecture 2",
+    "items": [
+      "Lecture 2 traced community ecology's conceptual roots: Clements' superorganism vs. Gleason's individualistic continuum view",
+      "We examined <b>succession</b> — directional change in community composition following disturbance — as an early organizing framework",
+      "We introduced <b>community assembly</b>: the idea that dispersal, environmental filtering, and biotic interactions jointly determine which species co-occur",
+      "That discussion closed Chapter 1 and set up the field's central puzzle: communities are structured, but by what, and how do we describe that structure quantitatively?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Transition",
+    "title": "Opening Chapter 2: Patterns of Biological Diversity",
+    "items": [
+      "Chapter 2 begins <b>Part I — The Big Picture</b>, a four-lecture arc (L3–L6) describing the fundamental patterns community ecology seeks to explain",
+      "Before we can ask <b>why</b> diversity varies across space, time, or environmental gradients, we need rigorous, comparable ways to <b>measure</b> it",
+      "This lecture (L3) builds the quantitative toolkit: richness, diversity indices, evenness, rarefaction, and the alpha/beta/gamma framework",
+      "Lecture 4 will build on this toolkit to examine species abundance distributions and rank-abundance curves — the shape of diversity, not just its magnitude"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART A",
+    "title": "Why Measure Biodiversity?",
+    "sub": "Diversity metrics are the foundation for nearly every downstream question in community ecology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "Diversity Measurement Is Foundational",
+    "items": [
+      "Almost every major question in community ecology depends on first quantifying diversity: <b>What controls diversity?</b> <b>How does diversity relate to ecosystem function?</b> <b>How does diversity change across gradients?</b>",
+      "Without a standardized, comparable metric, we cannot test hypotheses about latitudinal gradients, productivity–diversity relationships, or disturbance effects",
+      "Diversity is also a practical currency: conservation prioritization, environmental impact assessment, and restoration success are all judged using diversity metrics",
+      "But 'diversity' is not a single number waiting to be counted — it is a constructed quantity, and how we construct it shapes what conclusions we can draw"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Why It Matters",
+    "title": "Four Reasons Diversity Metrics Anchor the Field",
+    "cards": [
+      {
+        "h": "Comparative Science",
+        "p": "Metrics let us compare communities across sites, times, and taxa using a common currency."
+      },
+      {
+        "h": "Theory Testing",
+        "p": "Diversity-productivity, diversity-stability, and diversity-area relationships all require a defensible diversity measure."
+      },
+      {
+        "h": "Applied Conservation",
+        "p": "Reserve design, monitoring, and restoration success are evaluated against diversity benchmarks."
+      },
+      {
+        "h": "Mechanistic Insight",
+        "p": "How diversity is partitioned (richness vs. evenness; alpha vs. beta) reveals different underlying processes."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Defining Biodiversity for Measurement Purposes",
+    "term": "Biological Diversity",
+    "def": "In the narrow, quantitative sense used throughout this chapter, biodiversity refers to the variety of species (or other taxonomic/functional units) in a defined area, incorporating both how many kinds are present and how their abundances are distributed.",
+    "bullets": [
+      "Note: 'biodiversity' in the broadest sense also includes genetic and ecosystem diversity — this course focuses on species-level diversity",
+      "Every diversity metric makes an implicit choice about what counts as a 'unit' (species, morphospecies, OTU, functional group)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART B",
+    "title": "Species Richness",
+    "sub": "The simplest diversity metric — and why simplicity has a cost"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Species Richness (S)",
+    "term": "Species Richness",
+    "def": "The total number of species present in a defined sample, community, or area — a simple count, denoted S.",
+    "bullets": [
+      "The most intuitive and widely reported diversity metric",
+      "Ignores abundance entirely: a species represented by one individual counts the same as a species represented by 10,000 individuals",
+      "Forms the 'S' component embedded in every more complex diversity index we will discuss today"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Species Richness",
+    "title": "The Appeal — and the Catch — of Simplicity",
+    "items": [
+      "Richness is easy to communicate: 'Site A has 42 tree species, Site B has 27' is immediately interpretable",
+      "But richness is <b>extremely sensitive to sampling effort</b>: more individuals sampled, more area surveyed, or more time spent searching will almost always reveal more species",
+      "This means raw richness counts from unequal sampling efforts are <b>not directly comparable</b> — a classic and consequential pitfall in community ecology",
+      "A small, intensively sampled plot can appear less diverse than a larger, poorly sampled one purely as a sampling artifact, not a biological difference"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Sampling Problem",
+    "title": "Why Raw Richness Comparisons Can Mislead",
+    "left": {
+      "h": "Scenario",
+      "body": "Ecologist A surveys 50 individuals at Site X and finds 12 species. Ecologist B surveys 500 individuals at Site Y and finds 30 species."
+    },
+    "right": {
+      "h": "The Trap",
+      "body": "It is tempting to conclude Site Y is more diverse. But Site Y's tenfold larger sample gives it far more opportunity to encounter rare species — the difference may be entirely a sampling artifact, not a real ecological difference."
+    },
+    "footnote": "This motivates both diversity indices that weight by abundance and rarefaction methods (covered later in this lecture)."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences",
+    "title": "Two Responses to the Sampling Problem",
+    "items": [
+      "<b>Response 1 — Incorporate abundance:</b> use diversity indices (Shannon, Simpson) that weight rare and common species differently, reducing sensitivity to whether every rare species was detected",
+      "<b>Response 2 — Standardize sampling effort:</b> use rarefaction and species accumulation curves to compare richness at equivalent sample sizes",
+      "Both responses appear later in this lecture — they are complementary, not competing, solutions",
+      "A third, more advanced response — nonparametric richness estimation — attempts to estimate the true, asymptotic richness beyond what was actually observed"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART C",
+    "title": "Diversity Indices",
+    "sub": "Combining richness and evenness into a single number"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond Richness",
+    "title": "Why We Need Diversity Indices",
+    "items": [
+      "A true <b>diversity index</b> combines two components: (1) species <b>richness</b> — how many species — and (2) species <b>evenness</b> — how equally abundance is distributed among them",
+      "Two communities can have identical richness (say, S = 5) but feel very differently 'diverse' depending on whether abundance is spread evenly or dominated by one species",
+      "The two most widely used indices in ecology are the <b>Shannon–Wiener index (H′)</b> and <b>Simpson's index (D)</b> — both are functions of the proportional abundances (pi) of each species",
+      "Both indices originated outside ecology (information theory and probability theory, respectively) but were adopted because they naturally weight abundance"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Index 1",
+    "title": "Shannon–Wiener Diversity Index",
+    "term": "H′ = −Σ pi · ln(pi)",
+    "def": "Where pi is the proportion of individuals belonging to species i (relative abundance) in the sample, and the sum is taken over all S species present.",
+    "bullets": [
+      "Derived from Claude Shannon's information theory: H′ quantifies the 'uncertainty' in predicting the species identity of a randomly chosen individual",
+      "Higher H′ = harder to predict species identity = higher diversity",
+      "Typical values for real communities range roughly from 1.5 to 3.5, though the scale is technically unbounded",
+      "Because the natural log strongly weights rare species (small pi contributes disproportionately to −pi·ln(pi) relative to its abundance), <b>H′ is comparatively sensitive to rare species</b>"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting H′",
+    "title": "How to Read the Shannon–Wiener Index",
+    "items": [
+      "H′ = 0 occurs only when a single species comprises 100% of individuals (no diversity — no uncertainty in identity)",
+      "H′ increases with both richness (more categories to predict among) and evenness (harder to guess the dominant one)",
+      "Because rare species each contribute a small but nonzero term, <b>adding rare species to a sample raises H′ noticeably</b> even if they contribute little total abundance",
+      "This rare-species sensitivity is a double-edged sword: it makes H′ informative about full community composition, but also sensitive to undersampling and misidentification of rare taxa"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Index 2",
+    "title": "Simpson's Diversity Index",
+    "term": "D = 1 − Σ pi²",
+    "def": "Where pi is again the relative abundance of species i. The term Σpi² (sometimes called Simpson's concentration index or λ) is the probability that two individuals drawn at random from the community belong to the same species; D = 1 − Σpi² inverts this into a diversity measure.",
+    "bullets": [
+      "Interpretation: D is the probability that two randomly selected individuals from the community belong to <b>different</b> species",
+      "D ranges from 0 (no diversity, one species dominates completely) to just under 1 (maximum diversity, many equally common species)",
+      "Because pi is squared, <b>common/dominant species are weighted much more heavily than rare ones</b> — Simpson's index is relatively insensitive to rare species and highly sensitive to dominance",
+      "A related form, Simpson's reciprocal index (1/λ = 1/Σpi²), is also widely reported and behaves similarly"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Contrasting the Two Indices",
+    "title": "Shannon–Wiener vs. Simpson's Diversity Index",
+    "headers": [
+      "Feature",
+      "Shannon–Wiener (H′)",
+      "Simpson's (D)"
+    ],
+    "rows": [
+      [
+        "Formula",
+        "H′ = −Σ pi·ln(pi)",
+        "D = 1 − Σ pi²"
+      ],
+      [
+        "Theoretical origin",
+        "Information theory (uncertainty)",
+        "Probability theory (chance of same-species draw)"
+      ],
+      [
+        "Sensitivity",
+        "Weights rare species heavily",
+        "Weights common/dominant species heavily"
+      ],
+      [
+        "Typical range",
+        "~1.5–3.5 (unbounded above)",
+        "0 to just under 1"
+      ],
+      [
+        "Interpretation",
+        "'Uncertainty' in predicting species identity",
+        "Probability two random individuals differ in species"
+      ],
+      [
+        "Best used when...",
+        "Rare species and full composition matter",
+        "Dominance and evenness among common taxa matter"
+      ]
+    ],
+    "footnote": "Neither index is universally 'better' — the choice depends on which aspect of diversity (rarity vs. dominance) is ecologically relevant to the question."
+  },
+  {
+    "type": "section",
+    "tag": "WORKED EXAMPLE",
+    "title": "Calculating H′ and D by Hand",
+    "sub": "A simple hypothetical community dataset"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example — Setup",
+    "title": "A Hypothetical Bird Community",
+    "left": {
+      "h": "Sample Data",
+      "body": "A 10-minute point count records 100 individual birds across 4 species: Species A = 50 individuals, Species B = 30 individuals, Species C = 15 individuals, Species D = 5 individuals. Species richness S = 4."
+    },
+    "right": {
+      "h": "Step 1 — Proportional Abundances",
+      "body": "pA = 50/100 = 0.50; pB = 30/100 = 0.30; pC = 15/100 = 0.15; pD = 5/100 = 0.05. These proportions (Σpi = 1.0) are the inputs to both the Shannon and Simpson formulas."
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Worked Example — Shannon Calculation",
+    "title": "Computing H′ = −Σ pi·ln(pi)",
+    "headers": [
+      "Species",
+      "pi",
+      "ln(pi)",
+      "−pi·ln(pi)"
+    ],
+    "rows": [
+      [
+        "A",
+        "0.50",
+        "−0.693",
+        "0.347"
+      ],
+      [
+        "B",
+        "0.30",
+        "−1.204",
+        "0.361"
+      ],
+      [
+        "C",
+        "0.15",
+        "−1.897",
+        "0.285"
+      ],
+      [
+        "D",
+        "0.05",
+        "−2.996",
+        "0.150"
+      ],
+      [
+        "Sum (H′)",
+        "1.00",
+        "—",
+        "1.142"
+      ]
+    ],
+    "footnote": "H′ ≈ 1.14 — a moderate diversity value reflecting one dominant species (A) plus three progressively rarer species."
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Worked Example — Simpson Calculation",
+    "title": "Computing D = 1 − Σ pi²",
+    "headers": [
+      "Species",
+      "pi",
+      "pi²"
+    ],
+    "rows": [
+      [
+        "A",
+        "0.50",
+        "0.250"
+      ],
+      [
+        "B",
+        "0.30",
+        "0.090"
+      ],
+      [
+        "C",
+        "0.15",
+        "0.0225"
+      ],
+      [
+        "D",
+        "0.05",
+        "0.0025"
+      ],
+      [
+        "Sum (Σpi²) = 0.365",
+        "—",
+        "—"
+      ]
+    ],
+    "footnote": "D = 1 − 0.365 = 0.635 — a 63.5% chance that two randomly drawn birds belong to different species."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example — Interpretation",
+    "title": "Comparing the Two Results",
+    "items": [
+      "H′ ≈ 1.14 and D ≈ 0.635 for the same 4-species, 100-individual community — the two numbers are not on the same scale and should never be compared directly to each other",
+      "Both indices agree the community is moderately diverse, not maximally diverse, because Species A dominates at 50% of individuals",
+      "If Species D (5 individuals) were removed entirely from the sample, H′ would drop more noticeably than D — illustrating H′'s greater sensitivity to rare species",
+      "If instead Species A's dominance increased (e.g., to 80 individuals, others reduced proportionally), D would drop sharply — illustrating D's greater sensitivity to changes in the dominant species"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART D",
+    "title": "Evenness",
+    "sub": "How equally is abundance distributed among species?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Pielou's Evenness Index",
+    "term": "J′ = H′ / ln(S)",
+    "def": "Pielou's evenness standardizes the Shannon index by the maximum possible H′ for a given richness S — which occurs when all S species are perfectly equally abundant (ln(S)). J′ ranges from 0 to 1.",
+    "bullets": [
+      "J′ = 1 means abundance is perfectly even across all species (maximum possible diversity for that richness)",
+      "J′ approaching 0 means abundance is extremely skewed toward one or a few dominant species",
+      "Evenness is conceptually independent of richness: J′ tells you about the <b>shape</b> of the abundance distribution, not the <b>count</b> of species"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example — Evenness",
+    "title": "Applying J′ to Our Bird Community",
+    "items": [
+      "From the worked example: H′ = 1.142, S = 4, so ln(S) = ln(4) = 1.386",
+      "J′ = 1.142 / 1.386 ≈ 0.824",
+      "This is fairly even (close to 1), though the 50% dominance of Species A pulls it noticeably below the maximum of 1.0",
+      "A perfectly even community of 4 species (25 individuals each) would have H′ = ln(4) = 1.386 and J′ = 1.0"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Why Evenness Matters",
+    "title": "Same Richness, Very Different Diversity",
+    "left": {
+      "h": "Community 1 — Even",
+      "body": "5 species, 20 individuals each (100 total). pi = 0.20 for all species. H′ = −5×(0.20 × ln0.20) = 1.609 = ln(5), the maximum possible. J′ = 1.0. This community 'feels' highly diverse — every walk through it turns up a different species with equal likelihood."
+    },
+    "right": {
+      "h": "Community 2 — Uneven",
+      "body": "5 species, but abundances are 92, 2, 2, 2, 2 (100 total). pA = 0.92. H′ ≈ 0.286 — far below the maximum of 1.609. J′ ≈ 0.178. Despite identical richness (S = 5), this community is overwhelmingly dominated by one species and 'feels' far less diverse."
+    },
+    "footnote": "This contrast is the core justification for using diversity indices, not richness alone, whenever abundance data are available."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Evenness — Synthesis",
+    "title": "Richness, Evenness, and Diversity Are Three Distinct Concepts",
+    "items": [
+      "<b>Richness (S)</b> answers 'how many species?' — a simple count, blind to abundance",
+      "<b>Evenness (J′)</b> answers 'how equally is abundance distributed?' — independent of species count",
+      "<b>Diversity (H′, D)</b> combines both into a single number, but does so with different sensitivities to rare vs. common species",
+      "A rigorous community description should ideally report all three, since collapsing to a single index can obscure whether a diversity difference is driven by richness or by evenness"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART E",
+    "title": "The Sampling Problem, Revisited",
+    "sub": "Rarefaction, accumulation curves, and estimating unseen richness"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Returning to Sampling Effort",
+    "title": "Comparing Richness Across Unequal Sample Sizes",
+    "items": [
+      "Recall from Part B: raw species richness increases with sampling effort, making direct comparisons across unequal samples unreliable",
+      "Diversity indices (H′, D) reduce — but do not eliminate — this sensitivity, since detecting more rare species still nudges H′ upward",
+      "Two complementary statistical tools directly address the sampling-effort problem: <b>species accumulation curves</b> and <b>rarefaction</b>",
+      "Both rely on the same underlying logic: plot or estimate richness as a function of sampling effort, rather than treating richness as a single fixed number"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Tool 1",
+    "title": "Species Accumulation Curves",
+    "term": "Species Accumulation Curve",
+    "def": "A plot of cumulative number of species observed (y-axis) against cumulative sampling effort — individuals counted, samples taken, or area surveyed (x-axis) — typically averaged over many random orderings of the samples.",
+    "bullets": [
+      "Starts steep: early samples add many new species quickly",
+      "The curve decelerates as sampling continues, since most easily encountered species have already been recorded and only rarer species remain to be discovered",
+      "Ideally the curve approaches an <b>asymptote</b> — a plateau indicating that further sampling would add few or no new species, i.e., the community's true richness has been adequately captured",
+      "A curve still rising steeply at the end of a study signals inadequate/incomplete sampling — richness is undersampled"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Tool 2",
+    "title": "Rarefaction",
+    "term": "Rarefaction",
+    "def": "A resampling technique that repeatedly subsamples a larger dataset down to a common, smaller sample size (of individuals or samples), computing expected richness at that common size — enabling fair richness comparisons between unequal samples.",
+    "bullets": [
+      "Directly solves the Part B problem: if Site Y has 500 individuals sampled and Site X has 50, rarefy Site Y's data down to 50 individuals (repeatedly resampling and averaging) to get an 'expected richness at n = 50' for both sites",
+      "Produces a rarefaction curve — richness as a function of sample size — that can be directly compared at any common sample size across sites",
+      "Critical rule: never compare raw richness values from unequal sample sizes; rarefy first, or compare at the smallest common sample size",
+      "Rarefaction can be based on individuals (individual-based) or on discrete samples/plots (sample-based) — the two are not interchangeable"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Accumulation vs. Rarefaction",
+    "title": "Two Related but Distinct Curves",
+    "left": {
+      "h": "Species Accumulation Curve",
+      "body": "Built forward from actual sampling order (or averaged over random orderings) — describes how richness grows as you keep sampling. Used to assess whether sampling was sufficient (has the curve plateaued?)."
+    },
+    "right": {
+      "h": "Rarefaction Curve",
+      "body": "Built by subsampling down from a larger dataset to smaller, standardized sample sizes — describes expected richness at any given effort level. Used to make fair comparisons between datasets of unequal size."
+    },
+    "footnote": "In practice the two curves often look similar and are sometimes conflated, but their purposes differ: assessing sampling completeness vs. standardizing comparisons."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond Observed Richness",
+    "title": "Estimating the 'True' Total Richness",
+    "items": [
+      "Even with excellent sampling, some species are almost always missed — especially rare ones, cryptic taxa, or species with low detectability",
+      "<b>Nonparametric richness estimators</b> use the pattern of rare species in a sample (specifically, the number of singletons and doubletons — species represented by exactly 1 or 2 individuals) to estimate how many species remain undetected",
+      "The core logic: if a sample contains many singletons, this signals that many more species likely exist but simply weren't captured; few singletons signals sampling is closer to complete",
+      "These estimators extrapolate beyond the observed data to approximate the asymptote of the species accumulation curve without requiring infinite sampling"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Common Estimators",
+    "title": "Nonparametric Richness Estimators (Conceptual Overview)",
+    "cards": [
+      {
+        "h": "Chao1",
+        "p": "Estimates richness from the number of singletons and doubletons in individual-based data; more singletons relative to doubletons implies more undetected species."
+      },
+      {
+        "h": "Chao2",
+        "p": "The sample-based analog of Chao1, using species that occur in exactly 1 or 2 samples/plots rather than individuals."
+      },
+      {
+        "h": "First-order Jackknife",
+        "p": "Estimates richness as observed S plus a correction term based on the number of species found in only one sample (uniques)."
+      },
+      {
+        "h": "Second-order Jackknife",
+        "p": "Extends the jackknife correction using both uniques and duplicates for a typically larger, more conservative richness estimate."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Estimators — Practical Notes",
+    "title": "Using Richness Estimators Wisely",
+    "items": [
+      "No estimator perfectly recovers 'true' richness — they provide statistically defensible lower-bound estimates, not exact counts",
+      "Estimators are especially valuable for hyperdiverse or hard-to-sample taxa (soil microbes, tropical arthropods) where exhaustive sampling is impossible",
+      "Software packages (e.g., EstimateS, vegan in R) compute accumulation curves, rarefaction, and multiple estimators simultaneously from the same dataset",
+      "Reporting an estimator alongside observed richness communicates both what was found and how confident we are that we found 'enough'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART F",
+    "title": "Alpha, Beta, and Gamma Diversity",
+    "sub": "Whittaker's foundational partitioning of diversity across spatial scales"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Scaling Diversity",
+    "title": "Diversity Depends on Spatial Scale",
+    "items": [
+      "All the metrics discussed so far (S, H′, D, J′) describe diversity <b>within a single sample or site</b> — but ecologists also care how diversity changes <b>across</b> sites and regions",
+      "Robert Whittaker (1960, 1972) proposed a foundational three-part partitioning of diversity that remains central to community ecology today",
+      "This alpha/beta/gamma framework will recur throughout the course whenever we compare diversity across habitats, gradients, or spatial scales",
+      "The framework separates 'how diverse is this one place' from 'how much do places differ from one another' — two conceptually distinct questions"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Component 1",
+    "title": "Alpha Diversity (α)",
+    "term": "Alpha Diversity",
+    "def": "The diversity (richness or an index) within a single site, habitat, or local sample — 'local' diversity, measured with any of the tools already covered in this lecture (S, H′, D).",
+    "bullets": [
+      "This is what all our worked examples so far have actually measured",
+      "Alpha diversity is the building block: gamma and beta diversity are both defined relative to it"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Component 2",
+    "title": "Gamma Diversity (γ)",
+    "term": "Gamma Diversity",
+    "def": "The total diversity across an entire region, landscape, or set of pooled sites — the diversity you would measure if you combined all local samples into one big sample.",
+    "bullets": [
+      "Gamma diversity is regional or landscape-scale diversity — the 'big picture' total",
+      "It is always greater than or equal to any single site's alpha diversity, since it pools species across sites"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Component 3",
+    "title": "Beta Diversity (β) — Whittaker's Multiplicative Formulation",
+    "term": "β = γ / α",
+    "def": "Beta diversity measures the turnover or differentiation in species composition between sites — how different local communities are from one another. In Whittaker's original multiplicative formulation, beta is simply the ratio of regional (gamma) to average local (alpha) diversity.",
+    "bullets": [
+      "Interpretation: β = 1 means every site has identical composition (no turnover — alpha equals gamma)",
+      "Larger β means greater compositional turnover — sites are more distinct from each other, and gamma diversity is built up substantially by differences between sites rather than within-site richness alone",
+      "Beta diversity is the crucial link between local (alpha) and regional (gamma) patterns — it tells us how much of regional diversity is due to species replacement across space rather than just high local richness everywhere"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Illustration",
+    "title": "Alpha, Beta, and Gamma in a Simple Landscape",
+    "left": {
+      "h": "Setup",
+      "body": "Three sites, each with alpha richness of 10 species (average alpha = 10). Across all three sites combined, 30 total distinct species are recorded (gamma = 30) — meaning no species is shared between any two sites."
+    },
+    "right": {
+      "h": "Calculation",
+      "body": "β = γ / α = 30 / 10 = 3.0. Maximum possible turnover for this setup — every site contributes a completely distinct species set. If instead all 3 sites shared the same 10 species (gamma = 10), β = 10/10 = 1.0 — no turnover at all."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Framework Matters",
+    "title": "Alpha/Beta/Gamma as a Lens for the Rest of the Course",
+    "items": [
+      "Many classic patterns in community ecology (e.g., the latitudinal diversity gradient, island biogeography, habitat heterogeneity effects) can be decomposed into <b>how much is alpha vs. how much is beta</b>",
+      "Two regions can have identical gamma diversity for very different reasons: high alpha diversity everywhere with low turnover, or low alpha diversity per site but high turnover (high beta) between sites",
+      "Conservation implications differ sharply: protecting one large high-alpha site vs. a network of smaller, high-beta (highly distinct) sites can capture the same gamma diversity via different strategies",
+      "We will return to formal beta diversity measures (e.g., Jaccard, Sørensen, and multivariate approaches) in a later lecture on compositional turnover"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART G",
+    "title": "Applied Importance",
+    "sub": "Diversity metrics in conservation, monitoring, and management"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Real-World Applications",
+    "title": "Diversity Indices Beyond the Classroom",
+    "items": [
+      "<b>Conservation prioritization:</b> reserve selection algorithms often use richness, diversity indices, and beta diversity to identify sites or networks that maximize protected biodiversity",
+      "<b>Environmental monitoring:</b> diversity indices (especially Shannon and Simpson) are standard tools for tracking ecosystem health over time — e.g., stream macroinvertebrate diversity as a water-quality indicator",
+      "<b>Comparing ecosystems:</b> rarefaction-standardized richness allows fair comparison of, for example, disturbed vs. undisturbed forest plots that were necessarily sampled with different effort",
+      "<b>Restoration assessment:</b> tracking H′, D, and J′ over time after restoration interventions provides a quantitative benchmark for recovery success beyond simple presence/absence"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On the Purpose of Diversity Metrics",
+    "quote": "Diversity indices are not ends in themselves — they are tools for making disciplined comparisons across space, time, and taxa that would otherwise be confounded by differences in sampling effort and community structure.",
+    "attrib": "Paraphrased from Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 2"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Note of Caution",
+    "title": "No Single Metric Tells the Whole Story",
+    "items": [
+      "Richness alone ignores abundance structure; Shannon and Simpson trade off sensitivity to rare vs. common species; evenness alone ignores species count",
+      "Alpha diversity alone ignores regional context captured by beta and gamma",
+      "Best practice in both research and applied settings is to report <b>multiple complementary metrics</b> — richness, an evenness-sensitive index, and where relevant, beta diversity — rather than relying on a single summary number",
+      "The choice of metric should be driven by the ecological question being asked, not by convention or convenience"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Summary and Looking Ahead",
+    "sub": "Consolidating today's toolkit before moving to abundance distributions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 3 Recap",
+    "title": "Key Takeaways",
+    "items": [
+      "<b>Species richness (S)</b> is the simplest diversity metric but is highly sensitive to sampling effort, motivating standardized comparison methods",
+      "<b>Shannon–Wiener (H′)</b> and <b>Simpson's (D)</b> indices incorporate both richness and relative abundance; H′ is more sensitive to rare species, D more sensitive to dominant/common species",
+      "<b>Pielou's evenness (J′ = H′/ln S)</b> isolates how equally abundance is distributed, independent of richness — two communities with equal S can have very different diversity due to evenness alone",
+      "<b>Rarefaction and species accumulation curves</b> solve the unequal-sampling-effort problem; <b>nonparametric estimators</b> (Chao, jackknife) approximate true richness beyond what was directly observed",
+      "<b>Whittaker's alpha/beta/gamma framework</b> (β = γ/α) partitions diversity across spatial scales and will recur throughout the rest of the course"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Concept Check",
+    "title": "Can You Answer These?",
+    "cards": [
+      {
+        "h": "Richness vs. Diversity",
+        "p": "Why can two communities have identical species richness but very different Shannon diversity values?"
+      },
+      {
+        "h": "Index Choice",
+        "p": "If you care most about detecting the loss of a rare, threatened species, would Shannon or Simpson be more sensitive to that change?"
+      },
+      {
+        "h": "Sampling Effort",
+        "p": "Why is it invalid to directly compare raw richness between a 20-individual sample and a 200-individual sample?"
+      },
+      {
+        "h": "Scale Partitioning",
+        "p": "If gamma diversity is high but beta diversity is close to 1, what does that tell you about how diversity is distributed across sites?"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PREVIEW — LECTURE 4",
+    "title": "Coming Next: Species Abundance Distributions",
+    "sub": "From summary numbers to the full shape of community structure"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "Lecture 4 Preview: Rank-Abundance and Abundance Distributions",
+    "items": [
+      "Today's indices (H′, D, J′) compress an entire community's abundance structure into a single number — useful, but it discards information about the <b>shape</b> of that structure",
+      "Lecture 4 examines <b>species abundance distributions (SADs)</b> — the full frequency distribution of species' abundances within a community",
+      "We will introduce <b>rank-abundance curves (Whittaker plots)</b>, which plot species ranked from most to least abundant against their (often log-transformed) abundance, visually revealing dominance and rarity patterns that a single index number cannot",
+      "We will also preview classic theoretical models proposed to explain SAD shapes (e.g., log-normal, log-series), setting up later chapters on the mechanisms generating these patterns"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 3</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 30: Host-Parasite Interactions I: Parasite Life Cycles and Types</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 30",
+    "title": "Host-Parasite Interactions I: Parasite Life Cycles and Types",
+    "sub": "Defining parasitism, classifying parasites, life cycles, host specificity, transmission, and the evolution of virulence",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 9 — Host-Parasite Interactions"
+  },
+  {
+    "type": "section",
+    "tag": "PART 0",
+    "title": "Recap and Roadmap",
+    "sub": "Closing the Mutualism unit and opening Chapter 9"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where We Left Off",
+    "title": "Recap: Lecture 29 — Mutualism",
+    "items": [
+      "We closed the mutualism unit by treating mutualisms as reciprocally exploitative interactions held in check by <b>partner control mechanisms</b> (sanctions, partner choice, byproduct benefits).",
+      "Mutualisms can be modeled with <b>Lotka-Volterra-type frameworks</b> using positive interaction coefficients, but unconstrained positive feedback loops predict runaway growth — a biologically unrealistic outcome that requires saturating benefit functions.",
+      "Facultative vs. obligate mutualisms differ in their population-dynamic consequences: obligate mutualists show linked extinction risk.",
+      "Key examples covered: pollination mutualisms, mycorrhizae, cleaner fish, nitrogen-fixing symbioses, ant-plant defense mutualisms.",
+      "This completed our three-lecture arc on <b>positive and competitive species interactions</b> (Interspecific Competition → Mutualism)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 9 Roadmap",
+    "title": "Now: Host-Parasite Interactions (Chapter 9)",
+    "items": [
+      "Parasitism is a <b>(+,-) interaction</b>, like predation — but with fundamentally different dynamics, timescales, and evolutionary pressures.",
+      "<b>Lecture 30 (today):</b> what parasites are, how they're classified, their life cycles, host specificity, transmission modes, and virulence evolution.",
+      "<b>Lecture 31 (next):</b> host-parasite population dynamics — epidemiological SIR-type models, the basic reproductive number R0, and thresholds for disease persistence/eradication.",
+      "Chapter 9 closes the second major block of the course; <b>Midterm II</b> immediately follows Lecture 31, covering Lectures 20–31 (Life History Strategies, Interspecific Competition, Mutualism, Host-Parasite).",
+      "Today is entirely conceptual/qualitative — no new population models yet. That's the payoff in Lecture 31."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "What Is Parasitism?",
+    "sub": "Distinguishing parasites from predators"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definition",
+    "title": "Defining Parasitism",
+    "term": "Parasitism",
+    "def": "A (+,−) interspecific interaction in which the parasite lives in or on a host, deriving nutrition and/or shelter at the host's expense, typically without killing the host immediately.",
+    "bullets": [
+      "The parasite benefits (+); the host is harmed (−) but usually survives, at least in the short term.",
+      "Distinguish from predation, where the interaction is typically instantaneous and lethal.",
+      "Distinguish from parasitoidism and micropredation, which blur these lines (covered later today)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Contrast",
+    "title": "Parasites vs. Predators: Three Key Differences",
+    "items": [
+      "<b>Lethality and timing:</b> predators generally kill their prey quickly and directly; parasites usually do not kill the host outright, and if they do, death is often delayed, indirect, or a late-stage consequence of chronic harm.",
+      "<b>Duration of association:</b> a predator's interaction with any one prey individual is brief (a single attack); a parasite lives in or on a single host for a significant portion of its life cycle — days to years.",
+      "<b>Relative size:</b> predators are typically larger than their prey; parasites are typically much smaller than their host, often many orders of magnitude smaller (a virus vs. a human, a tapeworm vs. a dog).",
+      "These differences matter ecologically: parasite population dynamics play out <b>within and among individual hosts</b>, not just between free-living populations."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing",
+    "title": "Why Treat Parasitism as Its Own Category?",
+    "items": [
+      "Parasites depend on host survival (at least initially) for their own reproduction and transmission — this creates unique selective pressures absent in predator-prey systems.",
+      "Host and parasite population sizes are tightly coupled through <b>infection and immune dynamics</b>, not simply through consumption rates.",
+      "Parasite 'success' is often measured in terms of <b>transmission to new hosts</b>, not simply consumption of the current host — this will be central to virulence evolution later in this lecture.",
+      "Because parasites are small relative to hosts, a single host can carry many parasites simultaneously — <b>intensity of infection</b> becomes a meaningful ecological variable, unlike predation."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Classifying Parasites",
+    "sub": "Microparasites vs. macroparasites; ectoparasites vs. endoparasites"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Classification I",
+    "title": "Microparasites",
+    "term": "Microparasites",
+    "def": "Parasites — viruses, bacteria, protozoa, fungi — that reproduce directly within the host, typically at rates far exceeding host reproduction.",
+    "bullets": [
+      "Individual microparasites are usually too small and numerous to count directly, so infection is treated as present/absent per host.",
+      "Hosts that survive infection typically develop <b>immunity</b>, which structures the population into susceptible, infected, and recovered/immune classes.",
+      "Dynamics are naturally modeled with <b>compartmental (SIR-type) epidemiological models</b> — the foundation of Lecture 31.",
+      "Examples: influenza virus, measles virus, <i>Plasmodium</i> (malaria), <i>Mycobacterium tuberculosis</i>."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Classification II",
+    "title": "Macroparasites",
+    "term": "Macroparasites",
+    "def": "Parasites — helminths (worms), arthropods (ticks, lice, fleas) — that generally do not multiply directly within the host; instead they produce infective stages (eggs, larvae) usually released into the environment or transmitted to new hosts.",
+    "bullets": [
+      "Individuals can be counted, so the <b>intensity of infection</b> (number of parasites per host) is a key variable, not just presence/absence.",
+      "Pathology and effects on the host often scale with intensity — a few tapeworms may be tolerable; hundreds may be lethal.",
+      "Hosts typically do <b>not</b> develop full protective immunity, so reinfection is common.",
+      "Examples: tapeworms, roundworms (nematodes), flukes (trematodes), ticks, lice, fleas."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Direct Comparison",
+    "title": "Microparasites vs. Macroparasites",
+    "headers": [
+      "Feature",
+      "Microparasites",
+      "Macroparasites"
+    ],
+    "rows": [
+      [
+        "Examples",
+        "Viruses, bacteria, protozoa, fungi",
+        "Helminths (worms), ticks, lice, fleas"
+      ],
+      [
+        "Reproduction",
+        "Directly within the host",
+        "Via infective stages, usually released outside the host"
+      ],
+      [
+        "Size / countability",
+        "Microscopic; treated as present/absent",
+        "Macroscopic; individuals can be counted"
+      ],
+      [
+        "Key variable",
+        "Infection status (infected vs. not)",
+        "Intensity of infection (parasite burden)"
+      ],
+      [
+        "Host immunity",
+        "Often induces strong, lasting immunity",
+        "Immunity typically partial or absent"
+      ],
+      [
+        "Typical modeling approach",
+        "Compartmental SIR-type epidemiological models",
+        "Models tracking mean parasite burden / aggregation"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Second Axis of Classification",
+    "title": "Location on the Host: Ecto- vs. Endoparasites",
+    "items": [
+      "Independent of the micro/macro distinction, parasites are also classified by <b>where on/in the host they live</b>.",
+      "<b>Ectoparasites</b> live on the external surface of the host (skin, fur, feathers, gills).",
+      "<b>Endoparasites</b> live inside the host's body (gut, blood, tissues, organs).",
+      "This distinction matters for transmission mode, host defense strategy, and ease of study/detection."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Location: External",
+    "title": "Ectoparasites",
+    "term": "Ectoparasite",
+    "def": "A parasite that lives on the external surface of its host.",
+    "bullets": [
+      "Examples: fleas, ticks, lice, mites, leeches.",
+      "Often mobile between hosts, facilitating direct-contact or vector-based transmission.",
+      "Hosts can defend against ectoparasites via grooming, preening, and social allogrooming — a major driver of social behavior evolution in some taxa."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Location: Internal",
+    "title": "Endoparasites",
+    "term": "Endoparasite",
+    "def": "A parasite that lives inside the host's body — in the gut, blood, tissues, or organs.",
+    "bullets": [
+      "Examples: tapeworms and roundworms (gut), <i>Plasmodium</i> (blood/liver), lung flukes, liver flukes.",
+      "Generally harder for the host to physically remove; host defenses rely more on immune response than behavior.",
+      "Transmission usually requires an exit route from the host (feces, blood meal by a vector, etc.)."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Putting It Together",
+    "title": "Four Combinations, Four Examples",
+    "cards": [
+      {
+        "h": "Ectoparasite + Macroparasite",
+        "p": "Ticks, fleas, lice — external, countable, produce eggs/offspring away from constant contact with host tissue."
+      },
+      {
+        "h": "Endoparasite + Macroparasite",
+        "p": "Tapeworms, roundworms, flukes — internal helminths whose infective stages exit via feces or intermediate hosts."
+      },
+      {
+        "h": "Endoparasite + Microparasite",
+        "p": "<i>Plasmodium</i> (malaria), HIV, influenza virus — internal, reproduce directly in host cells/blood/tissue."
+      },
+      {
+        "h": "Ectoparasite + Microparasite",
+        "p": "Rare but real — some fungal skin/gill pathogens (e.g., chytrid fungus on amphibian skin) reproduce on the host surface."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Parasite Life Cycles",
+    "sub": "Direct vs. indirect cycles, and the classic multi-host examples"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Central Life-Cycle Distinction",
+    "title": "Direct vs. Complex (Indirect) Life Cycles",
+    "items": [
+      "A parasite's life cycle describes the sequence of hosts and free-living/dormant stages it must pass through to complete reproduction and reinfect a new host.",
+      "<b>Direct life cycles</b> require only a <b>single host species</b> — transmission occurs host-to-host (or via a resistant environmental stage), with no obligate intermediate host.",
+      "<b>Complex (indirect) life cycles</b> require <b>two or more host species</b>, with different life stages of the parasite occupying different hosts.",
+      "Complex cycles are common among macroparasites (especially helminths) and some protozoan microparasites (e.g., malaria)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Direct Cycles",
+    "title": "Direct Life Cycle",
+    "term": "Direct life cycle",
+    "def": "A parasite life cycle completed within a single host species, with transmission occurring directly between hosts or via a free-living infective stage in the environment.",
+    "bullets": [
+      "Examples: many gut roundworms (e.g., pinworms), the common cold virus, head lice.",
+      "Generally simpler transmission dynamics — the parasite doesn't depend on the ecology of a second host species."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Complex Cycles: Key Terminology",
+    "title": "Definitive Host",
+    "term": "Definitive host",
+    "def": "The host species in which the parasite reaches sexual maturity and reproduces sexually.",
+    "bullets": [
+      "In malaria, the mosquito is the definitive host (sexual reproduction of Plasmodium occurs in the mosquito gut).",
+      "In many tapeworms, humans or other vertebrates are the definitive host (the adult worm reproduces sexually in the gut)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Complex Cycles: Key Terminology",
+    "title": "Intermediate Host",
+    "term": "Intermediate host",
+    "def": "A host species in which the parasite undergoes larval development or asexual reproduction, but does not reach sexual maturity.",
+    "bullets": [
+      "A life cycle may involve one or several intermediate hosts in sequence.",
+      "In malaria, humans (and other vertebrates) are the intermediate host, harboring the asexual blood stages.",
+      "In trematodes, snails are almost always the first intermediate host."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Comparing Strategies",
+    "title": "Direct vs. Indirect Life Cycles",
+    "left": {
+      "h": "Direct Life Cycle",
+      "body": "Single host species. Transmission is host-to-host or via a resistant free-living stage. Simpler logistics, but transmission depends entirely on host density and contact rates. Example: pinworms, head lice, rhinovirus."
+    },
+    "right": {
+      "h": "Indirect (Complex) Life Cycle",
+      "body": "Two or more host species, often including a definitive host (sexual reproduction) and one or more intermediate hosts (larval/asexual stages). More vulnerable to breaks in the chain, but can exploit trophic transmission between predator and prey. Example: malaria, tapeworms, trematodes."
+    },
+    "footnote": "Complex cycles often evolve when transmission is enhanced by movement between trophic levels (e.g., prey-to-predator transmission)."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Classic Example 1",
+    "title": "Malaria: A Two-Host Life Cycle",
+    "items": [
+      "Causative agent: protozoan parasites of the genus <b><i>Plasmodium</i></b> — a microparasite.",
+      "<b>Definitive host: Anopheles mosquito.</b> Sexual reproduction (gametocyte fusion, sporogony) occurs in the mosquito gut, producing sporozoites that migrate to the salivary glands.",
+      "<b>Intermediate host: human (or other vertebrate).</b> When an infected mosquito bites, sporozoites enter the bloodstream, infect liver cells, then red blood cells, reproducing asexually (schizogony) — this stage causes the disease symptoms.",
+      "Some infected red blood cells produce gametocytes, which are taken up by a mosquito during a blood meal, completing the cycle.",
+      "This life cycle exemplifies <b>vector-borne transmission</b> — the mosquito is both the definitive host and the transmission vector."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Classic Example 2",
+    "title": "Tapeworms: Multiple Intermediate Hosts",
+    "items": [
+      "Tapeworms (Cestoda) are endoparasitic macroparasites with direct or complex life cycles depending on species.",
+      "Example: beef tapeworm (<i>Taenia saginata</i>) — humans are the definitive host (adult worm in the gut); cattle are the intermediate host (larval cysts in muscle tissue).",
+      "Example: pork tapeworm (<i>Taenia solium</i>) — similar cycle with pigs as intermediate host; humans can also accidentally serve as an intermediate host (cysticercosis), which is far more dangerous.",
+      "Some tapeworm species require <b>two</b> intermediate hosts in sequence (e.g., a copepod, then a fish) before reaching the definitive vertebrate host.",
+      "The general pattern: eggs shed by the definitive host → ingested by intermediate host → larval cyst forms → definitive host eats infected intermediate host tissue → adult worm develops."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Classic Example 3",
+    "title": "Trematodes (Flukes): Often 2–3 Hosts, Always a Snail",
+    "items": [
+      "Trematodes are flatworms with famously complex life cycles, frequently involving <b>2–3 host species</b>.",
+      "A freshwater or terrestrial <b>snail is almost always the first intermediate host</b>, where asexual multiplication produces huge numbers of free-swimming larvae (cercariae).",
+      "A <b>second intermediate host</b> (fish, insect, another invertebrate) may be infected next, encysting the larvae (metacercariae).",
+      "The <b>definitive host</b> (often a bird or mammal) becomes infected by eating the second intermediate host; sexual reproduction occurs in the definitive host's gut or tissues, and eggs are shed back into water via feces to infect new snails.",
+      "Example: <i>Schistosoma</i> (blood flukes causing schistosomiasis) — humans are the definitive host, freshwater snails are the intermediate host; cercariae penetrate human skin directly during water contact."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Life Cycle Gallery",
+    "title": "Three Classic Complex Life Cycles",
+    "cards": [
+      {
+        "h": "Malaria (Plasmodium)",
+        "p": "Definitive host: Anopheles mosquito (sexual stage). Intermediate host: human/vertebrate (asexual stage, disease symptoms). Vector-borne transmission."
+      },
+      {
+        "h": "Tapeworms (Taenia spp.)",
+        "p": "Definitive host: carnivore/human (adult worm, gut). Intermediate host: herbivore (larval cyst in muscle). Transmission via predation/consumption of infected meat."
+      },
+      {
+        "h": "Trematodes / Flukes (Schistosoma)",
+        "p": "First intermediate host: freshwater snail (asexual multiplication). Definitive host: human/bird/mammal (sexual stage). Transmission via skin penetration or ingestion of second intermediate host."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Parasitoids",
+    "sub": "The intermediate case between parasite and predator"
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Special Category",
+    "title": "Parasitoids",
+    "term": "Parasitoid",
+    "def": "An organism — mainly insects, especially wasps and some flies — whose larvae develop in or on a single host individual and ultimately kill it, while the free-living adult is not parasitic.",
+    "bullets": [
+      "Ecologically intermediate between a parasite (lives in/on one host, doesn't usually kill it) and a predator (kills, often quickly, and consumes multiple prey over a lifetime).",
+      "Unlike a typical parasite, host death is the near-certain outcome, not an occasional side effect.",
+      "Unlike a typical predator, the interaction is prolonged (the larva develops over days to weeks within a single host) and host-specific."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Biology",
+    "title": "How Parasitoids Operate",
+    "items": [
+      "An adult female parasitoid wasp locates and oviposits (lays eggs) in, on, or near a host — typically another insect (often caterpillars, aphids, or other larvae).",
+      "The larva hatches and consumes the host from within (endoparasitoid) or attached externally (ectoparasitoid), carefully avoiding vital organs at first to keep the host alive as long as possible.",
+      "The host is ultimately killed when the parasitoid larva completes development and emerges (or pupates within the host's remains).",
+      "Because each host supports only one (or a limited, countable number of) parasitoid offspring, parasitoid-host dynamics resemble classic predator-prey (consumer-resource) models more than typical parasite-host models."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Relevance",
+    "title": "Parasitoids and Biological Pest Control",
+    "items": [
+      "Because parasitoids reliably kill their host and are often highly host-specific, they are widely used as <b>biological control agents</b> against agricultural pests.",
+      "Classic example: parasitoid wasps (e.g., <i>Cotesia</i>, <i>Trichogramma</i> species) introduced to control caterpillar and aphid pest outbreaks in crops.",
+      "Host specificity is a double-edged sword for biocontrol: high specificity reduces non-target harm but limits the parasitoid to controlling only its target pest.",
+      "This application foreshadows the population-dynamic logic of Lecture 31 — successful biocontrol requires understanding the coupled dynamics between parasitoid and host populations, structurally similar to predator-prey or SIR frameworks."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Host Specificity and Transmission",
+    "sub": "Who gets infected, and how"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Host Range: One Extreme",
+    "title": "Generalist Parasite",
+    "term": "Generalist (host-generalist) parasite",
+    "def": "A parasite capable of successfully infecting and completing its life cycle in multiple, often taxonomically diverse, host species.",
+    "bullets": [
+      "Advantage: not dependent on any single host species' population dynamics — more resilient to host decline or local extinction.",
+      "Disadvantage: often less efficiently adapted to any one host (a jack-of-all-trades trade-off), potentially lower fitness per host.",
+      "Example: rabies virus infects a very broad range of mammalian hosts."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Host Range: Other Extreme",
+    "title": "Specialist Parasite",
+    "term": "Specialist (host-specific) parasite",
+    "def": "A parasite adapted to infect one host species, or a narrow set of closely related species.",
+    "bullets": [
+      "Advantage: fine-tuned adaptations to evade a specific host's immune system and exploit its physiology — often higher fitness within that host.",
+      "Disadvantage: tightly bound to the fate of the host population; host decline or extinction threatens the parasite too (co-extinction risk).",
+      "Example: human-specific pathogens like measles virus; host-specific parasitoid wasps."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Specificity Varies",
+    "title": "Factors Shaping Host Specificity",
+    "items": [
+      "<b>Physiological/immunological compatibility:</b> a parasite must overcome host-specific immune defenses and exploit host-specific cellular machinery (especially relevant for microparasites, which often replicate using host cell machinery).",
+      "<b>Co-evolutionary history:</b> long-term host-parasite coevolution tends to produce tighter specificity and reciprocal adaptation (an evolutionary 'arms race').",
+      "<b>Transmission opportunity:</b> a parasite dependent on close contact or a shared habitat with a single host species has less selective pressure to broaden its range.",
+      "<b>Life cycle complexity:</b> complex, multi-host life cycles impose specificity constraints at each host stage (e.g., a trematode's larval stage may require one specific snail genus).",
+      "Trade-off: specialization can increase within-host performance (virulence tolerance, transmission efficiency) but increases extinction risk if the host declines."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "How Parasites Move Between Hosts",
+    "title": "Transmission Modes: Overview",
+    "items": [
+      "Transmission mode is the mechanism by which a parasite moves from an infected host (or the environment) to a new susceptible host.",
+      "Transmission mode fundamentally shapes epidemiological dynamics — it determines the contact structure that will feed directly into the transmission-rate parameters of the SIR models in Lecture 31.",
+      "Four broad categories: <b>direct contact, vector-borne, environmental/fecal-oral, and vertical transmission.</b>",
+      "Many parasites use more than one mode, or shift modes across life-cycle stages (recall malaria's mosquito vector, or trematodes' waterborne + ingestion routes)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Transmission Mode 1",
+    "title": "Direct Contact Transmission",
+    "items": [
+      "Requires physical contact (or close proximity, e.g., respiratory droplets) between an infected and a susceptible host.",
+      "Examples: sexually transmitted infections, respiratory viruses (influenza, common cold), skin-to-skin transmitted mites/lice.",
+      "Transmission rate scales strongly with <b>host population density and contact rate</b> — a key parameter (β, the transmission coefficient) in epidemiological models."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Transmission Mode 2",
+    "title": "Vector-Borne Transmission",
+    "items": [
+      "Requires an intermediate arthropod (or other) vector that physically carries the parasite from one host to another, often as part of the vector's own life cycle (as in malaria).",
+      "Examples: malaria (mosquito), Lyme disease (tick, bacterium <i>Borrelia burgdorferi</i>), plague (flea, bacterium <i>Yersinia pestis</i>).",
+      "Transmission depends on vector population density, vector biting/feeding rate, and vector competence — adding an extra population dynamic layer beyond the host alone."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Transmission Modes 3 & 4",
+    "title": "Environmental / Fecal-Oral and Vertical Transmission",
+    "items": [
+      "<b>Environmental / fecal-oral transmission:</b> infective stages are shed into the environment (water, soil, food) via feces or other routes, and a new host becomes infected by ingestion or contact. Examples: cholera bacterium, many gut helminths, norovirus.",
+      "<b>Vertical transmission:</b> parasite passes directly from parent to offspring — via the placenta, egg, milk, or seed. Examples: HIV (mother-to-child), many plant viruses, some inherited bacterial symbionts/pathogens.",
+      "Vertical transmission creates a strong selective incentive for the parasite to <b>preserve host reproductive fitness</b> — a theme that reconnects with virulence evolution, next."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Transmission at a Glance",
+    "title": "Four Transmission Modes, Four Examples",
+    "cards": [
+      {
+        "h": "Direct Contact",
+        "p": "Influenza virus — respiratory droplets between hosts in close proximity; rate scales with contact rate and density."
+      },
+      {
+        "h": "Vector-Borne",
+        "p": "Malaria (Plasmodium) — transmitted between vertebrate hosts by Anopheles mosquitoes during blood meals."
+      },
+      {
+        "h": "Environmental / Fecal-Oral",
+        "p": "Cholera (Vibrio cholerae) — shed in feces, contaminates water sources, ingested by new hosts."
+      },
+      {
+        "h": "Vertical",
+        "p": "HIV — transmitted from mother to child during pregnancy, birth, or breastfeeding."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "The Evolution of Virulence",
+    "sub": "Why parasites don't simply evolve to be harmless"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Virulence",
+    "term": "Virulence",
+    "def": "The degree of harm a parasite causes its host, often measured as the reduction in host survival or reproduction caused by infection.",
+    "bullets": [
+      "Virulence is not a fixed property of a species — it is an evolvable trait shaped by natural selection acting on the parasite (and sometimes the host).",
+      "High virulence is not simply 'bad parasite design' — it can be favored by selection under specific conditions, as we'll see."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Common Misconception",
+    "title": "Debunking the 'Prudent Parasite' Myth",
+    "items": [
+      "A long-standing intuitive idea: parasites should evolve toward <b>lower virulence over time</b>, because 'a good parasite doesn't kill its host' — killing the host seems self-defeating.",
+      "This 'prudent parasite' hypothesis predicts that host-parasite relationships should trend toward benign coexistence given enough evolutionary time.",
+      "The idea is intuitively appealing but <b>not generally supported</b>: many long-associated host-parasite pairs remain highly virulent, and virulence can increase, not decrease, under certain selective regimes.",
+      "The error: it assumes selection acts to benefit the host-parasite association as a whole, or the parasite species long-term, rather than acting on individual parasite genotypes competing for transmission <b>right now</b>."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Modern Framework",
+    "title": "The Transmission-Virulence Trade-Off Hypothesis",
+    "items": [
+      "Virulence is often a <b>side effect of the traits that maximize transmission</b> — e.g., rapid within-host replication increases the number of transmissible parasite propagules but also damages host tissue and can shorten host survival.",
+      "This creates a trade-off: parasite genotypes that replicate faster achieve higher <b>short-term transmission rates</b> but risk killing the host before transmission is complete, cutting the infectious period short.",
+      "Natural selection favors the level of virulence that <b>maximizes overall transmission success</b> — not the level that minimizes harm to the host and not the level that maximizes replication rate.",
+      "The optimal virulence therefore depends on the relationship between replication rate, transmission rate, and host mortality/recovery rate — an <b>intermediate, non-zero virulence</b> is often favored, not the extremes."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Trade-Off Logic",
+    "title": "Low vs. High Virulence: Competing Pressures",
+    "left": {
+      "h": "Favors Lower Virulence",
+      "body": "Killing the host too fast truncates the infectious period, reducing total transmission opportunity. Transmission modes that require a mobile, active host (e.g., direct contact) especially disfavor rapid host incapacitation."
+    },
+    "right": {
+      "h": "Favors Higher Virulence",
+      "body": "Faster within-host replication increases parasite density and propagule output per unit time, raising transmission rate while the host is still infectious. Transmission modes that don't require host mobility (e.g., vector-borne, environmental) reduce the cost of high virulence — a bedridden host can still be bitten by a mosquito or shed parasites into water."
+    },
+    "footnote": "Prediction: vector-borne and waterborne parasites tend to evolve higher virulence than directly-transmitted parasites, because host mobility matters less for their transmission."
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Illustrative Case",
+    "quote": "When myxoma virus was introduced to control rabbit populations in Australia, the most lethal viral strains were rapidly replaced by strains of intermediate virulence — not the mildest strains available — because intermediate-virulence strains maximized transmission before killing the host.",
+    "attrib": "Classic case study in virulence evolution (myxomatosis in Australian rabbits, mid-20th century)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reinforcing the Concept",
+    "title": "Virulence Evolution: Take-Home Points",
+    "items": [
+      "Virulence evolves toward whatever level <b>maximizes parasite transmission</b>, not toward harmlessness and not toward maximum harm — the outcome is context-dependent.",
+      "Transmission mode is a major determinant of the evolved virulence level: modes independent of host mobility (vectors, environmental persistence) permit higher virulence to evolve.",
+      "Host and parasite generation time, mutation rate, and within-host competition among parasite strains (if multiple infections occur) also shape virulence evolution.",
+      "This framework will matter directly in Lecture 31: the transmission rate and recovery/mortality rate parameters in SIR models are the same quantities virulence evolution is optimizing."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Recap and Looking Ahead",
+    "sub": "From parasite biology to population dynamics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 30 Recap",
+    "title": "What We Covered Today",
+    "items": [
+      "Parasitism is a (+,−) interaction distinguished from predation by its non-lethal (or delayed-lethal), prolonged, and size-asymmetric nature.",
+      "Parasites are classified as <b>microparasites</b> (reproduce within host, induce immunity, SIR-style dynamics) vs. <b>macroparasites</b> (infective stages, intensity matters, limited immunity), and independently as <b>ectoparasites</b> vs. <b>endoparasites</b>.",
+      "Life cycles range from <b>direct</b> (single host) to <b>complex/indirect</b> (multiple hosts, involving definitive and intermediate hosts) — illustrated by malaria, tapeworms, and trematodes.",
+      "<b>Parasitoids</b> occupy an intermediate niche between parasites and predators, and are ecologically and economically important for biological pest control.",
+      "Host specificity ranges from generalist to specialist, shaped by immunological compatibility, coevolution, and life cycle constraints.",
+      "Transmission occurs via direct contact, vectors, environmental/fecal-oral routes, or vertical transmission — each shaping different population-level dynamics.",
+      "Virulence is not fixed and does not simply decline over evolutionary time; the <b>transmission-virulence trade-off hypothesis</b> explains why intermediate, sometimes high, virulence is often favored."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Chapter 9 Roadmap",
+    "title": "Host-Parasite Interactions: The Two-Lecture Arc",
+    "items": [
+      {
+        "y": "L30 (today)",
+        "t": "Parasite biology: definitions, classification, life cycles, transmission, virulence evolution — the conceptual foundation."
+      },
+      {
+        "y": "L31 (next)",
+        "t": "Host-parasite population dynamics: SIR-type epidemiological models, transmission and recovery parameters, R0 (basic reproductive number), disease thresholds."
+      },
+      {
+        "y": "Midterm II",
+        "t": "Covers Lectures 20–31: Life History Strategies, Interspecific Competition, Mutualism, Host-Parasite Interactions."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming Up",
+    "title": "Preview: Lecture 31 — Host-Parasite Population Dynamics",
+    "items": [
+      "We will formalize the qualitative concepts from today into a quantitative modeling framework: the <b>SIR model</b> (Susceptible, Infected, Recovered compartments).",
+      "We'll derive the <b>basic reproductive number, R0</b> — the expected number of secondary infections produced by one infected individual in an entirely susceptible population — and connect it to the transmission and recovery parameters discussed today.",
+      "We'll examine the <b>epidemic threshold</b>: the host density/contact conditions required for a parasite to invade and persist in a population, directly linking back to today's discussion of transmission mode and host specificity.",
+      "We'll briefly extend the framework toward macroparasite dynamics (mean burden models) to reflect the micro/macro distinction from today.",
+      "Lecture 31 closes Chapter 9 and directly sets up <b>Midterm II</b> — come prepared with today's terminology (definitive/intermediate host, micro/macroparasite, virulence trade-off) as it will underpin the quantitative material."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 30</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

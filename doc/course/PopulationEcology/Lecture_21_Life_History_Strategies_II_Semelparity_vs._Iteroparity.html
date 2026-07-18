@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 21: Life History Strategies II: Semelparity vs. Iteroparity</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 21",
+    "title": "Life History Strategies II: Semelparity vs. Iteroparity",
+    "sub": "How often should an organism reproduce? Cole's Paradox, the cost of reproduction, and bet-hedging in variable environments",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 6 — Life History Strategies"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Recap: The Logic of Life History Trade-offs",
+    "sub": "Setting the stage from Lecture 20"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap of Lecture 20",
+    "title": "What we established last time",
+    "items": [
+      "<b>Life history traits</b> — age at maturity, offspring number, offspring size, reproductive lifespan — are shaped by natural selection just like morphological or physiological traits.",
+      "The <b>principle of allocation</b>: energy devoted to one function (growth, maintenance, reproduction) cannot simultaneously be devoted to another — resources are finite.",
+      "Major trade-offs identified: <b>current vs. future reproduction</b>, <b>offspring number vs. offspring size</b>, and <b>growth vs. reproduction</b>.",
+      "Natural selection favors the allocation schedule that maximizes lifetime fitness, not any single reproductive event.",
+      "Today we extend this logic to ask a specific question: should an organism reproduce <b>once, massively</b>, or <b>repeatedly, in smaller bouts</b>?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definitions",
+    "title": "Two fundamentally different reproductive schedules",
+    "term": "Semelparity",
+    "def": "A life history in which an organism reproduces only once in its lifetime, typically investing all available resources into a single, large reproductive event before dying.",
+    "bullets": [
+      "Sometimes called \"big bang\" reproduction",
+      "Reproduction is often followed rapidly by death (programmed senescence or exhaustion)",
+      "Term coined by Lamont Cole (1954) from Latin: semel = \"once\" + parere = \"to beget\""
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definitions",
+    "title": "Two fundamentally different reproductive schedules",
+    "term": "Iteroparity",
+    "def": "A life history in which an organism reproduces repeatedly across multiple discrete reproductive events (seasons or years) over its lifetime.",
+    "bullets": [
+      "From Latin: itero = \"to repeat\" + parere = \"to beget\"",
+      "Each reproductive bout typically represents a smaller fraction of total lifetime energy budget",
+      "Allows organisms to \"hedge\" reproductive investment across time and adjust to conditions"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "At a Glance",
+    "title": "Semelparity vs. iteroparity: the basic contrast",
+    "headers": [
+      "Feature",
+      "Semelparity",
+      "Iteroparity"
+    ],
+    "rows": [
+      [
+        "Reproductive events",
+        "Single event",
+        "Multiple events over lifetime"
+      ],
+      [
+        "Investment pattern",
+        "All-or-nothing, one bout",
+        "Distributed across bouts"
+      ],
+      [
+        "Common nickname",
+        "\"Big bang\" reproduction",
+        "Repeated / seasonal reproduction"
+      ],
+      [
+        "Post-reproductive fate",
+        "Typically dies shortly after",
+        "Survives to reproduce again"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing the Question",
+    "title": "Why does this distinction matter?",
+    "items": [
+      "Semelparity and iteroparity represent the extremes of a continuum in <b>reproductive scheduling</b>.",
+      "Both strategies are common in nature — neither is universally \"better\"; each is favored under different ecological conditions.",
+      "Understanding why a species is semelparous or iteroparous requires linking <b>demographic parameters</b> (survival, fecundity) to <b>fitness</b>.",
+      "This is one of the best-studied problems in life history theory, beginning with a famous paradox posed in 1954."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Classic Examples in Nature",
+    "sub": "Recognizing the pattern across taxa"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Semelparous Organisms",
+    "title": "\"Big bang\" reproducers",
+    "cards": [
+      {
+        "h": "Pacific Salmon (Oncorhynchus spp.)",
+        "p": "Migrate from ocean to natal freshwater streams, spawn once in a massive energetic effort, and die within days to weeks — a textbook case of semelparity."
+      },
+      {
+        "h": "Century Plants (Agave spp.)",
+        "p": "Grow vegetatively for years to decades (not literally a century), then send up a single massive flowering stalk, set seed, and die."
+      },
+      {
+        "h": "Periodical Cicadas (Magicicada spp.)",
+        "p": "Spend 13 or 17 years underground as nymphs, then emerge synchronously as adults, mate once, and die within weeks."
+      },
+      {
+        "h": "Annual Plants",
+        "p": "Complete their entire life cycle — germination, growth, flowering, seed set, death — within a single growing season."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Iteroparous Organisms",
+    "title": "Repeated reproducers",
+    "cards": [
+      {
+        "h": "Most Birds",
+        "p": "Typically breed across multiple seasons/years, adjusting clutch size and timing based on condition and environment."
+      },
+      {
+        "h": "Most Mammals",
+        "p": "From mice to elephants, mammals generally reproduce repeatedly across a reproductive lifespan following an initial maturation period."
+      },
+      {
+        "h": "Perennial Plants",
+        "p": "Trees, shrubs, and many herbaceous perennials flower and set seed repeatedly across many growing seasons."
+      },
+      {
+        "h": "Many Fish and Reptiles",
+        "p": "Species such as trout, most turtles, and many lizards reproduce annually or seasonally across a multi-year lifespan."
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Case Study Detail",
+    "title": "Pacific salmon: a semelparous life cycle",
+    "items": [
+      {
+        "y": "Hatch",
+        "t": "Eggs hatch in freshwater natal streams; juveniles (fry/parr) rear in freshwater for months to years depending on species."
+      },
+      {
+        "y": "Smoltification",
+        "t": "Juveniles undergo physiological transformation to tolerate saltwater and migrate downstream to the ocean."
+      },
+      {
+        "y": "Ocean growth",
+        "t": "Individuals spend 1-4+ years feeding and growing rapidly in the open ocean, accumulating the energy reserves for reproduction."
+      },
+      {
+        "y": "Spawning migration",
+        "t": "Adults cease feeding, migrate upstream (sometimes hundreds of km) to natal streams, expending enormous energy against currents."
+      },
+      {
+        "y": "Spawning & death",
+        "t": "Adults spawn once, and die within days to weeks — body deterioration (senescence) occurs rapidly, driven by hormonal changes after spawning."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Detail",
+    "title": "Why is the century plant semelparous?",
+    "items": [
+      "<i>Agave</i> species accumulate carbohydrate reserves in a rosette of leaves over many years (often 8-20+ years, not literally a century) in arid, resource-limited environments.",
+      "Producing a flowering stalk is extraordinarily energetically expensive — the stalk can grow several meters within weeks and requires essentially all stored reserves.",
+      "Because building a second stalk of comparable size would be nearly impossible given resource limitation, the plant channels everything into one maximal reproductive event, then dies.",
+      "This illustrates how severe resource constraints in harsh, arid environments can favor a semelparous strategy — consistent with the Charnov-Schaffer prediction that low prospects for future reproduction favor \"big bang\" reproduction."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Pattern Recognition",
+    "title": "A continuum, not a strict dichotomy",
+    "items": [
+      "Some organisms sit between the extremes — e.g., some semelparous species have variable timing (biennial vs. multi-year delay before reproducing).",
+      "Degree of iteroparity varies: an organism that breeds twice in a lifetime is technically iteroparous but far less \"repeat-reproducing\" than one that breeds 20 times.",
+      "The <b>number of reproductive bouts</b> and the <b>fraction of resources invested per bout</b> are both quantitative traits under selection.",
+      "Key question for today: what ecological and demographic conditions push a lineage toward one end of this continuum or the other?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Cole's Paradox and Its Resolution",
+    "sub": "The central theoretical puzzle of parity evolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Puzzle",
+    "title": "Lamont Cole (1954): Why does iteroparity exist at all?",
+    "items": [
+      "Cole asked a deceptively simple question: given the demographic costs of delaying reproduction, why would any species evolve to reproduce more than once?",
+      "His analysis compared the <b>intrinsic rate of increase (r)</b> of a hypothetical semelparous population to that of an iteroparous population with the same annual fecundity.",
+      "Startling conclusion: a semelparous organism that produces just <b>one additional offspring</b> beyond what an iteroparous organism produces per bout achieves an <b>equivalent population growth rate</b> to an iteroparous organism that reproduces annually forever.",
+      "This became known as <b>Cole's Paradox</b>: the fitness advantage of iteroparity over semelparity should be almost negligible — so why is iteroparity so common, especially among long-lived organisms?"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Cole's Original Formulation (1954)",
+    "quote": "For an annual species, the absolute gain in intrinsic population growth which could be achieved by changing to the perennial reproductive habit would be exactly equivalent to adding one individual to the average litter size.",
+    "attrib": "Lamont C. Cole, \"The Population Consequences of Life History Phenomena,\" Quarterly Review of Biology (1954)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Seemed Paradoxical",
+    "title": "The mismatch with observed nature",
+    "items": [
+      "If Cole's math were the whole story, semelparity should be overwhelmingly favored — a tiny fecundity boost should always outcompete the \"wait and reproduce again\" strategy.",
+      "Yet in nature, iteroparity dominates among long-lived vertebrates, trees, and many other lineages.",
+      "Something was missing from Cole's original model — the resolution came from recognizing an unrealistic hidden assumption.",
+      "The key omission: Cole's model implicitly assumed <b>no mortality</b> between the semelparous organism's reproductive event and when its offspring would themselves reproduce, and effectively ignored survival costs of the iteroparous individual persisting to breed again."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Illustration",
+    "title": "A simplified numeric illustration of Cole's logic",
+    "items": [
+      "Imagine an iteroparous species that produces <b>10 offspring per year</b> for many years versus a semelparous relative that produces all its offspring in <b>one single event</b>.",
+      "Under Cole's original (survival-free) logic, the semelparous relative would only need to produce <b>11 offspring</b> (10 + 1) in its single bout to match the long-run population growth rate of the iteroparous species reproducing annually forever.",
+      "This seems to imply that evolving iteroparity provides almost no fitness benefit — a tiny, easily-achieved fecundity increase should always be able to substitute for repeated reproduction.",
+      "The apparent triviality of this fitness gain is exactly what made Cole's original result so puzzling given how common and elaborate iteroparous life histories actually are in nature."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Resolution",
+    "title": "Correcting the model",
+    "term": "Charnov & Schaffer (1973)",
+    "def": "Eric Charnov and William Schaffer showed that Cole's paradox arises from an unrealistic assumption of zero pre-reproductive (juvenile) mortality; once realistic survival rates are incorporated, the huge fitness advantage predicted for semelparity disappears.",
+    "bullets": [
+      "They incorporated distinct survival probabilities for <b>juveniles</b> (offspring surviving to reproductive age) and <b>adults</b> (surviving from one reproductive bout to the next).",
+      "When juvenile survival is low relative to adult survival, the reproductive value of an adult that can survive to breed again becomes much higher than Cole's model implied.",
+      "This single correction reconciled life history theory with observed patterns of parity in nature."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Charnov-Schaffer Logic",
+    "title": "Why survival rates change the calculus",
+    "left": {
+      "h": "Cole's original assumption",
+      "body": "Implicitly assumed juveniles survive to breeding age just as reliably as adults survive to their next reproductive bout — i.e., survival costs of \"waiting to reproduce again\" were not properly weighted against the survival costs already built into reaching reproductive age the first time."
+    },
+    "right": {
+      "h": "Charnov & Schaffer's correction",
+      "body": "If juvenile survival (S_juv) is much lower than adult survival (S_adult), then an adult that survives to breed again is a comparatively much safer bet than producing one extra offspring who must independently survive to maturity."
+    },
+    "footnote": "Charnov, E.L. & Schaffer, W.M. (1973) Life-history consequences of natural selection: Cole's result revisited. American Naturalist."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Corrected Condition",
+    "title": "When is iteroparity favored?",
+    "items": [
+      "The Charnov-Schaffer model shows iteroparity is favored when <b>adult survival probability is high relative to juvenile (offspring) survival probability</b>.",
+      "Conversely, semelparity is favored when adult survival after a reproductive bout is low or uncertain — there is little fitness benefit to \"holding back\" resources for a future event that is unlikely to happen.",
+      "In simplified form: iteroparity is favored when adult survival exceeds the product of juvenile survival and the extra offspring gained by full semelparous investment.",
+      "This reframes the question productively: parity is not a fixed trait, but a strategy predicted by the <b>ratio of juvenile to adult survival</b> in a given environment."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Synthesis",
+    "title": "Cole's Paradox: problem and resolution",
+    "headers": [
+      "Aspect",
+      "Cole (1954) Original Model",
+      "Charnov & Schaffer (1973) Resolution"
+    ],
+    "rows": [
+      [
+        "Key assumption",
+        "Survival between reproductive bouts effectively unweighted / idealized",
+        "Explicit juvenile vs. adult survival rates included"
+      ],
+      [
+        "Predicted result",
+        "One extra offspring ≈ fitness of infinite iteroparous reproduction",
+        "Adult survival advantage can strongly favor iteroparity"
+      ],
+      [
+        "Real-world fit",
+        "Predicts semelparity should be far more common than observed",
+        "Matches observed dominance of iteroparity in long-lived taxa"
+      ],
+      [
+        "Central variable",
+        "Fecundity difference only",
+        "Ratio of adult survival to juvenile survival"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Environmental Correlates and Bet-Hedging",
+    "sub": "When does each strategy win?"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Mechanistic Link",
+    "title": "How environment translates into survival rates",
+    "left": {
+      "h": "Environment → survival",
+      "body": "Harsh, unpredictable, or hazardous environments (droughts, severe winters, high predation pressure, disturbance) directly lower the probability that an adult survives from one potential reproductive bout to the next."
+    },
+    "right": {
+      "h": "Survival → strategy",
+      "body": "Per the Charnov-Schaffer model, low adult survival relative to juvenile survival tips the fitness balance toward semelparity; high, stable adult survival tips it toward iteroparity. Environment is therefore the ultimate driver acting through the proximate variable of survival probability."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ecological Predictions",
+    "title": "Matching strategy to environment",
+    "items": [
+      "<b>Semelparity favored</b> when: adult survival to a second reproductive bout is low or unpredictable (e.g., harsh, fluctuating, or hazardous environments); a single massive reproductive burst maximizes offspring survival (e.g., predator satiation, resource pulses); or the habitat/resource is ephemeral (annual plants in disturbed or seasonal habitats).",
+      "<b>Iteroparity favored</b> when: adult survival prospects are consistently high; environments are relatively stable and predictable across years; and repeated smaller investments allow an organism to track variable conditions and \"average out\" bad years.",
+      "These predictions align directly with the Charnov-Schaffer survival-ratio logic — environment shapes the underlying survival rates that determine which strategy maximizes fitness."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Environmental Correlates",
+    "title": "Habitat conditions favoring each strategy",
+    "headers": [
+      "Condition",
+      "Favors Semelparity",
+      "Favors Iteroparity"
+    ],
+    "rows": [
+      [
+        "Adult survival after reproduction",
+        "Low / uncertain",
+        "High"
+      ],
+      [
+        "Environmental predictability",
+        "Unpredictable, harsh, variable",
+        "Stable, predictable"
+      ],
+      [
+        "Habitat duration",
+        "Ephemeral (e.g., disturbed sites, seasonal ponds)",
+        "Persistent, long-lived habitat"
+      ],
+      [
+        "Offspring survival strategy",
+        "Predator satiation via mass output",
+        "Risk-spreading across multiple bouts"
+      ],
+      [
+        "Typical taxa",
+        "Annual plants, Pacific salmon, agaves, periodical cicadas",
+        "Perennial plants, most birds and mammals, many long-lived fish"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Key Concept",
+    "title": "Spreading risk across an uncertain future",
+    "term": "Bet-Hedging",
+    "def": "An evolutionary strategy in which an organism reduces the variance in reproductive success across generations, even at the cost of reducing average (mean) reproductive success — favored when environmental unpredictability makes any single reproductive attempt risky.",
+    "bullets": [
+      "Named for the analogy to hedging a financial bet: reducing risk of catastrophic failure, even if it means somewhat lower expected payoff.",
+      "Bet-hedging can favor either <b>more</b> reproductive events (iteroparity, spreading risk over time) or a <b>single, precisely timed, overwhelming</b> event (some forms of semelparity)."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Faces of Bet-Hedging",
+    "title": "Spreading risk vs. concentrating risk",
+    "left": {
+      "h": "Iteroparity as bet-hedging",
+      "body": "By reproducing across multiple years, an iteroparous organism ensures that a single bad year (drought, predator outbreak, disease) does not eliminate its entire lifetime reproductive output — losses in one bout can be offset by success in another."
+    },
+    "right": {
+      "h": "Synchronized semelparity as bet-hedging",
+      "body": "In periodical cicadas, mass-synchronized single-event emergence overwhelms predator populations (predator satiation) — so much prey emerges at once that predators cannot consume a meaningful fraction, ensuring high per-capita offspring survival."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study",
+    "title": "Periodical cicadas: prime-numbered life cycles as bet-hedging",
+    "items": [
+      "<i>Magicicada</i> species have 13-year and 17-year life cycles — both <b>prime numbers</b>.",
+      "Leading hypothesis: prime-numbered cycles minimize the chance of synchronizing with the life cycles of predators or competitor cicada broods (which would otherwise share common smaller-integer divisors).",
+      "Mass, synchronous emergence after over a decade underground floods the environment with vastly more prey than predators can consume — classic <b>predator satiation</b>.",
+      "This combines two life-history phenomena: extreme delayed semelparity <i>and</i> bet-hedging via synchronized timing, both increasing offspring survival probability in an otherwise unpredictable predation landscape."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Additional Case Study",
+    "title": "Bet-hedging in desert annual plants",
+    "items": [
+      "Many desert annual plants exhibit <b>seed dormancy bet-hedging</b>: rather than germinating all seeds after any rain event, a fraction of seeds remain dormant in the soil seed bank for multiple years.",
+      "This spreads germination risk across time — since desert rainfall is highly unpredictable, germinating 100% of seeds after an insufficient rain event could result in total reproductive failure for that cohort.",
+      "Although each annual plant is individually semelparous (it reproduces once and dies), the <b>population-level bet-hedging strategy</b> of delayed, staggered germination functions analogously to iteroparity's risk-spreading — illustrating that bet-hedging can operate at multiple levels of biological organization.",
+      "This reinforces a key theme: semelparity/iteroparity at the individual level and risk-spreading strategies at the population level are related but distinct concepts."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "The Cost of Reproduction in Iteroparous Species",
+    "sub": "Why 'reproducing again' is never free"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Central Concept",
+    "title": "Reproduction is not without cost, even in iteroparous species",
+    "items": [
+      "Even among iteroparous organisms, current reproductive effort is not free — it draws down resources and imposes physiological costs that reduce <b>future</b> survival and/or fecundity.",
+      "This is the <b>cost of reproduction</b>, the mechanistic engine underlying the current-vs-future reproduction trade-off from Lecture 20.",
+      "The cost can manifest as: reduced adult survival to the next breeding season, reduced body condition, delayed future breeding, or smaller/fewer offspring in subsequent bouts.",
+      "Because this cost exists, natural selection continually tunes how much an iteroparous organism should invest per bout — investing everything approaches semelparity; investing too little forfeits fitness."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism",
+    "title": "Physiological and energetic basis",
+    "term": "Reproductive Cost Mechanisms",
+    "def": "The physiological pathways through which current reproduction reduces future performance.",
+    "bullets": [
+      "<b>Energetic depletion</b>: resources allocated to gametes, gestation, lactation, or parental care are unavailable for somatic maintenance or immune function.",
+      "<b>Physical wear/risk</b>: parental care behaviors (nest defense, foraging under predation risk, migration) can directly elevate adult mortality risk.",
+      "<b>Physiological trade-offs</b>: hormonal changes supporting reproduction (e.g., elevated testosterone or corticosterone) can suppress immune function or accelerate senescence."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Empirical Evidence",
+    "title": "Experimental brood-size manipulation studies",
+    "items": [
+      "The classic experimental test of the cost of reproduction: researchers manipulate clutch or brood size in birds (adding or removing eggs/chicks) and then track parental survival and future reproduction.",
+      "General finding across many bird studies (e.g., collared flycatchers, great tits, kestrels): parents raising <b>experimentally enlarged broods</b> show reduced survival to the next breeding season and/or reduced clutch size or offspring quality in subsequent years compared to parents with reduced or control broods.",
+      "These results provide direct, causal evidence (not just correlational) that current reproductive effort trades off against future reproductive success — confirming the trade-off is a real, measurable cost rather than a purely theoretical construct.",
+      "Similar manipulative approaches have been applied in other iteroparous taxa (e.g., lizards, small mammals, some fish) with broadly consistent results."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Related Concept",
+    "title": "Quantifying the trade-off",
+    "term": "Reproductive Value",
+    "def": "An individual's expected future contribution to population growth, combining current reproduction with the discounted value of expected future reproduction, weighted by survival probability.",
+    "bullets": [
+      "Reproductive value formalizes the intuition behind the cost of reproduction: investing heavily now only makes sense if it doesn't excessively reduce the expected value of future reproductive bouts.",
+      "As an iteroparous organism ages, the balance between current and future reproductive value shifts — very old individuals with low remaining reproductive potential are predicted to invest more heavily in current reproduction (the <b>terminal investment hypothesis</b>)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Additional Evidence",
+    "title": "Long-term field studies of large iteroparous vertebrates",
+    "items": [
+      "Long-term individually-monitored populations — such as Soay sheep (St. Kilda), red deer (Rum, Scotland), and various long-term bird studies — provide decades of data linking reproductive effort to subsequent survival and fecundity.",
+      "These studies generally confirm cost-of-reproduction patterns seen in manipulation experiments: females that reproduce in a given year, or that raise larger/heavier offspring, often show reduced probability of reproducing successfully (or surviving) the following year.",
+      "Such long-term datasets also reveal that the cost of reproduction can vary with individual condition and environmental quality — in good years/high-condition individuals, the measurable cost is often smaller, illustrating that trade-offs are context-dependent, not fixed constants."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Linking Concepts",
+    "title": "Cost of reproduction meets Cole's Paradox",
+    "left": {
+      "h": "Cost of reproduction",
+      "body": "Explains why an iteroparous organism cannot simply reproduce maximally every single bout — doing so would erode the very adult survival advantage that makes iteroparity favorable in the first place."
+    },
+    "right": {
+      "h": "Charnov-Schaffer logic",
+      "body": "The optimal strategy balances current reproductive investment against its negative effect on adult survival probability — the same survival term that determines whether iteroparity beats semelparity at all."
+    },
+    "footnote": "The cost of reproduction is the proximate mechanism; the survival-ratio logic of Charnov & Schaffer is the ultimate (evolutionary) explanation for why that mechanism matters."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bringing It Together",
+    "title": "An integrated view of parity evolution",
+    "items": [
+      "Cole's Paradox asked why iteroparity persists when a simple fecundity boost from semelparity seems to match its fitness.",
+      "Charnov & Schaffer resolved the paradox by showing that realistic <b>differential survival</b> between juveniles and adults changes the fitness calculus substantially in favor of iteroparity under many conditions.",
+      "Environmental predictability and adult survival prospects determine which strategy (semelparous \"big bang\" vs. iteroparous \"repeated bouts\") is favored in a given lineage.",
+      "Bet-hedging theory shows that variable environments can select for either spreading risk over time (iteroparity) or concentrating reproduction into a synchronized, overwhelming event (some semelparous strategies, e.g., periodical cicadas).",
+      "The cost of reproduction — demonstrated experimentally via brood-size manipulation — is the physiological mechanism that keeps even iteroparous species from over-investing in any single reproductive bout."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Quick Reference",
+    "title": "Four take-home principles",
+    "cards": [
+      {
+        "h": "1. Definitions matter",
+        "p": "Semelparity = one massive reproductive event; iteroparity = repeated smaller reproductive events across a lifetime."
+      },
+      {
+        "h": "2. Survival ratio is key",
+        "p": "The relative survival of juveniles vs. adults, not fecundity alone, determines which strategy is favored (Charnov & Schaffer 1973)."
+      },
+      {
+        "h": "3. Environment sets the stage",
+        "p": "Unpredictable/harsh environments favor semelparity; stable environments with high adult survival favor iteroparity."
+      },
+      {
+        "h": "4. Reproduction always costs something",
+        "p": "Even in iteroparous species, current reproduction reduces future survival/fecundity — demonstrated experimentally via brood-size manipulation."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Full Synthesis Table",
+    "title": "Semelparity vs. iteroparity: a comprehensive comparison",
+    "headers": [
+      "Feature",
+      "Semelparity",
+      "Iteroparity"
+    ],
+    "rows": [
+      [
+        "Number of reproductive events",
+        "One",
+        "Multiple"
+      ],
+      [
+        "Typical investment per event",
+        "Very high (often 100% of remaining resources)",
+        "Moderate, allocated across multiple bouts"
+      ],
+      [
+        "Post-reproduction survival",
+        "Often zero (dies after reproducing)",
+        "Continues, though reduced by reproductive cost"
+      ],
+      [
+        "Favored when adult survival is...",
+        "Low / unpredictable",
+        "High / predictable"
+      ],
+      [
+        "Classic examples",
+        "Pacific salmon, agaves, periodical cicadas, annual plants",
+        "Most birds, mammals, perennial plants, many fish"
+      ],
+      [
+        "Risk strategy",
+        "Mass synchronized output (can be bet-hedging via predator satiation)",
+        "Risk spread across time (bet-hedging via repeated attempts)"
+      ],
+      [
+        "Theoretical resolution",
+        "Favored per Cole (1954) baseline model without differential survival",
+        "Favored once Charnov & Schaffer (1973) survival correction applied"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion",
+    "title": "Questions to consider",
+    "items": [
+      "If climate change increases the frequency of extreme/unpredictable weather events, what would the Charnov-Schaffer framework predict for the evolution of parity in currently iteroparous species?",
+      "Why might a long-lived, iteroparous species (e.g., an albatross or a large mammal) sometimes forgo reproduction entirely in a poor-condition year, rather than reproducing at a reduced level?",
+      "How does the periodical cicada's prime-numbered cycle illustrate that bet-hedging strategies can involve both timing (when) and magnitude (how much) of reproductive investment?",
+      "Can you think of an organism whose reproductive strategy seems to violate the general environmental predictions discussed today? What additional factors might explain the exception?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Recap and Looking Ahead",
+    "sub": "Connecting Lectures 20, 21, and 22"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Lecture Recap",
+    "title": "From Lecture 20 to Lecture 21",
+    "left": {
+      "h": "Lecture 20: The general theory",
+      "body": "Established the principle of allocation and core life history trade-offs: current vs. future reproduction, offspring number vs. size, and growth vs. reproduction. Set up the conceptual toolkit for analyzing any life history question."
+    },
+    "right": {
+      "h": "Lecture 21: Applying the theory",
+      "body": "Applied that toolkit to a specific, concrete question — how many times should an organism reproduce? Showed how Cole's Paradox exposed a gap in early theory, and how incorporating realistic survival rates (Charnov & Schaffer) resolved it and explained real-world patterns."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Summary",
+    "title": "Key points to remember",
+    "items": [
+      "Semelparity (\"big bang\" reproduction) and iteroparity (repeated reproduction) represent alternative solutions to the same underlying trade-off: current vs. future reproductive effort.",
+      "Cole's Paradox (1954): a simplistic model suggested iteroparity offers negligible fitness advantage over semelparity plus one extra offspring.",
+      "Charnov & Schaffer (1973) resolved the paradox by incorporating differential juvenile vs. adult survival — iteroparity is favored when adult survival is high relative to juvenile survival.",
+      "Environmental predictability and mortality risk are the ecological drivers that determine which strategy evolves in a given lineage.",
+      "Bet-hedging theory explains both risk-spreading (iteroparity) and synchronized mass reproduction (periodical cicadas) as adaptive responses to environmental uncertainty.",
+      "The cost of reproduction — demonstrated via brood-size manipulation experiments — is the physiological mechanism constraining reproductive investment even within iteroparous life histories."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Self-Check",
+    "title": "Can you explain each of these?",
+    "cards": [
+      {
+        "h": "Cole's Paradox",
+        "p": "Why a simple model without differential survival predicted iteroparity should offer almost no fitness advantage over semelparity."
+      },
+      {
+        "h": "Charnov-Schaffer resolution",
+        "p": "How incorporating juvenile vs. adult survival rates resolved the paradox and correctly predicts when iteroparity is favored."
+      },
+      {
+        "h": "Bet-hedging",
+        "p": "How reducing variance in reproductive success, even at some cost to the mean, can be favored in unpredictable environments — via either risk-spreading or synchronized mass reproduction."
+      },
+      {
+        "h": "Cost of reproduction",
+        "p": "Why even iteroparous organisms face measurable reductions in future survival/fecundity from current reproductive effort, as shown by brood-manipulation experiments."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "COMING UP",
+    "title": "Preview: Lecture 22",
+    "sub": "r/K Selection Theory and the Fast-Slow Life History Continuum"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Next Lecture Preview",
+    "title": "Lecture 22: r/K Selection Theory",
+    "items": [
+      "We will extend today's framework to a broader classification of life history strategies: <b>r-selected</b> vs. <b>K-selected</b> organisms.",
+      "r-selection: favored in unstable/unpredictable environments, characterized by high fecundity, rapid development, and short lifespan — density-independent selection pressures dominate.",
+      "K-selection: favored in stable environments near carrying capacity (K), characterized by lower fecundity, slower development, and longer lifespan — density-dependent selection pressures dominate.",
+      "We will critically examine the r/K framework's historical importance, its empirical limitations, and how it has been superseded by the modern <b>fast-slow life history continuum</b>, which more precisely captures covariation among life history traits using demographic data.",
+      "This directly builds on today's semelparity/iteroparity distinction — you will see how parity strategy is one axis embedded within this broader fast-slow continuum."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Looking Ahead",
+    "quote": "The question is not simply how many offspring to produce, but how to schedule survival and reproduction across an entire lifetime in the face of an uncertain world.",
+    "attrib": "Adapted from life history theory (Stearns, 1992, The Evolution of Life Histories)"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 21</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

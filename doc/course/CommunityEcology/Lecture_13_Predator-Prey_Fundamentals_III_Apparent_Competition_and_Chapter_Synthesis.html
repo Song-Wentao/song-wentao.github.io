@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 13: Predator-Prey Fundamentals III: Apparent Competition and Chapter Synthesis</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 13",
+    "title": "Predator-Prey Fundamentals III: Apparent Competition and Chapter Synthesis",
+    "sub": "How a shared enemy can make two species behave like competitors — and a full review of Chapter 5's predator-prey module",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 5 — Predator-prey fundamentals; chapter synthesis"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Recap of Lecture 12",
+    "items": [
+      "L12 asked: does predation <b>stabilize</b> or <b>destabilize</b> prey populations, and what happens when we enrich the system?",
+      "<b>Paradox of enrichment</b> (Rosenzweig 1971): adding resources to a predator-prey system can destabilize it, driving larger-amplitude cycles rather than larger populations",
+      "<b>Ratio-dependent</b> vs. prey-dependent functional responses reconcile some of the paradox's empirical failures",
+      "<b>Keystone predation</b>: a predator's disproportionate community-level effect, often by suppressing a competitive dominant and preserving diversity (e.g., <i>Pisaster</i>)",
+      "<b>Non-consumptive effects (NCEs)</b>: predators reshape prey traits, habitat use, and physiology through fear alone — sometimes rivaling the effects of direct killing",
+      "Together, L11-12 built the toolkit for predator-prey <b>dynamics</b> and their community consequences. L13 adds the missing piece: indirect effects transmitted <b>between prey species</b> through a shared predator"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Apparent Competition: The Concept",
+    "sub": "When two prey species never touch a shared resource, yet behave exactly like competitors"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE CONCEPT",
+    "title": "Defining apparent competition",
+    "term": "Apparent competition",
+    "def": "A negative indirect interaction between two prey (or host) species that share a common predator (or pathogen/parasitoid), in which an increase in one prey species increases predator density or predator activity, thereby increasing predation pressure on — and suppressing — the second prey species.",
+    "bullets": [
+      "Coined by Robert Holt (1977), building on Lotka-Volterra predator-prey theory extended to a shared enemy",
+      "The two prey species need not overlap in diet, habitat structure, or any consumable resource at all",
+      "The negative effect is mediated entirely through the predator's numerical or functional response — not through resource depletion",
+      "Produces a pattern in the data (mutual exclusion, negative correlation, one species' decline coinciding with another's rise) that is <b>observationally indistinguishable</b> from classic resource competition without further investigation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "A FAMILIAR PATTERN, A NEW LENS",
+    "title": "Two everyday intuitions that map onto apparent competition",
+    "cards": [
+      {
+        "h": "\"Blaming the wrong neighbor\"",
+        "p": "A farmer sees crop pest B rise whenever pest A is abundant nearby and assumes A and B compete for the crop — when in fact both are simply feeding a shared generalist predator whose numbers track A."
+      },
+      {
+        "h": "\"Guilt by association\"",
+        "p": "A conservationist observes a native species decline correlated with an invasive species' spread and assumes displacement by competition — when the invader may simply be fueling a shared enemy."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE NAME",
+    "title": "Why call it \"competition\" at all?",
+    "items": [
+      "The two species end up with a <b>negative reciprocal effect</b> on each other's abundance or growth rate — the same net signature as a Lotka-Volterra competition coefficient (α<sub>ij</sub> > 0)",
+      "Holt's insight: predator-mediated indirect effects can be formally isomorphic to competitive effects in community models — a shared natural enemy functions like a shared limiting resource, just \"upside down\"",
+      "Where resource competition removes a shared resource that both need, apparent competition adds a shared enemy that both suffer",
+      "Practically: field ecologists observing \"species A declines where species B is abundant\" often assumed <b>direct resource competition</b> by default — Holt showed a second, entirely distinct mechanism can generate the identical pattern",
+      "This ambiguity is the central applied problem of this lecture: how do we tell the two apart?"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM WALKTHROUGH",
+    "title": "The pathway, step by step",
+    "left": {
+      "h": "Step 1 — Prey A increases",
+      "body": "Prey species A experiences a population increase (e.g., favorable resources, refuge availability, or human introduction). A is a preferred or accessible food source for a shared predator P."
+    },
+    "right": {
+      "h": "Step 2 — Predator P responds",
+      "body": "P's numerical response: more prey A supports a larger predator population (more offspring, better survival, immigration). P's functional response: even without population growth, individual predators spend more time/effort in habitats where A is abundant."
+    },
+    "footnote": "Both numerical and functional responses can operate simultaneously and are not mutually exclusive."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM WALKTHROUGH, CONTINUED",
+    "title": "The pathway, step by step (cont.)",
+    "left": {
+      "h": "Step 3 — Elevated predator pressure spills over",
+      "body": "Because P now forages in shared space or at higher density, incidental encounters with prey species B rise — even though B contributed nothing to P's population growth."
+    },
+    "right": {
+      "h": "Step 4 — Prey B declines",
+      "body": "B experiences increased mortality (or non-consumptive stress) purely as a byproduct of A's abundance. The net effect: A's presence indirectly suppresses B — a negative interaction with zero resource overlap."
+    },
+    "footnote": "This is the diagram-style walkthrough: Prey A → (+) → Predator P → (+ pressure on) → Prey B → (net −)."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE DIAGRAM IN WORDS",
+    "title": "Prey A → shared Predator → Prey B",
+    "items": [
+      "<b>Arrow 1 (Prey A → Predator P): positive.</b> A subsidizes P's population growth or foraging effort",
+      "<b>Arrow 2 (Predator P → Prey B): positive predation pressure</b>, i.e., P's impact on B increases as P benefits from A",
+      "<b>Net indirect pathway (Prey A → Prey B): negative.</b> Multiply the two positive links through a predator, and the sign of the indirect effect on B is negative — this is the signature \"indirect effect\" logic used throughout food-web ecology",
+      "Critically, there is <b>no direct arrow between A and B</b> — no shared resource, no direct interference, no direct encounter",
+      "The interaction is asymmetric when A is a much stronger driver of P's dynamics than B is (common in real subsidized-predator systems) — B pays the cost, A pays little to none",
+      "This is a textbook case of <b>sign propagation through an indirect pathway</b> — the same logic reappears in trophic cascades and will resurface in Ch10-11's food-web indirect effects"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "TWO ROUTES TO THE SAME OUTCOME",
+    "title": "Numerical vs. functional apparent competition",
+    "cards": [
+      {
+        "h": "Numerical route",
+        "p": "Prey A sustains a larger long-term predator population size (more predators alive), so total predation pressure on B rises simply because there are more predators in the system."
+      },
+      {
+        "h": "Functional route",
+        "p": "Predators shift behavior — more time hunting, switching preference, or aggregating in shared habitat — without any change in total predator numbers, because A makes the shared habitat more profitable to forage in."
+      },
+      {
+        "h": "Short-term (functional) apparent competition",
+        "p": "Can arise almost immediately, tracking behavioral shifts; often reversible if A declines again."
+      },
+      {
+        "h": "Long-term (numerical) apparent competition",
+        "p": "Builds over predator generations as populations grow; slower to appear and slower to reverse, since predator populations lag behind prey pulses."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOLT'S ORIGINAL FRAMEWORK",
+    "title": "Holt (1977): the theoretical foundation",
+    "items": [
+      "Holt modeled two prey species sharing one predator using coupled Lotka-Volterra-type equations, deriving an effective interspecific \"competition coefficient\" generated entirely by shared predation",
+      "Showed that stable coexistence of the two prey requires the predator's numerical response to be sufficiently weak, or the prey to have sufficient refuge from the shared predator — otherwise one prey competitively excludes the other via the predator, exactly as in resource competition theory",
+      "Predicted that apparent competition can be just as strong — sometimes stronger — than resource competition in shaping community structure and species coexistence",
+      "Later extensions (Holt & Lawton 1994; Chaneton & Bonsall 2000) generalized the theory to parasitoids, pathogens, and multi-predator/multi-prey \"apparent competition networks\"",
+      "Apparent competition is now recognized as a major, historically under-appreciated force structuring prey and host communities across insects, birds, mammals, and plant-herbivore systems"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FORMAL LOGIC",
+    "title": "Apparent competition as an isoclines problem",
+    "left": {
+      "h": "Resource competition isoclines",
+      "body": "Two consumers each draw down a shared resource; each species' zero-growth isocline is defined in resource space. Coexistence requires each species to more strongly limit itself than it limits the other via the shared resource."
+    },
+    "right": {
+      "h": "Apparent competition isoclines",
+      "body": "Two prey each contribute to (and suffer from) a shared predator's population growth; Holt showed the same coexistence logic applies in 'enemy space' — each prey must limit itself (e.g., via a partial refuge) more than it drives up the shared predator's pressure on the other."
+    },
+    "footnote": "This formal symmetry is exactly why Holt called the phenomenon 'apparent competition' rather than inventing an unrelated name."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONDITIONS FOR COEXISTENCE",
+    "title": "When can two prey species coexist despite a shared predator?",
+    "items": [
+      "<b>Partial or complete refuges</b>: if each prey species has some habitat, time window, or size class safe from the shared predator, apparent competition weakens and coexistence becomes more likely",
+      "<b>Predator satiation or Type II/III functional responses</b>: saturating or sigmoidal functional responses reduce the marginal predation pressure added by an increase in one prey, softening the shared-enemy effect on the other",
+      "<b>Weak numerical coupling</b>: if the predator's population growth is limited by factors other than prey abundance (e.g., nest sites, territoriality), prey A's abundance translates less strongly into elevated predator numbers",
+      "<b>Spatial or temporal segregation</b> between the two prey species can reduce the predator's ability to exploit both efficiently, even without a true resource-based refuge",
+      "These are precisely the conditions managers can sometimes manipulate — creating refuges or reducing predator numerical coupling are realistic interventions grounded directly in Holt's coexistence criteria"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Detecting Apparent Competition in the Field",
+    "sub": "Distinguishing a shared-enemy signature from true resource competition"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CENTRAL PROBLEM",
+    "title": "Why field detection is hard",
+    "items": [
+      "Both true (resource) competition and apparent competition can produce the <b>same observational pattern</b>: negative correlation in abundance, mutual exclusion across sites, or reduced growth rate of one species in the presence of another",
+      "Correlational field data alone (co-occurrence patterns, abundance surveys) cannot distinguish the mechanisms — you need to identify the <b>causal pathway</b>, not just the net effect",
+      "Historically, many declines attributed to \"competitive exclusion\" have since been re-attributed to apparent competition once a shared predator, parasite, or pathogen was identified",
+      "This matters immensely for conservation and management — the correct diagnosis dictates the correct intervention (see later slides on invasive species management)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "TELLING THEM APART",
+    "title": "True (resource) competition vs. apparent competition",
+    "headers": [
+      "Feature",
+      "True/Resource competition",
+      "Apparent competition"
+    ],
+    "rows": [
+      [
+        "Mechanism",
+        "Direct: shared limiting resource depleted by both species",
+        "Indirect: shared natural enemy (predator/parasite/pathogen) mediates the effect"
+      ],
+      [
+        "Direct interaction between prey/competitors?",
+        "Yes — resource use overlaps",
+        "No — species may never co-occur directly"
+      ],
+      [
+        "Predicted effect of removing the shared resource",
+        "Interaction weakens or disappears",
+        "No effect (resource was never the issue)"
+      ],
+      [
+        "Predicted effect of removing the shared predator/enemy",
+        "No effect (enemy was never the issue)",
+        "Interaction weakens or disappears"
+      ],
+      [
+        "Signature experiment",
+        "Resource supplementation experiment",
+        "Predator/enemy exclusion or removal experiment"
+      ],
+      [
+        "Coexistence theory used",
+        "Classic Lotka-Volterra competition, resource-ratio theory",
+        "Holt's (1977) shared-predator coexistence theory"
+      ],
+      [
+        "Typical field evidence",
+        "Niche/resource overlap measured directly",
+        "Diet analysis of predator; shared enemy identified; spatial/temporal covariation in enemy pressure"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY DISTINCTION",
+    "title": "Apparent competition vs. intraguild predation vs. simple shared predation",
+    "term": "Not every shared-predator scenario is apparent competition",
+    "def": "Apparent competition specifically requires that the shared enemy's numerical or functional response links the two prey species' fates. Related but distinct phenomena share vocabulary and can be confused with it.",
+    "bullets": [
+      "<b>Intraguild predation</b>: the 'shared predator' also directly preys on or competes with one of the prey species (e.g., a predator that eats both prey B and a smaller predator that also eats B) — adds a direct link absent from pure apparent competition",
+      "<b>Simple additive predation</b>: a predator consumes both A and B but its population is regulated by factors independent of either (e.g., strong territoriality) — here the indirect coupling Holt described may be too weak to detect",
+      "<b>Apparent mutualism</b>: the flip side — if a predator's numerical response is strongly satiation-limited, an increase in A can sometimes reduce per-capita risk to B (dilution/satiation effect), producing a positive rather than negative indirect effect",
+      "Precisely specifying the mechanism (not just labeling any shared-predator scenario 'apparent competition') is expected of you in this course and in the primary literature"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EXPERIMENTAL APPROACHES",
+    "title": "Predator exclusion experiments — the gold standard",
+    "items": [
+      "<b>Design logic:</b> if the decline of prey species B is driven by apparent competition with A via predator P, then experimentally excluding P (cages, fencing, culling, translocation) should relieve B's suppression — <b>regardless of A's abundance</b>",
+      "If instead B's decline is driven by true resource competition with A, excluding the predator should do <b>nothing</b> to B — B's suppression should track resource overlap with A, not predator presence",
+      "<b>Factorial designs</b> (predator present/absent × prey A present/absent) can fully partition the two mechanisms and even detect their combination",
+      "Classic applications: rodent/insect exclosures, predator-proof fencing for ground-nesting birds, parasitoid-exclusion cages in insect systems, biocide or antibiotic treatments isolating pathogen-mediated apparent competition",
+      "Limitation: exclusion experiments are logistically demanding at appropriate spatial/temporal scales, and large mobile predators (foxes, raptors) are especially hard to manipulate experimentally in open field systems"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OBSERVATIONAL SIGNATURES",
+    "title": "What to look for when experiments aren't feasible",
+    "items": [
+      "<b>Diet analysis</b> of the candidate shared predator — does it actually consume both prey species in ecologically meaningful proportions?",
+      "<b>Numerical response tracking</b>: does predator density/activity rise and fall with prey A's abundance, independent of prey B?",
+      "<b>Spatial covariation</b>: do sites/years with high A also show elevated predation rates on B, even where A and B do not directly co-occur or share resources?",
+      "<b>Temporal lag structure</b>: numerical apparent competition should show a time lag (predator population growth takes generations), while functional apparent competition can be near-immediate — the lag signature helps identify the route",
+      "<b>Absence of resource overlap</b>: careful niche/resource-use quantification showing A and B do not actually share a limiting resource strengthens the case for an indirect, enemy-mediated explanation",
+      "None of these alone is conclusive — apparent competition is typically built as a <b>weight-of-evidence case</b> combining diet data, exclusion results, and demographic modeling"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "WHY IT MATTERS",
+    "quote": "A pattern that looks like competition may in fact be predation in disguise — and mistaking one for the other leads to exactly the wrong management prescription.",
+    "attrib": "paraphrasing the logic of Holt (1977) and subsequent applied apparent-competition literature"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "ANALYTICAL TOOLKIT",
+    "title": "Quantitative approaches used alongside field experiments",
+    "cards": [
+      {
+        "h": "Structural equation / path models",
+        "p": "Statistically partition direct vs. indirect (predator-mediated) pathways from observational time series when full manipulative experiments are infeasible."
+      },
+      {
+        "h": "Predator functional-response fitting",
+        "p": "Fitting Type II/III curves to predator consumption data across prey densities reveals whether the predator's response to prey A is strong enough to plausibly drive apparent competition on B."
+      },
+      {
+        "h": "Demographic/matrix modeling",
+        "p": "Parameterized population models can simulate expected B decline under an apparent-competition scenario and compare it to observed data, testing whether the mechanism is quantitatively sufficient."
+      },
+      {
+        "h": "Stable isotope / molecular diet analysis",
+        "p": "DNA metabarcoding of predator scat/gut contents or isotopic signatures confirms realized diet overlap, strengthening or weakening the case for a shared-enemy pathway."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Case Studies",
+    "sub": "Classic empirical demonstrations of apparent competition in natural and human-altered systems"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE 1",
+    "title": "Gray partridge decline via fox-subsidized predation",
+    "term": "Rabbit–fox–partridge apparent competition",
+    "def": "In agricultural landscapes of the UK and continental Europe, European rabbit populations subsidize red fox populations (numerical response). Where rabbits are abundant, fox densities remain high even as gray partridge — a ground-nesting bird with no resource overlap with rabbits — suffers elevated nest predation and chick mortality from these subsidized fox populations.",
+    "bullets": [
+      "Rabbits and partridges share no diet or nesting resource — the interaction is purely predator-mediated",
+      "Historic rabbit population crashes (e.g., myxomatosis outbreaks) sometimes led to <b>increased</b> partridge nest success, consistent with apparent competition release — the opposite of what resource-competition theory would predict",
+      "This case (documented in UK Game Conservancy long-term studies) became a foundational field illustration of Holt's theory operating in a real agroecosystem",
+      "Management implication: partridge conservation efforts that focused only on habitat/food resources missed the predator-mediated pathway entirely; integrated fox control alongside habitat management proved more effective"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE 2",
+    "title": "Red squirrel decline via disease-mediated apparent competition with gray squirrels",
+    "term": "Squirrelpox-mediated apparent competition",
+    "def": "Introduced eastern gray squirrels in the UK carry squirrelpox virus with minimal fitness cost to themselves, but the virus is often lethal to native red squirrels. Gray squirrels functionally act as a disease reservoir (playing the role of the \"shared enemy's subsidy\"), driving red squirrel declines far faster than resource competition for food/habitat alone could explain.",
+    "bullets": [
+      "This is a variant of apparent competition where the \"shared predator\" is a <b>pathogen</b> rather than a predator — the same Holt-style logic applies with parasite/pathogen dynamics",
+      "Red squirrel declines are substantially faster in areas where squirrelpox is present in the gray squirrel population than in disease-free contact zones — direct evidence the pathogen route matters beyond simple resource displacement",
+      "Illustrates that \"apparent competition\" is a general class of enemy-mediated indirect effects: predators, parasitoids, and pathogens all qualify as the shared enemy",
+      "Conservation response required disease-focused intervention (not just resource-based habitat management), reinforcing the importance of correct mechanistic diagnosis"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE 3",
+    "title": "Plant–herbivore–shared-predator/parasitoid systems",
+    "term": "Apparent competition among herbivorous insects",
+    "def": "Multiple herbivorous insect species feeding on different, non-competing host plants can nonetheless suppress one another when they share a generalist predator or parasitoid — a pattern documented extensively in agricultural and grassland insect communities.",
+    "bullets": [
+      "Classic experimental demonstrations (e.g., Bonsall & Hassell's parasitoid-mediated studies) manipulated shared parasitoids to show direct causal suppression between herbivore species with no host-plant overlap",
+      "Agricultural relevance: intercropping and habitat diversification can inadvertently increase apparent competition pressure on a target pest if it shares natural enemies with a newly introduced companion species — or conversely, this logic underlies some biological control strategies",
+      "These systems allowed particularly clean experimental tests of Holt's theory because parasitoids and short insect generation times make exclusion and manipulation experiments tractable at meaningful timescales",
+      "Broader point: apparent competition is not a rare curiosity — it is a routinely detected structuring force in insect and plant-based communities once researchers looked for it"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE SYNTHESIS",
+    "title": "What the three case studies have in common",
+    "items": [
+      "In all three cases, the two affected species have <b>little or no direct resource overlap</b> — the negative interaction is entirely mediated by a third party (fox, virus, generalist parasitoid)",
+      "In all three cases, the shared enemy is <b>subsidized</b> by one species (rabbits, gray squirrels, alternative herbivore hosts) in a way that elevates pressure on the other",
+      "In all three cases, correct diagnosis required either <b>manipulative experiments</b> (parasitoid exclusion) or strong <b>natural experiments</b> (myxomatosis crashes, disease-free contact zones) rather than observational correlation alone",
+      "In all three cases, the applied management response differed substantially from what a naive resource-competition framing would have prescribed",
+      "The generality across taxa — birds, mammals, insects, plants — is itself evidence that apparent competition is a widespread structuring force, not a special-case curiosity"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Apparent Competition Meets Real Complexity",
+    "sub": "When indirect and direct effects combine — and why single-mechanism explanations often fail"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MIXING MECHANISMS",
+    "title": "Apparent competition + resource competition in the same system",
+    "items": [
+      "Real communities rarely present a clean either/or — two species can simultaneously share <b>both</b> a limiting resource <b>and</b> a predator, so true competition and apparent competition operate together and their effects add (or interact nonlinearly)",
+      "Disentangling the relative contribution of each mechanism generally requires factorial exclusion/manipulation designs that independently vary resource availability and predator access",
+      "The relative strength of each mechanism can also shift with context: resource competition may dominate when resources are scarce (e.g., drought, low productivity), while apparent competition may dominate when a shared enemy is abundant or subsidized (e.g., after a predator population boom)",
+      "This mechanistic pluralism is precisely why single-cause narratives (\"species X outcompeted species Y\") are often oversimplified — many textbook \"competition\" stories deserve re-examination through an apparent-competition lens"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TIME SCALE MATTERS",
+    "title": "Short-term vs. long-term signatures",
+    "left": {
+      "h": "Short-term / functional",
+      "body": "Rapid behavioral shifts in predator foraging (aggregation, prey-switching) generate apparent competition effects within a single season or generation — no change in predator population size required. Can appear and disappear quickly as prey A's abundance fluctuates."
+    },
+    "right": {
+      "h": "Long-term / numerical",
+      "body": "Apparent competition builds over multiple predator generations as predator populations grow in response to sustained prey A abundance. Effects persist and can even outlast a prey A decline, because predator populations lag and decay slowly (a form of hysteresis)."
+    },
+    "footnote": "Distinguishing these time scales helps explain why apparent competition effects sometimes appear delayed relative to the prey-A pulse that caused them."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BIGGER PICTURE",
+    "title": "Toward a general \"indirect effects\" framework",
+    "items": [
+      "Apparent competition is one instance of a much broader category: <b>indirect effects</b>, where species A affects species C not directly but through an intermediate species B",
+      "Other indirect effect types you will meet later in the course: <b>trophic cascades</b> (predator → herbivore → plant), <b>trait-mediated indirect effects</b> (fear/behavior-mediated, echoing L12's NCEs), and <b>keystone effects</b> operating through multiple pathways at once",
+      "The unifying logic across all of these: multiply the signs of sequential direct effects along a pathway to predict the net indirect effect — exactly the arrow-chasing exercise used earlier for Prey A → Predator → Prey B",
+      "This framework is the conceptual bridge to <b>Chapters 10-11</b>, where food-web architecture and multi-species indirect effects become the explicit subject — apparent competition is your first rigorous exposure to that logic",
+      "Takeaway: community ecology increasingly treats direct pairwise interactions as insufficient on their own — the net structure of a community emerges from a <b>network of direct and indirect pathways</b>"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "How to read an ambiguous field pattern",
+    "term": "Diagnostic walkthrough",
+    "def": "Suppose native ground squirrel B declines sharply in years and sites where introduced ground squirrel A is abundant. Before concluding 'A outcompetes B for food,' apply the Chapter 5 toolkit.",
+    "bullets": [
+      "<b>Step 1:</b> Quantify resource/niche overlap between A and B — if minimal, resource competition is a weak candidate explanation on its own",
+      "<b>Step 2:</b> Identify candidate shared predators/pathogens and check whether they consume/infect both A and B",
+      "<b>Step 3:</b> Test whether the shared enemy's abundance or activity correlates with A's abundance (numerical or functional response)",
+      "<b>Step 4:</b> If feasible, run a predator/pathogen exclusion experiment and observe whether B's decline is relieved independent of A's abundance",
+      "<b>Step 5:</b> Only after this process should management resources be committed — misdiagnosis wastes conservation funding and can even worsen the outcome"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Applied Angle — Invasive Species and Apparent Competition",
+    "sub": "A conservation-relevant mechanism for species decline that resource-competition thinking can miss"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONSERVATION IMPLICATIONS",
+    "title": "Invasive species as apparent-competition drivers",
+    "items": [
+      "An introduced species can subsidize a native or introduced predator/pathogen population, which then suppresses a native species — <b>without the invader ever directly competing for resources</b> with the native victim",
+      "This is functionally what happens in the gray squirrel–squirrelpox–red squirrel case: the invader's demographic success elevates enemy pressure on the native species",
+      "Other documented/hypothesized examples: introduced prey subsidizing native or introduced predator populations that then depress native prey (e.g., some island systems with introduced rodents/rabbits subsidizing predators that also take native birds or reptiles); introduced hosts amplifying vector-borne pathogens that spill over onto native hosts",
+      "Management implication: interventions aimed only at resource-based competitive exclusion (e.g., assuming the invader simply \"outcompetes\" the native for food/habitat) can fail if the real driver is enemy-mediated — effective management may instead require predator/pathogen control, invader removal to reduce the enemy subsidy, or both",
+      "This reframes many \"invasive species outcompetes native species\" narratives as candidates for apparent-competition re-diagnosis — with direct consequences for which management lever will actually work"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MANAGEMENT LEVERS",
+    "title": "What differs if it's apparent competition, not true competition",
+    "cards": [
+      {
+        "h": "Wrong diagnosis: assume resource competition",
+        "p": "Managers might target habitat/resource overlap (e.g., segregate feeding areas) — but if the real driver is a shared enemy, the native species keeps declining because the actual pathway was never addressed."
+      },
+      {
+        "h": "Correct diagnosis: apparent competition confirmed",
+        "p": "Interventions can target the enemy directly: predator/pathogen control, biosecurity to prevent disease spillover, or reducing the invader's subsidy effect on the shared enemy population."
+      },
+      {
+        "h": "Removing the invader alone",
+        "p": "Effective specifically because it removes the subsidy to the shared enemy — this only makes sense as a strategy once the apparent-competition pathway is confirmed."
+      },
+      {
+        "h": "Diagnostic investment pays off",
+        "p": "The cost of running exclusion experiments or diet/pathogen surveys up front is often small relative to the cost of a management program built on the wrong causal model."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER SYNTHESIS",
+    "title": "Chapter 5 Synthesis: Predator-Prey Fundamentals",
+    "sub": "Pulling together Lectures 11-13 into one coherent picture"
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FRAMING THE SYNTHESIS",
+    "quote": "A predator-prey pair is never just a pair — trace its dynamics far enough and it becomes a map of the whole community.",
+    "attrib": "course synthesis theme for Chapter 5"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE THREE-LECTURE ARC",
+    "title": "How Chapter 5 was built",
+    "items": [
+      "<b>Lecture 11</b> established the community-framed foundation: Lotka-Volterra predator-prey dynamics, isoclines, and the fundamental distinction between <b>generalist</b> and <b>specialist</b> predators and its consequences for prey population regulation",
+      "<b>Lecture 12</b> asked how predator-prey <b>modules</b> behave dynamically and scale to communities: functional/numerical responses driving (de)stabilization, the <b>paradox of enrichment</b>, <b>keystone predation</b>, and <b>non-consumptive effects</b> as an equally important second currency of predator impact",
+      "<b>Lecture 13</b> (today) extended the module to <b>multiple prey species</b> sharing one predator, showing how <b>apparent competition</b> generates community patterns that mimic direct competition — and how to correctly diagnose the mechanism",
+      "Together, these three lectures move from a single predator-prey pair, to the dynamics and stability of that pair, to the wider community consequences when a predator links multiple prey species — a full escalation from population to community scale"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "CHAPTER 5 CONCEPT MAP",
+    "title": "The logical progression across L11 → L12 → L13",
+    "items": [
+      {
+        "y": "L11",
+        "t": "Lotka-Volterra predator-prey foundations; generalist vs. specialist predators and their differing regulatory roles"
+      },
+      {
+        "y": "L12",
+        "t": "Functional/numerical responses; stability and the paradox of enrichment; keystone predation; non-consumptive effects (NCEs)"
+      },
+      {
+        "y": "L13",
+        "t": "Apparent competition (Holt 1977): shared predators link prey species indirectly; detection methods; case studies; invasive species applications"
+      },
+      {
+        "y": "Synthesis",
+        "t": "Predator-prey modules scale from a single pair, to dynamic stability of a pair, to multi-prey community structuring via indirect pathways"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "CHAPTER 5 AT A GLANCE",
+    "title": "Core mechanisms covered across the three lectures",
+    "headers": [
+      "Lecture",
+      "Central mechanism",
+      "Key theoretical tool",
+      "Community-level consequence"
+    ],
+    "rows": [
+      [
+        "L11",
+        "Predator regulation of a single prey population",
+        "Lotka-Volterra isoclines; generalist vs. specialist predators",
+        "Sets baseline expectations for predator control of prey abundance"
+      ],
+      [
+        "L12",
+        "Dynamic stability of the predator-prey pair",
+        "Functional/numerical response curves; enrichment models",
+        "Keystone predation and NCEs reshape diversity and prey traits community-wide"
+      ],
+      [
+        "L13",
+        "Indirect linkage between two prey species via a shared predator",
+        "Holt's (1977) apparent competition model",
+        "Prey declines can mimic competitive exclusion without any resource overlap"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO CURRENCIES OF PREDATION",
+    "title": "Consumptive vs. indirect impact across Chapter 5",
+    "left": {
+      "h": "Direct/consumptive pathway",
+      "body": "L11's isoclines and L12's functional/numerical responses quantify predators as consumers: how many prey are killed, and how that reshapes prey population size and stability directly."
+    },
+    "right": {
+      "h": "Indirect/non-consumptive pathway",
+      "body": "L12's non-consumptive effects and L13's apparent competition quantify predators as risk generators and community connectors: how fear reshapes traits, and how one prey species' fate becomes entangled with another's through a shared enemy."
+    },
+    "footnote": "A complete predator-prey analysis in this course requires tracking both currencies, not just kill counts."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON STUDENT MISCONCEPTIONS",
+    "title": "Pitfalls to avoid when applying Chapter 5 concepts",
+    "items": [
+      "<b>Mistake:</b> assuming any negative co-occurrence pattern implies direct competition — always consider apparent competition and predator-mediated pathways as alternative hypotheses",
+      "<b>Mistake:</b> treating predation as purely a numbers game (kill rates) while ignoring non-consumptive/behavioral pathways covered in L12 and echoed in L13's functional-route apparent competition",
+      "<b>Mistake:</b> assuming apparent competition and resource competition are mutually exclusive — real systems frequently show both operating simultaneously",
+      "<b>Mistake:</b> forgetting that apparent competition can be generated by pathogens and parasitoids, not only classic predators — the mechanism generalizes to any shared natural enemy",
+      "Avoiding these pitfalls is exactly what separates a mechanistic community ecologist from someone pattern-matching correlations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS CHAPTER MATTERED",
+    "title": "What Chapter 5 changes about how you read a community",
+    "items": [
+      "Before Chapter 5, predator-prey interactions might have seemed like a simple, self-contained population-level topic — L11-13 showed they are a load-bearing structural element of entire communities",
+      "You now have the tools to ask, for any observed negative interaction between two species: is this direct competition, apparent competition, or both — and how would I test it?",
+      "The keystone predation (L12) and apparent competition (L13) concepts both show that a single predator species can be the pivot point around which an entire community's composition and diversity are organized",
+      "Non-consumptive effects (L12) and apparent competition (L13) both demonstrate that predator \"impact\" cannot be measured by kill counts alone — behavioral and indirect pathways matter just as much as direct mortality",
+      "Chapter 5 sets up the essential logic — indirect effects propagate through shared interaction partners — that recurs in every remaining chapter of this course, from selective predation (Ch6) through food webs (Ch10-11)"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SKILLS CHECK",
+    "title": "By the end of Chapter 5, you should be able to...",
+    "cards": [
+      {
+        "h": "Model",
+        "p": "Write and interpret Lotka-Volterra predator-prey equations and isoclines, including generalist vs. specialist predator scenarios (L11)."
+      },
+      {
+        "h": "Diagnose stability",
+        "p": "Predict how functional/numerical responses and enrichment affect predator-prey stability, and explain keystone predation and non-consumptive effects (L12)."
+      },
+      {
+        "h": "Trace indirect pathways",
+        "p": "Draw and interpret an apparent competition pathway (Prey A → Predator → Prey B) and explain why the net effect is negative (L13)."
+      },
+      {
+        "h": "Design a diagnostic study",
+        "p": "Propose an exclusion experiment or observational design that distinguishes true competition from apparent competition in a real system (L13)."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "ROADMAP",
+    "title": "Where We're Headed",
+    "sub": "From predator-prey fundamentals to the rest of Part II"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "COURSE ROADMAP",
+    "title": "Community Ecology, BIOL 4XX — Part II trajectory",
+    "items": [
+      {
+        "y": "Ch5 (L11-13)",
+        "t": "Predator-Prey Fundamentals — COMPLETE: L-V dynamics, stability/enrichment/keystone predation/NCEs, apparent competition"
+      },
+      {
+        "y": "Ch6 (L14)",
+        "t": "Selective Predators, Responsive Prey — predator foraging choices and prey defensive/behavioral responses"
+      },
+      {
+        "y": "Ch7-8 (L15-21)",
+        "t": "Competition and Coexistence — resource competition theory, coexistence mechanisms, niche and neutral perspectives"
+      },
+      {
+        "y": "Ch9 (L22-23)",
+        "t": "Mutualism — positive interactions and their role in community structure"
+      },
+      {
+        "y": "Midterm I",
+        "t": "Following L23 — closes Part II of the course"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Preview of Lecture 14: Selective Predators, Responsive Prey (Chapter 6)",
+    "items": [
+      "Chapter 6 zooms into the <b>behavioral</b> side of predator-prey interactions that Chapter 5 treated more abstractly: how do predators <b>choose</b> among available prey, and how do prey <b>respond</b> to predation risk in real time?",
+      "Topics will include optimal foraging and prey selectivity, prey switching and its stabilizing role (revisiting the functional-response material from L12 with a behavioral lens), and induced/inducible prey defenses",
+      "This directly extends L12's non-consumptive effects material and L13's shared-predator logic — selective foraging and prey switching are the behavioral mechanisms that can either amplify or dampen the very apparent-competition effects covered today",
+      "L14 sets up Chapters 7-8 by showing how predator selectivity can itself be a coexistence mechanism for prey species — a conceptual bridge into the competition and coexistence unit that follows"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHAPTER 5 — FULL RECAP",
+    "title": "Recap: everything Chapter 5 covered",
+    "items": [
+      "<b>L11:</b> Lotka-Volterra predator-prey model; zero-growth isoclines; predator regulation of prey; generalist vs. specialist predator strategies and their differing community roles",
+      "<b>L12:</b> Type I/II/III functional responses; numerical responses; stability consequences of enrichment (paradox of enrichment); keystone predation (e.g., <i>Pisaster</i>); non-consumptive/trait-mediated effects of predation risk",
+      "<b>L13:</b> Apparent competition (Holt 1977) — mechanism, diagram walkthrough (Prey A → Predator → Prey B), detection via exclusion experiments and observational signatures, case studies (partridge-fox-rabbit; red-gray squirrel/squirrelpox; insect-parasitoid systems), combination with true competition, invasive species management applications",
+      "<b>Unifying thread:</b> predator-prey interactions are never just a two-species story — they scale up through stability dynamics, keystone effects, and indirect pathways to structure entire communities",
+      "<b>Next up:</b> Chapter 6 examines the behavioral mechanisms — selectivity and responsiveness — underlying many of the patterns introduced in Chapter 5"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CLOSING THOUGHT",
+    "quote": "Predators do not simply remove individuals from a population — they redistribute risk across an entire community, and that redistribution is often the more important story.",
+    "attrib": "synthesis theme, Mittelbach & McGill Ch. 5"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 13</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

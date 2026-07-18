@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 38: Multi-Trophic Interactions I: Trophic Cascades and Food Web Structure</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 38",
+    "title": "Multi-Trophic Interactions I: Trophic Cascades and Food Web Structure",
+    "sub": "How predators, herbivores, and plants connect into chains and webs — and why indirect effects can ripple across an entire community",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 12 — Multi-Trophic Interactions"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "From Pairwise Interactions to Food Webs",
+    "sub": "Why two-species thinking isn't enough"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where We've Been",
+    "title": "Chapters 7–11: One Interaction at a Time",
+    "items": [
+      "Competition (intra- and interspecific): two species, one limiting resource",
+      "Predation: predator population dynamics linked to a single prey population",
+      "Parasitism and disease: host-parasite pairs, often with vector or intermediate host",
+      "Mutualism: pairwise benefit, from loose facilitation to obligate symbiosis",
+      "Plant-herbivore interactions (Ch. 11): plant defenses, herbivore counter-adaptations, coevolutionary dynamics",
+      "Each chapter isolated a single link in the community to make the math and mechanisms tractable"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Problem With Isolation",
+    "title": "Real Communities Are Not Pairwise",
+    "items": [
+      "Every species is embedded in a web of consumers, resources, competitors, and mutualists simultaneously",
+      "A change in one population can propagate through several links before it reaches the species we actually care about",
+      "These propagated, non-adjacent effects are called <b>indirect effects</b> — as opposed to the <b>direct effects</b> we've modeled so far (e.g., predator eats prey)",
+      "Indirect effects can be as strong as, or stronger than, direct effects — yet they are easy to miss if we only track one link at a time",
+      "Chapter 12 shifts the unit of analysis from the pair to the <b>food web</b>"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Definition",
+    "title": "Indirect Effect",
+    "term": "Indirect Effect",
+    "def": "An effect of one species on another that is mediated through one or more intermediary species, rather than acting through direct contact (consumption, competition, etc.).",
+    "bullets": [
+      "Contrast with <b>direct effect</b>: species A directly consumes, competes with, or benefits species B",
+      "Indirect effects require at least three species (or trophic levels) linked in a chain",
+      "Can be density-mediated (changes in population size) or trait/behaviorally-mediated (changes in behavior or morphology) — a distinction we return to later in this lecture"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A Worked Example",
+    "title": "Direct vs. Indirect Effects, Illustrated",
+    "left": {
+      "h": "Direct Effect",
+      "body": "A fox eats a rabbit. This is a direct effect: the fox's action immediately reduces the rabbit population. We modeled these kinds of interactions in Chapters 8–9 using predator-prey equations."
+    },
+    "right": {
+      "h": "Indirect Effect",
+      "body": "The fox's presence reduces rabbit density, which reduces grazing pressure on clover, which increases clover abundance. The fox never touches the clover — its effect is transmitted through the rabbit. This is the essence of a trophic cascade."
+    },
+    "footnote": "The same logic scales up to entire food webs with many species at each level."
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Trophic Cascade Concept",
+    "sub": "When predators indirectly protect plants"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Defining the Trophic Cascade",
+    "term": "Trophic Cascade",
+    "def": "An indirect effect in which a predator suppresses its herbivore prey, thereby releasing the herbivore's food plants from consumption pressure — a top-down effect that alternates sign across at least three trophic levels.",
+    "bullets": [
+      "Predator → herbivore: negative (direct) — predators reduce herbivore density or activity",
+      "Herbivore → plant: negative (direct) — herbivores reduce plant biomass or survival",
+      "Predator → plant: <b>positive (indirect)</b> — a negative effect on a negative effect nets positive, two links away"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Sign-Chain Logic",
+    "title": "Why the Signs Alternate",
+    "items": [
+      "Think of each trophic link as multiplying a sign: (–) × (–) = (+)",
+      "Three-level cascade: predator (+ effect on plant) — signs alternate every link: P → H is (–), H → Plant is (–), so P → Plant is (+)",
+      "A four-level cascade would flip again: top predator → mesopredator → herbivore → plant produces a net <b>negative</b> effect of the top predator on the plant",
+      "This is why cascade strength and even direction depend on how many trophic levels are present — food chain length matters, not just presence of a predator"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Requirements for a Cascade",
+    "title": "When Do Cascades Actually Occur?",
+    "items": [
+      "The herbivore population (or its behavior) must be genuinely limited by predation, not by something else (e.g., its own food supply already scarce)",
+      "The plant must be a resource the herbivore actually depletes or damages measurably",
+      "Effects must propagate through <b>density</b> (fewer herbivores) or <b>behavior</b> (herbivores feed less, or in different places) — or both",
+      "Cascades are most detectable in relatively simple food webs (few dominant species, strong linkages) — omnivory and diet-switching can dampen or erase them, as we'll see later in this lecture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Classic Trophic Cascade Case Studies",
+    "sub": "Sea otters, wolves, and lake plankton"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Textbook Examples",
+    "title": "Three Classic Cascades",
+    "cards": [
+      {
+        "h": "Sea Otters – Urchins – Kelp",
+        "p": "Pacific coast marine cascade: otters prey on sea urchins; without otters, urchins overgraze kelp into barrens; with otters, kelp forests persist."
+      },
+      {
+        "h": "Wolves – Elk – Aspen/Willow",
+        "p": "Yellowstone terrestrial cascade: wolf reintroduction (1995) linked to reduced elk browsing and riparian vegetation recovery — density and behavioral pathways both proposed."
+      },
+      {
+        "h": "Fish – Zooplankton – Phytoplankton",
+        "p": "Freshwater lake cascade: planktivorous fish suppress zooplankton grazers, allowing phytoplankton (algae) biomass to increase — reproduced repeatedly in whole-lake experiments."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case Study 1",
+    "title": "Sea Otters, Urchins, and Kelp Forests",
+    "left": {
+      "h": "The Mechanism",
+      "body": "Sea otters (Enhydra lutris) are voracious predators of sea urchins. Urchins graze on kelp holdfasts and stipes. Where otters are abundant, urchin densities stay low and kelp forests flourish, creating structurally complex habitat for fish and invertebrates."
+    },
+    "right": {
+      "h": "The Evidence",
+      "body": "Comparisons across the North Pacific show a strong correlation: islands/coastlines with otters have dense kelp and low urchin biomass; areas where otters were extirpated by the fur trade (and some later where otter populations declined again, e.g., from orca predation) show urchin 'barrens' with minimal kelp."
+    },
+    "footnote": "One of the most frequently cited natural experiments in trophic cascade ecology, spanning over a century of otter population change along the Pacific coast."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study 1, continued",
+    "title": "Why the Otter Cascade Is Considered Strong",
+    "items": [
+      "Otters are a <b>keystone predator</b> in this system — their effect on community structure is disproportionate to their biomass (a concept developed further in Lecture 39)",
+      "The urchin-kelp interaction is a strong, well-documented direct link: urchins can rapidly convert kelp forest to barren once released from predation",
+      "Natural 'removal and recovery' experiments exist: fur-trade extirpation, protection under the Marine Mammal Protection Act, and localized recolonization events all track kelp abundance in the predicted direction",
+      "Caveat: other factors (temperature, sea star wasting disease affecting other urchin predators, storms) can also drive kelp dynamics — cascade strength varies regionally"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case Study 2",
+    "title": "Wolves, Elk, and Yellowstone's Vegetation",
+    "left": {
+      "h": "The Proposed Cascade",
+      "body": "Gray wolves (Canis lupus) were reintroduced to Yellowstone National Park in 1995 after a ~70-year absence. The hypothesis: wolves reduce elk density and/or change elk browsing behavior, allowing woody riparian species (aspen, willow, cottonwood) to recover, with downstream effects on beavers, songbirds, and stream morphology."
+    },
+    "right": {
+      "h": "The Behavioral Twist",
+      "body": "Much of the proposed effect operates through a <b>'landscape of fear'</b>: elk avoid risky areas (stream corridors, open valleys) even without large declines in elk numbers, changing where and how much they browse — a behaviorally-mediated pathway distinct from simple density reduction."
+    },
+    "footnote": "This case is scientifically debated — see next slide for the nuance."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study 2 — Handle With Care",
+    "title": "The Yellowstone Cascade Is Genuinely Contested",
+    "items": [
+      "Popular accounts (and viral videos) often overstate the certainty and simplicity of 'wolves saved Yellowstone' — the underlying science is more mixed",
+      "Elk population decline after 1995 had multiple simultaneous causes: wolf predation, but also increased hunting, drought, and grizzly/cougar predation on calves",
+      "Vegetation recovery is patchy — strong in some riparian sites, weak or absent in others; local factors (water table, elevation, other browsers like bison) matter a great deal",
+      "The 'landscape of fear' behavioral mechanism has support but has also been challenged by studies finding limited evidence that elk consistently avoid high-risk areas",
+      "Takeaway for this course: treat Yellowstone as an important, well-studied <b>test case</b> for cascade theory — not as unambiguous proof that top predators always control ecosystems"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case Study 3",
+    "title": "Lake Cascades: Fish, Zooplankton, Phytoplankton",
+    "left": {
+      "h": "The Mechanism",
+      "body": "Planktivorous fish (e.g., minnows, young sunfish) prey heavily on large-bodied zooplankton grazers (e.g., Daphnia). Fewer/smaller zooplankton graze less phytoplankton, so algal biomass rises — often visible as reduced water clarity."
+    },
+    "right": {
+      "h": "The Evidence",
+      "body": "Whole-lake manipulation experiments (adding or removing piscivorous fish, or fish themselves) have repeatedly reproduced this three-level cascade, making it one of the most experimentally robust cascades in ecology — arguably stronger evidence than either the otter or wolf cases."
+    },
+    "footnote": "Freshwater systems are often simpler and more experimentally tractable than marine or terrestrial ones, which is part of why the evidence here is so strong."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Comparing the Three Cases",
+    "title": "Why Cascade Strength Differs Across Systems",
+    "items": [
+      "<b>Lakes</b>: closed, replicable systems; short generation times; experimental manipulation is feasible — cascades are well supported and repeatable",
+      "<b>Sea otters/kelp</b>: strong natural-experiment evidence from historical range contraction/recovery, but confounded by other stressors",
+      "<b>Wolves/elk</b>: large, open, terrestrial landscape with many interacting drivers (climate, hunting, other predators, human land use) — hardest system to isolate a clean signal",
+      "General pattern: cascades are easiest to detect and strongest in simpler, more tractable food webs — a theme we return to when discussing food web complexity"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Case Study 2, In Sequence",
+    "title": "Timeline: Wolves and Yellowstone",
+    "items": [
+      {
+        "y": "1920s",
+        "t": "Gray wolves extirpated from Yellowstone by predator-control programs"
+      },
+      {
+        "y": "1930s–1960s",
+        "t": "Elk populations grow largely unchecked; heavy browsing pressure on aspen and willow reported"
+      },
+      {
+        "y": "1995–1996",
+        "t": "Wolves reintroduced from Canada; population establishes and grows through the early 2000s"
+      },
+      {
+        "y": "2000s",
+        "t": "Researchers report declining elk numbers and early signs of riparian vegetation recovery in some areas"
+      },
+      {
+        "y": "2010s–present",
+        "t": "Longer-term data reveal a patchier picture; debate continues over the relative roles of wolves, other predators, hunting, and climate"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Quantifying Structure",
+    "title": "Core Food Web Metrics — A Preview",
+    "cards": [
+      {
+        "h": "Species Richness",
+        "p": "The number of distinct species (nodes) present in the food web."
+      },
+      {
+        "h": "Connectance",
+        "p": "The proportion of possible feeding links that are actually realized — covered in detail later this lecture."
+      },
+      {
+        "h": "Food Chain Length",
+        "p": "The number of trophic transfers from basal producers to the top consumer along a given pathway."
+      },
+      {
+        "h": "Omnivory",
+        "p": "The extent to which species feed across more than one trophic level — also covered in detail later this lecture."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Top-Down vs. Bottom-Up Control",
+    "sub": "What regulates community structure?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Two Competing Views",
+    "title": "Top-Down vs. Bottom-Up Control",
+    "term": "Top-Down Control",
+    "def": "Community structure and abundance at lower trophic levels are regulated primarily by predation/consumption pressure from higher trophic levels (the trophic cascade logic).",
+    "bullets": [
+      "Contrast: <b>Bottom-up control</b> — community structure is regulated primarily by resource/nutrient availability at the base of the food web, propagating upward",
+      "These are not mutually exclusive — most real systems show a mix of both, and the debate is about relative <b>strength</b>, not either/or"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Central Debate",
+    "title": "Top-Down vs. Bottom-Up Control",
+    "headers": [
+      "Feature",
+      "Top-Down Control",
+      "Bottom-Up Control"
+    ],
+    "rows": [
+      [
+        "Primary driver",
+        "Predators/consumers regulate prey and, indirectly, resources",
+        "Nutrient/resource supply regulates producers and propagates upward"
+      ],
+      [
+        "Direction of causality",
+        "Flows from upper trophic levels downward",
+        "Flows from the resource base upward"
+      ],
+      [
+        "Classic evidence",
+        "Trophic cascades (otters, lake fish removals)",
+        "Fertilization experiments increasing plant/algal biomass and cascading up"
+      ],
+      [
+        "Predicted response to predator removal",
+        "Strong: herbivore release, resource depletion",
+        "Weak: herbivores were already resource-limited, little change"
+      ],
+      [
+        "Predicted response to nutrient addition",
+        "Weak or transient: consumers absorb the extra production",
+        "Strong: biomass increases at the base and at higher levels"
+      ],
+      [
+        "Where it tends to dominate",
+        "Productive systems with strong, efficient predators and short chains",
+        "Low-productivity or physically harsh systems"
+      ]
+    ],
+    "footnote": "Modern consensus: both operate simultaneously in most systems; their relative strength varies with productivity, food chain length, and disturbance."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reconciling the Debate",
+    "title": "Both Forces Act Together",
+    "items": [
+      "Early ecology (mid-20th century) framed this as an either/or debate — famously associated with the 'green world' hypothesis (Hairston, Smith & Slobodkin, 1960): the world stays green because predators keep herbivores in check (implying top-down control)",
+      "Later work showed bottom-up resource limitation is also pervasive — plants are often poorly defended, low in nutrients, or physically tough, limiting herbivores independent of predation",
+      "Modern view: top-down and bottom-up forces act <b>simultaneously</b> at every trophic level; the question is which force is stronger in a given system, under given conditions",
+      "This reframing motivated a more quantitative, predictive theory — the exploitation ecosystems hypothesis"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Predictive Framework",
+    "title": "The Exploitation Ecosystems Hypothesis",
+    "term": "Exploitation Ecosystems Hypothesis (EEH)",
+    "def": "Proposed by Oksanen and colleagues (1981): the dominant form of control and the length of the realized food chain both shift predictably with primary productivity of the ecosystem.",
+    "bullets": [
+      "At very low productivity: too little plant biomass to support herbivores — plants are resource- (bottom-up) limited, no functional herbivore trophic level",
+      "At intermediate productivity: enough plant biomass supports herbivores, which are not yet controlled by predators — herbivores suppress plants (top-down control of plants by herbivores, but herbivores themselves are resource-limited)",
+      "At higher productivity: enough herbivore biomass now supports predators, which suppress herbivores — releasing plants again (a three-level cascade emerges)",
+      "At very high productivity: a fourth trophic level (top predators) can be supported, suppressing predators and re-exposing herbivores to release"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EEH Implications",
+    "title": "Why Productivity Predicts Food Chain Length",
+    "items": [
+      "Each additional trophic level requires enough energy flow from below to sustain a viable population (recall the ~10% trophic efficiency rule from earlier in the course)",
+      "Therefore, food chain length is predicted to increase with ecosystem productivity, up to some ceiling set by other constraints (e.g., stability, body size, seasonality)",
+      "The hypothesis makes a testable prediction: whether an added trophic level causes a cascade at the plant level depends on whether the food chain has an <b>odd or even</b> number of trophic levels above the plants",
+      "Empirical support is mixed — productivity matters, but other factors (disturbance, omnivory, spatial subsidies) also strongly influence realized chain length and control regime"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Visualizing EEH",
+    "title": "Trophic Levels Added as Productivity Increases",
+    "levels": [
+      {
+        "label": "Top Predators (very high productivity)",
+        "color": "#7c3aed",
+        "width": "220px"
+      },
+      {
+        "label": "Predators",
+        "color": "#2563eb",
+        "width": "300px"
+      },
+      {
+        "label": "Herbivores",
+        "color": "#16a34a",
+        "width": "380px"
+      },
+      {
+        "label": "Primary Producers (plants)",
+        "color": "#65a30d",
+        "width": "460px"
+      }
+    ],
+    "footnote": "Each higher level is added only once productivity at the base can sustain it — energy loss across trophic transfers sets the ceiling."
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Food Web Structure",
+    "sub": "Beyond simple chains"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Basic Vocabulary",
+    "title": "Food Chains vs. Food Webs",
+    "term": "Food Web",
+    "def": "The full network of feeding (trophic) relationships among species in a community, comprising many interconnected food chains that share species at multiple trophic levels.",
+    "bullets": [
+      "<b>Food chain</b>: a single, linear pathway of energy transfer (e.g., grass → grasshopper → sparrow → hawk)",
+      "Real communities rarely reduce to one chain — most species feed on, and are fed on by, multiple other species",
+      "Food webs are typically visualized as directed graphs: nodes = species (or trophic groups), arrows = 'is eaten by' or energy flow direction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Describing Web Structure",
+    "title": "Trophic Levels in a Web Context",
+    "items": [
+      "<b>Trophic level</b>: a species' position in the food web, defined by the number of energy-transfer steps from primary producers (level 1 = producers, level 2 = herbivores, level 3 = primary predators, etc.)",
+      "In a true web (not a simple chain), a species can feed at multiple effective trophic levels simultaneously — its 'trophic position' may be a non-integer average across pathways",
+      "Basal species = producers/decomposers with no prey; top species = consumers with no predators; intermediate species = both consumers and resources",
+      "Food web complexity is often summarized using two core metrics: species richness (number of nodes) and <b>connectance</b> (density of links)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Structure Shapes Function",
+    "title": "Simple Chains vs. Complex Webs",
+    "left": {
+      "h": "Simple, Linear Chain",
+      "body": "Few species, each specialized on one resource and one consumer. Perturbations propagate predictably and strongly along the single pathway — this is the idealized scenario behind classic cascade predictions."
+    },
+    "right": {
+      "h": "Complex, Highly Connected Web",
+      "body": "Many species with overlapping diets, multiple predators per prey, and alternative pathways for energy flow. Perturbations are buffered, redirected, or diluted as they spread across many links rather than one."
+    },
+    "footnote": "Most real communities sit somewhere between these two extremes."
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Metric",
+    "title": "Connectance",
+    "term": "Connectance",
+    "def": "The proportion of all possible feeding links in a food web that are actually realized: C = L / S², where L = number of observed links and S = number of species.",
+    "bullets": [
+      "High connectance: many species interact with many others — effects of perturbation are distributed across many pathways, potentially buffering cascades",
+      "Low connectance: fewer, more specific links — effects concentrate along fewer pathways, potentially making cascades stronger and more predictable",
+      "Connectance tends to decrease as species richness increases (each species cannot realistically interact with every other species in large webs)",
+      "Empirical food webs are usually far more connected than a single 'chain' model would suggest — this matters for whether cascade predictions hold up"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Complicating the Simple Picture",
+    "title": "Omnivory",
+    "term": "Omnivory",
+    "def": "Feeding at more than one trophic level — e.g., a species that consumes both herbivores and producers, or both herbivores and other predators.",
+    "bullets": [
+      "Omnivory is extremely common in real food webs, despite being largely ignored in simple three- or four-level cascade models",
+      "An omnivorous top consumer that eats both the herbivore <b>and</b> the plant directly can dampen or even reverse the predicted cascade (it removes the plant's benefactor's benefit by also consuming the plant)",
+      "An omnivore that switches between prey types can stabilize population dynamics by relieving pressure on a depleted resource — but this same flexibility makes cascades harder to predict from simple linear-chain logic",
+      "Rockwood and others note that documented cascades are generally weaker and less consistent in food webs with high omnivory versus simple, linear-chain systems"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Historical Note",
+    "title": "How the Cascade and Food Web Concepts Developed",
+    "items": [
+      "Hairston, Smith & Slobodkin (1960) sparked the top-down/bottom-up debate with their 'green world' hypothesis, arguing predators indirectly maintain plant biomass",
+      "Robert Paine's rocky intertidal removal experiments (1960s) showed a single predator (Pisaster starfish) could determine community structure — the origin of the keystone species concept explored in Lecture 39",
+      "James Estes and colleagues' long-term studies of sea otters (1970s–2000s) provided one of the most complete empirical trophic cascade datasets, including the dramatic effects of orca predation shifts on otter numbers",
+      "The term 'trophic cascade' itself was popularized in the 1980s as lake and marine experiments accumulated, giving ecologists a shared vocabulary for these indirect, multi-level effects",
+      "This body of work collectively moved population and community ecology from pairwise thinking toward the food-web perspective this lecture introduces"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bringing It Together",
+    "title": "Why Real-World Cascades Are Often Weaker Than Textbook Cascades",
+    "items": [
+      "Simple three-level cascade logic assumes a linear chain — but real webs have connectance, alternative prey, and omnivory that diffuse the signal",
+      "Predators often have multiple prey options; if the focal herbivore declines, predators may simply switch prey rather than crash, weakening top-down control",
+      "Herbivores are also often connected to multiple plant species, so the released plant is not always the same species being protected — diffuse rather than species-specific benefit",
+      "This is why ecologists distinguish <b>strong-interactor</b> or <b>keystone</b> cascades (a small number of dominant, tightly linked species — like otters/urchins/kelp) from diffuse cascades in highly connected webs, where effects are harder to detect"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Behaviorally-Mediated Cascades",
+    "sub": "Cascades without a body count"
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Distinct Pathway",
+    "title": "Non-Consumptive Effects",
+    "term": "Non-Consumptive Effect (NCE)",
+    "def": "An effect of a predator on prey (and on lower trophic levels) that operates through changes in prey behavior, physiology, or habitat use in response to perceived predation risk, rather than through direct killing.",
+    "bullets": [
+      "Contrast with <b>consumptive effects</b>, which operate through density reduction (predators killing and removing prey)",
+      "NCEs are sometimes called <b>trait-mediated indirect effects</b> or risk effects — a preview of terminology developed further in Lecture 39",
+      "Prey respond to the mere presence, scent, or activity pattern of a predator by altering where and when they feed, even if predation rates are low"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The 'Landscape of Fear'",
+    "title": "Behaviorally-Mediated Trophic Cascades",
+    "items": [
+      "The <b>landscape of fear</b> describes spatial variation in perceived predation risk across a habitat — prey avoid or reduce activity in high-risk patches regardless of actual predator density there",
+      "If herbivores shift feeding away from risky patches (e.g., open riparian corridors, dense cover near ambush sites), those patches can recover vegetation even without any reduction in total herbivore numbers",
+      "This produces a trophic cascade through a fear-driven behavioral pathway — a mechanism proposed as part of the Yellowstone wolf-elk-aspen story, though (as noted earlier) its real-world strength there remains debated",
+      "Behaviorally-mediated cascades can, in principle, be faster than density-mediated ones, since behavior can change within an individual's lifetime — no population decline required"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Evidence for NCEs",
+    "title": "Do Non-Consumptive Effects Really Matter?",
+    "items": [
+      "Experimental manipulations (e.g., playback of predator calls/scent with no actual predation risk) have shown measurable reductions in prey foraging time and reproductive output in many systems, from songbirds to snowshoe hares to marine snails",
+      "Some meta-analyses suggest non-consumptive/risk effects can rival or exceed consumptive effects in magnitude in certain systems — challenging models that consider only density-mediated cascades",
+      "Risk effects can have costs for prey even absent any killing: reduced feeding time can lower body condition and reproduction, which in turn can feed back into density-mediated dynamics over time",
+      "Both consumptive and non-consumptive pathways typically operate together in nature — separating and quantifying their relative contributions remains an active area of research"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Worked Example",
+    "title": "Non-Consumptive Effects in Action: Elk and Wolves",
+    "items": [
+      "In risky, open riparian zones, elk exposed to wolf scent, howls, or sightings spend measurably less time feeding and more time scanning for danger (vigilance behavior)",
+      "Elk may shift core activity to safer, more forested or topographically complex terrain, reducing browsing pressure specifically in the streamside zones ecologists care most about for vegetation recovery",
+      "This shift can occur within days to weeks of wolves appearing in an area — much faster than any change in elk population size, which unfolds over years",
+      "Distinguishing this behavioral pathway from simple density reduction requires careful experimental design (e.g., comparing browsing in areas with equal elk density but different perceived risk) — a major methodological challenge in this literature"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Pathways, One Outcome",
+    "title": "Density-Mediated vs. Trait-Mediated Cascades",
+    "left": {
+      "h": "Density-Mediated Cascade",
+      "body": "Predators reduce herbivore <b>numbers</b> through direct killing. Fewer herbivores consume less plant biomass. The cascade is detectable as a change in herbivore population size correlating with plant recovery."
+    },
+    "right": {
+      "h": "Trait/Behaviorally-Mediated Cascade",
+      "body": "Predators change herbivore <b>behavior</b> (habitat use, foraging time, vigilance) without necessarily reducing numbers. Plant recovery occurs in risky patches even though herbivore density is unchanged or only modestly reduced."
+    },
+    "footnote": "Both pathways can operate simultaneously in the same system, and both are considered legitimate forms of a 'trophic cascade' in modern usage."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "Beyond Cascades: Other Indirect Effect Pathways",
+    "items": [
+      "Trophic cascades are only one category of indirect effect — species can also influence each other without ever sharing a direct predator-prey or competitive link",
+      "<b>Apparent competition</b>: two prey species sharing a common predator can suppress one another's populations even though they never compete for resources directly (previewed here, developed fully in Lecture 39)",
+      "<b>Trait-mediated indirect interactions</b>: today's non-consumptive/landscape-of-fear effects are one example of a broader category where behavior, not density, carries the indirect effect",
+      "<b>Keystone species effects</b>: some species (like sea otters) exert influence on community structure disproportionate to their abundance — a concept distinct from, but closely related to, trophic cascades",
+      "Lecture 39 formalizes each of these categories and shows how they combine with the cascade framework introduced today"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Wrapping Up Lecture 38",
+    "sub": "Roadmap for the Multi-Trophic Interactions chapter"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter Roadmap",
+    "title": "Multi-Trophic Interactions: Three Lectures",
+    "items": [
+      "<b>Lecture 38 (today)</b>: Trophic cascades and food web structure — the concept, classic case studies, top-down/bottom-up control, connectance and omnivory, behaviorally-mediated cascades",
+      "<b>Lecture 39</b>: Keystone species and other indirect effects — the keystone species concept, apparent competition, and trait-mediated indirect interactions in more detail",
+      "<b>Lecture 40</b>: Synthesis and integrative case studies — closing Part 2 of the course before we move into applied population ecology topics",
+      "Together, these three lectures move us from pairwise interaction theory (Ch. 7–11) to a community-level, network view of how species regulate one another"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Key Takeaways From Lecture 38",
+    "items": [
+      "A <b>trophic cascade</b> is an indirect, sign-alternating effect of a predator on a non-adjacent trophic level (e.g., plants), transmitted through an intermediate herbivore",
+      "Classic case studies — sea otters/urchins/kelp, wolves/elk/aspen (contested), and lake fish/zooplankton/phytoplankton — illustrate cascades with varying strength of evidence",
+      "<b>Top-down</b> and <b>bottom-up</b> control both operate in most systems; the exploitation ecosystems hypothesis predicts that dominant control and food chain length shift with productivity",
+      "Real food webs have <b>connectance</b> and <b>omnivory</b> that complicate simple linear-chain cascade predictions — cascades are strongest in simple, tightly linked webs",
+      "<b>Behaviorally-mediated (non-consumptive) cascades</b> can occur through fear-driven changes in herbivore habitat use, independent of changes in herbivore density"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Something to Sit With",
+    "quote": "The world is green not simply because plants are hard to eat, but because something is usually eating the things that eat plants — and figuring out when that 'something' matters is one of ecology's oldest unresolved questions.",
+    "attrib": "Adapted from Hairston, Smith & Slobodkin (1960) and the top-down/bottom-up literature"
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Preview: Lecture 39",
+    "sub": "Keystone Species and Other Indirect Effects"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming Up",
+    "title": "Lecture 39 Preview: Keystone Species and Indirect Effects",
+    "items": [
+      "Formal definition of the <b>keystone species</b> concept — species whose community-level impact is disproportionate to their abundance or biomass",
+      "Revisiting sea otters and other keystone predators through this more formal lens",
+      "<b>Apparent competition</b>: how two prey species that never directly interact can suppress one another via a shared predator",
+      "<b>Trait-mediated indirect interactions</b> in more depth — building directly on today's discussion of non-consumptive effects and the landscape of fear",
+      "Setting up Lecture 40's synthesis and case studies to close out the Multi-Trophic Interactions chapter"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 38</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 13: Age Structure I: Life Tables and Survivorship</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 13",
+    "title": "Age Structure I: Life Tables and Survivorship",
+    "sub": "Opening Chapter 4 — how age composition shapes population dynamics, and the bookkeeping tool ecologists use to track it",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 4 — Age Structure"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Why Age Structure Matters",
+    "sub": "Moving beyond the assumption that all individuals are equivalent"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where We've Been",
+    "title": "Recap: The Population Regulation Arc (Lectures 1–12)",
+    "items": [
+      "<b>Lectures 1–4</b> built the foundation: what populations are, exponential growth, and the logistic model with carrying capacity K.",
+      "<b>Lectures 5–8</b> explored density dependence — how competition, resource limitation, and intraspecific interactions regulate growth.",
+      "<b>Lectures 9–12</b> examined density-independent factors, stochasticity, and the debate over what actually regulates natural populations.",
+      "Throughout, populations were treated as <b>unstructured</b> — every individual assumed identical in its birth and death rates.",
+      "That assumption is convenient but wrong for almost every real organism, and today we start fixing it."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Problem",
+    "title": "Not All Individuals Are Created Equal",
+    "items": [
+      "A newborn sea turtle and a 40-year-old breeding female have wildly different probabilities of surviving the next year.",
+      "A pre-reproductive juvenile contributes zero births this year; a prime-age adult may contribute several.",
+      "The logistic model's single growth rate <b>r</b> averages over all of this — hiding biologically crucial differences.",
+      "Two populations with identical total size N can have completely different fates depending on their <b>age composition</b>.",
+      "Age-structured models let us track survival and reproduction <b>class by class</b> rather than as a population-wide average."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Population Descriptions",
+    "title": "Unstructured vs. Age-Structured Populations",
+    "left": {
+      "h": "Unstructured (Lectures 1–12)",
+      "body": "One number, N, and one pair of rates, b and d, applied uniformly to every individual. Fast to model, but blind to the fact that a population's fate depends heavily on whether it is dominated by juveniles, breeders, or post-reproductive adults."
+    },
+    "right": {
+      "h": "Age-Structured (starting today)",
+      "body": "The population is broken into age classes, each with its own survival probability and reproductive output. This lets us ask sharper questions: Is this population aging? Will it grow even if birth rate looks low right now? Which age class most limits growth?"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters in Practice",
+    "title": "Applications That Depend on Age Structure",
+    "items": [
+      "<b>Wildlife management</b>: harvest quotas for deer or fish are set by age/size class, not by total population count alone.",
+      "<b>Conservation</b>: for long-lived species like sea turtles or elephants, protecting juveniles vs. protecting breeding adults has very different population consequences.",
+      "<b>Human demography</b>: actuarial tables, retirement planning, and public health rely entirely on age-specific mortality data.",
+      "<b>Pest control</b>: targeting the life stage with highest population impact (e.g., larvae vs. adults) can be far more efficient than uniform control.",
+      "In every case, the underlying tool is the same: the <b>life table</b>."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "A Preview of the Payoff",
+    "title": "What Age-Structured Analysis Lets You Predict",
+    "cards": [
+      {
+        "h": "Population Momentum",
+        "p": "A population with many pre-reproductive juveniles can keep growing for years even if birth rates drop today — or keep shrinking even after conditions improve."
+      },
+      {
+        "h": "Vulnerable Life Stages",
+        "p": "Life tables pinpoint exactly which age class suffers the highest mortality, focusing conservation or management effort where it matters most."
+      },
+      {
+        "h": "Long-Term Growth Rate",
+        "p": "Combining survival and fecundity by age (Lecture 14 onward) yields a more accurate long-run growth rate than a single averaged r."
+      },
+      {
+        "h": "Harvest and Recovery Planning",
+        "p": "Fisheries and wildlife agencies use age-structured models to set sustainable harvest levels that protect reproductive-age individuals."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Constructing the Life Table",
+    "sub": "Cohort life tables, static life tables, and the assumptions behind each"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Foundational Concept",
+    "title": "Defining the Tool",
+    "term": "Life Table",
+    "def": "A systematic, age-specific summary of survival and mortality for a population, organized by age class (x), that tracks how many individuals survive from one age to the next.",
+    "bullets": [
+      "Originated in human actuarial science — insurance companies needed to predict mortality risk by age.",
+      "Ecologists adapted the format to track cohorts of any organism, from oak trees to zooplankton.",
+      "The life table is the raw data layer; survivorship curves and demographic rates (R0, generation time — Lecture 14) are built on top of it."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Construction Methods",
+    "title": "Cohort vs. Static Life Tables",
+    "headers": [
+      "Feature",
+      "Cohort (Horizontal) Life Table",
+      "Static (Vertical / Time-Specific) Life Table"
+    ],
+    "rows": [
+      [
+        "Data collected",
+        "Follow one group born at the same time, across its entire lifespan",
+        "Snapshot of all age classes alive at a single point in time"
+      ],
+      [
+        "Time required",
+        "Long — must track the cohort until the last individual dies",
+        "Short — one census can capture all age classes at once"
+      ],
+      [
+        "Best suited for",
+        "Short-lived organisms (annual plants, insects)",
+        "Long-lived organisms (trees, large mammals)"
+      ],
+      [
+        "Key assumption",
+        "The cohort is representative of the population going forward",
+        "Population is stationary — age structure and mortality rates are stable over time, no strong cohort effects"
+      ],
+      [
+        "Major risk",
+        "Environmental conditions may change during the long follow-up",
+        "Confounds age effects with cohort/year effects if the population is not truly stable"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Cohort Life Tables in Detail",
+    "title": "Following a Single Cohort Through Time",
+    "items": [
+      "Mark a group of individuals born (or hatched, or germinated) in the same interval — this is the <b>cohort</b>.",
+      "Track exactly how many remain alive at each subsequent age class, until none are left.",
+      "Classic examples: Gause's Paramecium cultures, annual plant populations, insect cohorts reared in the lab.",
+      "Advantage: directly observed survival, no need to assume the population is stable.",
+      "Disadvantage: impractical for organisms that live decades — you would need a multi-decade study to build one table."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Static Life Tables in Detail",
+    "title": "A Snapshot Across Age Classes",
+    "items": [
+      "Census the population once, recording the age of every individual (or a representative sample).",
+      "Requires a reliable way to <b>age</b> individuals — tooth wear and horn rings in ungulates, otoliths in fish, growth rings in trees.",
+      "Assumes the population has a <b>stable age distribution</b> and roughly constant birth/death rates over time — otherwise the snapshot misrepresents true survivorship.",
+      "Classic example: Murie's Dall mountain sheep study, built from skulls of animals that died of natural causes, aged by horn annuli.",
+      "Much faster to construct than a cohort table, which is why it's the default method for long-lived wildlife."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Choosing a Method",
+    "title": "When to Use Which Table",
+    "left": {
+      "h": "Use a Cohort Table When...",
+      "body": "The organism is short-lived enough to follow completely; individuals can be marked and re-observed reliably (mark-recapture); and you need actual observed survival rather than an assumption of stability."
+    },
+    "right": {
+      "h": "Use a Static Table When...",
+      "body": "The organism is long-lived, making a full cohort study impractical; reliable aging methods exist (rings, wear, bone density); and the population is reasonably stable in size and structure over the relevant timescale."
+    },
+    "footnote": "Rockwood Ch. 4 — both methods aim to estimate the same underlying quantities; the choice is dictated by logistics, not by which is more 'correct.'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Hybrid Approach",
+    "title": "Vertical Time-Specific vs. Composite Estimation",
+    "items": [
+      "Some studies combine multiple static snapshots taken over several years to check whether the population is really behaving as 'stationary' — a partial safeguard against cohort-effect bias.",
+      "Long-term monitoring programs (e.g., decades of deer harvest age data) can approximate cohort-level detail without needing a single unbroken multi-decade study.",
+      "Modern statistical survival models (e.g., known-fate or Cormack-Jolly-Seber models) blend mark-recapture data with life-table logic to estimate age-specific survival with formal confidence intervals.",
+      "Regardless of method, the underlying goal is always the same: estimate lx as accurately as possible for each age class."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Life Table Notation and the Standard Columns",
+    "sub": "Learning the vocabulary: x, nx, lx, dx, qx, Lx, Tx, ex"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Columns",
+    "title": "Building the Table Column by Column",
+    "items": [
+      "<b>x</b> — the age class (e.g., 0, 1, 2, ... years, or life stages such as egg, larva, pupa, adult).",
+      "<b>nx</b> — the number of individuals alive at the start of age class x.",
+      "<b>lx</b> — survivorship: the proportion of the original cohort surviving to age x, calculated as nx / n0. Always starts at l0 = 1.0.",
+      "<b>dx</b> — the number (or proportion) dying between age x and age x+1, calculated as nx − nx+1 (or lx − lx+1).",
+      "<b>qx</b> — the age-specific mortality rate: the proportion of those alive at age x that die before reaching age x+1, calculated as dx / nx (or dx / lx)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Extended Columns",
+    "title": "Life Expectancy: Lx, Tx, and ex",
+    "items": [
+      "<b>Lx</b> — the average number (or proportion) alive during the interval from x to x+1, typically (lx + lx+1) / 2.",
+      "<b>Tx</b> — the total number of age-units (e.g., sheep-years) remaining to be lived by all individuals that reach age x; the sum of Lx from age x to the end of the table.",
+      "<b>ex</b> — life expectancy at age x: the average number of additional age intervals an individual at age x can expect to live, calculated as Tx / lx.",
+      "ex answers the question 'if you have survived to age x, how much longer can you expect to live, on average?' — not the same as life expectancy at birth.",
+      "These columns are the same ones underlying human actuarial tables used by insurance and pension systems."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Notation Cheat Sheet",
+    "title": "Life Table Columns at a Glance",
+    "headers": [
+      "Symbol",
+      "Name",
+      "Meaning",
+      "Typical Formula"
+    ],
+    "rows": [
+      [
+        "x",
+        "Age class",
+        "Age or stage interval",
+        "—"
+      ],
+      [
+        "nx",
+        "Number alive",
+        "Individuals alive at start of age x",
+        "counted directly"
+      ],
+      [
+        "lx",
+        "Survivorship",
+        "Proportion of cohort surviving to age x",
+        "nx / n0"
+      ],
+      [
+        "dx",
+        "Number dying",
+        "Individuals dying during interval x to x+1",
+        "nx − nx+1"
+      ],
+      [
+        "qx",
+        "Mortality rate",
+        "Proportion of age-x survivors that die in interval",
+        "dx / nx"
+      ],
+      [
+        "Lx",
+        "Interval average",
+        "Average number alive during interval x to x+1",
+        "(lx + lx+1) / 2"
+      ],
+      [
+        "Tx",
+        "Remaining age-units",
+        "Total future age-units lived by survivors of age x",
+        "sum of Lx from x onward"
+      ],
+      [
+        "ex",
+        "Life expectancy",
+        "Expected additional intervals of life at age x",
+        "Tx / lx"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Illustration",
+    "title": "A Miniature Life Table",
+    "left": {
+      "h": "Raw Counts",
+      "body": "Suppose a cohort of 1,000 individuals (n0 = 1000) at age 0. By age 1, 600 remain (n1 = 600); by age 2, 200 remain (n2 = 200); by age 3, 0 remain. This is all the raw field data needed to build the rest of the table."
+    },
+    "right": {
+      "h": "Derived Columns",
+      "body": "l0 = 1.0, l1 = 0.6, l2 = 0.2, l3 = 0.0. d0 = 400, d1 = 400, d2 = 200. q0 = 400/1000 = 0.40, q1 = 400/600 = 0.67, q2 = 200/200 = 1.00. Mortality risk clearly rises steeply with age in this hypothetical cohort."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Table",
+    "title": "What the Numbers Are Telling You",
+    "items": [
+      "A steep drop in lx between two ages signals a period of high risk — often linked to a specific life event (e.g., leaving the nest, first winter, metamorphosis).",
+      "qx isolates the risk faced only by those who made it that far — it is a conditional probability, not a proportion of the original cohort.",
+      "Comparing qx across age classes reveals whether mortality risk is front-loaded (juveniles), back-loaded (senescence), or roughly constant.",
+      "ex often peaks not at birth but at some later age, once the highest-risk early period has been survived — a pattern seen in many species including humans historically."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Common Notation Variants",
+    "title": "A Note on Notation Across Textbooks",
+    "left": {
+      "h": "Proportion vs. Raw Count Convention",
+      "body": "Some texts define lx directly as a survival probability (starting at 1.0), while others present a raw-count nx column and calculate lx = nx/n0 separately. Rockwood uses both together so students can see the derivation explicitly."
+    },
+    "right": {
+      "h": "Stage-Based vs. Age-Based Tables",
+      "body": "For organisms with distinct life stages (egg, larva, pupa, adult) rather than continuous ages, x can represent a developmental stage instead of a fixed time interval — the same lx, dx, qx logic still applies."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Checking Your Understanding",
+    "title": "Common Notation Mix-Ups to Avoid",
+    "items": [
+      "qx is <b>not</b> the same as dx — qx is a rate (proportion of survivors at age x who die), while dx is a count (or proportion of the original cohort) that dies in that interval.",
+      "lx is cumulative from birth; qx is local to a single age interval — a population can have low overall lx by old age while still having a low qx at any single stage if mortality was concentrated earlier.",
+      "ex is life expectancy <b>given survival to age x</b> — it is not the same number as life expectancy at birth (e0), which averages in all the early mortality.",
+      "Always double check whether a source's lx column is expressed as a proportion (0 to 1) or a raw survivor count — both conventions appear in the literature."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Survivorship Curves",
+    "sub": "Plotting lx against age reveals the shape of a species' mortality strategy"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Visualizing the Life Table",
+    "title": "The Standard Graphic",
+    "term": "Survivorship Curve",
+    "def": "A plot of the logarithm of survivorship (log lx) against age (x), used to visually classify the pattern of mortality risk across a species' lifespan.",
+    "bullets": [
+      "Plotting log(lx) rather than raw lx is the convention — it linearizes constant mortality rates and makes the three curve types visually distinct.",
+      "A straight line on a log-lx plot indicates a constant mortality rate across ages; curvature indicates a mortality rate that changes with age.",
+      "First formalized by Raymond Pearl and Karl Deevey in the mid-20th century as a comparative framework across taxa."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Three Classic Patterns",
+    "title": "Type I, II, and III Survivorship Curves",
+    "headers": [
+      "Type",
+      "Mortality Pattern",
+      "Shape on log-lx Plot",
+      "Classic Examples"
+    ],
+    "rows": [
+      [
+        "Type I",
+        "Low mortality in youth and middle age; mortality rises sharply in old age",
+        "Convex — stays high, then drops steeply late",
+        "Humans (developed nations), large mammals, elephants"
+      ],
+      [
+        "Type II",
+        "Roughly constant mortality rate at every age",
+        "Straight diagonal line",
+        "Some birds, small mammals, rodents, many reptiles"
+      ],
+      [
+        "Type III",
+        "Very high mortality in early life; survivors then face low mortality",
+        "Concave — drops steeply early, then flattens",
+        "Fish, marine invertebrates, insects, most plants"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Curves",
+    "title": "Why These Shapes Arise",
+    "items": [
+      "<b>Type I</b> species typically invest heavily in few offspring, with extended parental care — deaths cluster near the natural lifespan (senescence-driven).",
+      "<b>Type II</b> mortality is often driven by unpredictable, age-independent hazards like predation or accidents striking individuals at random.",
+      "<b>Type III</b> species produce enormous numbers of offspring with minimal individual investment — most die immediately, but the few survivors face relatively low risk thereafter.",
+      "Few real species are 'pure' examples — most curves are a mix, with different life stages showing different local slopes.",
+      "The classification is a useful heuristic for comparing life-history strategies, not a rigid law."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Classic Field Example",
+    "title": "Dall Mountain Sheep (Ovis dalli)",
+    "left": {
+      "h": "The Study",
+      "body": "Adolph Murie's landmark study (1944) built a static life table from the skulls of Dall sheep found dead in Denali, aging each animal by counting horn annuli — a textbook example of a static life table applied to a long-lived mammal."
+    },
+    "right": {
+      "h": "The Pattern",
+      "body": "Low mortality through the prime adult years, then a sharp rise in old age — a pattern closer to Type I, though with a modest elevated mortality bump in the first year of life, illustrating that real curves often blend features of more than one type."
+    },
+    "footnote": "Rockwood presents the Dall sheep data as the canonical worked example of a static life table."
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Type III in the Real World",
+    "title": "High Early Mortality: Insects and Other Examples",
+    "cards": [
+      {
+        "h": "Song Sparrow / Many Songbirds",
+        "p": "Extremely high nestling and fledgling mortality; birds that reach breeding age face comparatively stable survival thereafter."
+      },
+      {
+        "h": "Oyster and Marine Invertebrates",
+        "p": "Millions of larvae released; only a tiny fraction survive settlement and early growth, after which mortality drops sharply."
+      },
+      {
+        "h": "Annual Plants",
+        "p": "Massive seed production with very low germination and seedling survival; established plants face much lower risk."
+      },
+      {
+        "h": "Many Insects (e.g., Grasshoppers)",
+        "p": "Egg and early-instar stages suffer heavy predation and desiccation; surviving adults face relatively low daily mortality."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Nuance Worth Flagging",
+    "title": "Curves Can Shift with Life Stage and Environment",
+    "items": [
+      "A single species can show different survivorship shapes at different life stages — e.g., Type III as larvae, closer to Type II as adults.",
+      "Environmental context matters: human survivorship was closer to Type III before modern medicine and sanitation, and has shifted toward Type I over the last two centuries.",
+      "Density-dependent mortality (Lectures 5–8) can alter the shape of a survivorship curve across years for the same population.",
+      "This is a reminder that life tables are empirical snapshots, not fixed species properties."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Type I and Type II in the Real World",
+    "title": "More Examples Across the Curve Spectrum",
+    "cards": [
+      {
+        "h": "African Elephant",
+        "p": "Extended parental care and few offspring; survival stays high through most of a roughly 60-70 year lifespan before dropping off — classic Type I."
+      },
+      {
+        "h": "Human Populations, Historical vs. Modern",
+        "p": "Pre-industrial human survivorship curves were closer to Type II/III; modern developed-nation curves are strongly Type I due to reduced infant and childhood mortality."
+      },
+      {
+        "h": "American Herring Gull",
+        "p": "Roughly constant annual mortality risk once past the first year, generating a near-linear log-lx plot typical of Type II."
+      },
+      {
+        "h": "Belding's Ground Squirrel",
+        "p": "High predation risk spread fairly evenly across age classes produces a Type II pattern, distinct from the sharp early die-off seen in Type III species."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Reading the Graph Correctly",
+    "title": "Common Mistakes When Interpreting Survivorship Plots",
+    "left": {
+      "h": "Mistake: Reading Raw lx Instead of log(lx)",
+      "body": "On a raw (non-log) scale, all three curve types can look superficially similar near the start — the diagnostic differences only become clear once survivorship is log-transformed."
+    },
+    "right": {
+      "h": "Mistake: Assuming the Whole Lifespan Fits One Type",
+      "body": "Many organisms shift between curve types across life stages. A single overall label (Type I, II, or III) is a simplification of what may be several distinct mortality regimes stitched together."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Sources of Data, Limitations, and Pitfalls",
+    "sub": "How life tables are actually built in the field — and where they can mislead"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Where the Numbers Come From",
+    "title": "Sources of Life Table Data",
+    "cards": [
+      {
+        "h": "Field Studies / Direct Observation",
+        "p": "Repeated censuses of marked individuals or plots over time — the gold standard for cohort tables in short-lived species."
+      },
+      {
+        "h": "Mark-Recapture",
+        "p": "Individuals are tagged, released, and later recaptured or resighted to estimate survival probabilities statistically, correcting for imperfect detection."
+      },
+      {
+        "h": "Museum and Collection Specimens",
+        "p": "Skulls, shells, otoliths, or growth rings from dead individuals (like Murie's Dall sheep skulls) allow static life tables to be built retroactively."
+      },
+      {
+        "h": "Actuarial and Demographic Records",
+        "p": "Human vital statistics, hunting/harvest records, and fisheries catch data provide large-sample age-at-death information for well-monitored populations."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Fine Print",
+    "title": "Limitations and Pitfalls in Life Table Construction",
+    "items": [
+      "<b>Sample size</b>: small cohorts or sparse skull collections produce noisy lx and qx estimates, especially in the oldest age classes where few individuals remain.",
+      "<b>Confounding age and cohort effects</b>: a static table assumes stability, but if survival conditions changed across years, the snapshot mixes together individuals who experienced very different histories.",
+      "<b>Migration</b>: individuals that emigrate are easily mistaken for deaths (and immigrants can be mistaken for births into the cohort), biasing survivorship downward or upward.",
+      "<b>Aging difficulty</b>: many wild organisms are hard to age accurately — annuli can be unclear, tooth wear varies with diet, and destructive aging methods aren't always available.",
+      "<b>Detection bias</b> in mark-recapture: individuals that are easier to observe or recapture can distort survival estimates if detectability itself varies with age."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A Concrete Pitfall",
+    "title": "Why Static Tables Can Go Wrong",
+    "left": {
+      "h": "The Assumption",
+      "body": "A static life table treats the age distribution observed today as if it reflects a stable, unchanging mortality schedule — as though every age class experienced the same environment throughout its life."
+    },
+    "right": {
+      "h": "The Reality",
+      "body": "If a harsh winter killed an unusually large fraction of one cohort, that cohort's age class will look artificially small in every future census — making it seem like a 'high mortality age' even though it was really a one-time environmental event."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Worked Caution",
+    "title": "Small Samples in the Oldest Age Classes",
+    "items": [
+      "In many wildlife life tables, the number of individuals reaching the oldest age classes is tiny — sometimes just one or two specimens.",
+      "A qx of 1.00 in the final age class often just means 'no one in this small sample happened to survive further,' not necessarily a true 100% mortality rate.",
+      "Confidence in lx, qx, and ex estimates should always be weighted by the underlying nx at that age — report sample sizes alongside any life table summary.",
+      "This is exactly why cohort tables from large starting populations (thousands of individuals, as in many insect studies) tend to give more reliable estimates than static tables built from small skull collections."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Framing Note",
+    "quote": "A life table is only as good as the assumptions used to build it — treat the resulting survivorship curve as a hypothesis about mortality pattern, not a law of nature.",
+    "attrib": "Paraphrased framing from Rockwood, Ch. 4"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Putting It Together",
+    "title": "Best Practices When Interpreting a Life Table",
+    "items": [
+      "Always ask which method (cohort vs. static) generated the table, and whether its core assumptions plausibly hold for this species and setting.",
+      "Check sample sizes per age class before trusting qx estimates, especially near the tail end of the lifespan.",
+      "Look for independent corroboration — do mark-recapture estimates and museum-specimen estimates agree?",
+      "Treat the resulting survivorship curve type (I, II, III) as descriptive shorthand for a life-history strategy, not a rigid category."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Method Trade-offs Revisited",
+    "title": "Data Source vs. Typical Weakness",
+    "headers": [
+      "Data Source",
+      "Strength",
+      "Typical Weakness"
+    ],
+    "rows": [
+      [
+        "Field cohort study",
+        "Directly observed survival, minimal assumptions",
+        "Time-intensive; impractical for long-lived species"
+      ],
+      [
+        "Mark-recapture",
+        "Corrects for imperfect detection; works on mobile species",
+        "Requires strong statistical modeling; detectability bias risk"
+      ],
+      [
+        "Museum/skull specimens",
+        "Fast, retrospective, large sample possible",
+        "Biased toward causes of death that leave remains (e.g., predation, winterkill)"
+      ],
+      [
+        "Actuarial/demographic records",
+        "Very large sample sizes, long historical record",
+        "Only available for closely monitored human or managed populations"
+      ]
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Context",
+    "title": "Milestones in Life Table Development",
+    "items": [
+      {
+        "y": "17th c.",
+        "t": "John Graunt and early actuaries compile the first mortality tables from London parish burial records."
+      },
+      {
+        "y": "1662",
+        "t": "Graunt publishes 'Natural and Political Observations on the Bills of Mortality,' a foundational actuarial life table."
+      },
+      {
+        "y": "1907",
+        "t": "Raymond Pearl begins applying demographic life table methods systematically to non-human populations."
+      },
+      {
+        "y": "1944",
+        "t": "Adolph Murie publishes the Dall mountain sheep life table, a landmark application of static life tables to wildlife."
+      },
+      {
+        "y": "1947",
+        "t": "Edward Deevey Jr. formalizes the Type I, II, III survivorship curve classification in a widely cited synthesis."
+      },
+      {
+        "y": "Today",
+        "t": "Life tables underpin modern conservation biology, fisheries stock assessment, and actuarial science alike."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Connecting to the Discipline",
+    "title": "Life Tables as a Shared Language Across Fields",
+    "items": [
+      "The same lx, qx, ex framework used for Dall sheep is used, essentially unchanged, in human actuarial science, epidemiology, and clinical survival analysis.",
+      "This shared vocabulary lets ecologists borrow statistical tools (e.g., survival analysis, hazard models) developed originally for human demography and medicine.",
+      "Understanding life tables well in this course will transfer directly to any field that models time-to-event data, not just population ecology.",
+      "It is one of the clearest examples in biology of a quantitative framework crossing disciplinary boundaries essentially intact."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before We Move On",
+    "title": "Check Your Understanding: A Quick Self-Test",
+    "left": {
+      "h": "Question",
+      "body": "A population's log(lx) vs. age plot is a straight line with a moderate negative slope from birth through old age, with no distinct bend. Which survivorship type is this, and what does the constant slope imply biologically?"
+    },
+    "right": {
+      "h": "Answer",
+      "body": "This is a Type II curve. A constant slope means the mortality rate (qx) is roughly the same at every age — risk does not concentrate at either the beginning or the end of life, consistent with age-independent hazards like random predation."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Recap and What's Next",
+    "sub": "Closing the population regulation arc and opening the life table toolkit"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Big-Picture Recap",
+    "title": "From Lectures 1–12 to Lecture 13",
+    "items": [
+      "<b>Lectures 1–12</b> treated populations as unstructured, asking how total size N changes under exponential growth, logistic growth, density dependence, and stochastic regulation.",
+      "That entire arc is now complete — you have the core toolkit for population regulation dynamics.",
+      "<b>Lecture 13</b> pivots to structure: populations are collections of age classes, each with distinct survival and reproductive contributions.",
+      "The <b>life table</b> (x, nx, lx, dx, qx, Lx, Tx, ex) is the empirical record; the <b>survivorship curve</b> is its visual signature (Type I, II, III).",
+      "Chapter 4 (Lectures 13–16) will build from this foundation toward full age-structured population models."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Key Takeaways",
+    "title": "What You Should Walk Away Knowing",
+    "items": [
+      "Cohort life tables follow one birth group through time; static life tables snapshot all age classes at once — the choice depends on lifespan and logistics.",
+      "lx, dx, and qx each answer a different question: proportion surviving, number dying, and conditional risk of dying, respectively.",
+      "Survivorship curves are plotted as log(lx) vs. age specifically so that constant mortality rates appear as straight lines.",
+      "Type I (late mortality), Type II (constant mortality), and Type III (early mortality) describe distinct life-history strategies, though real species often blend them.",
+      "Life tables are only as trustworthy as the data and assumptions behind them — watch for small samples, migration, cohort effects, and aging error."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Looking Ahead",
+    "title": "Preview: Lecture 14",
+    "left": {
+      "h": "Today's Table Was Half the Story",
+      "body": "We built the survival side of the life table — how many individuals are alive at each age, and their risk of dying. But a life table for population growth needs the reproductive side too."
+    },
+    "right": {
+      "h": "Lecture 14 — Fecundity and R0",
+      "body": "We'll add the fecundity schedule (mx, age-specific birth rate) to the survivorship data, then combine them to calculate the net reproductive rate (R0) and generation time (T) — completing the life table and setting up age-structured growth models."
+    },
+    "footnote": "Reading ahead: Rockwood Ch. 4, sections on fecundity schedules and net reproductive rate."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Guide",
+    "title": "Terms and Skills to Master Before Lecture 14",
+    "items": [
+      "Be able to construct lx, dx, and qx columns from a raw nx column, and interpret each column's biological meaning.",
+      "Be able to sketch and label the three survivorship curve types on a log(lx) vs. age plot from memory.",
+      "Be able to explain, in your own words, when a cohort life table is preferable to a static life table (and vice versa).",
+      "Be able to name at least two limitations of life table construction and explain how each could bias the resulting survivorship curve.",
+      "Come to Lecture 14 comfortable with lx and qx — we will build directly on these columns when adding the fecundity schedule."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Survival alone doesn't grow a population — but you cannot understand reproduction's contribution without first knowing who survives long enough to reproduce.",
+    "attrib": "Setting up Lecture 14"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 13</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

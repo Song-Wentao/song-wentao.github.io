@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 33: Patchy Environments I: The Competition-Colonization Tradeoff and Fugitive Species</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 33",
+    "title": "Patchy Environments, Metapopulations, and Fugitive Species I",
+    "sub": "From single-species patch occupancy to community-level coexistence in fragmented landscapes",
+    "footnote": "Mittelbach & McGill, Community Ecology, 2nd ed., Ch. 13 (pp. 267–284)"
+  },
+  {
+    "type": "section",
+    "tag": "PART IV — SPATIAL ECOLOGY",
+    "title": "Opening Part IV, after Midterm II",
+    "sub": "Communities are not painted on a featureless plane — they live in patchworks of habitat, connected (or not) by dispersal"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Where we are and where we're headed",
+    "items": [
+      "Part III (Ch. 10–12) built communities from networks, food webs, and assembly rules within a single site — implicitly treating space as uniform",
+      "Part IV (Ch. 13–14) makes space explicit: real landscapes are patchy, patches turn over, and species differ in how well they find and use patches",
+      "Ch. 13 (this lecture + next): patch dynamics, metapopulations, and how patchiness alone can maintain diversity — the fugitive species idea",
+      "Ch. 14 (Lectures 35–36): metacommunities — the general framework unifying niche-based and dispersal-based community assembly across patches",
+      "Today: a fast, applied review of metapopulation math (you saw the full derivation in Population Ecology), then straight into community-level consequences",
+      "Guiding question: can the sheer existence of patches and disturbance, independent of any resource niche difference, allow inferior competitors to persist regionally?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "BRIEF REVIEW",
+    "title": "Metapopulation Theory: The Essentials",
+    "sub": "A fast, applied recap — full derivations live in your Population Ecology course"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Metapopulation",
+    "term": "Metapopulation",
+    "def": "A population of populations: a set of local populations occupying discrete habitat patches, linked by occasional dispersal, in which local extinction and recolonization are ongoing processes.",
+    "bullets": [
+      "Coined by Richard Levins (1969, 1970) working on agricultural pest control; the concept reframes persistence as a landscape-level balance rather than a property of any single patch."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The Levins model — quick recap",
+    "items": [
+      "State variable: p = fraction of habitat patches occupied (not local abundance within a patch)",
+      "dp/dt = c·p·(1 − p) − e·p, where c = colonization rate coefficient, e = per-patch extinction rate",
+      "Colonization term c·p·(1−p): occupied patches supply colonists to empty ones; rate scales with both the source (p) and available empty patches (1−p)",
+      "Extinction term e·p: each occupied patch has a constant per-capita risk of blinking out",
+      "Equilibrium occupancy: p* = 1 − e/c — persistence requires c > e, i.e., colonization must outpace extinction at the landscape scale",
+      "You worked through this model, its assumptions, and extensions (rescue effect, habitat destruction, source-sink dynamics) in depth in Population Ecology — today we take p* as a given tool"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why this matters for communities, not just populations",
+    "items": [
+      "A single species can persist regionally (p* > 0) even while every local patch is doomed to eventual extinction — persistence is a landscape property",
+      "This decouples local competitive outcome from regional fate: a species can lose every local fight and still dominate the landscape if it colonizes fast enough",
+      "That decoupling is the seed of a genuinely new coexistence mechanism — one that requires no resource partitioning, no niche difference in the classical sense, only asymmetry in colonization versus competitive ability",
+      "Today's arc: take that single-species insight and ask what happens when many species compete for the same empty patches"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Two extensions you already know — used as building blocks today",
+    "left": {
+      "h": "Rescue effect",
+      "body": "<ul><li>Immigration into still-occupied patches reduces local extinction risk</li><li>Raises effective persistence threshold; occupancy curve becomes less steep near p* = 0</li><li>Relevant here: strong colonizers can prop up marginal populations of themselves</li></ul>"
+    },
+    "right": {
+      "h": "Source-sink dynamics",
+      "body": "<ul><li>Some patches are net exporters (sources), others net importers (sinks) of individuals</li><li>A species can maintain sink populations in patches where it would locally go extinct without immigration</li><li>Relevant here: a fugitive species' whole distribution can look like a shifting mosaic of temporary sources</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "From one species to many: the pivot",
+    "items": [
+      "Levins' model tracks one species occupying empty vs. filled patches — but real patches are contested by multiple species trying to colonize the same gaps",
+      "New question for community ecology: if two or more species compete for the same set of patches, who wins, and can they coexist regionally?",
+      "The answer will turn out to depend critically on a tradeoff between two abilities: winning fights within a patch, and finding new patches",
+      "This is where Mittelbach & McGill's Ch. 13 shifts from Levins-style single-species math to explicitly multispecies patch dynamics"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE CORE IDEA",
+    "title": "The Competition–Colonization Tradeoff",
+    "sub": "How patchiness alone can generate a new axis of coexistence"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Competition–colonization tradeoff",
+    "term": "Competition–colonization tradeoff",
+    "def": "A hypothesized negative relationship across species in which superior local competitors are poor dispersers/colonizers, and superior colonizers are poor local competitors — so no single species dominates both axes.",
+    "bullets": [
+      "The tradeoff need not be mechanistic law; it is an empirical pattern proposed to explain how many species can persist on one limiting resource in a patchy, disturbed landscape."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why a tradeoff could allow coexistence",
+    "items": [
+      "If species differ only in competitive ability, competitive exclusion predicts the best competitor eventually excludes all others everywhere — no coexistence (classic Ch. 7 result)",
+      "But if patches are ephemeral (destroyed, disturbed, or vacated) and recolonized from a regional pool, an inferior competitor that arrives first can complete its life cycle before the superior competitor finds and displaces it",
+      "A species that is a poor competitor but an excellent disperser can persist by always being one step ahead — occupying new or empty patches faster than dominants can catch up",
+      "This converts competitive ability from a single hierarchy into a genuine two-dimensional tradeoff space, opening room for many species to partition patches by turnover rate rather than by resource type"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Two strategies at opposite ends of the tradeoff",
+    "headers": [
+      "Trait",
+      "Competitive dominant",
+      "Fugitive / superior colonizer"
+    ],
+    "rows": [
+      [
+        "Local outcome in old patches",
+        "Wins, excludes others",
+        "Loses, gets displaced"
+      ],
+      [
+        "Dispersal ability",
+        "Low — few, large propagules",
+        "High — many, small propagules"
+      ],
+      [
+        "Reproductive strategy",
+        "Slow, resource-conservative",
+        "Fast, opportunistic (weedy)"
+      ],
+      [
+        "Patch occupancy over time",
+        "Persists once established",
+        "Transient — here today, gone tomorrow"
+      ],
+      [
+        "Regional persistence mechanism",
+        "Local competitive superiority",
+        "Landscape-scale colonization race"
+      ],
+      [
+        "Analogy to r/K framework",
+        "K-selected",
+        "r-selected"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "HISTORY OF THE IDEA",
+    "title": "Hutchinson's Fugitive Species",
+    "sub": "G. Evelyn Hutchinson, 1951 — decades before Levins formalized metapopulation dynamics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Hutchinson's original insight (1951)",
+    "items": [
+      "In a short paper on population studies, Hutchinson coined 'fugitive species' for organisms that are chronically excluded from equilibrium communities by superior competitors, yet persist regionally by continually colonizing new or disturbed sites",
+      "He was already thinking about disequilibrium — long before the phrase 'nonequilibrium coexistence' became standard usage",
+      "Hutchinson's insight predates the Levins metapopulation model (1969) and the formal competition-colonization tradeoff literature (Skellam 1951; Horn & MacArthur 1972; Tilman 1994) by decades — it is one of the conceptual roots of spatial community ecology",
+      "The core claim: local competitive exclusion and regional coexistence are not contradictory — they operate at different spatial scales simultaneously"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "It is often supposed that the process of natural selection would ensure the extinction of such a species. This is not necessarily the case... a species may reproduce in an area, initially free of competitors, so rapidly that a temporary population much greater than can be permanently maintained in the region is built up before the invasion of competitors.",
+    "attrib": "G. Evelyn Hutchinson, 'Copepodology for the Ornithologist,' Ecology 32 (1951) — the source of the 'fugitive species' concept"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Fugitive species",
+    "term": "Fugitive species",
+    "def": "A species that is a competitively inferior 'loser' at any single site but persists at the regional scale by rapidly colonizing new, temporary, or disturbed patches ahead of superior competitors — trading local staying power for a head start in the colonization race.",
+    "bullets": [
+      "The name evokes a species always fleeing — not from predators, but from the eventual arrival of better competitors."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Hutchinson's own worked example",
+    "items": [
+      "Hutchinson illustrated the idea with freshwater invertebrates (including copepods, his specialty) colonizing temporary ponds and puddles",
+      "Species that are quickly outcompeted in permanent, stable water bodies can dominate the earliest stages of new or short-lived ponds simply by arriving and reproducing first",
+      "As succession proceeds and the community 'fills in' with better competitors, the fugitive species is displaced locally — but it has already dispersed propagules to the next new pond",
+      "The strategy works precisely because habitat patches (ponds) are being created and destroyed continuously across the landscape — patchiness in time, not just space"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "FORMALIZING THE TRADEOFF",
+    "title": "Multispecies Patch-Occupancy Models",
+    "sub": "Extending Levins' single-species framework to a competitive hierarchy of colonizers"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Tilman's competition-colonization model (1994)",
+    "term": "Tilman's competition-colonization model (1994)",
+    "def": "A multispecies extension of the Levins patch-occupancy model in which species are ranked in a strict competitive hierarchy; superior competitors can invade and displace inferior competitors' patches, but species compensate with higher colonization rates as their competitive rank declines.",
+    "bullets": [
+      "Built directly on Levins' occupancy framework — same state variable (fraction of patches occupied), now tracked separately for each species in a hierarchy."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Structure of the Tilman model — applied summary (no full derivation)",
+    "items": [
+      "Species ranked 1 (best competitor) to N (worst); a superior competitor instantly displaces an inferior one upon arrival at an occupied patch ('competitive displacement,' not coexistence within a patch)",
+      "Each species i has an occupancy dpᵢ/dt that gains colonists from empty AND inferior-occupied patches, but loses patches to extinction (rate e) and to invasion by superior competitors (ranks 1...i−1)",
+      "Key result: infinitely many species CAN coexist regionally on a single limiting resource, provided each successively worse competitor has a sufficiently higher colonization rate — a strict, ordered tradeoff",
+      "The best competitor (rank 1) needs only enough colonization ability to persist under Levins' own p* > 0 condition; every subsequent rank must out-disperse all species above it to compensate for competitive losses",
+      "This is a landscape-scale analog of the successional niche: species differ not in resource use, but in how fast they can find and exploit space before someone better arrives"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Levins (single species) vs. Tilman (competitive hierarchy)",
+    "headers": [
+      "Feature",
+      "Levins (1969) model",
+      "Tilman (1994) competition-colonization model"
+    ],
+    "rows": [
+      [
+        "Number of species tracked",
+        "One",
+        "Many, in a strict competitive rank order"
+      ],
+      [
+        "What limits occupancy",
+        "Extinction rate alone",
+        "Extinction AND displacement by superior competitors"
+      ],
+      [
+        "Coexistence mechanism",
+        "None needed (single species)",
+        "Ordered competition-colonization tradeoff across ranks"
+      ],
+      [
+        "Equilibrium result",
+        "p* = 1 − e/c",
+        "Each species' pᵢ* depends on all higher-ranked species' occupancies"
+      ],
+      [
+        "Community-level implication",
+        "N/A",
+        "Many species can share one limiting resource via a purely spatial mechanism"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "How many species can this tradeoff really support?",
+    "items": [
+      "In principle, Tilman's model allows unlimited species packing if the tradeoff is perfectly ordered and colonization rates increase without bound down the hierarchy",
+      "In practice, colonization ability has real limits (seed size, dispersal mode, propagule number), so the tradeoff saturates — only a finite, often modest, number of species can be supported",
+      "The mechanism requires disturbance or patch turnover to keep generating empty or contested patches; without turnover, the best competitor eventually wins everywhere (back to classical exclusion)",
+      "This makes disturbance regime and patch dynamics not incidental but central to how many species a competition-colonization community can hold"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "TESTING THE IDEA",
+    "title": "Empirical Examples of Fugitive / Competition-Colonization Dynamics",
+    "sub": "Where does the tradeoff show up in real communities — and where does it not?"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Classic empirical systems",
+    "cards": [
+      {
+        "h": "Serpentine outcrops (California)",
+        "p": "Nutrient-poor, metal-rich serpentine soils exclude strong competitors adapted to richer soils; serpentine-endemic plants persist as a patchwork of small, isolated populations maintained by colonization of new outcrop patches and local turnover, not by competitive dominance."
+      },
+      {
+        "h": "Temporary ponds and vernal pools",
+        "p": "Hutchinson's own system, echoed in modern zooplankton and amphibian studies: species with fast development and strong dispersal (e.g., fairy shrimp, some cladocerans) dominate newly filled or short-hydroperiod pools before slower, competitively superior colonists arrive."
+      },
+      {
+        "h": "Disturbance-dependent 'weedy' plants",
+        "p": "Early-successional, fire- or gap-dependent species (e.g., fireweed after fire, pioneer trees in canopy gaps) persist regionally via rapid, wind- or animal-dispersed colonization of newly disturbed patches, then are competitively replaced as succession proceeds."
+      },
+      {
+        "h": "Sessile marine invertebrates on rock/coral substrate",
+        "p": "Space-limited fouling communities (barnacles, bryozoans, ascidians) show competition for primary substrate; fast-colonizing, competitively subordinate species persist in a shifting mosaic of recently opened space created by wave disturbance or predation."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "How well does the empirical evidence support the tradeoff?",
+    "items": [
+      "Support is strongest where a clear disturbance regime continuously generates new patches and species show measurable variation in dispersal/colonization traits (seed size, propagule number, dispersal mode)",
+      "The tradeoff is often 'soft' rather than a strict, single-axis hierarchy — many species show intermediate strategies, and competitive rank can be context-dependent (varies with resource, disturbance type, or herbivory)",
+      "A key critique (Levine & Rees 2002; others): observed colonization-competition tradeoffs are frequently weaker or noisier than the clean theoretical hierarchy required for Tilman-style unlimited coexistence",
+      "Other traits often covary with the tradeoff and could substitute as the 'real' mechanism (e.g., stress tolerance, seed dormancy, herbivore resistance) — teasing apart pure competition-colonization from correlated niche differences remains an active empirical challenge"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "The idealized tradeoff vs. what field data usually show",
+    "left": {
+      "h": "Idealized theory",
+      "body": "<ul><li>Strict, transitive competitive hierarchy (rank 1 always beats rank 2, etc.)</li><li>Colonization ability increases monotonically as competitive rank declines</li><li>Single limiting resource; coexistence purely spatial, no niche differences needed</li><li>Unlimited species packing possible in principle</li></ul>"
+    },
+    "right": {
+      "h": "Typical field pattern",
+      "body": "<ul><li>Competitive outcomes are often context- or resource-dependent, not a clean linear hierarchy</li><li>Colonization and competitive ability correlate weakly or with high scatter across species</li><li>Multiple mechanisms usually operate together (tradeoff + storage effect + true niche differences)</li><li>A handful of clearly 'fugitive' species, embedded in a community also structured by other mechanisms</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "BROADER SPATIAL COEXISTENCE",
+    "title": "Beyond a Single Tradeoff: Other Spatial Mechanisms",
+    "sub": "Competition-colonization is one member of a family of ways that space itself promotes coexistence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Recall: the storage effect (Ch. 8) — now viewed spatially",
+    "items": [
+      "In Ch. 8/L21 you saw the storage effect mainly in its TEMPORAL form: species differ in response to a fluctuating environment over time, buffered population growth lets them 'store' good years to survive bad ones",
+      "The same logic applies across SPACE instead of time: if the environment varies among patches, species differ in which patches favor them, and population growth is buffered against poor patches, a spatial storage effect can maintain coexistence",
+      "Spatial and temporal storage effects share the same three ingredients — they differ only in whether the relevant environmental variation is a location or a moment",
+      "This connects directly to today's patch framework: 'patchy environment' is exactly the spatial heterogeneity that a spatial storage effect requires"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Spatial storage effect",
+    "term": "Spatial storage effect",
+    "def": "A coexistence mechanism in which species differ in which patch types favor their population growth, competition is more intense in favorable patches (negative covariance between environment and competition), and buffered population growth lets species persist regionally by exploiting patches currently favorable to them while enduring unfavorable ones elsewhere.",
+    "bullets": [
+      "Formally requires the same three ingredients as the temporal storage effect: species-specific environmental response, environment–competition covariance, and buffered (subadditive) population growth — just mapped onto space."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Three required ingredients, spatial version",
+    "items": [
+      "Differential species response to patch environment: species must respond differently to whatever varies among patches (soil moisture, canopy gap size, substrate type)",
+      "Negative environment–competition covariance: competition must be strongest in the patches most favorable to a given species (i.e., its favorable patches attract crowding), which caps its local advantage",
+      "Buffered population growth: a species must be able to persist (e.g., via dormancy, refugia, source-sink rescue) through patches or periods where conditions are unfavorable, rather than going locally extinct instantly",
+      "When all three hold, no single species can competitively exclude others across the whole patch mosaic — each is buffered by 'good' patches somewhere in the landscape"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Temporal vs. spatial storage effect",
+    "headers": [
+      "Feature",
+      "Temporal storage effect",
+      "Spatial storage effect"
+    ],
+    "rows": [
+      [
+        "Axis of environmental variation",
+        "Time (good years vs. bad years)",
+        "Space (favorable vs. unfavorable patches)"
+      ],
+      [
+        "What is 'stored'",
+        "Reproduction/survival from good years, via long-lived stages or seed banks",
+        "Occupancy of favorable patches, via dispersal and persistence"
+      ],
+      [
+        "Buffering mechanism",
+        "Dormancy, iteroparity, seed/egg banks",
+        "Refugia, source-sink rescue, dispersal among patches"
+      ],
+      [
+        "Typical empirical system",
+        "Desert annuals, coral reef fish recruitment variability",
+        "Serpentine/non-serpentine mosaics, forest gap mosaics"
+      ],
+      [
+        "Relationship to competition-colonization tradeoff",
+        "Independent mechanism",
+        "Can operate alongside the tradeoff in the same patchy landscape"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Other spatial coexistence mechanisms worth knowing",
+    "items": [
+      "Aggregation model (Ives & May 1985; Atkinson & Shorrocks 1981): if competitors aggregate independently across discrete patches (e.g., decaying fruit, dung pats), intraspecific crowding in shared patches can outweigh interspecific competition, promoting coexistence without any competitive tradeoff at all",
+      "Recruitment limitation: if dispersal is limited enough that not every patch receives every species' propagules, chance arrival order can let inferior competitors win locally by 'priority effect,' generating a shifting spatial mosaic",
+      "These mechanisms need not invoke Hutchinson's colonization-speed story — they show that spatial structure alone, even without a competition-colonization tradeoff, can relax competitive exclusion",
+      "Takeaway: 'fugitive species via competition-colonization tradeoff' is the most famous spatial coexistence story, but it is one instance of a broader principle — patchiness itself is a coexistence-generating resource"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE LANDSCAPE PERSPECTIVE",
+    "title": "Patch Dynamics and Successional Mosaics",
+    "sub": "Zooming out from species pairs to the whole shifting landscape"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Patch dynamics",
+    "term": "Patch dynamics",
+    "def": "The study of how the number, size, age, and successional state of habitat patches change over time within a landscape, and how that turnover structures the species composition found in any patch at any moment.",
+    "bullets": [
+      "Rooted in Levins & Paine's (1974) 'shifting mosaic steady-state' concept and Pickett & White's (1985) synthesis of natural disturbance and patch dynamics in ecosystems."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The shifting mosaic steady state",
+    "items": [
+      "Individual patches are born (disturbance, gap formation, pond filling), age through succession, and die (canopy closure, pond drying, competitive takeover) — no single patch is stable forever",
+      "But the LANDSCAPE as a whole can be at a statistical steady state: the proportion of patches in each successional stage stays roughly constant even though which particular patches are in which stage keeps changing",
+      "Fugitive/early-successional species persist regionally not because any patch stays young forever, but because the landscape always has SOME patches that are young",
+      "This is the same logic as Levins' p* applied to successional stage rather than simple presence/absence: 'young-patch occupancy' is itself an equilibrium quantity set by disturbance frequency and succession rate"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "One patch's life cycle within a shifting mosaic landscape",
+    "items": [
+      {
+        "y": "T0",
+        "t": "Disturbance opens the patch — canopy gap, fire, wave scour, or new temporary pond fills"
+      },
+      {
+        "y": "T1",
+        "t": "Fugitive / pioneer species arrive first via superior dispersal; rapid establishment and reproduction"
+      },
+      {
+        "y": "T2",
+        "t": "Competitively superior species begin arriving and establishing"
+      },
+      {
+        "y": "T3",
+        "t": "Superior competitors displace fugitive species locally; local diversity of early colonists declines"
+      },
+      {
+        "y": "T4",
+        "t": "Patch reaches a late-successional or climax-like state dominated by strong local competitors"
+      },
+      {
+        "y": "T5",
+        "t": "New disturbance resets the patch — fugitive species (already established at other young patches) recolonize"
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "Spatial scales of patch-based community structure",
+    "levels": [
+      {
+        "label": "Metacommunity",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Metapopulation",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Local community",
+        "color": "#3f7d5c",
+        "width": "440px"
+      },
+      {
+        "label": "Single patch / population",
+        "color": "#568f6d",
+        "width": "380px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Fugitive species as landscape 'connective tissue'",
+    "items": [
+      "Fugitive species link successive disturbance events across a landscape — they are often the first responders that stabilize newly opened patches and can facilitate subsequent colonists (soil stabilization, microhabitat creation)",
+      "Their regional persistence depends on landscape-scale disturbance FREQUENCY and connectivity: too little disturbance (patches never open) or too much fragmentation (patches too far apart) can both drive fugitive species regionally extinct",
+      "This makes fugitive species a useful bioindicator of disturbance regime intactness — loss of fugitive/early-successional specialists often signals altered fire, flood, or gap-formation regimes",
+      "The same turnover that excludes fugitive species locally, again and again, is precisely what their whole life history is adapted to exploit at the regional scale"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Disturbance regime shapes how many fugitive species a landscape can hold",
+    "left": {
+      "h": "Disturbance frequency / size effects",
+      "body": "<ul><li>Too rare / too small: few young patches available, fugitive species starved of the transient habitat they need</li><li>Too frequent / too large: dominant competitors never get to establish anywhere, fugitive-type species may dominate everywhere (low diversity of a different kind)</li><li>Intermediate frequency and patchy spatial extent: mix of successional stages present simultaneously, maximizing the diversity of strategies a landscape can support</li></ul>"
+    },
+    "right": {
+      "h": "Connection back to Ch. 8-11 concepts",
+      "body": "<ul><li>Echoes the intermediate disturbance hypothesis (peak diversity at intermediate disturbance) — but here the mechanism is explicitly spatial patch turnover, not just local successional reset</li><li>Echoes the storage-effect requirement for environmental variation (Ch. 8) — disturbance regime is the source of that variation here</li><li>Foreshadows Ch. 14: a landscape's patch-turnover regime is one of the key parameters metacommunity models will formalize</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Synthesis so far: what patchiness buys a community",
+    "items": [
+      "Patchiness converts a single competitive hierarchy (local scale) into a two-dimensional tradeoff space (regional scale) by adding a colonization axis",
+      "Hutchinson's fugitive species and Tilman's formalized competition-colonization model show, in principle, that many species can share one limiting resource purely via spatial turnover — no classical niche partitioning required",
+      "Real communities usually combine this mechanism with others: spatial storage effects, aggregation, recruitment limitation, and genuine resource niche differences layer on top of pure colonization-competition tradeoffs",
+      "None of this works without patch turnover — disturbance, patch creation, and patch destruction are not noise around the 'real' community process, they ARE a community-structuring process"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "BRIDGE TO CH. 14",
+    "title": "From One Tradeoff to Many Assembly Rules",
+    "sub": "Setting up next lecture: metacommunities and the four-paradigm framework"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Where competition-colonization theory leaves off",
+    "items": [
+      "Today's models assumed ONE limiting resource/niche axis and let dispersal/colonization differences alone generate coexistence — a deliberately minimal, elegant special case",
+      "Real metacommunities combine local niche differences (Ch. 7-9), regional dispersal dynamics (today), and stochastic colonization history all at once",
+      "The question for the next two lectures: how do ecologists organize the full space of possible local-niche × dispersal combinations into a tractable set of general models?",
+      "Answer, previewed: the metacommunity concept (Leibold et al. 2004) generalizes exactly what we did today — a metapopulation framework, but tracking many interacting species and their niche differences simultaneously across patches"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Preview of Lecture 34 (Ch. 13 continued) and Lecture 35 (Ch. 14)",
+    "items": [
+      "Lecture 34 finishes Ch. 13: more on habitat destruction and fragmentation effects on multispecies patch occupancy, and quantitative tests of the competition-colonization tradeoff in real datasets",
+      "Lecture 35 opens Ch. 14 with the formal metacommunity concept and its four classic paradigms: patch dynamics (today's framework, generalized), species sorting, mass effects, and neutral dynamics",
+      "You will recognize patch dynamics as literally today's competition-colonization / fugitive-species logic, now formalized as one corner of a broader typology",
+      "Species sorting will reconnect to niche theory (Ch. 8); mass effects will reconnect to source-sink dynamics (today's twocol slide); neutral dynamics will reconnect to Ch. 8's neutral theory discussion"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Metapopulation concept vs. metacommunity concept (preview)",
+    "headers": [
+      "Feature",
+      "Metapopulation (today, Levins-style)",
+      "Metacommunity (Ch. 14, next)"
+    ],
+    "rows": [
+      [
+        "Number of species tracked",
+        "One (or a ranked few, Tilman-style)",
+        "Many, interacting via both competition and dispersal"
+      ],
+      [
+        "Core state variable",
+        "Fraction of patches occupied by the species",
+        "Species composition/abundance in each local patch"
+      ],
+      [
+        "Coexistence question asked",
+        "Can this species persist regionally?",
+        "Which species coexist locally and regionally, and why?"
+      ],
+      [
+        "Underlying processes",
+        "Colonization, local extinction",
+        "Niche selection, dispersal, drift, speciation (all four combined)"
+      ],
+      [
+        "Relationship",
+        "Special case: one species' metapopulation dynamics",
+        "General case: metacommunity = many linked metapopulations plus local interactions"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Lecture 33 Summary",
+    "sub": "Patchiness as a coexistence-generating resource"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key takeaways",
+    "items": [
+      "Metapopulation math (Levins' p* = 1 − e/c) reviewed briefly as a tool, not re-derived — full treatment is in your Population Ecology course",
+      "The competition-colonization tradeoff converts single-axis competitive exclusion into a two-dimensional coexistence mechanism when patches are ephemeral and dispersal differs among species",
+      "Hutchinson's 1951 'fugitive species' concept — competitively inferior locally, regionally persistent via superior colonization — is the conceptual ancestor of this entire literature, predating Levins' formal metapopulation model",
+      "Tilman's (1994) hierarchical competition-colonization model formalizes how many species can, in principle, share one limiting resource purely through an ordered dispersal-ability tradeoff",
+      "The spatial storage effect extends Ch. 8's temporal storage-effect logic across space, using the same three required ingredients (differential response, environment-competition covariance, buffered growth)",
+      "Empirical support for a strict competition-colonization tradeoff is real but often 'soft' — serpentine outcrops, temporary ponds, and disturbance-dependent plants are the clearest cases, but multiple mechanisms usually operate together",
+      "Patch dynamics and the shifting mosaic steady state reframe disturbance as a community-structuring process, not noise: landscapes need ongoing turnover to keep supporting both fugitive and dominant strategies, and this sets up Ch. 14's four-paradigm metacommunity framework"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Before next class",
+    "items": [
+      "Finish reading Ch. 13 (remaining sections on habitat destruction and fragmentation) for Lecture 34",
+      "Review your Population Ecology notes on source-sink dynamics and the rescue effect if they feel rusty — Lecture 34 will lean on them more heavily",
+      "Think of one additional real-world example of a 'fugitive'-type species from your own experience or region — we will collect examples at the start of Lecture 34",
+      "Problem Set reminder: the diversity-indices/coexistence-models problem set due this unit will include one question applying the Levins occupancy equation to a multispecies scenario"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 33</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

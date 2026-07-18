@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 29: Mutualism II: Population Dynamics Models and Evolutionary Stability</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 29",
+    "title": "Mutualism II: Population Dynamics Models and Evolutionary Stability",
+    "sub": "From natural history to formal models — extending Lotka-Volterra to (+,+) interactions, the instability problem, and why mutualisms resist collapse into cheating",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 8 — Mutualism; unit synthesis"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Recap: Where We Left Off in Lecture 28",
+    "sub": "Types, mechanisms, and costs/benefits of mutualism"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING BACK",
+    "title": "Lecture 28 Recap",
+    "items": [
+      "Mutualism = a <b>(+,+)</b> interaction — both species benefit, distinguishing it from competition (−,−), predation/parasitism (+,−), and commensalism (+,0)",
+      "Classified along two axes: <b>obligate vs. facultative</b> (is the partner required for survival/reproduction?) and <b>resource-resource, resource-service, service-service</b> types",
+      "Mechanisms surveyed: pollination, seed dispersal, cleaning mutualisms, protection mutualisms (ants and plants), nutritional symbioses (mycorrhizae, rhizobia, gut microbiota)",
+      "Every mutualism involves <b>costs</b> as well as benefits — net fitness effect depends on the balance, which can shift with ecological context",
+      "Today: we formalize these interactions mathematically and ask why mutualisms are evolutionarily stable rather than degrading into exploitation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S ARC",
+    "title": "Roadmap for Lecture 29",
+    "items": [
+      "<b>Part 1:</b> Extending Lotka-Volterra competition equations to mutualism — the sign flip",
+      "<b>Part 2:</b> Isocline analysis, the runaway growth problem, and obligate vs. facultative boundary behavior",
+      "<b>Part 3:</b> Realistic refinements — saturating benefit functions that prevent unbounded growth",
+      "<b>Part 4:</b> Evolutionary stability — why cheating doesn't always win",
+      "<b>Part 5:</b> Coevolution, context-dependency, and unit synthesis"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Extending Lotka-Volterra to Mutualism",
+    "sub": "Same equations, opposite sign"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STARTING POINT",
+    "title": "Recall: Lotka-Volterra Competition",
+    "items": [
+      "Standard two-species competition model: dN1/dt = r1N1(K1 − N1 − α12N2)/K1 and dN2/dt = r2N2(K2 − N2 − α21N1)/K2",
+      "α12 and α21 are <b>competition coefficients</b> — they measure how much one species' presence reduces the other's available carrying capacity",
+      "Because competition coefficients are subtracted, an increase in N2 always <b>lowers</b> species 1's growth rate",
+      "The question for mutualism: what happens to this framework if the interaction coefficient's effect is <b>positive</b> instead of negative?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE KEY MOVE",
+    "title": "The Mutualism Equations",
+    "term": "dN1/dt = r1N1(K1 + β12N2)/K1  ;  dN2/dt = r2N2(K2 + β21N1)/K2",
+    "def": "The same Lotka-Volterra structure as competition, but the interaction terms are added rather than subtracted — the presence of the partner species increases, rather than decreases, the effective carrying capacity experienced by the focal species.",
+    "bullets": [
+      "β12 and β21 (sometimes still written as α, but conventionally positive here) are the mutualism analogs of competition coefficients",
+      "Mathematically this is a single sign flip — conceptually it inverts the entire dynamical behavior of the system",
+      "This model traces to the same Lotka-Volterra tradition that gave us competition and predator-prey equations — mutualism is the third classic (+,+) case"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "INTERPRETING THE MODEL",
+    "title": "What the Sign Flip Means Biologically",
+    "left": {
+      "h": "Competition (−α)",
+      "body": "Each additional individual of species 2 subtracts from species 1's effective carrying capacity. More competitors = less room to grow. Both isoclines are downward-sloping barriers that squeeze the feasible population space."
+    },
+    "right": {
+      "h": "Mutualism (+β)",
+      "body": "Each additional individual of species 2 adds to species 1's effective carrying capacity. More mutualists = more room to grow. The 'ceiling' K1 is no longer fixed — it rises with partner abundance, changing the geometry of population regulation entirely."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS MATTERS",
+    "title": "A Structural Bridge Across Interaction Types",
+    "items": [
+      "Rockwood emphasizes that competition, predation, and mutualism can all be derived from a common Lotka-Volterra chassis by changing the sign and structure of the interaction terms",
+      "This lets us reuse the isocline/phase-plane toolkit developed for competition — with one crucial caveat: the stabilizing logic of competition (negative feedback) is replaced by potentially <b>destabilizing positive feedback</b>",
+      "Positive feedback loops are inherently more dangerous mathematically — they can amplify without bound unless something else caps growth",
+      "This sets up the central theoretical problem of the lecture: unconstrained mutualism models tend toward instability"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Isocline Analysis and the Instability Problem",
+    "sub": "Coexistence equilibria versus the 'orgy of mutual benefaction'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ISOCLINE GEOMETRY",
+    "title": "Isoclines Under Positive Interaction Coefficients",
+    "items": [
+      "In the N1-N2 phase plane, the species-1 zero-growth isocline is a line with <b>positive</b> slope-intercept behavior determined by K1/β12 — instead of sloping down toward the origin as in competition, it can slope such that increasing N2 raises the N1-intercept",
+      "Depending on parameter values (K1, K2, β12, β21), the two isoclines can either <b>intersect</b>, producing an equilibrium point, or <b>diverge without crossing</b>, in which case no equilibrium exists",
+      "When they intersect and the equilibrium is stable, the outcome is a <b>stable coexistence point</b> — both species settle at higher densities than they would achieve alone",
+      "When the mutualistic benefit terms are strong relative to self-limitation (large β relative to K), the isoclines diverge and populations grow without bound"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE CLASSIC FAILURE MODE",
+    "title": "'Orgy of Mutual Benefaction'",
+    "term": "Unbounded reciprocal positive feedback growth",
+    "def": "A colorful term (originating with May, 1981) for the runaway-growth outcome of naive linear mutualism models: if each species' growth benefit from its partner grows faster than the partner's own self-limitation can absorb, both populations spiral upward toward infinity rather than settling at an equilibrium.",
+    "bullets": [
+      "This is a textbook illustration of why simple linear extrapolation of a beneficial relationship is biologically implausible — no real population grows unboundedly",
+      "It exposes a flaw in the naive linear mutualism model, not a real biological phenomenon — real mutualisms do not explode to infinity",
+      "The resolution (Part 4) is to make the benefit term saturate rather than increase linearly forever"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHEN DOES RUNAWAY GROWTH OCCUR?",
+    "title": "The Stability Condition",
+    "items": [
+      "Stability of the coexistence equilibrium in the linear mutualism model requires that the product of the interaction coefficients be less than 1: β12 × β21 < 1 (in appropriately scaled units)",
+      "Biologically: self-limitation (density dependence within each species) must be strong enough to outweigh the positive feedback the species provide each other",
+      "If β12 × β21 > 1, the positive feedback loop dominates self-limitation, isoclines fail to produce a stable intersection, and both populations grow indefinitely",
+      "This is the mutualism-model analog of the competitive exclusion boundary conditions in Lecture-series competition models — a parameter threshold separating qualitatively different outcomes"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "POSSIBLE OUTCOMES",
+    "title": "Four Qualitative Outcomes of the Linear Mutualism Model",
+    "cards": [
+      {
+        "h": "Stable Coexistence",
+        "p": "Isoclines intersect at a stable point; both populations settle at densities elevated above their independent K values."
+      },
+      {
+        "h": "Unbounded Growth",
+        "p": "Interaction coefficients too strong relative to self-limitation; isoclines diverge; populations grow without bound ('orgy of mutual benefaction')."
+      },
+      {
+        "h": "One-Sided Persistence",
+        "p": "One species can persist without the other (facultative) while dynamics still depend on partner presence for elevated abundance."
+      },
+      {
+        "h": "Mutual Extinction Boundary",
+        "p": "If mutualism is obligate and a partner's population collapses below a threshold, both populations can decline toward zero together."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Facultative vs. Obligate Mutualism in the Model",
+    "sub": "What happens at the boundary N2 = 0?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE DIAGNOSTIC BOUNDARY",
+    "title": "Using Boundary Behavior to Classify Mutualism Type",
+    "items": [
+      "A powerful feature of these models: set N2 = 0 and ask what happens to species 1's growth equation",
+      "dN1/dt = r1N1(K1 + β12(0))/K1 = r1N1(K1)/K1 — this reduces to ordinary logistic growth toward K1",
+      "If K1 > 0, species 1 persists and grows toward its own carrying capacity even without its partner — this is the signature of <b>facultative</b> mutualism",
+      "If the model instead specifies that r1 or K1 itself is <b>zero or negative</b> in the absence of species 2, then N1 declines toward extinction when N2 = 0 — this is the signature of <b>obligate</b> mutualism"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "MODEL BEHAVIOR",
+    "title": "Facultative vs. Obligate Mutualism at the N2 = 0 Boundary",
+    "headers": [
+      "Feature",
+      "Facultative Mutualism",
+      "Obligate Mutualism"
+    ],
+    "rows": [
+      [
+        "Growth rate r1 when N2 = 0",
+        "Positive — population still grows",
+        "Zero or negative — population cannot grow"
+      ],
+      [
+        "Carrying capacity K1 when N2 = 0",
+        "Positive, finite value",
+        "Effectively zero or undefined"
+      ],
+      [
+        "Long-term fate without partner",
+        "Persists at reduced density (K1 alone)",
+        "Declines toward extinction"
+      ],
+      [
+        "Isocline intercept on its own axis",
+        "Nonzero (crosses its own axis at K1)",
+        "At or near origin (no self-sustaining intercept)"
+      ],
+      [
+        "Real-world example",
+        "Ants that tend aphids but can survive without them",
+        "Yucca moth and yucca plant; fig and fig wasp"
+      ]
+    ],
+    "footnote": "Whether a mutualism is facultative or obligate is set by how the model defines baseline growth/K in the partner's absence — a modeling choice grounded in the biology of the system."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BIOLOGICAL SIGNIFICANCE",
+    "title": "Why the Facultative/Obligate Distinction Matters for Dynamics",
+    "items": [
+      "Obligate mutualisms are more <b>fragile</b> in the model: because neither species can persist alone, driving either partner locally extinct guarantees co-extinction",
+      "Facultative mutualisms are more <b>resilient</b>: loss of a partner reduces population size and growth rate but does not doom the species outright",
+      "This maps onto real conservation concerns — obligate pollination mutualisms (e.g., fig-wasp, yucca-moth) are especially vulnerable to disruption because there is no independent fallback population size",
+      "Many real mutualisms fall on a spectrum rather than a strict obligate/facultative dichotomy, and the degree of obligateness can itself vary geographically or with resource availability"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Refining the Model: Saturating Benefit Functions",
+    "sub": "Solving the runaway-growth problem"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE FIX",
+    "title": "Why Linear Benefit Terms Are Unrealistic",
+    "items": [
+      "The naive model assumes the benefit species 1 receives from species 2 increases <b>linearly and without limit</b> as N2 grows — twice as many mutualist partners always means twice the benefit",
+      "Real mutualistic benefits are not linear: a pollinator can only visit so many flowers per day, a rhizobium can only fix so much nitrogen for its host root, a cleaner fish can only remove so many parasites",
+      "This is directly analogous to the <b>Type II functional response</b> in predator-prey models (Lecture on predation) — consumption/benefit rates saturate at high partner density rather than rising linearly forever",
+      "Introducing a saturating (asymptotic) benefit function is the standard fix that removes the unbounded-growth pathology while preserving the qualitative logic of mutualism"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "SATURATING MODELS",
+    "title": "Saturating (Type II-like) Mutualism Functions",
+    "term": "Benefit(N2) = β12N2 / (D + N2)  (a Michaelis-Menten / Type II-style form)",
+    "def": "Instead of a benefit term that grows linearly forever, the benefit approaches a maximum asymptote as the partner population becomes large — analogous to how predator attack rate saturates with prey density in a Type II functional response.",
+    "bullets": [
+      "At low N2, the benefit rises roughly linearly (mirroring the naive linear model) — mutualism behaves similarly when partners are rare",
+      "At high N2, the benefit levels off at a ceiling set by the parameter — reflects real physiological/behavioral limits on how much benefit one partner can extract or provide",
+      "This single change is enough to guarantee the model always has a stable bounded equilibrium instead of runaway growth, matching what we actually observe in nature"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BEFORE AND AFTER",
+    "title": "Naive Linear Model vs. Saturating Model",
+    "left": {
+      "h": "Naive Linear Mutualism",
+      "body": "Benefit term grows without bound as partner density increases. Can produce a stable equilibrium only within a narrow parameter range (β12×β21 < 1); otherwise diverges to infinite population growth — biologically implausible."
+    },
+    "right": {
+      "h": "Saturating Mutualism",
+      "body": "Benefit term is capped at a maximum. A stable, bounded coexistence equilibrium exists across a much wider range of parameter values. Matches the intuition that no real resource or service can be delivered in unlimited quantity."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BROADER LESSON",
+    "title": "A General Modeling Principle",
+    "items": [
+      "This mirrors the historical development of predator-prey theory: Lotka-Volterra's original linear functional response was refined by Holling's Type II/III forms to produce more realistic, stable dynamics",
+      "The pattern recurs across population ecology: <b>simple linear interaction models are useful first approximations but routinely require saturating (nonlinear) refinements</b> to match real bounded biological systems",
+      "Saturating mutualism models can still produce alternative stable states, thresholds, and even Allee-like effects at low density — richer dynamics than the naive linear version, but without the unrealistic runaway",
+      "Empirical fitting of these curves (e.g., pollinator visitation rate vs. flower density) is an active area connecting theoretical models to field data"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Evolutionary Stability of Mutualism",
+    "sub": "Why doesn't cheating always win?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CENTRAL PUZZLE",
+    "title": "The Cheater Problem",
+    "items": [
+      "From a pure natural-selection standpoint, mutualism seems evolutionarily unstable: an individual that <b>takes the benefit without paying the cost</b> ('cheating') should always outcompete cooperative individuals within its own species",
+      "Example: a rhizobium that takes plant-supplied carbon but fixes little or no nitrogen in return should have a fitness edge over rhizobia that pay the metabolic cost of fixation",
+      "If cheating mutants always win, mutualisms should be evolutionarily unstable and prone to collapse toward parasitism or breakdown",
+      "Yet mutualisms are extremely common, ancient, and persistent across the tree of life — so something must prevent cheaters from taking over"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STABILIZING MECHANISMS",
+    "title": "Four Main Mechanisms Preventing Cheater Takeover",
+    "items": [
+      "<b>Partner choice / fidelity</b> — individuals preferentially initiate or continue interactions with more cooperative partners, and can withhold/redirect the interaction from poor partners",
+      "<b>Partner sanctions</b> — actively punishing or reducing rewards to detected cheaters after the interaction has begun",
+      "<b>Byproduct mutualism</b> — benefit arises automatically as a side effect of self-interested behavior, so there is no cheating temptation to begin with",
+      "<b>Spatial structure</b> — limited dispersal keeps cooperative lineages clustered together, so cheaters that arise locally have limited ability to spread and exploit distant cooperative populations"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 1",
+    "title": "Partner Choice and Fidelity",
+    "term": "Preferential association with, and continued engagement of, higher-quality (more cooperative) partners",
+    "def": "Rather than waiting to punish bad partners after the fact, hosts can screen or select for good partners up front, or reward better partners with more resources — creating market-like competition among potential symbionts for access to the host.",
+    "bullets": [
+      "Legume plants can allocate more carbon to root nodules containing more effective nitrogen-fixing rhizobia strains, reinforcing partner choice",
+      "Pollinators exhibit flower constancy, repeatedly visiting the same rewarding flower species/individuals — a form of partner fidelity",
+      "Choice mechanisms convert a within-partner-species social dilemma into a between-strain competition judged by the host, aligning incentives"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 2",
+    "title": "Partner Sanctions",
+    "term": "Direct reduction of resources/rewards delivered to a partner that fails to reciprocate",
+    "def": "Unlike partner choice (selecting good partners in advance), sanctions punish cheating after the fact, imposing a direct fitness cost on non-cooperative individuals and thereby removing the advantage of cheating.",
+    "bullets": [
+      "Classic example: legume host plants reduce oxygen supply (and thus resources) to root nodules occupied by non-fixing or poorly-fixing rhizobia, stunting the cheater's reproduction within that nodule",
+      "Classic example: fig trees selectively abort fig fruits (the fig wasp's nursery) that contain fig wasp larvae but were not effectively pollinated, killing the cheating wasp's offspring",
+      "Sanctions are costly to impose (the host also loses some benefit while punishing) but are evolutionarily favored because they suppress cheater lineages that would otherwise spread"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 3",
+    "title": "Byproduct Mutualism",
+    "term": "Benefits that arise as unavoidable side effects of self-interested behavior",
+    "def": "When helping the partner is simply what the self-interested action produces — with no cost or alternative available — there is no room for a 'cheating' strategy to evolve, because non-cooperation isn't a viable option separate from the beneficial act itself.",
+    "bullets": [
+      "Example: a fruit-eating animal defecating seeds far from the parent tree benefits the plant purely as a byproduct of feeding and moving — the animal gains nothing by 'refusing' to disperse seeds",
+      "Byproduct mutualisms tend to be evolutionarily very stable precisely because they don't require complex policing mechanisms",
+      "Distinguishing byproduct mutualism from mechanisms requiring active enforcement (choice, sanctions) is an important step in explaining why some mutualisms are more robust than others"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 4",
+    "title": "Spatial Structure",
+    "term": "Limited dispersal and local interaction neighborhoods constraining cheater spread",
+    "def": "When interactions are spatially structured (partners mostly interact with spatially near neighbors across generations), cooperative lineages cluster together and gain the benefits of mutual cooperation locally, while cheaters that arise are surrounded mainly by other cheaters and suffer reduced benefit — limiting the cheater's ability to invade and spread.",
+    "bullets": [
+      "This mirrors spatial models of cooperation in evolutionary game theory (e.g., spatial Prisoner's Dilemma) applied to mutualism",
+      "Reduced mixing/dispersal can therefore paradoxically stabilize cooperation even without active choice or sanctions",
+      "Habitat fragmentation or increased mixing (e.g., human-altered landscapes) can undermine this stabilizing structure and make mutualisms more vulnerable to cheater invasion"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SUMMARY TABLE",
+    "title": "Four Mechanisms Stabilizing Mutualism Against Cheating",
+    "headers": [
+      "Mechanism",
+      "How it works",
+      "Classic example"
+    ],
+    "rows": [
+      [
+        "Partner choice / fidelity",
+        "Preferentially engage/reward cooperative partners before or during interaction",
+        "Flower constancy in pollinators; legume carbon allocation to effective rhizobia"
+      ],
+      [
+        "Partner sanctions",
+        "Punish detected cheaters by withdrawing resources after interaction begins",
+        "Legume O2 restriction to non-fixing rhizobia; fig abortion of unpollinated fruit"
+      ],
+      [
+        "Byproduct mutualism",
+        "Benefit is an unavoidable side effect of self-interested behavior — no cheating option exists",
+        "Seed dispersal via frugivore defecation"
+      ],
+      [
+        "Spatial structure",
+        "Limited dispersal clusters cooperators together, isolating cheaters from cooperative benefits",
+        "Spatially structured microbial or plant-symbiont populations"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Coevolution in Mutualisms",
+    "sub": "Reciprocal evolutionary change between partners"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DEFINING THE PROCESS",
+    "title": "What Is Coevolution?",
+    "items": [
+      "<b>Coevolution</b>: reciprocal evolutionary change in interacting species, driven by natural selection each imposes on the other",
+      "In mutualism, coevolution often produces increasingly tight morphological or physiological matching between partners, because a better fit improves the efficiency or exclusivity of the exchange for both sides",
+      "This differs from coevolution in antagonistic interactions (e.g., predator-prey arms races), where selection favors escalating offense/defense rather than matching complementary traits",
+      "Coevolved mutualisms can become so specialized that the partners are each other's most important selective agents"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE",
+    "title": "Pollinator Tongue Length and Flower Tube Length",
+    "term": "Reciprocal selection for morphological matching between pollinator mouthparts and floral tube depth",
+    "def": "Flowers with longer nectar tubes exclude short-tongued visitors and favor pollinators with longer tongues (who can reach the reward), while pollinators with longer tongues favor flowers offering nectar at greater, more exclusive depths — a positive feedback loop of reciprocal specialization.",
+    "bullets": [
+      "Deeper flower tubes can reduce nectar robbing by non-pollinating visitors and increase pollination efficiency by the specialized long-tongued visitor",
+      "Longer pollinator tongues in turn gain more exclusive access to a nectar resource unavailable to shorter-tongued competitors",
+      "The result over evolutionary time is a matched trait pair — an elegant signature of coevolution visible directly in comparative morphology"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "DARWIN'S PREDICTED MOTH",
+    "quote": "Angraecum sesquipedale, the Madagascar star orchid, has an extraordinarily long nectar spur (~30 cm). Darwin predicted in 1862 that a moth with a proportionally long proboscis must exist to pollinate it. Xanthopan morganii praedicta, a hawkmoth with a matching tongue length, was confirmed decades later.",
+    "attrib": "Illustrating coevolutionary prediction from Rockwood, Ch. 8 (mutualism coevolution case studies)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS EXAMPLE MATTERS",
+    "title": "Coevolution as Predictive Science",
+    "items": [
+      "Darwin's prediction is one of the most celebrated cases of a coevolutionary hypothesis making a testable, falsifiable prediction about an as-yet-undiscovered species",
+      "It illustrates how mutualistic coevolution can be inferred and even predicted from trait matching alone, before direct observation of the interacting partner",
+      "Extreme trait matching (like a 30 cm spur and matching tongue) also illustrates a potential downside: high specialization increases vulnerability if the partner is lost (echoing the obligate-mutualism fragility discussed in Part 4)",
+      "Coevolved mutualisms therefore sit at a tension point between efficiency (tight matching improves exchange) and risk (tight matching increases dependency)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8",
+    "title": "Mutualism Breakdown and Context-Dependency",
+    "sub": "The interaction continuum is not fixed"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MUTUALISM IS NOT STATIC",
+    "title": "Interactions Can Shift Along the Continuum",
+    "items": [
+      "The sign and magnitude of an interaction's fitness effect is not a fixed species property — it depends on the ecological <b>context</b> in which the interaction occurs",
+      "The same pair of species can behave as mutualists in one environment and as commensalists, or even parasites/exploiters, in another",
+      "This context-dependency connects mutualism conceptually back to the interaction-type spectrum introduced in Lecture 28 — (+,+), (+,0), (+,−) are not always fixed labels for a given species pair",
+      "Understanding when and why mutualisms break down is critical for predicting ecosystem responses to environmental change"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY",
+    "title": "Ant-Plant Protection Mutualisms and Alternative Food Sources",
+    "term": "Context-dependent decline of ant fidelity to host plants when alternative resources are available",
+    "def": "In many ant-plant protection mutualisms, plants provide food rewards (extrafloral nectar, food bodies) in exchange for ant defense against herbivores. When alternative food sources (e.g., honeydew from sap-sucking insects, other nectar sources) become locally abundant, ants may reduce their fidelity to the host plant and provide weaker defense — eroding the net benefit of the interaction.",
+    "bullets": [
+      "The interaction can shift from strongly beneficial for the plant to weakly beneficial or even net-neutral, depending on the surrounding resource landscape",
+      "Environmental change (e.g., introduction of honeydew-producing invasive insects) can therefore indirectly destabilize an established mutualism without any direct evolutionary change in either partner",
+      "This illustrates that mutualism strength is a <b>quantitative, environmentally contingent trait</b>, not a categorical constant of the species pair"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GENERAL PRINCIPLE",
+    "title": "Drivers of Mutualism-to-Antagonism Shifts",
+    "items": [
+      "<b>Resource availability</b>: alternative food/resource sources reduce a partner's dependency and fidelity, weakening the mutualistic bond",
+      "<b>Partner density</b>: at very high partner densities, costs of hosting/feeding many partners can exceed benefits (a saturating benefit curve, as in Part 5, combined with a linear or increasing cost curve)",
+      "<b>Environmental stress</b>: abiotic stress can shift the cost-benefit balance — stress-gradient hypotheses predict facilitation (positive interactions) become more common under harsher abiotic conditions",
+      "<b>Community composition</b>: presence/absence of third-party species (competitors, predators, alternative mutualists) can alter the realized outcome of a focal pairwise interaction"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SYNTHESIS POINT",
+    "title": "Connecting Model and Mechanism",
+    "left": {
+      "h": "What the Model Predicts",
+      "body": "The saturating-benefit mutualism model already predicts that net benefit per capita changes with partner density — rising at low density, leveling off at high density. Very high partner density can even make marginal benefit negligible."
+    },
+    "right": {
+      "h": "What Field Data Show",
+      "body": "Empirical studies of ant-plant, cleaner fish, and pollination systems confirm that interaction strength is context- and density-dependent, sometimes flipping sign — validating the qualitative behavior anticipated by the saturating models."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "UNIT SYNTHESIS",
+    "title": "Closing the Mutualism Unit (Chapter 8)",
+    "sub": "From natural history to formal dynamics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE FULL ARC: LECTURES 28-29",
+    "title": "Unit Synthesis: Mutualism",
+    "items": [
+      "<b>Lecture 28</b> established mutualism as a (+,+) interaction, surveyed its major mechanistic categories (pollination, dispersal, cleaning, protection, nutritional symbiosis), and examined the cost-benefit balance underlying every mutualistic relationship",
+      "<b>Lecture 29</b> formalized these interactions with an extended Lotka-Volterra framework, showed how naive linear models predict either stable coexistence or unrealistic runaway growth, and demonstrated how saturating benefit functions resolve this instability",
+      "We then asked the evolutionary question the population model cannot answer on its own: why doesn't within-species cheating destroy mutualism? — answered via partner choice, sanctions, byproduct mutualism, and spatial structure",
+      "Finally, we saw that mutualism is not a fixed label — coevolution can tighten partnerships over evolutionary time, while ecological context can weaken or reverse them over ecological time"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL STACK",
+    "title": "Building Blocks of the Mutualism Unit",
+    "levels": [
+      {
+        "label": "Evolutionary stability & coevolution",
+        "color": "#2c7fb8",
+        "width": "260px"
+      },
+      {
+        "label": "Population dynamics models (LV extension)",
+        "color": "#41ab5d",
+        "width": "320px"
+      },
+      {
+        "label": "Mechanisms & cost-benefit structure",
+        "color": "#fdae61",
+        "width": "380px"
+      },
+      {
+        "label": "Definition: (+,+) interaction",
+        "color": "#d7191c",
+        "width": "440px"
+      }
+    ],
+    "footnote": "Each layer of the unit builds on the one below it — from basic classification to full evolutionary-ecological explanation."
+  },
+  {
+    "type": "compare",
+    "eyebrow": "BIG PICTURE",
+    "title": "Competition vs. Mutualism: Shared Model Structure, Opposite Feedback",
+    "headers": [
+      "Feature",
+      "Competition Model (Ch. 7)",
+      "Mutualism Model (Ch. 8)"
+    ],
+    "rows": [
+      [
+        "Interaction sign",
+        "(−,−)",
+        "(+,+)"
+      ],
+      [
+        "Isocline equation form",
+        "dN1/dt = r1N1(K1 − N1 − α12N2)/K1",
+        "dN1/dt = r1N1(K1 + β12N2)/K1"
+      ],
+      [
+        "Effect of partner density on isocline",
+        "Reduces effective carrying capacity",
+        "Increases effective carrying capacity"
+      ],
+      [
+        "Feedback type",
+        "Negative feedback (self-limiting)",
+        "Positive feedback (potentially amplifying)"
+      ],
+      [
+        "Main instability risk",
+        "Competitive exclusion of one species",
+        "Unbounded 'orgy of mutual benefaction' growth"
+      ],
+      [
+        "Common realistic refinement",
+        "Resource-based mechanistic models (Tilman)",
+        "Saturating (Type II-like) benefit functions"
+      ]
+    ],
+    "footnote": "Both frameworks descend from the same Lotka-Volterra logic — the sign of the interaction term determines whether the system self-regulates or self-amplifies."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "What You Should Be Able to Do After This Lecture",
+    "items": [
+      "Write and interpret the mutualism extension of the Lotka-Volterra equations, and explain why the positive interaction term changes isocline geometry relative to competition",
+      "Identify the parameter condition (β12 × β21 < 1, in the linear model) under which coexistence is stable versus unstable",
+      "Use the N2 = 0 boundary condition to distinguish facultative from obligate mutualism within a model",
+      "Explain why saturating benefit functions are necessary to produce biologically realistic bounded dynamics",
+      "Name and describe all four mechanisms (partner choice, sanctions, byproduct mutualism, spatial structure) that stabilize mutualism against the evolution of cheating",
+      "Explain coevolutionary trait matching with the orchid-hawkmoth example, and describe at least one case of context-dependent mutualism breakdown"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING AHEAD",
+    "title": "Transition to Chapter 9: Host-Parasite Interactions",
+    "sub": "Returning to a (+,−) interaction type"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP: LECTURE 28",
+    "title": "Quick Recap — Lecture 28: Mutualism I",
+    "items": [
+      "Defined mutualism as a (+,+) interaction and distinguished obligate vs. facultative, and resource-resource / resource-service / service-service categories",
+      "Surveyed major mechanistic types: pollination, seed dispersal, cleaning symbioses, ant-plant protection mutualisms, and nutritional symbioses (mycorrhizae, rhizobia, gut microbiomes)",
+      "Analyzed the cost-benefit structure underlying mutualism — no interaction is cost-free, and net benefit determines whether the relationship persists",
+      "Set the stage for today's formal treatment of mutualism population dynamics and evolutionary stability"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW: LECTURE 30",
+    "title": "Coming Up — Lecture 30: Host-Parasite Interactions I",
+    "items": [
+      "Chapter 9 begins: we return to a <b>(+,−) interaction type</b> — like predation, but structurally and biologically distinct",
+      "Key differences from predation: parasites typically do not kill their host immediately (or at all), often live in/on a single host for a large portion of their life cycle, and are usually much smaller than their host",
+      "Special focus on <b>parasite life cycles</b> — direct life cycles vs. complex life cycles involving intermediate hosts and vectors",
+      "Introduction to <b>epidemiological dynamics</b> — how parasite/pathogen population models diverge from classical predator-prey theory, foreshadowing compartmental (SIR-style) models",
+      "This begins a two-lecture arc (L30-31) building toward a full framework for host-parasite population dynamics, paralleling the predator-prey arc from earlier in the course"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "END OF CHAPTER 8",
+    "title": "Mutualism Unit Complete",
+    "sub": "Next: Chapter 9 — Host-Parasite Interactions"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 29</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 4: Density-Independent Growth II: Continuous-Time Models</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology — BIOL 4XX — Lecture 4",
+    "title": "Density-Independent Growth II: Continuous-Time Models",
+    "sub": "Exponential growth, the intrinsic rate of increase, and the promise and limits of unconstrained population growth",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 1"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off: Discrete-Time Growth",
+    "sub": "Lecture 3 — geometric growth and the finite rate of increase λ"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap of Lecture 3",
+    "title": "Discrete-Time (Geometric) Growth",
+    "items": [
+      "Applies to organisms with discrete, non-overlapping generations (e.g., many annual plants, univoltine insects)",
+      "Population is censused at fixed intervals: Nt+1 = Nt * λ",
+      "General solution: Nt = N0 * λ^t",
+      "λ is the finite rate of increase: the multiplicative factor per discrete time step",
+      "λ > 1 growth, λ = 1 stable, 0 < λ < 1 decline, λ = 0 extinction next step",
+      "Doubling time derived algebraically by solving 2N0 = N0*λ^t for t"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Recap",
+    "title": "Why Discrete-Time Models Aren't Always Enough",
+    "left": {
+      "h": "Discrete-time world",
+      "body": "Reproduction happens in synchronized pulses — once a year, once a generation. Counting the population at fixed census points (e.g., every spring) captures growth accurately."
+    },
+    "right": {
+      "h": "The problem",
+      "body": "Many organisms — humans, bacteria, many perennial plants, most vertebrates with extended breeding seasons — reproduce continuously or with heavily overlapping generations. A model that only updates once per 'generation' misrepresents how these populations actually change."
+    },
+    "footnote": "This motivates a shift from discrete time steps to continuous time."
+  },
+  {
+    "type": "section",
+    "tag": "Motivation",
+    "title": "Why Continuous Time?",
+    "sub": "Overlapping generations and continuous reproduction"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "Organisms That Demand a Continuous-Time Model",
+    "items": [
+      "Overlapping generations: parents, offspring, and grandoffspring reproduce simultaneously — births and deaths occur at every instant, not just at discrete census points",
+      "Bacteria and other microbes dividing continuously under favorable conditions",
+      "Humans: births and deaths occur every second of every day worldwide",
+      "Many long-lived vertebrates and perennial plants with extended or year-round breeding",
+      "For these species, treating time as a sequence of discrete jumps is a poor approximation of the underlying biology"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Conceptual Shift",
+    "title": "From Discrete Steps to a Smooth Trajectory",
+    "left": {
+      "h": "Discrete-time thinking",
+      "body": "Population size is tracked at fixed time points t = 0, 1, 2, 3... The population 'jumps' from Nt to Nt+1. Change is measured per generation or per census interval."
+    },
+    "right": {
+      "h": "Continuous-time thinking",
+      "body": "Population size N is treated as a smooth, continuous function of time, N(t). Growth is described by an instantaneous rate of change — a derivative, dN/dt — valid at every single moment."
+    },
+    "footnote": "Same underlying question — how fast does the population grow — answered with calculus instead of algebra."
+  },
+  {
+    "type": "section",
+    "tag": "Core Model",
+    "title": "Deriving Exponential Growth",
+    "sub": "From per-capita rates to dN/dt = rN"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Model",
+    "title": "The Exponential Growth Equation",
+    "term": "dN/dt = rN",
+    "def": "The instantaneous rate of change in population size (dN/dt) equals the per-capita intrinsic rate of increase (r) multiplied by the current population size (N).",
+    "bullets": [
+      "dN/dt: the rate at which N changes at a given instant — an infinitesimally small change in N over an infinitesimally small change in t",
+      "r: the per-capita (per-individual) contribution to population growth — constant regardless of population size",
+      "This is a differential equation: it describes the rate of change, not N itself directly"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Building the Model",
+    "title": "Where dN/dt = rN Comes From",
+    "items": [
+      "Start with per-capita growth rate: (1/N)(dN/dt) — the growth rate expressed 'per individual' present",
+      "Density independence assumption: this per-capita rate is constant, call it r, regardless of how large or small N is",
+      "Rearranging (1/N)(dN/dt) = r gives dN/dt = rN",
+      "This says: the bigger the population, the faster it grows in absolute terms — but the rate per individual never changes",
+      "This is the continuous-time analog of Nt+1 = λNt from Lecture 3"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Solving the Equation",
+    "title": "From dN/dt = rN to an Explicit Formula for N(t)",
+    "left": {
+      "h": "The differential equation",
+      "body": "dN/dt = rN describes the instantaneous rate of change. It is useful for understanding the process, but it does not directly tell us the population size at some future time t."
+    },
+    "right": {
+      "h": "The integrated solution",
+      "body": "Separating variables and integrating dN/dt = rN with respect to time yields: Nt = N0 * e^(rt), where N0 is the initial population size, e is the base of natural logarithms (~2.71828), r is the intrinsic rate of increase, and t is elapsed time."
+    },
+    "footnote": "Nt = N0e^(rt) is the continuous-time counterpart to Nt = N0λ^t from discrete-time geometric growth."
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Solved Model",
+    "title": "Exponential Growth Equation",
+    "term": "Nt = N0 e^(rt)",
+    "def": "Population size at time t equals the initial population size multiplied by e raised to the power of the intrinsic rate of increase times elapsed time.",
+    "bullets": [
+      "N0: population size at time zero (the starting point)",
+      "e^(rt): the continuous growth multiplier accumulated over time t",
+      "When r > 0, Nt grows without bound as t increases — a J-shaped curve",
+      "When r < 0, Nt decays continuously toward zero",
+      "When r = 0, Nt = N0 for all t — a stationary population"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Checking the Math",
+    "title": "A Quick Worked Example",
+    "items": [
+      "Suppose N0 = 100 individuals and r = 0.10 per unit time (say, per year)",
+      "After 1 year: N1 = 100 * e^(0.10*1) = 100 * 1.105 ≈ 110.5",
+      "After 5 years: N5 = 100 * e^(0.10*5) = 100 * e^0.5 ≈ 100 * 1.649 ≈ 164.9",
+      "After 10 years: N10 = 100 * e^(0.10*10) = 100 * e^1.0 ≈ 100 * 2.718 ≈ 271.8",
+      "Notice growth accelerates: the absolute increase per year keeps getting larger even though r itself never changes"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Key Parameter",
+    "title": "The Intrinsic Rate of Increase, r",
+    "sub": "Definition, biology, and biotic potential"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Parameter",
+    "title": "Intrinsic Rate of Increase",
+    "term": "r",
+    "def": "The instantaneous, per-capita rate of population growth under a specified (often ideal, unlimited) set of conditions — the continuous-time equivalent of the finite rate λ.",
+    "bullets": [
+      "Also called the 'per-capita growth rate' or, under ideal conditions, the 'intrinsic rate of natural increase'",
+      "Units are 'per individual per unit time' (e.g., per capita per year) — r itself is dimensionless per time, not a whole number of offspring",
+      "r can be positive (growth), negative (decline), or zero (stationary)",
+      "Distinct from λ, which is a multiplicative ratio per discrete generation, not an instantaneous rate"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Decomposing r",
+    "title": "r as Births Minus Deaths",
+    "items": [
+      "r = b − d, where b is the instantaneous per-capita birth rate and d is the instantaneous per-capita death rate",
+      "b and d are both expressed as continuous, per-capita rates (births or deaths per individual per unit time)",
+      "If births exceed deaths (b > d), r is positive and the population grows exponentially",
+      "If deaths exceed births (b < d), r is negative and the population declines exponentially",
+      "If b = d exactly, r = 0 and the population is stationary — no net change in size (though individuals are still being born and dying)",
+      "This decomposition highlights that r is a net outcome of two underlying demographic processes, not a fixed biological constant"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Biotic Potential",
+    "term": "rmax",
+    "def": "The maximum possible intrinsic rate of increase for a population — the value of r achieved when resources are unlimited, competition is absent, and conditions are optimal for survival and reproduction.",
+    "bullets": [
+      "Also called rmax or the 'intrinsic rate of natural increase' in the strictest sense",
+      "Represents a species' theoretical ceiling on reproductive performance, set by its life history (age at maturity, litter/clutch size, reproductive lifespan, etc.)",
+      "Species with fast life histories (small body size, early maturity, many offspring) tend to have high rmax (e.g., bacteria, many insects, rodents)",
+      "Species with slow life histories (large body size, delayed maturity, few offspring) tend to have low rmax (e.g., elephants, whales, great apes)",
+      "Actual observed r in nature is almost always lower than rmax because of resource limitation, competition, predation, and other constraints"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Life History and r",
+    "title": "Biotic Potential Varies Enormously Across Taxa",
+    "cards": [
+      {
+        "h": "Bacteria",
+        "p": "Can divide every 20–30 minutes under ideal lab conditions, yielding an extremely high rmax and near-instant doubling."
+      },
+      {
+        "h": "Insects (e.g., aphids)",
+        "p": "Short generation times and large clutch sizes give high rmax; populations can explode within a season."
+      },
+      {
+        "h": "Rodents",
+        "p": "Early maturity and frequent, large litters give moderately high rmax relative to other mammals."
+      },
+      {
+        "h": "Large mammals (elephants, whales)",
+        "p": "Late maturity, long gestation, and single offspring per bout give very low rmax — populations recover slowly from decline."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Connecting the Models",
+    "title": "Relating r and λ",
+    "sub": "Two descriptions of the same underlying growth process"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Time Frames, One Process",
+    "title": "Discrete vs. Continuous Descriptions of Growth",
+    "left": {
+      "h": "Discrete-time (Lecture 3)",
+      "body": "λ is the finite rate of increase: the factor by which the population is multiplied over one discrete time step (e.g., one generation or one census interval). Nt = N0λ^t."
+    },
+    "right": {
+      "h": "Continuous-time (today)",
+      "body": "r is the intrinsic rate of increase: the instantaneous per-capita growth rate that applies continuously at every moment in time. Nt = N0e^(rt)."
+    },
+    "footnote": "Because both describe the same growth trajectory over one unit of time, they are mathematically linked."
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Conversion Formula",
+    "title": "Linking r and λ",
+    "term": "λ = e^r  and  r = ln(λ)",
+    "def": "Over one unit of time, the finite multiplier λ and the instantaneous rate r describe the same amount of growth, related through the natural exponential and logarithm functions.",
+    "bullets": [
+      "If you know r, you can find λ by exponentiating: λ = e^r",
+      "If you know λ, you can find r by taking the natural log: r = ln(λ)",
+      "λ = 1 corresponds to r = 0 (both describe a stationary population)",
+      "λ > 1 corresponds to r > 0 (growth); λ < 1 corresponds to r < 0 (decline)",
+      "λ can never be negative (population size can't be negative), but r can be any real number, positive or negative"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Conversions",
+    "title": "Practice: Converting Between r and λ",
+    "items": [
+      "If r = 0.20 per year, then λ = e^0.20 ≈ 1.221 — the population multiplies by about 1.221× each year",
+      "If r = 0, then λ = e^0 = 1 — no change in population size",
+      "If r = −0.05 per year, then λ = e^(−0.05) ≈ 0.951 — the population shrinks to about 95.1% of its size each year",
+      "If λ = 1.5 (population grows 50% per generation), then r = ln(1.5) ≈ 0.405 per generation",
+      "If λ = 2.0 (population doubles each generation), then r = ln(2) ≈ 0.693 per generation"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Model Choice",
+    "title": "When to Use λ vs. r",
+    "headers": [
+      "Consideration",
+      "Use λ (discrete, Nt = N0λ^t)",
+      "Use r (continuous, Nt = N0e^(rt))"
+    ],
+    "rows": [
+      [
+        "Generation structure",
+        "Discrete, non-overlapping generations",
+        "Overlapping generations, continuous reproduction"
+      ],
+      [
+        "Typical taxa",
+        "Annual plants, univoltine insects, seasonal breeders",
+        "Bacteria, humans, many perennials, most vertebrates"
+      ],
+      [
+        "Census timing",
+        "Fixed intervals (e.g., yearly counts)",
+        "Any instant in time"
+      ],
+      [
+        "Underlying math",
+        "Difference equation",
+        "Differential equation"
+      ],
+      [
+        "Rate interpretation",
+        "Multiplicative factor per time step",
+        "Instantaneous per-capita rate"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Rates",
+    "title": "Instantaneous vs. Finite Rates",
+    "sub": "Why the distinction matters for choosing and interpreting models"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Conceptual Distinction",
+    "title": "Instantaneous Rate vs. Finite Rate",
+    "left": {
+      "h": "Instantaneous rate (r)",
+      "body": "Describes the rate of change at a single, infinitesimally small moment in time — like the speedometer reading of a car at one exact instant. It is a derivative, dN/dt divided by N."
+    },
+    "right": {
+      "h": "Finite rate (λ)",
+      "body": "Describes the net change accumulated over a whole, discrete time interval — like the average speed of a car over an entire trip (distance divided by total time). It is a ratio, Nt+1/Nt."
+    },
+    "footnote": "Both are valid ways to quantify growth — they simply operate over different time scales."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters",
+    "title": "Practical Consequences of the Distinction",
+    "items": [
+      "Using the wrong model type can misrepresent population dynamics: applying discrete-time math to a continuously reproducing population (or vice versa) introduces error",
+      "r values are additive across time in a way that's mathematically convenient for continuous processes (e.g., combining birth and death rates directly, r = b − d)",
+      "λ values are multiplicative and tied to a specific, fixed time step — comparing λ across studies requires the same census interval",
+      "Many demographic and life-table calculations (Ch. 1–2 of Rockwood) are built around r because it cleanly separates births and deaths",
+      "When reading the primary literature, always check whether a reported growth rate is r (continuous) or λ (finite) before comparing studies"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Common Pitfalls",
+    "title": "Mistakes to Avoid When Working With r and λ",
+    "cards": [
+      {
+        "h": "Confusing units",
+        "p": "r and λ are not interchangeable numbers — plugging r directly into Nt = N0λ^t (or λ into Nt = N0e^(rt)) gives wrong answers."
+      },
+      {
+        "h": "Ignoring the time step",
+        "p": "λ is only meaningful relative to a defined interval (per year, per generation); always state the time unit."
+      },
+      {
+        "h": "Treating rmax as typical",
+        "p": "rmax is a theoretical ceiling under ideal conditions; real populations almost always grow more slowly."
+      },
+      {
+        "h": "Forgetting r can be negative",
+        "p": "A declining population still has a valid r (negative) and a valid λ (between 0 and 1) — neither is 'undefined.'"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Case Study",
+    "title": "Human Population Growth",
+    "sub": "Exponential growth in the real world"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Setup",
+    "title": "Why Humans Are the Classic Exponential Growth Example",
+    "items": [
+      "Humans have overlapping generations and continuous reproduction — a natural fit for the continuous-time model",
+      "Excellent historical demographic records exist worldwide, especially over the last two centuries",
+      "World population growth from roughly 1800 to the late 20th century closely tracked a J-shaped exponential curve",
+      "This makes the human population one of the best-documented real-world tests of dN/dt = rN"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Milestones",
+    "title": "World Population Growth Through History",
+    "items": [
+      {
+        "y": "~1800",
+        "t": "World population reaches approximately 1 billion"
+      },
+      {
+        "y": "1930",
+        "t": "World population reaches approximately 2 billion (~130 years to add the 2nd billion)"
+      },
+      {
+        "y": "1960",
+        "t": "World population reaches approximately 3 billion (~30 years to add the 3rd billion)"
+      },
+      {
+        "y": "1975",
+        "t": "World population reaches approximately 4 billion (~15 years to add the 4th billion)"
+      },
+      {
+        "y": "1987",
+        "t": "World population reaches approximately 5 billion (~12 years to add the 5th billion)"
+      },
+      {
+        "y": "1999",
+        "t": "World population reaches approximately 6 billion (~12 years to add the 6th billion)"
+      },
+      {
+        "y": "2011",
+        "t": "World population reaches approximately 7 billion"
+      },
+      {
+        "y": "2022",
+        "t": "World population reaches approximately 8 billion"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Timeline",
+    "title": "What the Milestone Pattern Reveals",
+    "items": [
+      "The time required to add each successive billion people shrank dramatically from 1800 to the late 20th century — a hallmark of exponential growth",
+      "Shrinking time-per-billion reflects a sustained, historically high positive r, not just larger absolute numbers",
+      "More recently, the interval between billions has begun to lengthen again (7 to 8 billion took about 11–12 years, and growth is projected to slow further), signaling that r has started declining in recent decades",
+      "This shift hints that human population growth is beginning to depart from a purely exponential trajectory — a preview of density-dependent dynamics covered in later lectures"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Quantifying r",
+    "title": "Estimating r for the Human Population Over Time",
+    "left": {
+      "h": "Peak growth era (~1960s–1970s)",
+      "body": "Global human population growth rate peaked around r ≈ 0.021 per year (roughly 2.1% per year) in the late 1960s, driven by improving public health and death rates falling faster than birth rates."
+    },
+    "right": {
+      "h": "Recent era (2020s)",
+      "body": "Global growth rate has since declined to roughly r ≈ 0.008–0.01 per year (under 1% annually), reflecting declining birth rates in many regions — even though total population is still increasing."
+    },
+    "footnote": "Even a 'small' r, sustained over decades, produces enormous absolute growth once N is large — the power of exponential accumulation."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Doubling Time",
+    "title": "Doubling Time of the Human Population",
+    "items": [
+      "Doubling time (td) for exponential growth: td = ln(2) / r ≈ 0.693 / r",
+      "At the peak historical growth rate (r ≈ 0.021/year), doubling time was roughly 0.693/0.021 ≈ 33 years",
+      "At a more recent, lower growth rate (r ≈ 0.01/year), doubling time stretches to roughly 0.693/0.01 ≈ 69 years",
+      "As r has declined over recent decades, the human population's doubling time has lengthened substantially — a small change in r produces a large change in doubling time",
+      "This is the same doubling-time logic introduced for discrete-time λ in Lecture 3, now applied with the continuous-time r"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Historical Context",
+    "quote": "The power of population is indefinitely greater than the power in the earth to produce subsistence for man.",
+    "attrib": "Thomas Malthus, An Essay on the Principle of Population (1798)"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Revisiting Malthus",
+    "title": "Malthus's Concern in Light of Exponential Growth",
+    "left": {
+      "h": "Malthus's original argument (Lecture 1)",
+      "body": "Malthus argued that population grows geometrically (exponentially) while food supply grows only arithmetically (linearly) — so population inevitably outpaces its resource base unless checked."
+    },
+    "right": {
+      "h": "Why the math matters now",
+      "body": "With dN/dt = rN and Nt = N0e^(rt) in hand, we can now see precisely why Malthus's concern is a mathematical inevitability for any r > 0 sustained indefinitely: exponential functions eventually outstrip any fixed or linearly growing resource supply, no matter how large that supply is."
+    },
+    "footnote": "Malthus's insight was qualitatively correct about the mathematics of unconstrained growth — the open question, then and now, is what checks growth in practice."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Human Case Study Wrap-Up",
+    "title": "What the Human Example Teaches Us",
+    "items": [
+      "Exponential growth is not just a theoretical abstraction — it closely described real human population dynamics for roughly two centuries",
+      "Small changes in r compound into very large differences in population size and doubling time over long periods",
+      "Human population growth is now decelerating in much of the world, indicating r is not constant over the very long term — a signal that no population is truly exempt from constraints",
+      "This sets up the central question of the next unit: what stops exponential growth in nature?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Limitations",
+    "title": "The Limits of Unconstrained Growth Models",
+    "sub": "No population grows exponentially forever"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Core Limitation",
+    "title": "Why Exponential Growth Cannot Continue Indefinitely",
+    "items": [
+      "The exponential model assumes r is constant regardless of population size — but real environments have finite resources (food, space, nutrients, mates, nesting sites)",
+      "As N grows large, competition for limited resources typically increases, which tends to reduce birth rates and/or increase death rates — violating the constant-r assumption",
+      "Predators, parasites, and disease often respond to increasing prey/host density, adding further downward pressure on r as N grows",
+      "A simple thought experiment makes the limit obvious: any species with r > 0, given enough time, would produce a population exceeding the mass of the observable universe — this cannot happen and never has"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Real-World Constraints on r",
+    "title": "Factors That Erode the Constant-r Assumption",
+    "cards": [
+      {
+        "h": "Resource limitation",
+        "p": "Finite food, water, and space eventually reduce per-capita birth rates and increase death rates as N increases."
+      },
+      {
+        "h": "Competition",
+        "p": "Intraspecific competition intensifies as density rises, lowering individual fitness and realized r."
+      },
+      {
+        "h": "Predation & disease",
+        "p": "Natural enemies often increase in response to abundant prey/hosts, raising death rates at high density."
+      },
+      {
+        "h": "Behavioral & physiological stress",
+        "p": "Crowding can suppress reproduction directly through stress, territoriality, or reduced mating success."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Where Exponential Models Still Apply",
+    "title": "When Is Density-Independent Growth a Good Approximation?",
+    "left": {
+      "h": "Good fit",
+      "body": "Early colonization of a new or emptied habitat; laboratory cultures with abundant resources; short time windows before resource limits bind; invasive species in newly invaded ranges; recovery from a population crash while density remains low."
+    },
+    "right": {
+      "h": "Poor fit",
+      "body": "Long-term dynamics of established populations near carrying capacity; any system where resources, space, predators, or disease are already limiting; multi-decade or multi-century population projections."
+    },
+    "footnote": "Exponential growth models are a foundational building block, not a complete description of most natural populations over the long run."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridging to What's Next",
+    "title": "Setting Up Density Dependence",
+    "items": [
+      "The unrealistic long-term behavior of dN/dt = rN motivates a key modification: letting r itself change as a function of population density, rather than remaining constant",
+      "This leads to density-dependent growth models (beginning with the logistic growth equation) covered in Ch. 2 and in upcoming lectures",
+      "The core innovation will be replacing the constant r with a term that declines as N approaches a resource-based ceiling, the carrying capacity (K)",
+      "Exponential growth remains the essential starting point: density-dependent models are built directly on top of the framework introduced today"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Summary Comparison",
+    "title": "Discrete-Time vs. Continuous-Time Density-Independent Growth",
+    "headers": [
+      "Feature",
+      "Geometric growth (Lecture 3)",
+      "Exponential growth (Lecture 4)"
+    ],
+    "rows": [
+      [
+        "Equation of change",
+        "Nt+1 = λNt",
+        "dN/dt = rN"
+      ],
+      [
+        "Solved equation",
+        "Nt = N0λ^t",
+        "Nt = N0e^(rt)"
+      ],
+      [
+        "Rate parameter",
+        "λ (finite rate of increase)",
+        "r (intrinsic rate of increase)"
+      ],
+      [
+        "Time structure",
+        "Discrete steps / generations",
+        "Continuous"
+      ],
+      [
+        "Stationary condition",
+        "λ = 1",
+        "r = 0"
+      ],
+      [
+        "Doubling time formula",
+        "t = ln(2) / ln(λ)",
+        "t = ln(2) / r"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Formula Recap",
+    "title": "Doubling Time, Continuous Case",
+    "term": "td = ln(2) / r",
+    "def": "The time required for a continuously growing population to double in size, derived by setting Nt = 2N0 and solving Nt = N0e^(rt) for t.",
+    "bullets": [
+      "ln(2) ≈ 0.693 is a constant that falls out of solving 2 = e^(rt) for t",
+      "Larger r produces shorter doubling times; smaller r produces longer doubling times",
+      "The relationship is inversely proportional, not linear — halving r more than doubles the doubling time",
+      "Useful for quick, back-of-the-envelope projections in conservation, epidemiology, and public policy contexts"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Putting It All Together",
+    "items": [
+      "Continuous-time models (dN/dt = rN, Nt = N0e^(rt)) describe populations with overlapping generations and ongoing reproduction",
+      "r, the intrinsic rate of increase, decomposes into per-capita birth rate minus per-capita death rate (r = b − d)",
+      "r and λ are two mathematically linked descriptions of the same growth process: λ = e^r and r = ln(λ)",
+      "Human population growth over the last two centuries is a striking real-world illustration — and cautionary tale — of sustained exponential growth",
+      "No population can sustain exponential growth indefinitely; resource limits eventually force r to decline as density increases, motivating density-dependent models"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Quick Self-Check",
+    "title": "Can You Answer These?",
+    "cards": [
+      {
+        "h": "Convert it",
+        "p": "If r = 0.15 per year, what is λ? (Hint: λ = e^r)"
+      },
+      {
+        "h": "Decompose it",
+        "p": "If b = 0.30 and d = 0.12 per capita per year, what is r?"
+      },
+      {
+        "h": "Doubling time",
+        "p": "If a bacterial culture has r = 1.386 per hour, how long until it doubles?"
+      },
+      {
+        "h": "Model choice",
+        "p": "Would you model a population of annual desert wildflowers with λ or r? Why?"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Discussion",
+    "title": "Discussion Question 1",
+    "left": {
+      "h": "Prompt",
+      "body": "World population growth rate (r) has declined from roughly 2.1% per year in the late 1960s to under 1% today, yet total population continues to rise. How can r decrease while N keeps increasing? Is this consistent with the exponential growth model, or does it suggest something else is happening?"
+    },
+    "right": {
+      "h": "Consider",
+      "body": "Think about the difference between the rate of growth and the size of the population itself, and about what dN/dt = rN predicts if r itself is not held constant over time."
+    },
+    "footnote": "Be ready to discuss in small groups."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Discussion",
+    "title": "Discussion Question 2",
+    "left": {
+      "h": "Prompt",
+      "body": "Malthus warned in 1798 that population grows exponentially while food supply grows only linearly. Using what you now know about dN/dt = rN, evaluate: was Malthus mathematically correct? Why has catastrophic global famine not occurred exactly as he predicted?"
+    },
+    "right": {
+      "h": "Consider",
+      "body": "Distinguish between the mathematical inevitability of exponential outstripping linear growth, and the empirical question of whether human societies have altered the assumptions behind the model (e.g., agricultural technology, changing birth rates)."
+    },
+    "footnote": "Be ready to discuss in small groups."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 5 — Density-Independent Growth III: Stochastic Environments",
+    "left": {
+      "h": "Today's takeaway",
+      "body": "We assumed r (and λ) are fixed constants. Real environments fluctuate year to year — good years and bad years — which means the growth rate itself varies over time even before we introduce density dependence."
+    },
+    "right": {
+      "h": "Coming up",
+      "body": "Lecture 5 introduces environmental stochasticity into density-independent models: how random variation in r affects long-term population trajectories, why variance in r matters as much as its average, and the elevated extinction risk it creates for small populations."
+    },
+    "footnote": "Reading for Lecture 5: Rockwood, Ch. 1 (stochasticity sections) — review today's r/λ conversions before class."
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Exponential growth is a beautifully simple idea and a genuinely dangerous one to extrapolate too far.",
+    "attrib": "Course instructor, paraphrasing common ecological wisdom"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 4</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

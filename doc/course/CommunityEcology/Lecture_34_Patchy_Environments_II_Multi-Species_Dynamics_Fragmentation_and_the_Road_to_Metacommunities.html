@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 34: Patchy Environments II: Multi-Species Dynamics, Fragmentation, and the Road to Metacommunities</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 34",
+    "title": "Patchy Environments II: Multi-Species Dynamics, Fragmentation, and the Road to Metacommunities",
+    "sub": "Mittelbach & McGill, Community Ecology 2nd ed., Chapter 13 (lecture 2 of 2)",
+    "footnote": "Reading: Ch. 13 (complete); preview Ch. 14 pp. opening sections"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where L33 Left Off",
+    "sub": "From single-species patch dynamics to species interactions in space"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Quick Recap of Lecture 33",
+    "items": [
+      "Levins metapopulation model: dp/dt = cp(1-p) - ep — reviewed briefly (full derivation lives in Population Ecology)",
+      "Equilibrium occupancy p* = 1 - e/c requires colonization to outpace extinction",
+      "Competition-colonization tradeoff: a species can persist regionally by being a superior colonizer even if a poor local competitor",
+      "Fugitive species: persist only by continually finding and exploiting newly disturbed or vacant patches ahead of superior competitors",
+      "Spatial coexistence mechanisms: aggregation, dispersal limitation, and the storage effect in patchy landscapes all weaken local competitive exclusion",
+      "Today: extend from one focal species pair to whole communities, and ask what patch dynamics look like empirically and how well the models actually hold up"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Multi-Species Extensions",
+    "title": "From Two Species to a Community of Patches",
+    "sub": "Tilman's competition-colonization model and hierarchical competition"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Tilman's Multi-Species Competition-Colonization Model",
+    "items": [
+      "Extends Levins-style patch occupancy to an entire guild of species competing for the same patches",
+      "Species are ranked in a strict competitive hierarchy: species i always displaces all species j > i upon contact within a patch",
+      "Each species trades competitive rank for colonization ability: better competitors are worse colonizers",
+      "Occupancy dynamics for species i depend on colonization by i minus extinction minus competitive displacement by superior species 1...i-1",
+      "Key result: an arbitrarily large number of species can coexist regionally on a single limiting resource, purely via the tradeoff — a striking violation of the classic competitive exclusion principle",
+      "Coexistence is stable only if colonization ability increases fast enough down the competitive hierarchy to compensate for competitive loss"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Hierarchical competitive ranking",
+    "term": "Hierarchical competitive ranking",
+    "def": "A strict, transitive ordering of species such that a higher-ranked species always excludes a lower-ranked one from a shared patch, with no reversals dependent on context.",
+    "bullets": [
+      "This assumption is the linchpin of the Tilman model's coexistence result — and one of its most criticized simplifications, since real competitive outcomes are often non-transitive or context-dependent (see critiques section)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why Strict Hierarchy Matters",
+    "items": [
+      "Non-transitive competition (rock-paper-scissors dynamics, e.g., some marine invertebrates and grassland forbs) breaks the model's core mechanism",
+      "Environmental context-dependence (competitive rank flips with soil moisture, disturbance history, etc.) also undermines a fixed hierarchy",
+      "Hierarchy is easiest to defend for simple resource-based competition (e.g., light competition among plants) and harder for multi-axis niche differences",
+      "Empirical tests: serpentine plant communities, bryophytes on rotting logs, and some coral reef systems show reasonably consistent hierarchies",
+      "When hierarchy breaks down, other coexistence mechanisms (storage effect, non-transitive loops) must be invoked instead"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Single-Species vs. Multi-Species Patch-Occupancy Models",
+    "headers": [
+      "Feature",
+      "Levins / classic metapopulation",
+      "Tilman multi-species (CC) model"
+    ],
+    "rows": [
+      [
+        "Number of species",
+        "One",
+        "Arbitrarily many, on one hierarchy"
+      ],
+      [
+        "Coexistence mechanism",
+        "N/A (single species persistence)",
+        "Competition-colonization tradeoff"
+      ],
+      [
+        "Competitive outcome",
+        "N/A",
+        "Strict, transitive displacement"
+      ],
+      [
+        "Key state variable",
+        "Fraction of patches occupied, p",
+        "Fraction occupied by each rank, p_i"
+      ],
+      [
+        "Main critique",
+        "Ignores space, patch quality variation",
+        "Requires strict hierarchy + tradeoff"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Conditions for Multi-Species Coexistence",
+    "items": [
+      "Coexistence requires c_i (colonization rate) to increase sufficiently down the hierarchy as competitive ability declines",
+      "Total patch occupancy summed across all species can approach 100%, unlike single-species Levins models which always leave some empty patches",
+      "Best competitor (rank 1) is regulated purely by its own colonization-extinction balance; it never loses patches to competition",
+      "Lower-ranked species are regulated by a combination of their own colonization/extinction AND pre-emption by all higher-ranked species",
+      "The worst competitor in the hierarchy behaves most like a classic fugitive species — surviving on colonization speed alone",
+      "Model predicts a continuum from 'fugitive' to 'dominant' strategies rather than a sharp two-species dichotomy"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Rescue Effects",
+    "title": "Rescue Effects and Their Community Consequences",
+    "sub": "How immigration alters local extinction risk — and reshapes competitive outcomes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Rescue effect",
+    "term": "Rescue effect",
+    "def": "The reduction in local extinction probability of a population caused by immigration from other occupied patches, effectively 'topping up' small or declining populations before they go extinct.",
+    "bullets": [
+      "First formalized by Brown & Kodric-Brown (1977); a core reason patch-occupancy models can underestimate persistence when they treat extinction as independent of immigration."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Mechanisms Behind the Rescue Effect",
+    "items": [
+      "Immigrants boost local population size directly, moving it away from demographic extinction thresholds",
+      "Immigration can introduce genetic variation, buffering against inbreeding depression in small populations",
+      "Effect scales with patch connectivity: well-connected patches near a large source population experience the strongest rescue",
+      "Rescue effect breaks the assumption in the simplest Levins model that colonization and extinction are independent processes",
+      "Realistic models add a term reducing extinction rate as a function of the fraction of occupied neighboring patches",
+      "Rescue effects are asymmetric: common, high-c species rescue each other and inferior colonizers rarely receive net benefit"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Rescue Effects: Local vs. Regional Consequences",
+    "left": {
+      "h": "Local (within-patch) effects",
+      "body": "<ul><li>Elevated local abundance above what birth-death alone predicts</li><li>Delayed or prevented local extinction during bad years</li><li>Reduced strength of local competitive exclusion (constant reinvasion of losers)</li><li>Can maintain sink populations indefinitely (source-sink dynamics)</li></ul>"
+    },
+    "right": {
+      "h": "Regional (community) effects",
+      "body": "<ul><li>Increases regional persistence time of weak competitors/colonizers</li><li>Can homogenize community composition across patches (reduces beta diversity)</li><li>Buffers metapopulations against stochastic regional collapse</li><li>Alters realized competition-colonization tradeoff by giving poor colonizers an assist</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Community-Level Consequences of Rescue Effects",
+    "cards": [
+      {
+        "h": "Diversity maintenance",
+        "p": "Rescue effects can allow inferior competitors to persist regionally even without strong colonization advantages, adding a second coexistence pathway beyond pure competition-colonization tradeoffs."
+      },
+      {
+        "h": "Reduced turnover",
+        "p": "Patches with strong rescue show lower species turnover through time because local extinctions are suppressed — communities look more static than occupancy models alone predict."
+      },
+      {
+        "h": "Source-sink structure",
+        "p": "Rescue can sustain sink populations that would otherwise vanish, altering local relative abundances and complicating inference of local niche requirements from occupancy data."
+      },
+      {
+        "h": "Spatial homogenization",
+        "p": "Strong, symmetric dispersal among patches can flatten compositional differences among patches, reducing beta diversity across the landscape."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Disturbance Regimes",
+    "title": "Disturbance Regimes in a Spatial-Patch Context",
+    "sub": "Revisiting the intermediate disturbance hypothesis at the landscape scale"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Characterizing a Disturbance Regime",
+    "items": [
+      "A disturbance regime is described by frequency, intensity/severity, spatial extent (patch size disturbed), and predictability",
+      "Patch dynamics models translate disturbance frequency directly into patch 'birth rate' — new open patches available for colonization",
+      "Disturbance intensity determines whether a patch is fully reset (primary succession-like) or only partially opened (gap dynamics)",
+      "Spatial extent matters: fine-grained disturbance (small gaps) favors different species than coarse-grained (large blowdowns, fires)",
+      "Regime, not single events, determines long-term community structure — the same total disturbed area produces different communities depending on patch size distribution"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Intermediate Disturbance Hypothesis (IDH), spatial version",
+    "term": "Intermediate Disturbance Hypothesis (IDH), spatial version",
+    "def": "Diversity is maximized at intermediate disturbance frequency/intensity because it allows co-occurrence of early colonists (fugitive-type species) and later competitive dominants across a mosaic of patches at different successional stages.",
+    "bullets": [
+      "In the patch-dynamics framing, IDH is really a statement about the landscape-level mixture of patch ages, not just local temporal dynamics — connecting directly to the competition-colonization tradeoff from Ch13."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "IDH: Classic (Local) Framing vs. Spatial-Patch Framing",
+    "left": {
+      "h": "Classic IDH (Connell 1978)",
+      "body": "<ul><li>Focuses on a single site's disturbance history over time</li><li>Diversity peaks at intermediate time-since-disturbance</li><li>Mechanism: succession hasn't excluded early species yet, but enough time has passed for later species to arrive</li><li>Largely a temporal, non-spatial argument</li></ul>"
+    },
+    "right": {
+      "h": "Spatial-patch IDH",
+      "body": "<ul><li>Focuses on the landscape-wide distribution of patch ages</li><li>Regional diversity peaks when the mosaic contains a mix of young, mid, and old patches</li><li>Mechanism: fugitive/colonizer species use young patches; competitive dominants occupy old patches; regional gamma diversity sums both</li><li>Explicitly spatial — connects to competition-colonization tradeoff and metapopulation persistence</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Spatial Mechanisms Generating the IDH Pattern",
+    "items": [
+      "Too little disturbance: competitive dominants monopolize nearly all patches, excluding fugitive/colonizer species regionally",
+      "Too much disturbance: only the fastest colonizers persist; slow-colonizing, better competitors get filtered out landscape-wide",
+      "Intermediate disturbance frequency generates a shifting mosaic of patch ages, allowing many strategies along the competition-colonization axis to find suitable patches somewhere",
+      "Requires a source of colonists (regional species pool) and enough dispersal to actually reach new patches — links back to rescue effects",
+      "Empirical support is mixed at large scales; meta-analyses (e.g., Fox 2013) found the classic hump-shaped IDH pattern is less general than once thought"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Predictions: Classic Succession vs. Patch-Dynamics View of Disturbance",
+    "headers": [
+      "Question",
+      "Classic successional view",
+      "Patch-dynamics / metapopulation view"
+    ],
+    "rows": [
+      [
+        "Unit of analysis",
+        "Single site through time",
+        "Whole landscape / patch mosaic"
+      ],
+      [
+        "Diversity driver",
+        "Time since last disturbance",
+        "Mixture of patch ages + dispersal"
+      ],
+      [
+        "Role of dispersal",
+        "Largely implicit",
+        "Explicit and essential"
+      ],
+      [
+        "Failure mode at low disturbance",
+        "Late-successional dominance",
+        "Regional loss of fugitive species"
+      ],
+      [
+        "Failure mode at high disturbance",
+        "Arrested succession",
+        "Regional loss of slow colonizers"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Landscape Structure",
+    "title": "Landscape Heterogeneity and Habitat Fragmentation",
+    "sub": "How patch context, not just patch presence, shapes community structure"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Landscape Heterogeneity Effects on Communities",
+    "items": [
+      "Patch models often assume all patches are identical and equidistant — real landscapes vary in patch quality, size, isolation, and matrix type",
+      "Heterogeneous patch quality creates source-sink structure layered on top of colonization-extinction dynamics",
+      "Matrix quality (the habitat between patches) strongly affects effective connectivity — a 'hostile' matrix functionally isolates patches even at short geographic distance",
+      "Landscape configuration (patch arrangement) can matter as much as total habitat amount for regional persistence",
+      "Corridors and stepping-stone patches can substantially increase effective colonization rates without adding net habitat area"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Habitat fragmentation",
+    "term": "Habitat fragmentation",
+    "def": "The breaking apart of continuous habitat into smaller, more isolated patches, typically co-occurring with (but conceptually distinct from) outright habitat loss.",
+    "bullets": [
+      "Fahrig (2003, 2017) emphasizes separating 'habitat amount' effects from 'fragmentation per se' (configuration, independent of amount) — a distinction with major conservation implications."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Species-Area Relationships, Revisited Briefly",
+    "items": [
+      "Recall from earlier in the course: S = cA^z — species richness increases with area, classically attributed to habitat diversity and/or passive sampling",
+      "In a fragmented landscape, total remaining habitat area predicts total species richness reasonably well (habitat amount hypothesis, Fahrig 2013)",
+      "But SAR alone doesn't tell you how that area is arranged — many small fragments vs. one large fragment (the long-running SLOSS debate: Single Large Or Several Small)",
+      "Patch dynamics theory adds nuance: several small patches can support more colonizer/fugitive species if they increase total patch-age heterogeneity and connectivity",
+      "Extinction debt: species richness in fragments can remain temporarily elevated after fragmentation, then decline slowly toward the new lower equilibrium — a lagged response the equilibrium SAR framework misses"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Habitat Loss vs. Fragmentation Per Se",
+    "left": {
+      "h": "Habitat amount / loss",
+      "body": "<ul><li>Reduction in total area of a habitat type in a landscape</li><li>Strong, consistently negative effect on species richness and abundance</li><li>Directly reduces total carrying capacity and colonization sources</li><li>Effect size scales roughly with SAR predictions</li></ul>"
+    },
+    "right": {
+      "h": "Fragmentation per se (configuration)",
+      "body": "<ul><li>Breaking apart a fixed amount of habitat into more, smaller pieces</li><li>Effects are weaker and more mixed in meta-analyses — sometimes even slightly positive for regional richness</li><li>Increases edge-to-area ratio and patch isolation</li><li>Can increase landscape-scale heterogeneity, benefiting some colonizer/edge species while harming interior specialists</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Edge effect",
+    "term": "Edge effect",
+    "def": "Altered physical conditions (light, wind, temperature, moisture) and biotic interactions (predation, nest parasitism, invasive species) near a patch boundary relative to its interior, extending some distance inward from the edge.",
+    "bullets": [
+      "Edge effects scale patch shape complexity into ecological consequences: high perimeter-to-area ratio patches (fragments) experience proportionally more edge-influenced area than large, compact patches."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Edge Effect Mechanisms and Community Consequences",
+    "items": [
+      "Abiotic edge effects: increased light penetration, wind exposure, desiccation near forest edges alter microclimate for tens to hundreds of meters inward",
+      "Biotic edge effects: elevated nest predation and brood parasitism near forest edges (classic bird studies, e.g., Midwestern US forest fragments)",
+      "Invasive species and generalist predators often concentrate at edges, spilling into fragment interiors",
+      "Small fragments can become 'all edge, no interior' — losing area-sensitive interior specialists even while total habitat area seems adequate",
+      "Edge effects interact with matrix type: edges bordering agricultural land differ strongly from edges bordering regenerating forest"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Fragmentation Consequences for Community Structure",
+    "cards": [
+      {
+        "h": "Species loss ordering",
+        "p": "Large-bodied, area-sensitive, poor-dispersing, and top-trophic-level species tend to be lost first from fragmented landscapes — a predictable filter, not random attrition."
+      },
+      {
+        "h": "Trophic simplification",
+        "p": "Top predators and specialist parasitoids are disproportionately vulnerable, often triggering mesopredator release or pest outbreaks in fragments."
+      },
+      {
+        "h": "Biotic homogenization",
+        "p": "Fragments converge on a similar subset of generalist, edge-tolerant, good-colonizing species, reducing beta diversity across a fragmented region."
+      },
+      {
+        "h": "Altered interactions",
+        "p": "Pollination, seed dispersal, and predation networks can be disrupted by fragmentation even where species richness itself declines only modestly."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Empirical Case Studies",
+    "title": "Patchy Communities in the Field",
+    "sub": "Rock pools, forest gaps, and agricultural mosaics as natural laboratories"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Case Study: Rock Pool Metacommunities",
+    "items": [
+      "Intertidal and inland rock pools are naturally discrete, replicated 'patches' — ideal empirical tests of patch-occupancy theory",
+      "Kneitel & Chase and colleagues used rock pool invertebrate/protist communities to test competition-colonization tradeoffs directly",
+      "Studies generally find real tradeoffs between competitive ability and dispersal/colonization ability among co-occurring taxa, but with substantial noise and context-dependence",
+      "Pool size, hydroperiod (how long a pool holds water), and connectivity to source pools all shape occupancy beyond simple colonization-extinction balance",
+      "Rock pools reveal rescue effects directly: pools near dense pool clusters show higher occupancy of poor colonizers than isolated pools"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Case Study: Forest Gap Dynamics",
+    "cards": [
+      {
+        "h": "Gaps as patches",
+        "p": "Treefall gaps function as regeneration patches in continuous forest; species partition gaps by size, light regime, and time since formation."
+      },
+      {
+        "h": "Pioneer vs. shade-tolerant tradeoff",
+        "p": "Fast-growing, light-demanding pioneers colonize new gaps quickly; shade-tolerant species persist as suppressed juveniles awaiting gap formation — a within-forest analog of the competition-colonization tradeoff."
+      },
+      {
+        "h": "Gap-phase mosaic maintains diversity",
+        "p": "Continuous, asynchronous gap formation across a forest maintains a shifting mosaic of successional stages, supporting far more tree species regionally than any single gap could locally."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Case Study: Agricultural Field Mosaics",
+    "items": [
+      "Farmland landscapes are dynamic patch mosaics: fields cycle through crop types, fallow periods, and disturbance (tillage, harvest) on human timescales",
+      "Weed and arthropod communities in field mosaics show classic colonization-extinction turnover tied to the crop rotation cycle",
+      "Field margins, hedgerows, and fallow strips act as source patches and dispersal corridors connecting otherwise disturbed fields",
+      "Landscape-scale crop diversity (heterogeneity of the patch mosaic) predicts pollinator and natural-enemy diversity better than any single field's management",
+      "Agricultural mosaics illustrate that human-managed disturbance regimes can be analyzed with the same patch-dynamics toolkit as natural systems"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Comparing Empirical Patchy Systems",
+    "headers": [
+      "System",
+      "Patch boundaries",
+      "Dominant turnover driver",
+      "Key finding"
+    ],
+    "rows": [
+      [
+        "Rock pools",
+        "Sharp, discrete",
+        "Desiccation / colonization",
+        "Direct evidence for competition-colonization tradeoffs"
+      ],
+      [
+        "Forest gaps",
+        "Diffuse, shifting",
+        "Treefall disturbance",
+        "Pioneer-shade-tolerant tradeoff maintains tree diversity"
+      ],
+      [
+        "Agricultural fields",
+        "Sharp, human-set",
+        "Management cycle",
+        "Landscape-scale crop heterogeneity drives biodiversity"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Critiques",
+    "title": "Critiques of Classic Patch-Occupancy Models",
+    "sub": "Where the elegant math meets messy landscapes"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Unrealistic Assumptions in Classic Models",
+    "items": [
+      "Patches assumed identical in size and quality — real patches vary continuously, and larger patches have both higher colonization rates and lower extinction rates",
+      "Patches assumed equidistant / well-mixed ('mean-field' assumption) — ignores real spatial structure and distance-dependent dispersal",
+      "Within-patch dynamics assumed instantaneous or ignored — local population growth, age structure, and Allee effects are collapsed into a binary occupied/empty state",
+      "Colonization and extinction assumed independent of each other — violated directly by rescue effects",
+      "Strict competitive hierarchy assumed in multi-species models — violated by non-transitive or context-dependent competition",
+      "Environment assumed static apart from the disturbance process itself — ignores climate change, long-term succession, and evolving species pools"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Simplifying Assumptions vs. Landscape Reality",
+    "left": {
+      "h": "Model assumes",
+      "body": "<ul><li>Binary patch state (occupied/empty)</li><li>Homogeneous patch size and quality</li><li>Global dispersal (mean-field mixing)</li><li>Fixed, transitive competitive hierarchy</li><li>Constant colonization/extinction rates</li></ul>"
+    },
+    "right": {
+      "h": "Real landscapes show",
+      "body": "<ul><li>Continuous population sizes within patches, Allee effects</li><li>Wide variance in patch size, quality, hydroperiod, matrix context</li><li>Distance-limited, directional dispersal (wind, water flow, corridors)</li><li>Non-transitive or context-dependent competitive outcomes</li><li>Rates that vary with climate, season, and patch age</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Landscape Complexity as a Deeper Challenge",
+    "items": [
+      "Real landscapes are hierarchically structured: patches nest within patch clusters nest within regions, each with different relevant processes",
+      "Multiple interacting disturbance regimes (fire, flooding, land use) rarely reduce to a single frequency parameter",
+      "Species differ simultaneously in dispersal ability, competitive rank, and environmental tolerance — a single tradeoff axis (competition-colonization) cannot capture multi-dimensional niche variation",
+      "Spatially explicit, individual-based, and network-based models increasingly replace mean-field patch-occupancy equations for applied conservation questions",
+      "Despite these limits, classic patch models remain valuable as null models / heuristics — they clarify what additional complexity is doing when predictions deviate"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "All models are wrong, but some are useful — the value of the simple patch-occupancy framework lies not in its literal realism but in the baseline expectations it sets, against which real landscape complexity can be measured.",
+    "attrib": "paraphrased from George Box, applied to metapopulation/patch theory"
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis and Bridge",
+    "title": "Chapter 13 Synthesis: What Have We Built?",
+    "sub": "From single-species patches to a foundation for regional community theory"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "The Conceptual Ladder of Chapter 13",
+    "levels": [
+      {
+        "label": "Foundation",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Pairwise extension",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Multi-species extension",
+        "color": "#3f7d5c",
+        "width": "440px"
+      },
+      {
+        "label": "Realism layer",
+        "color": "#568f6d",
+        "width": "380px"
+      },
+      {
+        "label": "Synthesis",
+        "color": "#6ea883",
+        "width": "320px"
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "Conceptual Development: From Patch Occupancy to Metacommunities",
+    "items": [
+      {
+        "y": "1969",
+        "t": "Levins introduces the metapopulation concept and dp/dt model"
+      },
+      {
+        "y": "1977",
+        "t": "Brown & Kodric-Brown formalize the rescue effect"
+      },
+      {
+        "y": "1978",
+        "t": "Connell proposes the Intermediate Disturbance Hypothesis"
+      },
+      {
+        "y": "1994",
+        "t": "Tilman extends competition-colonization tradeoff to many species"
+      },
+      {
+        "y": "1997",
+        "t": "Hanski formalizes realistic (incidence-function) metapopulation models"
+      },
+      {
+        "y": "2003",
+        "t": "Fahrig clarifies habitat loss vs. fragmentation-per-se distinction"
+      },
+      {
+        "y": "2004",
+        "t": "Leibold et al. formally define the metacommunity concept (Ch14 preview)"
+      },
+      {
+        "y": "2013",
+        "t": "Fox meta-analysis questions generality of the classic IDH pattern"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key Takeaways from Chapter 13",
+    "items": [
+      "Space and disturbance are not noise to be averaged away — they are first-order drivers of coexistence and diversity",
+      "A tradeoff between competitive ability and colonization ability can, by itself, permit coexistence of many species regionally, even without local niche differences",
+      "Rescue effects and disturbance regimes modulate how strongly the competition-colonization mechanism operates in practice",
+      "Landscape structure (heterogeneity, fragmentation, connectivity) determines whether patch-dynamics predictions actually manifest in real systems",
+      "Classic patch models are deliberately simplified — useful as a baseline, but consistently outperformed by more spatially explicit and multi-species approaches when tested rigorously",
+      "The next conceptual step is to stop treating each species pair or guild separately and instead model the whole regional community of interacting, dispersing species at once"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "From Fugitive-Species Paradigm to Metacommunity Paradigm",
+    "headers": [
+      "Aspect",
+      "Ch13 fugitive-species / patch-dynamics view",
+      "Ch14 metacommunity view"
+    ],
+    "rows": [
+      [
+        "Focus",
+        "One species or one competing pair/guild",
+        "Entire regional species pool simultaneously"
+      ],
+      [
+        "Coexistence mechanism",
+        "Competition-colonization tradeoff only",
+        "Multiple mechanisms (patch dynamics is one of four paradigms)"
+      ],
+      [
+        "Spatial process",
+        "Colonization/extinction of empty patches",
+        "Dispersal among occupied local communities of varying composition"
+      ],
+      [
+        "Local dynamics",
+        "Often collapsed to occupied/empty",
+        "Explicit local community assembly and interactions"
+      ],
+      [
+        "Predicts",
+        "Regional persistence of a tradeoff axis",
+        "Patterns of beta diversity, species sorting, and mass effects"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Looking Ahead",
+    "title": "Preview: Chapter 14 — Metacommunities",
+    "sub": "Generalizing patch dynamics to whole regional communities"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why Metacommunities Are the Natural Next Step",
+    "items": [
+      "Chapter 13 modeled colonization and extinction of a single species (or hierarchy) across empty/occupied patches",
+      "But real patches are rarely empty — they hold whole local communities of many interacting species simultaneously",
+      "A metacommunity is defined as a set of local communities linked by dispersal of multiple, potentially interacting species",
+      "This reframes the question from 'will this species colonize this patch?' to 'what determines the composition of the whole local community, given dispersal and local interactions together?'",
+      "Chapter 13's patch-dynamics framework becomes one of several formal paradigms nested inside metacommunity theory"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Preview: The Four Classic Metacommunity Paradigms (Ch14)",
+    "cards": [
+      {
+        "h": "Patch dynamics",
+        "p": "Direct generalization of Ch13: identical patches, local extinction and colonization control composition, tradeoffs maintain diversity — the paradigm we've spent two lectures building."
+      },
+      {
+        "h": "Species sorting",
+        "p": "Patches differ in environmental conditions; dispersal is sufficient for species to track and occupy their preferred niche, so local composition reflects local environment."
+      },
+      {
+        "h": "Mass effects",
+        "p": "High dispersal rates allow source-sink dynamics to override local environmental filtering, letting species persist in unsuitable patches via constant immigration — an extreme extension of the rescue effect."
+      },
+      {
+        "h": "Neutral theory",
+        "p": "Species are assumed competitively equivalent; composition is driven purely by stochastic birth, death, dispersal, and speciation rather than niche differences."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Chapter 13 vs. Chapter 14: Scope Comparison",
+    "left": {
+      "h": "Chapter 13 (patch dynamics / fugitive species)",
+      "body": "<ul><li>One species, or a small competitive guild</li><li>Patches are identical, empty-or-occupied</li><li>Single mechanism: competition-colonization tradeoff</li><li>Question: does this species persist regionally?</li></ul>"
+    },
+    "right": {
+      "h": "Chapter 14 (metacommunities)",
+      "body": "<ul><li>The entire regional species pool at once</li><li>Patches (local communities) vary in composition and environment</li><li>Multiple coexisting mechanisms/paradigms, possibly simultaneously</li><li>Question: what determines local AND regional diversity patterns together?</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Synthesis Review Questions for Exam Prep",
+    "items": [
+      "Explain how Tilman's multi-species model can produce coexistence of arbitrarily many species on a single limiting resource — what assumption makes this possible, and why is that assumption fragile?",
+      "How does a rescue effect change the predictions of a simple Levins-style occupancy model, and what community-level consequences follow?",
+      "Contrast the classic (temporal) IDH with its spatial-patch reformulation — what role does dispersal play in each?",
+      "Distinguish habitat loss from fragmentation per se, and explain why their effects on richness differ in meta-analyses",
+      "Using one of the three case studies (rock pools, forest gaps, agricultural mosaics), describe how it tests or illustrates the competition-colonization tradeoff",
+      "List three unrealistic assumptions of classic patch-occupancy models and explain how the metacommunity framework in Ch14 relaxes each one"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Closing",
+    "title": "End of Chapter 13",
+    "sub": "Next lecture: Chapter 14 begins — Metacommunity theory and the four paradigms in depth"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Before Next Class",
+    "items": [
+      "Read Chapter 14 introduction and the section formally defining the metacommunity concept",
+      "Review today's synthesis pyramid and timeline — these tie directly into how Ch14 organizes the four paradigms",
+      "Optional: skim the Leibold et al. (2004) metacommunity framework paper referenced in the timeline for extra depth",
+      "Bring questions on any Ch13 material for a short review Q&A at the start of L35 before we move into new content",
+      "Problem set on patch-occupancy math (Levins and Tilman extensions) due before L36"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 34</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

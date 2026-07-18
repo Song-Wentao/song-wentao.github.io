@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 9: Intraspecific Competition: Mechanisms</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology — Lecture 9",
+    "title": "Intraspecific Competition: Mechanisms",
+    "sub": "From equations to biology: what actually causes density dependence?",
+    "footnote": "Rockwood, Introduction to Population Ecology (2nd ed.), Chapter 2"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Where We Left Off (Lectures 6–8)",
+    "items": [
+      "Lectures 6–7 built the logistic model and showed how density dependence bends exponential growth toward K",
+      "Lecture 8 showed that adding time lags to density dependence can destabilize the logistic model — damped oscillations, stable limit cycles, and chaos",
+      "Throughout, density dependence was treated as a mathematical term: (1 − N/K)",
+      "We never asked: what is actually happening to individual organisms as N approaches K?",
+      "Today we open that black box and look at the biological mechanisms that generate density-dependent birth and death rates"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Two Modes of Competition",
+    "sub": "Resource depletion versus interference"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing",
+    "title": "Competition Has to Work Through Something",
+    "items": [
+      "Density dependence is not a force acting directly on population size — it acts through individual organisms competing for limited resources",
+      "Ecologists distinguish two broad mechanisms by which individuals compete: exploitation (resource depletion) and interference",
+      "Both mechanisms reduce individual fitness (survival and/or reproduction) as density rises, but they operate through very different behavioral and physiological pathways",
+      "Most real populations show a mix of both, but the distinction is useful for understanding *why* density dependence arises"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Resource Depletion (Exploitation) Competition",
+    "term": "Exploitation competition",
+    "def": "Competition in which individuals reduce each other's fitness indirectly, by consuming a shared, limited resource — with no direct interaction between competitors required.",
+    "bullets": [
+      "Individuals never need to meet or interact at all",
+      "The effect is transmitted entirely through the resource pool: one individual's consumption lowers what remains for everyone else",
+      "Classic examples: plants competing for soil nitrogen or light; herbivores depleting forage; filter feeders competing for suspended food particles",
+      "Also called 'scramble' competition when resources are shared roughly equally among all competitors"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exploitation in Action",
+    "title": "Examples of Resource Depletion Competition",
+    "items": [
+      "Tadpoles in a pond depleting algal food — no tadpole ever fights another, but growth rates fall as density rises",
+      "Desert annual plants competing for soil moisture after a rain pulse",
+      "Grazing ungulates reducing standing forage biomass, lowering intake rates for the whole herd",
+      "Deer mice competing for scattered seed caches over winter",
+      "Common feature: fitness declines are diffuse and mediated entirely by resource availability, not behavior"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Interference Competition",
+    "term": "Interference competition",
+    "def": "Competition in which individuals interact directly to exclude others from resources, through aggression, territorial defense, or chemical inhibition — independent of how much resource remains.",
+    "bullets": [
+      "Requires direct behavioral or physiological interaction between competitors",
+      "Can reduce access to a resource even when the resource itself is not scarce",
+      "Forms include physical aggression, territoriality, chemical allelopathy in plants, and interspecific-style aggressive displacement within a species",
+      "Because access is actively controlled, interference often produces sharper, more predictable limits on local density than exploitation does"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Forms of Interference",
+    "title": "Three Common Interference Mechanisms",
+    "items": [
+      "Aggression — direct physical contests (fighting, chasing, displacement) that exclude subordinate individuals from resource patches",
+      "Chemical inhibition (allelopathy) — plants release secondary compounds into soil or air that suppress germination or growth of nearby conspecifics (e.g., black walnut, some desert shrubs, sagebrush)",
+      "Territoriality — an individual or group defends an exclusive area, denying access to resources within it regardless of how abundant those resources are",
+      "All three impose costs on both the winner (energy, injury risk) and the loser (exclusion), which is why interference competition is often more costly per capita than exploitation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Territoriality",
+    "sub": "A specific and widespread interference mechanism"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Territoriality",
+    "term": "Territoriality",
+    "def": "The defense of an exclusive area against other members of the same species (or occasionally other species), which restricts access to the resources within that area.",
+    "bullets": [
+      "Territories are defended through displays, calls, scent-marking, or overt aggression",
+      "A territory typically contains resources needed for survival and/or reproduction: food, nest sites, mates",
+      "Territory defense is costly (time, energy, injury risk) — individuals only defend when the resource payoff exceeds the defense cost",
+      "This cost–benefit logic means territoriality tends to appear when resources are economically defensible: moderately abundant and spatially predictable"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Studies",
+    "title": "Territoriality Capping Local Density",
+    "cards": [
+      {
+        "h": "Song Sparrows (Melospira melodia)",
+        "p": "Males defend breeding territories; territory size and number set a hard ceiling on how many pairs can breed in a habitat patch each season, regardless of food abundance."
+      },
+      {
+        "h": "Great Tits (Parus major)",
+        "p": "Classic Wytham Woods studies show territorial males exclude surplus individuals to non-breeding 'floater' status — floaters have far lower survival and never breed that year."
+      },
+      {
+        "h": "Stream Salmonids",
+        "p": "Juvenile trout and salmon defend feeding stations in streams; territory size scales with fish size, and the number of available stations sets local carrying capacity."
+      },
+      {
+        "h": "Coral Reef Fish",
+        "p": "Damselfish defend algal-turf territories on reefs; territory holders exclude conspecifics and even other species, structuring local community composition."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism",
+    "title": "How Territoriality Generates Density Dependence",
+    "items": [
+      "A habitat has a finite number of defensible territories of adequate quality",
+      "As population size grows, all high-quality territories are claimed first (ideal despotic distribution)",
+      "Additional individuals become non-territorial 'floaters' — they survive poorly, delay breeding, or are forced into marginal habitat",
+      "The result: per-capita reproduction and survival decline sharply once territory number is saturated, producing a strongly density-dependent ceiling on N",
+      "Because a territory is an all-or-nothing resource, territoriality often creates a sharper density-dependence curve than diffuse resource depletion"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Nuance",
+    "title": "Territoriality Doesn't Require Scarcity",
+    "left": {
+      "h": "Under Resource Depletion",
+      "body": "Fitness declines gradually and continuously as the shared resource pool shrinks — there is no sharp threshold, just a smooth downward trend as density rises."
+    },
+    "right": {
+      "h": "Under Interference / Territoriality",
+      "body": "Fitness can drop abruptly once all defensible space is claimed — individuals excluded from a territory may get almost none of the resource even if plenty remains in the environment."
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Synthesis",
+    "title": "Resource Depletion vs. Interference Competition",
+    "headers": [
+      "Feature",
+      "Resource Depletion (Exploitation)",
+      "Interference"
+    ],
+    "rows": [
+      [
+        "Mechanism of effect",
+        "Indirect — mediated entirely by the shared resource pool",
+        "Direct — behavioral or chemical interaction between individuals"
+      ],
+      [
+        "Direct contact required?",
+        "No",
+        "Yes (aggression, defense, chemical release)"
+      ],
+      [
+        "Effect on losers",
+        "Reduced resource share, proportional to consumption by others",
+        "Can be complete exclusion, even when resource is abundant"
+      ],
+      [
+        "Predictability of outcome",
+        "Diffuse, probabilistic — depends on foraging efficiency",
+        "Often deterministic — winners/losers set by contest outcome or territory ownership"
+      ],
+      [
+        "Typical cost structure",
+        "Cost is time/energy spent searching for a diminishing resource",
+        "Cost is energy/injury risk spent on defense or aggression, for both parties"
+      ],
+      [
+        "Example",
+        "Tadpoles depleting pond algae",
+        "Song sparrows defending breeding territories"
+      ],
+      [
+        "Density-dependence shape",
+        "Often smooth, gradual decline in fitness with density",
+        "Often sharper, threshold-like decline once space/resource is claimed"
+      ]
+    ],
+    "footnote": "Rockwood Ch. 2 — most natural populations experience a mixture of both mechanisms simultaneously"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Integration",
+    "title": "Both Mechanisms Feed the Same Logistic Curve",
+    "items": [
+      "Whether competition is exploitative, interference-based, or a mix, the population-level signature can be the same: per-capita growth rate declines as N increases",
+      "This is why the logistic model's (1 − N/K) term can emerge from very different underlying biology",
+      "Distinguishing the mechanism matters for prediction: territorial systems often show sharp, threshold-like ceilings, while exploitation systems show smoother declines",
+      "It also matters for management: you cannot fix a territoriality-driven ceiling by adding more food if space, not food, is the limiting resource"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Self-Thinning in Plant Populations",
+    "sub": "The −3/2 power law (Yoda's Law)"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Phenomenon",
+    "title": "Self-Thinning",
+    "term": "Self-thinning",
+    "def": "The progressive decline in the number of surviving individuals in a dense, even-aged plant stand as the survivors grow larger, driven by resource-depletion competition (mainly for light).",
+    "bullets": [
+      "Occurs in stands where seedlings germinate at high density (e.g., after a fire, clear-cut, or dense sowing)",
+      "As plants grow, they compete increasingly for light, water, and soil nutrients — smaller, shaded individuals die",
+      "Death is not random: it is strongly size- and density-dependent, concentrated among suppressed, slower-growing individuals",
+      "Named 'self'-thinning because the population thins itself, without any external disturbance or herbivore removing individuals"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Stand Development",
+    "title": "The Trajectory of a Thinning Stand",
+    "items": [
+      "Stage 1: Establishment — many small seedlings at high density, little competition yet, canopy not closed",
+      "Stage 2: Canopy closure — plants begin to shade one another; competition for light intensifies; growth rates diverge between suppressed and dominant individuals",
+      "Stage 3: Self-thinning — mortality concentrated in smaller, suppressed individuals; survivors grow rapidly in size (biomass) even as their numbers fall",
+      "Stage 4: Approach to a mortality/growth boundary — the relationship between surviving density and mean plant size follows a remarkably consistent trajectory across many species"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Rule",
+    "title": "The −3/2 Power Law (Yoda's Law)",
+    "term": "Self-thinning rule",
+    "def": "In dense, self-thinning plant stands, mean individual biomass (w) scales with surviving density (N) as w ∝ N^(−3/2), so that a log–log plot of mean plant weight against density falls along a straight line with slope ≈ −3/2.",
+    "bullets": [
+      "First described by Kan-ichi Yoda and colleagues (1963) from studies of crowded plant monocultures",
+      "Holds across a striking range of taxa — from herbaceous crop monocultures to forest tree stands",
+      "Because it is expressed on log–log axes, the −3/2 relationship is often called the 'self-thinning line' or 'thinning boundary'",
+      "Populations approach but do not exceed this line: it represents an upper limit on biomass a given density of survivors can support"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Reading the Plot",
+    "title": "The Log–Log Self-Thinning Plot",
+    "left": {
+      "h": "Axes",
+      "body": "X-axis: log(density, plants per unit area), typically decreasing left to right as the stand thins. Y-axis: log(mean individual biomass), increasing as survivors grow larger."
+    },
+    "right": {
+      "h": "Trajectory",
+      "body": "As a stand develops, its point in this space moves up and to the left along a line of slope −3/2 — density falls while mean biomass rises, tracing a single characteristic boundary line."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why −3/2? A Geometric Argument",
+    "title": "The Classic Explanation for the Exponent",
+    "items": [
+      "Assume plant biomass (w) scales with a linear dimension (e.g., height or stem diameter, d) roughly as w ∝ d^3 (volume-like scaling)",
+      "Assume the area each plant occupies (and therefore the maximum density it permits) scales with its 'canopy area,' roughly ∝ d^2",
+      "Combining these: density N ∝ 1/d^2, so d^2 ∝ 1/N, and thus d^3 ∝ N^(−3/2)",
+      "Because w ∝ d^3, this gives w ∝ N^(−3/2) — the −3/2 exponent falls out of simple geometric (allometric) scaling between plant volume and canopy area",
+      "This geometric argument is elegant but has been debated; more recent work argues the true exponent is closer to −4/3 based on metabolic scaling theory, and departures are common in real data"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Evidence",
+    "title": "Species Where Self-Thinning Has Been Documented",
+    "cards": [
+      {
+        "h": "Lodgepole Pine (Pinus contorta)",
+        "p": "Dense post-fire seedling cohorts show textbook self-thinning trajectories over decades, tracking closely along the thinning boundary."
+      },
+      {
+        "h": "Perennial Ryegrass & Crop Monocultures",
+        "p": "Yoda's original agronomic studies used sown grass and crop plots at controlled densities — the system where the −3/2 line was first quantified."
+      },
+      {
+        "h": "Douglas-Fir Plantations",
+        "p": "Forestry yield tables have long used self-thinning relationships to predict maximum stand biomass at a given planting density."
+      },
+      {
+        "h": "Marine Mussel Beds & Barnacles",
+        "p": "Sessile marine invertebrates competing for space show self-thinning-like density/size relationships analogous to plant stands."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Pattern Is So General",
+    "title": "Why the −3/2 (or −4/3) Line Recurs Across Systems",
+    "items": [
+      "The pattern emerges from basic geometric/metabolic constraints on how much biomass a unit area of ground (or substrate) can support — it is not specific to any one species' biology",
+      "It applies best to sessile, resource-depletion competitors where light and space are the limiting currency — a poor fit for mobile animals or interference-dominated systems",
+      "The self-thinning line acts as an upper boundary or 'ceiling,' not a required trajectory — stands can sit below the line (uncrowded) but rarely exceed it",
+      "Deviations occur with mixed-species stands, variable site quality, non-competitive mortality (fire, disease), or when the −4/3 metabolic exponent fits better than −3/2",
+      "The self-thinning rule is one of the most robust quantitative generalizations in plant population ecology, used practically in forestry to set optimal planting density"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Density-Dependent Vital Rates",
+    "sub": "Fecundity and mortality as the currency of competition"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Density-Dependent Fecundity",
+    "term": "Density-dependent fecundity",
+    "def": "A decline in per-capita reproductive output (clutch/litter size, seed number, offspring survival to independence) as population density increases.",
+    "bullets": [
+      "This is the reproductive half of density dependence — it complements density-dependent mortality",
+      "Both resource depletion and interference competition can suppress fecundity, often simultaneously",
+      "Fecundity responses are frequently the first vital rate to change as density rises, before mortality effects become severe",
+      "Because fecundity determines the birth term in population models, density-dependent fecundity directly shapes the shape of dN/dt near K"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanisms",
+    "title": "Why Fecundity Falls as Density Rises",
+    "items": [
+      "Reduced per-capita resource intake — less food or nutrients available for egg/seed production or offspring provisioning",
+      "Physiological stress — crowding elevates stress hormones (e.g., corticosterone in vertebrates), which can suppress ovulation, implantation, or parental investment",
+      "Reduced body condition — animals in poor condition produce fewer or smaller offspring, or skip breeding entirely",
+      "Interference with mating or nesting — crowding can disrupt courtship, increase nest predation/parasitism, or reduce access to nest sites",
+      "Delayed maturity — juveniles in crowded populations may take longer to reach reproductive size or age, lowering the effective annual birth rate"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Examples",
+    "title": "Density-Dependent Fecundity in Practice",
+    "cards": [
+      {
+        "h": "Great Tit Clutch Size",
+        "p": "Clutch size declines measurably as local breeding density increases, tracking food availability per territory."
+      },
+      {
+        "h": "Red Deer (Cervus elaphus)",
+        "p": "On Rùm, Scotland, female fecundity (probability of calving) drops sharply at high population density due to reduced forage."
+      },
+      {
+        "h": "Daphnia (Water Fleas)",
+        "p": "Reproductive rate (offspring per clutch) falls steeply as culture density rises, a classic laboratory demonstration of exploitation competition."
+      },
+      {
+        "h": "Annual Plants",
+        "p": "Seed output per individual declines dramatically with sowing density, following a predictable 'law of constant final yield.'"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4 (cont.)",
+    "title": "Density-Dependent Mortality",
+    "sub": "The death-rate side of the same coin"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Density-Dependent Mortality",
+    "term": "Density-dependent mortality",
+    "def": "An increase in per-capita death rate as population density rises, driven by intensified competition for resources, elevated disease transmission, or increased predation risk.",
+    "bullets": [
+      "Density-dependent mortality is often the dominant regulating mechanism in populations near carrying capacity",
+      "Unlike fecundity effects (which reduce future births), mortality effects remove individuals from the population immediately",
+      "In many systems fecundity and mortality respond to density together, reinforcing the overall negative feedback on population growth"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanisms",
+    "title": "Why Mortality Rises as Density Increases",
+    "items": [
+      "Starvation — as resource depletion competition intensifies, the weakest competitors fail to meet minimum energy requirements (this is the direct mechanism behind plant self-thinning)",
+      "Disease and parasite transmission — contact rates between hosts increase with density, accelerating spread of pathogens and parasites (classic mass-action epidemiological logic)",
+      "Predation risk — crowded prey may be forced into marginal, higher-risk habitat, or aggregations may attract predators disproportionately",
+      "Cannibalism — in some taxa (fish, insects, amphibians), high density directly increases cannibalism rates on eggs or juveniles",
+      "Accumulation of waste/toxins — in closed or semi-closed systems (ponds, culture flasks), metabolic waste products build up with density and become directly toxic"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Examples",
+    "title": "Density-Dependent Mortality in Practice",
+    "cards": [
+      {
+        "h": "Song Sparrow Overwinter Survival",
+        "p": "Overwinter survival probability drops as autumn population density rises, driven by depleted seed and insect food stocks."
+      },
+      {
+        "h": "Forest Insect Outbreaks",
+        "p": "Larval density influences disease (viral, fungal) transmission rates, often triggering rapid population collapse at outbreak densities."
+      },
+      {
+        "h": "Reef Fish Recruitment",
+        "p": "Newly settled juvenile density strongly predicts subsequent mortality, largely via density-dependent predation on the reef."
+      },
+      {
+        "h": "Human-Adjacent Rodent Populations",
+        "p": "Crowding increases aggressive interactions and stress-related mortality, alongside disease spread in high-density colonies."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Integration",
+    "title": "Fecundity and Mortality Together Regulate Density",
+    "left": {
+      "h": "Low Density",
+      "body": "Resources abundant, little competition — fecundity is high, mortality is low, per-capita growth rate is near its maximum (r)."
+    },
+    "right": {
+      "h": "High Density (near K)",
+      "body": "Resources scarce and/or interference intense — fecundity falls, mortality rises, and the two trends together drive per-capita growth rate toward zero."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Connection",
+    "title": "Linking Mechanisms Back to the Logistic Curve",
+    "items": [
+      "The logistic model's declining per-capita growth rate near K is simply the net result of these two opposing trends: fecundity falling and mortality rising with N",
+      "Different species/systems can reach the same net dN/dt curve through very different balances of fecundity vs. mortality effects — some are regulated almost entirely through fecundity (e.g., territorial birds), others almost entirely through mortality (e.g., self-thinning plants)",
+      "Identifying which vital rate carries the density-dependent signal is often the first empirical step in studying regulation in a real population — a theme we return to in Lecture 10"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Allee Effects",
+    "sub": "When density dependence flips sign at low density"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "The Allee Effect",
+    "term": "Allee effect",
+    "def": "A positive relationship between population density and per-capita growth rate at low density — i.e., individual fitness (and thus population growth rate) declines, rather than increases, as density falls below some threshold.",
+    "bullets": [
+      "Named for ecologist Warder Clyde Allee, who documented benefits of aggregation in the 1930s–1950s",
+      "Directly opposite in direction to the negative density dependence we've discussed all lecture — here, being rarer is worse, not better",
+      "Produces a growth-rate curve that rises with density at low N, peaks at intermediate N, then declines again at high N from standard negative density dependence",
+      "Fundamentally changes population dynamics near zero: instead of a stable equilibrium, very small populations can be pulled toward extinction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanisms",
+    "title": "What Causes Allee Effects?",
+    "items": [
+      "Mate-finding difficulty — at low density, individuals (especially sparse, low-mobility, or broadcast-spawning species) struggle to locate mates, lowering realized fecundity",
+      "Breakdown of cooperative defense — many social species rely on group vigilance or mobbing to deter predators; small groups defend less effectively, raising individual predation risk",
+      "Breakdown of cooperative foraging — species that hunt or forage cooperatively (e.g., pack predators) become less efficient at very low group size, reducing per-capita food intake",
+      "Inbreeding depression — small populations have fewer potential mates and higher relatedness, increasing matings between relatives and reducing offspring fitness",
+      "Failure of facilitation — some plants and sessile animals rely on neighbors to buffer environmental stress (e.g., wind, wave action, desiccation); isolated individuals fare worse",
+      "Reduced genetic diversity and demographic stochasticity compound these effects, though they are technically distinct from the Allee mechanism itself"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Studies",
+    "title": "Allee Effects Documented in Nature",
+    "cards": [
+      {
+        "h": "African Wild Dogs (Lycaon pictus)",
+        "p": "Pack hunting success and pup survival decline sharply in small packs — cooperative hunting and alloparental care require a minimum group size to function."
+      },
+      {
+        "h": "Atlantic Cod (Gadus morhua)",
+        "p": "Collapsed cod stocks have been slow to recover partly because sparse, dispersed adults have reduced spawning success at low density."
+      },
+      {
+        "h": "Glanville Fritillary Butterfly",
+        "p": "Small, isolated habitat patches show reduced female mating success and higher local extinction rates, consistent with mate-finding Allee effects."
+      },
+      {
+        "h": "Colonial Seabirds",
+        "p": "Breeding success in some colonial species drops in small colonies due to reduced predator-swamping and lower social stimulation for breeding synchrony."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Strength of the Effect",
+    "title": "Weak vs. Strong Allee Effects",
+    "left": {
+      "h": "Weak Allee Effect",
+      "body": "Per-capita growth rate is reduced at low density but remains positive — the population still grows, just more slowly than it would without the effect. No extinction threshold is created."
+    },
+    "right": {
+      "h": "Strong Allee Effect",
+      "body": "Per-capita growth rate becomes negative below a critical threshold density — populations below this threshold decline deterministically toward extinction even without any external disturbance."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences",
+    "title": "Why Allee Effects Matter for Small Populations",
+    "items": [
+      "A strong Allee effect creates an unstable equilibrium (extinction threshold): populations above it grow toward K, populations below it decline to zero",
+      "This means a population reduced by hunting, habitat loss, or a stochastic event can become trapped in a self-reinforcing decline, even if suitable habitat and resources remain",
+      "Allee effects help explain why some reintroduction and recovery programs fail unless enough founders are released to clear the threshold density",
+      "They also explain 'extinction vortices' in conservation biology, where small population size itself becomes a cause of further decline, not just a symptom",
+      "Detecting an Allee effect requires estimating per-capita growth rate specifically at low density — a much harder empirical task than documenting negative density dependence near K"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Historical Note",
+    "quote": "Undercrowding may be more disastrous than overcrowding, and there may exist an optimal population density below which as well as above which the rate of population growth will be depressed.",
+    "attrib": "W. C. Allee, paraphrased summary of his aggregation studies (1930s–1950s)"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting the Threads",
+    "title": "Allee Effects and Extinction Risk (Lecture 5 Revisited)",
+    "left": {
+      "h": "Lecture 5: Stochastic Extinction Risk",
+      "body": "We showed that small populations face elevated extinction risk from demographic and environmental stochasticity — random fluctuations that matter more when N is small."
+    },
+    "right": {
+      "h": "Today: Deterministic Allee Risk",
+      "body": "Allee effects add a deterministic mechanism on top of stochastic risk: below a threshold, expected growth itself turns negative, compounding the stochastic vulnerability of small populations."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Conservation Implications",
+    "title": "Managing Populations Prone to Allee Effects",
+    "items": [
+      "Reintroduction programs should release founder groups above the estimated Allee threshold, not just 'some' individuals",
+      "Harvest/hunting quotas for exploited species should account for potential Allee thresholds, not only maximum sustainable yield calculated from logistic assumptions",
+      "Habitat fragmentation can create many small, isolated subpopulations, each vulnerable to Allee dynamics even if total regional population size looks adequate",
+      "Facilitating dispersal/connectivity between fragments can rescue Allee-affected populations by boosting local density above threshold",
+      "Allee effects are a key reason population viability analyses (PVAs) increasingly incorporate non-logistic, low-density dynamics rather than assuming simple negative density dependence throughout"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Full-Curve View",
+    "title": "Putting It Together: The Complete Density-Dependence Curve",
+    "items": [
+      "At very low density: per-capita growth rate may be depressed by Allee effects (mate-finding, cooperative breakdown, inbreeding)",
+      "At low-to-moderate density: per-capita growth rate rises toward its maximum as Allee constraints ease and resources remain abundant",
+      "At moderate-to-high density: per-capita growth rate declines as resource depletion and/or interference competition intensify — fecundity falls, mortality rises",
+      "Near K: growth rate approaches zero as births and deaths balance",
+      "This full curve — positive density dependence at low N, negative density dependence at high N — is more biologically realistic than the simple logistic, and sets up next lecture's discussion of how ecologists actually detect these patterns in data"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "From Mechanism to Pattern",
+    "sub": "How today's biology generates the curves of Lectures 6–8"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key Terms Recap",
+    "title": "Vocabulary Check",
+    "cards": [
+      {
+        "h": "Exploitation Competition",
+        "p": "Indirect competition via shared resource depletion; no direct interaction required."
+      },
+      {
+        "h": "Interference Competition",
+        "p": "Direct exclusion via aggression, allelopathy, or territoriality."
+      },
+      {
+        "h": "Self-Thinning (−3/2 Law)",
+        "p": "Mean plant biomass scales as density^(−3/2) in dense, even-aged stands."
+      },
+      {
+        "h": "Allee Effect",
+        "p": "Positive density dependence at low density; can create an extinction threshold."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Big Picture",
+    "title": "Key Takeaways",
+    "items": [
+      "Density dependence is not one mechanism but many — resource depletion, interference, territoriality, disease, predation risk, and mate limitation can all contribute",
+      "Resource depletion and interference competition differ in directness, cost structure, and the shape of the resulting fitness decline",
+      "The plant self-thinning −3/2 (or −4/3) power law is one of the most robust quantitative patterns in ecology, linking individual growth geometry to population-level density",
+      "Density-dependent fecundity and mortality are the two vital-rate channels through which all these mechanisms ultimately act",
+      "Allee effects reverse the sign of density dependence at low N, with major consequences for conservation and management of small or recovering populations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Preview: Lecture 10 — Population Regulation I",
+    "left": {
+      "h": "Today We Asked 'Why'",
+      "body": "We covered the biological mechanisms — competition type, territoriality, self-thinning, fecundity/mortality responses, and Allee effects — that can generate density dependence in real populations."
+    },
+    "right": {
+      "h": "Next We Ask 'How Do We Know?'",
+      "body": "Lecture 10 tackles the empirical challenge: how do ecologists actually detect density dependence in field and time-series data, and what statistical pitfalls (e.g., autocorrelation, observation error) complicate the answer? Reading: Ch. 3."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 1",
+    "title": "For Seminar Discussion",
+    "items": [
+      "A fisheries manager sees that cod stock recruitment (young fish produced) stays low even years after adult biomass partially recovers from a historic collapse.",
+      "Could this reflect a depensatory (Allee-like) effect rather than simple resource limitation? What data would you need to collect to distinguish an Allee effect from a slow, resource-limited recovery?",
+      "How might your management recommendation (e.g., fishing moratorium length, target biomass) differ depending on which mechanism is operating?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 2",
+    "title": "For Seminar Discussion",
+    "items": [
+      "A forester wants to maximize total timber biomass yield from a plantation and is deciding on initial planting density.",
+      "Using the self-thinning rule, explain why planting at extremely high density will not proportionally increase final stand biomass, and may not even be the optimal economic strategy.",
+      "What role does the choice between the −3/2 and −4/3 self-thinning exponents play in practical yield predictions, and why might real stands deviate from either line?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "End of Lecture 9",
+    "title": "Questions?",
+    "sub": "Reading for Lecture 10: Rockwood Ch. 3 — Population Regulation I: Detecting Density Dependence"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 9</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

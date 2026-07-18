@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 26: Ecological Networks III: Stability, Robustness, and Chapter Synthesis</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 26",
+    "title": "Ecological Networks III: Stability, Robustness, and Chapter Synthesis",
+    "sub": "From network structure to community persistence — extinction cascades, keystone network position, climate rewiring, and closing out Chapter 10",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 10 — Ecological networks; chapter synthesis"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Recap: the road through Chapter 10",
+    "items": [
+      "<b>Lecture 24</b> introduced network vocabulary — nodes, links, bipartite vs. unipartite graphs, degree distributions, mutualistic vs. antagonistic network types",
+      "<b>Lecture 25</b> asked how networks are structured — nestedness, modularity, motifs, and the statistical tools (null models) used to detect non-random architecture",
+      "<b>Lecture 26 (today)</b> asks why structure matters — does it make communities more or less stable, and more or less robust to species loss?",
+      "This is the payoff lecture: structure is not just descriptive, it is predictive of how communities respond to perturbation and species extinction",
+      "We close by connecting back to Chapter 5's diversity-stability debate and forward to Chapter 11's food webs"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Network Stability Revisited",
+    "sub": "Reprising May (1972) in a network-structural context"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FLASHBACK",
+    "title": "Recall from Lecture 8: May's complexity-stability paradox",
+    "items": [
+      "Robert May (1972) modeled random interaction webs and found that <b>increasing species richness (S), connectance (C), or interaction strength</b> makes randomly-assembled systems less likely to be locally stable",
+      "This clashed with the classic intuition (MacArthur, Elton) that diverse, complex communities are inherently more stable",
+      "May's key move: he used <b>random</b> interaction matrices — real communities are not randomly wired",
+      "The resolution proposed since then: real food webs and mutualistic networks have <b>non-random structure</b> (weak-link patterns, compartments, nestedness) that buffers against the instability random complexity would predict",
+      "Today we ask: which specific structural features are doing that stabilizing work?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY DISTINCTION",
+    "title": "Diversity/connectance vs. network architecture",
+    "term": "Structural stability",
+    "def": "The idea that HOW species are connected — not just how many species or how many links exist — determines a community's capacity to persist under perturbation.",
+    "bullets": [
+      "Two networks can have identical S (species richness) and C (connectance) yet behave completely differently under stress if their link arrangement (nested, modular, random) differs",
+      "This reframes the diversity-stability question as a structure-stability question",
+      "Mittelbach & McGill: network science gave community ecology tools to move past aggregate statistics (S, C) toward architecture"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO STRUCTURES, TWO STABILITY LOGICS",
+    "title": "Nestedness and modularity affect stability differently",
+    "left": {
+      "h": "Nestedness",
+      "body": "In a nested mutualistic network, specialists interact with subsets of the partners that generalists use. This concentrates redundancy: if a specialist loses one partner, other shared generalists may still be available. Simulation and analytic work (Bastolla et al. 2009; Thebault & Fontaine 2010) show nestedness can increase the number of species that can coexist and reduce competition for shared mutualists — enhancing persistence up to a point."
+    },
+    "right": {
+      "h": "Modularity",
+      "body": "In a modular network, interactions cluster into semi-independent compartments with few cross-module links. A perturbation (disease, invader, extinction) that enters one module is largely contained there rather than propagating network-wide. This limits the SPREAD of cascades but can reduce whole-system efficiency (e.g., pollination service, energy flow) because the network sacrifices global connectivity for compartmentalized safety."
+    },
+    "footnote": "Thebault & Fontaine (2010, Science) showed nestedness maximizes species persistence in mutualistic networks but modularity minimizes it — the opposite pattern holds for antagonistic (predator-prey) networks, where modularity favors persistence."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE NESTEDNESS TRADE-OFF",
+    "title": "Nestedness enhances stability — up to a point",
+    "items": [
+      "Nested architecture spreads indirect facilitation broadly: generalists effectively subsidize specialists by remaining reliably available",
+      "This raises the number of species that can persist together relative to a randomly-wired network of the same size and connectance",
+      "<b>But</b> nested networks concentrate dependency onto a small set of highly-connected hub/generalist species",
+      "That concentration is an efficient design under normal conditions — and a severe liability if a hub species itself is lost",
+      "Nestedness therefore trades average-case robustness for worst-case fragility: it is a bet that the hubs themselves will not disappear"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MODULARITY TRADE-OFF",
+    "title": "Modularity contains cascades but costs efficiency",
+    "items": [
+      "Compartments act as firebreaks — a perturbation or coextinction cascade started in one module has fewer paths to reach other modules",
+      "This is especially valuable in antagonistic networks (host-parasite, predator-prey), where modularity is thought to slow disease or pest spread and to reduce apparent competition across distant species",
+      "The cost: modular networks have lower overall connectivity, which can mean less efficient resource flow, pollination, or seed dispersal service at the whole-community scale",
+      "Real networks often show BOTH properties simultaneously at different scales — nested within modules — combining local redundancy with global compartmentalization"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FRAMING THE SYNTHESIS",
+    "quote": "Network structure does not make communities simply 'more' or 'less' stable — it reshapes the tradeoff between resisting everyday perturbations and containing catastrophic ones.",
+    "attrib": "paraphrased from Mittelbach & McGill (2019), Ch. 10"
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM",
+    "title": "Why hub species create fragility",
+    "term": "Hub (or generalist) species",
+    "def": "A node with disproportionately high degree (many links) relative to other species in the network — e.g., a widely visited pollinator plant, or a prey species eaten by many predators.",
+    "bullets": [
+      "In nested networks, hubs are the shared partners that give specialists their redundancy and buffering",
+      "Removing a hub does not just remove one link — it removes the shared support structure for many otherwise-unconnected specialist species simultaneously",
+      "This is the network-structural version of the classic 'keystone species' concept, now grounded in topology rather than experimental removal alone"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SYNTHESIS CHECK",
+    "title": "May (1972) then vs. network stability now",
+    "cards": [
+      {
+        "h": "May's original claim",
+        "p": "Random interaction webs become less stable as richness, connectance, or interaction strength increase — complexity itself was destabilizing."
+      },
+      {
+        "h": "The empirical puzzle",
+        "p": "Real communities are often diverse and complex yet persist for long periods — a mismatch with the random-matrix prediction."
+      },
+      {
+        "h": "The structural resolution",
+        "p": "Real networks are not random: nestedness and modularity are non-random patterns that reshape stability outcomes beyond what S and C predict alone."
+      },
+      {
+        "h": "Today's refinement",
+        "p": "Stability is not one-dimensional — nested and modular structures trade off resistance to everyday perturbation against containment of catastrophic loss."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Robustness to Species Extinction",
+    "sub": "Simulating sequential removals and measuring secondary extinctions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CLASSIC TECHNIQUE",
+    "title": "Simulated extinction sequences",
+    "items": [
+      "A now-standard method in network ecology (pioneered by Memmott, Waser & Price 2004; Dunne, Williams & Martinez 2002 for food webs): remove species from an empirical network one at a time, in a defined order, and track the consequences",
+      "After each removal, check whether any remaining species has lost <b>all</b> of its interaction partners — if so, that species is counted as a <b>secondary extinction</b>",
+      "Secondary extinctions are then themselves removed, and the process repeats, producing a full extinction cascade for that removal sequence",
+      "Output: an <b>attack tolerance curve</b> — proportion of species remaining plotted against proportion of species removed",
+      "This is a simulation on a static network snapshot — it approximates ecological consequences without requiring destructive field manipulation"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "DEFINITION",
+    "title": "What counts as a secondary extinction",
+    "term": "Secondary (co-)extinction",
+    "def": "The loss of a species that results not from direct removal but from losing all of its interaction partners after other species were removed from the network.",
+    "bullets": [
+      "A pollinator that only visits one plant species goes 'extinct' in the simulation once that plant is removed",
+      "This models a real biological process: obligate specialists cannot persist without their resource or mutualist partner",
+      "Secondary extinction counts are a direct, quantifiable measure of network robustness — more secondary extinctions per removal = a more fragile network"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TWO REMOVAL STRATEGIES",
+    "title": "Random removal vs. targeted (hub) removal",
+    "items": [
+      "<b>Random removal:</b> species are removed in a randomly shuffled order, simulating unbiased threats (e.g., stochastic local extinction, non-selective habitat loss) — typically averaged over many randomized runs",
+      "<b>Targeted/hub removal:</b> species are removed in order of decreasing connectivity (degree), simulating threats that disproportionately affect highly-connected generalists (e.g., selective harvesting of dominant species, loss of a foundation species)",
+      "Comparing the two attack tolerance curves reveals how much of a network's apparent robustness depends on which species are lost, not just how many",
+      "This mirrors a broader finding from complex-systems science (Albert, Jeong & Barabasi 2000, on the internet and other scale-free networks): heterogeneous networks are robust to random failure but fragile to targeted attack on hubs"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "CONTRASTING OUTCOMES",
+    "title": "Random vs. targeted (hub) species removal",
+    "headers": [
+      "Feature",
+      "Random removal",
+      "Targeted hub removal"
+    ],
+    "rows": [
+      [
+        "Which species lost first",
+        "Any species, regardless of connectivity",
+        "Most-connected generalists removed first"
+      ],
+      [
+        "Secondary extinctions at low removal %",
+        "Few — specialists usually retain some partners",
+        "Many — specialists sharing that hub lose all partners at once"
+      ],
+      [
+        "Shape of attack tolerance curve",
+        "Roughly linear to gently concave decline",
+        "Steep early collapse, concave/threshold-like"
+      ],
+      [
+        "Underlying reason",
+        "Redundancy among partners is usually still available",
+        "Redundancy is destroyed because the shared partner is gone"
+      ],
+      [
+        "Nested networks' sensitivity",
+        "Relatively robust — nestedness buffers random loss",
+        "Highly vulnerable — nestedness concentrates dependency on hubs"
+      ],
+      [
+        "Conservation implication",
+        "Baseline expectation; not the worst case",
+        "Identifies which few species are disproportionately critical"
+      ]
+    ],
+    "footnote": "After Memmott, Waser & Price (2004) and Solé & Montoya (2001): nested mutualistic networks tolerate roughly 3-4x more random species loss than targeted hub loss before comparable levels of secondary extinction occur."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EMPIRICAL EVIDENCE",
+    "title": "Pollination networks as a worked example",
+    "items": [
+      "Memmott, Waser & Price (2004) applied this method to a well-resolved plant-pollinator network and found random removal caused relatively low levels of coextinction until a large fraction of species was gone",
+      "Removing plant species in order of decreasing connectivity (the most-visited, most generalist plants first) triggered pollinator coextinctions far earlier and more steeply",
+      "The result held even accounting for the fact that hub plants are often also locally abundant — connectivity itself, not just abundance, predicted the severity of cascades",
+      "This gave conservation biology a quantitative tool: network topology alone can flag which species losses would be catastrophic, even without full demographic data"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY NESTED NETWORKS SPECIFICALLY BEHAVE THIS WAY",
+    "title": "Redundancy is real, but it is not evenly distributed",
+    "items": [
+      "Nestedness works BECAUSE specialists lean on a small set of generalist hubs — that is precisely the structural feature producing redundancy under random loss",
+      "The same feature is what produces catastrophic vulnerability under targeted loss — the redundancy specialists enjoy is only as good as the hubs it depends on",
+      "This is not a flaw in the theory — it is the central, sobering insight of applying robustness analysis to nested architecture: <b>robustness and fragility are two faces of the same structural feature</b>, expressed under different removal scenarios",
+      "Random-graph food webs (lacking this structure) do not show this same asymmetry as strongly — this is a signature of realistic, non-random network architecture"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "GENERALIZING THE PATTERN",
+    "title": "Beyond ecology: hub fragility as a general network property",
+    "term": "Scale-free vulnerability",
+    "def": "The pattern that networks with a heterogeneous, right-skewed degree distribution (a few hubs, many low-degree nodes) are robust to random node loss but disproportionately vulnerable to loss of their highest-degree nodes.",
+    "bullets": [
+      "Documented originally for technological networks like the internet and power grids (Albert, Jeong & Barabasi 2000), then extended to ecological mutualistic and food-web networks",
+      "Because many real ecological networks show similarly skewed degree distributions, the same robust-to-random/fragile-to-targeted signature reappears across very different kinds of systems",
+      "This cross-disciplinary convergence is part of why network science, not just classical community ecology, became central to answering the extinction-cascade question"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Extinction Cascades and Coextinction",
+    "sub": "How structure channels the spread of collapse"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO ARCHITECTURES, TWO CASCADE PATTERNS",
+    "title": "Where cascades happen depends on network type",
+    "left": {
+      "h": "Nested mutualistic networks",
+      "body": "Random species loss is buffered by shared generalist partners — specialists have several potential routes to a resource even if one partner disappears. But because dependency is concentrated on a small set of generalists, losing one of those generalist hubs removes support for many specialists simultaneously, producing an abrupt, disproportionate cascade rather than a gradual one."
+    },
+    "right": {
+      "h": "Modular antagonistic networks",
+      "body": "Cascades initiated within one module (e.g., a host-parasitoid subsystem) tend to stay largely contained, because few links cross to other modules — this limits how far a local disturbance spreads. However, if the disturbance is severe enough or hits a module's own key connector species, an entire module (and everything nested within it) can collapse as a unit, effectively subtracting a whole functional block from the community."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SCALING UP",
+    "title": "From secondary extinctions to community collapse",
+    "items": [
+      "A cascade becomes ecologically significant not just by counting extinct species, but by asking whether it crosses a <b>tipping point</b> — a threshold beyond which the remaining network can no longer support even generalist species",
+      "Attack tolerance curves are often nonlinear: near-flat for a while, then a steep drop once enough shared partners are gone (a percolation-like threshold, borrowed from network physics)",
+      "This threshold behavior means community collapse from network erosion can look sudden and unpredictable from raw species counts alone, even though it is driven by a gradual, cumulative loss of structural redundancy",
+      "It reinforces a theme from Chapter 5 (alternative stable states): systems can appear resilient right up until a critical loss pushes them past a threshold"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VOCABULARY",
+    "title": "Coextinction",
+    "term": "Coextinction",
+    "def": "The extinction of a species as a direct causal consequence of the extinction of another species with which it interacted obligately (e.g., a host-specific parasite, a specialist pollinator, a monophagous herbivore).",
+    "bullets": [
+      "Distinct from secondary extinction in the simulation sense only by mechanism attribution — in practice the terms are often used interchangeably in the network literature",
+      "Real-world documented cases are rare (because it is hard to observe an extinction event and its cause together) but network-based predictions have been supported by cases like host-specific parasite loss following host decline",
+      "Koh et al. (2004) estimated that a substantial fraction of global species extinctions may in fact be undocumented coextinctions of specialist affiliates"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "STRUCTURAL DETERMINANTS OF VULNERABILITY",
+    "title": "What makes a species — or a network — vulnerable?",
+    "cards": [
+      {
+        "h": "Low degree (specialists)",
+        "p": "Species with few partners have little redundancy — losing their one or two partners directly threatens them, independent of network-wide structure."
+      },
+      {
+        "h": "Dependence on a single hub",
+        "p": "Even a moderately-connected species is vulnerable if most of its links funnel through one generalist that could be lost."
+      },
+      {
+        "h": "Peripheral module position",
+        "p": "Species in a small, weakly-connected module are shielded from network-wide cascades but fully exposed to disturbances within their own module."
+      },
+      {
+        "h": "High nestedness with few hubs",
+        "p": "A network's aggregate robustness to random loss can mask an extreme concentration of importance in just a handful of generalist species."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A CONCRETE EXAMPLE",
+    "title": "Compartmentalization limiting spread: a worked scenario",
+    "items": [
+      "Consider a modular pollination network where the two dominant modules correspond to two distinct habitat types (e.g., forest edge vs. open meadow flora) sharing only a few generalist bee species as cross-module links",
+      "A pathogen or invasive competitor introduced into the meadow module spreads readily among tightly-connected meadow species, but reaches the forest-edge module only via the few shared connector bees",
+      "If those connector species are protected or removed from exposure, the forest-edge module can remain largely buffered even as the meadow module experiences severe decline",
+      "This illustrates the applied value of modularity: identifying and managing cross-module connector species can be an effective, targeted intervention for disease or invasion control"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Applied Conservation: Network-Informed Priorities",
+    "sub": "Keystone network position, cascade prediction, and restoration order"
+  },
+  {
+    "type": "term",
+    "eyebrow": "REDEFINING A CLASSIC CONCEPT",
+    "title": "Keystone species, reframed by network position",
+    "term": "Network keystone",
+    "def": "A species whose importance to community persistence derives from its topological position — high connectivity, hub status, or role as a critical bridge between modules — rather than solely from its trophic role or an experimental-removal result.",
+    "bullets": [
+      "Paine's classic keystone concept (sea star Pisaster, Lecture-series-earlier material) was identified through manipulative removal experiments in a single system",
+      "Network keystone status can instead be inferred computationally from interaction data alone, using degree, betweenness centrality, or simulated-removal cascade size",
+      "The two concepts often — but not always — point to the same species; network analysis offers a scalable way to generate keystone hypotheses across many species and systems without requiring a full removal experiment for each"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PRIORITIZING CONSERVATION EFFORT",
+    "title": "Using network position to triage conservation targets",
+    "items": [
+      "Species with high degree, high betweenness (bridging otherwise-separate parts of the network), or membership in multiple modules are disproportionately important to overall network integrity",
+      "Simulated targeted-removal analyses can rank species by the SIZE of the cascade their loss would trigger — a direct, quantitative conservation-priority metric",
+      "This complements (not replaces) traditional criteria like rarity, endemism, and IUCN status — a locally abundant, 'low conservation concern' generalist can still be the single most structurally important species in its community network",
+      "Network metrics are especially useful for triage in data-poor systems, where detailed demographic or experimental data for every species is unavailable but interaction data can be collected relatively efficiently"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREDICTING CASCADE SEVERITY",
+    "title": "Forecasting which losses would be most damaging",
+    "items": [
+      "Combining a species' network position with realistic threat data (climate exposure, harvest pressure, habitat loss risk) lets researchers forecast not just IF a species is threatened, but how catastrophic its loss would be for the rest of the community",
+      "This reframes extinction risk assessment from a single-species lens to a community-consequence lens: two equally endangered species can have very different projected cascade impacts",
+      "Such analyses have informed pollinator and seed-disperser conservation planning, where the loss of one highly generalist disperser can threaten reproduction in dozens of otherwise-unrelated plant species"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "REBUILDING, NOT JUST PROTECTING",
+    "title": "Network-informed restoration",
+    "items": [
+      "Ecological restoration has traditionally focused on habitat structure and species lists; network thinking adds a sequencing question — <b>in what order should species be reintroduced?</b>",
+      "Reintroducing high-connectivity generalist species early can rapidly rebuild a functional core network, providing the shared partners that specialist species need to be reintroduced successfully afterward",
+      "Reintroducing specialists first, before their required partners are present, risks reintroduction failure — mirroring the coextinction problem in reverse",
+      "This principle has practical implications for pollinator-restoration and rewilding projects, where planting/stocking order affects whether the reconstructed community reaches a self-sustaining, well-connected state"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "SYNTHESIS OF PART 4",
+    "quote": "Network analysis turns 'which species matter most?' from a case-by-case experimental question into a scalable, quantitative, and predictive one.",
+    "attrib": "paraphrased from Mittelbach & McGill (2019), Ch. 10"
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Climate Change and Network Rewiring",
+    "sub": "Phenological mismatch, range shifts, and global change through a network lens"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECONNECTING TO SPECIAL TOPICS",
+    "title": "Recall: phenological mismatch from Population Ecology",
+    "items": [
+      "Earlier in the curriculum (Population Ecology special topics), we discussed how climate warming shifts the timing of life-history events — flowering, emergence, migration arrival — at different rates across interacting species",
+      "When mutualists or a consumer and its resource shift phenology at different rates, their windows of temporal overlap shrink or disappear — a <b>phenological mismatch</b>",
+      "In a network context, mismatch is not just a pairwise problem: it functions as <b>link loss</b> — an existing edge in the network effectively disappears even though both species persist",
+      "This lets us apply the same secondary-extinction and cascade-analysis machinery from earlier in this lecture to climate-driven change, not just direct species removal"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "NEW VOCABULARY",
+    "title": "Network rewiring",
+    "term": "Rewiring",
+    "def": "Change in a network's link structure over time — existing interactions disappearing and/or new interactions forming — without necessarily requiring any species to be gained or lost from the community.",
+    "bullets": [
+      "Distinguishes climate impacts on networks from the extinction-driven cascades discussed earlier: rewiring can happen even while species richness stays constant",
+      "Range shifts bring previously non-overlapping species into contact, creating <b>novel interactions</b> (new links) as well as breaking old ones",
+      "Rewired networks may show altered nestedness, modularity, or hub identity even with the same species pool — meaning stability and robustness properties can shift purely from climate-driven behavioral/phenological change"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO CLIMATE MECHANISMS, TWO EFFECTS",
+    "title": "Phenological mismatch vs. range shift as rewiring drivers",
+    "left": {
+      "h": "Phenological mismatch",
+      "body": "Species stay in the same place but shift the TIMING of activity at different rates (e.g., insect emergence tracking temperature faster than bird migration tracks day length). Result: existing links weaken or break because interacting partners are no longer active at the same time, even though both remain present in the community. This is a link-loss process operating within a fixed species pool and fixed geographic overlap."
+    },
+    "right": {
+      "h": "Range shifts",
+      "body": "Species track shifting climate envelopes geographically (typically poleward or upslope) at different rates. Result: some historical interaction partners lose spatial overlap entirely (link loss), while species that had not previously co-occurred are brought into new contact, creating novel links. This is simultaneously a link-loss AND link-gain process, and can restructure entire regional networks over time."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONSEQUENCES FOR NETWORK STRUCTURE",
+    "title": "How rewiring can alter stability properties",
+    "items": [
+      "Loss of hub-species links (e.g., a generalist pollinator's phenology shifting out of sync with most of its plant partners) can rapidly reduce a network's nestedness, removing the very redundancy that buffered specialists",
+      "Novel interactions from range shifts can, in principle, either increase redundancy (new partners available) or destabilize resident networks (new competitors, novel pathogens, invasive generalists disrupting existing modules)",
+      "Because rewiring changes structure without necessarily changing the species list, standard biodiversity monitoring (counting species) can miss it — this is a strong argument for interaction-level, not just species-level, long-term monitoring",
+      "Empirical time-series network studies (e.g., long-term plant-pollinator datasets resurveyed decades later) increasingly document measurable rewiring consistent with climate-driven mismatch and range shift predictions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A GROWING RESEARCH FRONTIER",
+    "title": "Network approaches to global change",
+    "items": [
+      "Network thinking reframes climate change impact assessment: instead of asking only 'will this species persist here?', ask 'will this species retain a functioning set of interaction partners here?'",
+      "This matters because a species can remain geographically present yet functionally extinct within its local network if all its key partners have shifted phenology or range away from it",
+      "Predictive network models increasingly combine species distribution models (range shift projections) with phenology models (mismatch projections) to forecast future network structure, not just future species lists",
+      "This connects directly back to Part 4: network-informed conservation increasingly must plan for a moving target, since the network of tomorrow will not be the network of today even if no species is lost outright"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE ILLUSTRATION",
+    "title": "A worked example: pollinator-plant rewiring under warming",
+    "items": [
+      "Long-term resurveys of alpine and subalpine plant-pollinator networks have documented shifts in which species interact, consistent with differential phenological advancement across taxa under warming",
+      "In several documented cases, historically important pollinator hubs show reduced overlap with their original plant partners, while new, previously rare interactions appear as species' active periods shift into new overlap windows",
+      "The net structural effect in some systems is a measurable decline in nestedness over the resurvey interval — precisely the change predicted to erode the buffering capacity built into the original network",
+      "These case studies illustrate why climate-network research treats interaction turnover, not just species turnover, as a primary signal of ecological change"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER SYNTHESIS",
+    "title": "Chapter 10 Synthesis: Ecological Networks",
+    "sub": "Pulling Lectures 24-26 together before we move to food webs"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "THE THREE-LECTURE ARC",
+    "title": "Chapter 10 in three steps",
+    "items": [
+      {
+        "y": "L24",
+        "t": "Vocabulary and foundations — nodes, links, bipartite/unipartite structure, mutualistic vs. antagonistic networks, degree distributions"
+      },
+      {
+        "y": "L25",
+        "t": "Structural metrics — nestedness, modularity, motifs, and null-model tests for detecting non-random architecture"
+      },
+      {
+        "y": "L26",
+        "t": "Consequences of structure — stability, robustness to species loss, extinction cascades, conservation application, and climate rewiring"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP: LECTURE 24",
+    "title": "What we established first — networks as a language",
+    "items": [
+      "Ecological communities can be represented as networks: species as nodes, interactions as links",
+      "Bipartite networks (two distinct guilds, e.g., plants and pollinators) versus unipartite networks (single guild, e.g., competitive or predator-prey webs within one trophic context)",
+      "Mutualistic networks (cooperative benefit, e.g., pollination, seed dispersal) versus antagonistic networks (one species benefits at another's expense, e.g., predation, parasitism, herbivory) — a distinction that recurs through Lecture 25's structural predictions and today's stability results",
+      "Degree distributions are typically right-skewed in real ecological networks — most species have few partners, a few have many — the empirical foundation for everything that followed"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP: LECTURE 25",
+    "title": "What we established second — networks are non-randomly structured",
+    "items": [
+      "Real ecological networks deviate systematically from random-graph expectations, and null models let us test that rigorously (e.g., degree-preserving randomizations)",
+      "<b>Nestedness</b>: specialists interact with subsets of what generalists use, common in mutualistic networks, measured by metrics like NODF",
+      "<b>Modularity</b>: interactions cluster into semi-discrete compartments, more common in antagonistic networks, detected via community-detection algorithms",
+      "<b>Motifs</b>: small recurring subgraph patterns (e.g., apparent competition triads, exploitative competition triads) that serve as building blocks of larger network structure",
+      "Lecture 25 established WHAT the structure looks like; Lecture 26 asked WHY that structure matters for persistence"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "TODAY'S CORE RESULTS",
+    "title": "Lecture 26 in four takeaways",
+    "cards": [
+      {
+        "h": "Structure beats aggregate statistics",
+        "p": "Nestedness and modularity shape stability in different, sometimes opposite, ways — richness and connectance alone cannot predict this."
+      },
+      {
+        "h": "Robustness is removal-order dependent",
+        "p": "The same nested network is robust to random loss and fragile to targeted hub loss — robustness is not a single fixed property."
+      },
+      {
+        "h": "Cascades follow structural pathways",
+        "p": "Nestedness spreads dependency broadly then collapses abruptly at hub loss; modularity contains cascades within compartments but can lose whole modules."
+      },
+      {
+        "h": "Networks are dynamic under climate change",
+        "p": "Phenological mismatch and range shifts rewire networks — altering structure and stability even without species loss."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "CHAPTER 10 AT A GLANCE",
+    "title": "Nestedness vs. modularity — the chapter's central contrast, revisited",
+    "headers": [
+      "Property",
+      "Nested networks",
+      "Modular networks"
+    ],
+    "rows": [
+      [
+        "Typical network type",
+        "Mutualistic (pollination, seed dispersal)",
+        "Antagonistic (host-parasite, some predator-prey)"
+      ],
+      [
+        "Effect on random-loss robustness",
+        "High — shared generalists buffer specialists",
+        "Moderate — depends on within-module redundancy"
+      ],
+      [
+        "Effect on targeted hub-loss robustness",
+        "Low — dependency concentrated on hubs",
+        "Variable — depends on module connector loss"
+      ],
+      [
+        "Cascade containment",
+        "Poor — cascades can spread broadly once triggered",
+        "Good — cascades often stay within a module"
+      ],
+      [
+        "System-wide efficiency",
+        "High — dense core enables broad resource flow",
+        "Lower — compartmentalization limits global flow"
+      ],
+      [
+        "Species-coexistence effect (Thebault & Fontaine 2010)",
+        "Increases persistence in mutualistic networks",
+        "Increases persistence in antagonistic (trophic) networks"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BIG PICTURE",
+    "title": "Why Chapter 10 matters for community ecology as a whole",
+    "items": [
+      "Networks give community ecology a formal, quantitative language for something long recognized informally: not all species interactions matter equally to community persistence",
+      "They resolve part of the classic diversity-stability paradox (Lecture 8) by showing HOW real communities achieve stability despite high richness — through non-random structure, not diversity alone",
+      "They provide a scalable, data-driven route to identifying keystone species and predicting coextinction risk, extending classical single-system removal experiments",
+      "They connect directly to applied conservation and global-change biology, making this one of the more directly actionable theoretical frameworks in the course",
+      "They set up Chapter 11: food webs are themselves a special case of ecological networks — restricted to feeding (trophic) links and organized around energy flow"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CLOSING THOUGHT",
+    "quote": "A community is not just a list of species — it is the structure of who depends on whom. Chapter 10 showed that structure is measurable, predictive, and, increasingly, actionable.",
+    "attrib": "closing synthesis, adapted from Mittelbach & McGill (2019), Ch. 10"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Lecture 26 recap",
+    "items": [
+      "Network structure reframes May's (1972) complexity-stability paradox: nestedness and modularity affect stability through different, partly opposing mechanisms",
+      "Simulated sequential-removal experiments quantify robustness via secondary extinctions; random removal is far less damaging than targeted removal of hub species",
+      "Nested mutualistic networks are robust to random loss but acutely vulnerable to hub-species loss; modular networks contain cascades within compartments but can lose entire modules",
+      "Network position gives conservation biology a scalable definition of 'keystone,' predictive tools for cascade severity, and guidance for restoration sequencing",
+      "Climate-driven phenological mismatch and range shifts rewire networks — altering link structure, and therefore stability and robustness, even without outright species loss",
+      "This closes Chapter 10 — networks as a general framework for community structure and its consequences"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Preview: Lecture 27 — Food Chains and Webs I",
+    "items": [
+      "Chapter 11 begins next lecture, narrowing our focus from general ecological networks to <b>food webs</b> specifically — networks built exclusively from feeding (trophic) interactions",
+      "We will revisit familiar vocabulary (trophic levels, chain length, omnivory) but now formalize it using the network tools built in Chapter 10",
+      "Central new theme: <b>energy flow</b> through trophic networks — how food web structure constrains and is constrained by the thermodynamics of energy transfer between trophic levels",
+      "We will ask why food chains tend to be short, what limits chain length, and how this connects to the stability and robustness concepts from today applied specifically to feeding networks",
+      "Chapter 11 spans Lectures 27-29, building toward energy-flow models and classic food-web stability debates (Pimm, Paine, and beyond)"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 26</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 25: Interspecific Competition II: The Lotka-Volterra Competition Model</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 25",
+    "title": "Interspecific Competition II: The Lotka-Volterra Competition Model",
+    "sub": "Extending logistic growth to two competing species — competition coefficients, isoclines, and the four outcomes of competitive interaction",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 7 — Interspecific Competition"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Recap and Framing",
+    "sub": "From Gause's experiments to a general mathematical model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING BACK",
+    "title": "Lecture 24 recap: Gause and competitive exclusion",
+    "items": [
+      "Gause's <b>Paramecium</b> experiments: <i>P. aurelia</i> and <i>P. caudatum</i> grown separately thrived; grown together, <i>P. aurelia</i> always drove <i>P. caudatum</i> to local extinction.",
+      "<b>Competitive exclusion principle</b>: two species with identical resource requirements (identical niches) cannot coexist indefinitely — one will always outcompete the other.",
+      "Gause's second pairing, <i>P. caudatum</i> and <i>P. bursaria</i>, told a different story — both persisted together, at reduced densities, by partitioning the culture (bottom vs. suspension).",
+      "That contrast — exclusion in one pair, coexistence in another — is exactly what we need a general model to explain."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY WE NEED A MODEL",
+    "title": "Beyond a verbal principle: what the Lotka-Volterra model adds",
+    "items": [
+      "The competitive exclusion principle tells us <b>coexistence is not guaranteed</b>, but it doesn't tell us <i>when</i> exclusion happens, <i>which</i> species wins, or <i>how</i> coexistence becomes possible.",
+      "Developed independently by <b>Alfred Lotka</b> (1925) and <b>Vito Volterra</b> (1926), the model extends single-species logistic growth to two interacting species.",
+      "It gives us a quantitative, graphical framework — the <b>N1–N2 phase plane</b> — for predicting the outcome of competition from a small number of measurable parameters.",
+      "Goal for today: derive the model, learn to read its isoclines, and connect the four possible outcomes back to Gause's actual data."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "From Logistic Growth to Two Species",
+    "sub": "Building the Lotka-Volterra competition equations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BUILDING BLOCKS",
+    "title": "Recall: single-species logistic growth (Ch. 2, Lecture 7)",
+    "items": [
+      "dN/dt = rN(K − N)/K — population growth slows as N approaches carrying capacity K.",
+      "The term (K − N)/K is the <b>unused portion of carrying capacity</b> — it scales growth down from the maximum rate r toward zero as resources are depleted.",
+      "Implicit assumption: every individual added to the population consumes the same resources and has the same depressing effect on further growth — i.e., only <b>intraspecific</b> competition operates.",
+      "To model two species competing for shared resources, we need to add a term for the effect of the <b>other</b> species on that same resource pool."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE MODEL",
+    "title": "The Lotka-Volterra competition equations",
+    "term": "dN1/dt = r1N1(K1 − N1 − α12N2) / K1     dN2/dt = r2N2(K2 − N2 − α21N1) / K2",
+    "def": "Two coupled logistic equations. Each species' growth is limited not only by its own density, but by the density of the competitor, weighted by a competition coefficient.",
+    "bullets": [
+      "N1, N2 = population sizes of species 1 and 2",
+      "r1, r2 = intrinsic rates of increase; K1, K2 = carrying capacities in the absence of the competitor",
+      "α12 = effect of species 2 on species 1; α21 = effect of species 1 on species 2"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE EQUATION",
+    "title": "Unpacking dN1/dt = r1N1(K1 − N1 − α12N2)/K1",
+    "items": [
+      "This is the logistic equation for species 1 with one modification: the numerator now subtracts <b>both</b> N1 (species 1's own individuals) <b>and</b> α12N2 (species 2's individuals, converted to species-1 equivalents).",
+      "K1 − N1 − α12N2 is the amount of 'carrying capacity room' left for species 1 once both its own crowding <i>and</i> the competitor's impact are subtracted.",
+      "If α12N2 is small, species 1 behaves almost exactly as it would growing alone — the competitor barely matters.",
+      "If α12N2 is large, species 1's effective ceiling drops well below K1 — the competitor is eating heavily into species 1's resource space."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE EQUATION",
+    "title": "The mirror-image equation for species 2",
+    "items": [
+      "dN2/dt = r2N2(K2 − N2 − α21N1)/K2 — identical logic, roles reversed.",
+      "Now α21 converts species 1 individuals into their equivalent impact on species 2's carrying capacity.",
+      "Critically, α12 ≠ α21 in general — the two species need not affect each other equally. Species 2 might barely dent species 1's resources while species 1 devastates species 2's.",
+      "This asymmetry is the mathematical seed of everything interesting that follows: exclusion, priority effects, and coexistence all fall out of how α12 and α21 compare to K1 and K2."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Competition Coefficients",
+    "sub": "Converting one species into 'equivalent' individuals of the other"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY PARAMETER",
+    "title": "The competition coefficient α12",
+    "term": "α12 = the per-capita effect of an individual of species 2 on species 1, expressed in units of species 1's own intraspecific effect",
+    "def": "α12 is a conversion factor: it answers 'how many species-1 individuals' worth of resource depletion does one species-2 individual cause, from species 1's point of view?'",
+    "bullets": [
+      "It is not a rate or a probability — it is a ratio of per-capita competitive effects.",
+      "Estimated empirically by comparing a species' growth in mixed culture versus in monoculture (Rockwood Ch. 7)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY PARAMETER",
+    "title": "The competition coefficient α21",
+    "term": "α21 = the per-capita effect of an individual of species 1 on species 2, in units of species 2's own intraspecific effect",
+    "def": "The reverse conversion factor, used in species 2's equation. Together α12 and α21 fully describe the (linear) interspecific competitive relationship between the two species.",
+    "bullets": [
+      "Because the two coefficients are typically unequal, competition is usually <b>asymmetric</b> in real communities."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTERPRETING α",
+    "title": "What do α > 1, α = 1, and α < 1 mean?",
+    "items": [
+      "<b>α12 = 1</b>: an individual of species 2 has exactly the same competitive effect on species 1 as another individual of species 1 would — the species are ecologically interchangeable from species 1's perspective.",
+      "<b>α12 > 1</b>: each individual of species 2 suppresses species 1 <i>more</i> than an additional species-1 individual would — interspecific competition is stronger than intraspecific competition for species 1.",
+      "<b>α12 < 1</b>: each species-2 individual suppresses species 1 <i>less</i> than a species-1 individual would — intraspecific competition dominates; species 1 is largely insulated from species 2.",
+      "<b>α12 = 0</b>: species 2 has no competitive effect on species 1 at all (complete niche separation from species 1's side)."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "QUICK REFERENCE",
+    "title": "Interpreting the magnitude of a competition coefficient",
+    "headers": [
+      "Value of α12",
+      "Relative strength",
+      "Biological meaning"
+    ],
+    "rows": [
+      [
+        "α12 = 0",
+        "No interspecific effect",
+        "Species 2 does not compete with species 1 for any limiting resource"
+      ],
+      [
+        "α12 < 1",
+        "Intra > inter",
+        "One species-2 individual counts as less than one species-1 individual"
+      ],
+      [
+        "α12 = 1",
+        "Intra = inter",
+        "Species are competitively equivalent from species 1's perspective"
+      ],
+      [
+        "α12 > 1",
+        "Inter > intra",
+        "One species-2 individual suppresses species 1 more than a conspecific would"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE 'EQUIVALENT INDIVIDUALS' IDEA",
+    "title": "Why 'equivalent individuals' is the right way to think about α",
+    "items": [
+      "The product α12N2 converts the entire species-2 population into a count of 'equivalent species-1 individuals' for the purpose of computing crowding pressure.",
+      "This lets us add N1 and α12N2 together in a single carrying-capacity term, even though the two species may be very different organisms.",
+      "Biologically, α reflects the degree of <b>niche overlap</b>: species with very similar resource use (diet, habitat, activity time) tend to have α values near 1; species with little overlap have α values near 0.",
+      "α values are rarely symmetric — quantifying them typically requires controlled competition experiments (as Gause and later researchers, e.g., Thomas Park with flour beetles, carried out)."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Zero-Growth Isoclines",
+    "sub": "Mapping the model onto the N1–N2 phase plane"
+  },
+  {
+    "type": "term",
+    "eyebrow": "DEFINITION",
+    "title": "Zero-growth isocline (nullcline)",
+    "term": "The set of all (N1, N2) combinations for which a species' population growth rate is exactly zero (dN/dt = 0)",
+    "def": "Each species has its own isocline. On one side of the line the population grows; on the other side it declines. The isocline is a straight line in the Lotka-Volterra model because the competition terms are linear.",
+    "bullets": [
+      "Isoclines are plotted on the same N1 (x-axis) vs. N2 (y-axis) phase plane, so both species' dynamics can be visualized together."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DERIVING THE ISOCLINE",
+    "title": "Deriving the species 1 isocline",
+    "items": [
+      "Set dN1/dt = 0: since r1N1/K1 ≠ 0 in general, this requires K1 − N1 − α12N2 = 0.",
+      "Rearranged: <b>N1 = K1 − α12N2</b> — a straight line in the N1–N2 plane.",
+      "This is the boundary along which species 1's population is momentarily unchanging: above the line species 1 declines, below it species 1 grows."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE ISOCLINE",
+    "title": "Intercepts and meaning of the species 1 isocline",
+    "items": [
+      "<b>N1-axis intercept</b> (set N2 = 0): N1 = K1 — with no competitor present, species 1 grows to its own carrying capacity, exactly as the single-species logistic model predicts.",
+      "<b>N2-axis intercept</b> (set N1 = 0): N2 = K1/α12 — this is the number of species-2 individuals alone that would be needed to fully occupy species 1's resource space and halt species 1's growth.",
+      "Everywhere below and to the left of the line, resources remain available and N1 increases (arrows point toward the line); everywhere above and to the right, N1 decreases (arrows point back toward the line)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DERIVING THE ISOCLINE",
+    "title": "Deriving the species 2 isocline",
+    "items": [
+      "By the same logic, set dN2/dt = 0, giving K2 − N2 − α21N1 = 0.",
+      "Rearranged: <b>N2 = K2 − α21N1</b> — again a straight line, plotted on the same N1–N2 axes.",
+      "This line separates the plane into a region where species 2 grows and a region where species 2 declines."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE ISOCLINE",
+    "title": "Intercepts and meaning of the species 2 isocline",
+    "items": [
+      "<b>N2-axis intercept</b> (N1 = 0): N2 = K2 — species 2 alone reaches its own carrying capacity.",
+      "<b>N1-axis intercept</b> (N2 = 0): N1 = K2/α21 — the number of species-1 individuals alone needed to fully use up species 2's resource space.",
+      "Below/left of this line, species 2 increases; above/right of it, species 2 decreases — the mirror image of the species 1 isocline's dynamics."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PUTTING THEM TOGETHER",
+    "title": "Plotting both isoclines on one phase plane",
+    "items": [
+      "Both lines are drawn on the same graph: N1 on the horizontal axis, N2 on the vertical axis.",
+      "Species 1's isocline has intercepts at (K1, 0) and (0, K1/α12); species 2's isocline has intercepts at (K2/α21, 0) and (0, K2).",
+      "Whether and where these two lines cross — and their relative position — determines everything about the outcome of competition.",
+      "Four qualitatively different arrangements of the two lines exist, and each produces a different long-term outcome (next section)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DYNAMICS BETWEEN THE LINES",
+    "title": "Vector fields: how N1 and N2 change through time",
+    "items": [
+      "At any point (N1, N2) in the plane, we can ask simultaneously: is species 1 above or below its isocline? Is species 2 above or below its isocline?",
+      "This divides the plane into up to four regions, each with a characteristic joint direction of change — conceptually, an 'arrow' showing how the point (N1, N2) moves over time.",
+      "Where both species are below their isoclines, both increase (arrow points up and to the right, toward higher N1 and N2).",
+      "Where both are above their isoclines, both decrease (arrow points down and to the left) — trajectories from anywhere in the plane are pulled toward the isocline intersections or axes, revealing the system's stable end point(s)."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "The Four Outcomes",
+    "sub": "What isocline geometry predicts about competitive outcomes"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OUTCOME 1",
+    "title": "Species 1 always wins (competitive exclusion of species 2)",
+    "items": [
+      "Geometry: species 1's isocline lies entirely <b>outside</b> (further from the origin than) species 2's isocline — the lines do not cross in the biologically relevant (positive) region.",
+      "Condition: K1 > K2/α21 and K2 < K1/α12 — species 1's carrying capacity exceeds what species 2 needs to exclude it, and vice versa does not hold.",
+      "Regardless of starting densities, trajectories in the phase plane converge on (K1, 0): species 1 reaches its full carrying capacity and species 2 is driven to extinction.",
+      "This matches Gause's <i>P. aurelia</i> vs. <i>P. caudatum</i> result, where <i>P. aurelia</i> won outright every time."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OUTCOME 2",
+    "title": "Species 2 always wins (competitive exclusion of species 1)",
+    "items": [
+      "Geometry: the mirror image of Outcome 1 — species 2's isocline lies entirely outside species 1's isocline.",
+      "Condition: K2 > K1/α12 and K1 < K2/α21.",
+      "All trajectories converge on (0, K2): species 2 reaches carrying capacity, species 1 is excluded.",
+      "Which species this is depends purely on the relative values of K and α — the model does not care about which species is labeled '1' or '2'; the math is symmetric."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OUTCOME 3",
+    "title": "Unstable equilibrium — founder control / priority effects",
+    "items": [
+      "Geometry: the isoclines <b>cross</b>, but each species' own isocline lies <i>outside</i> the other's near the axes — i.e., both K1 > K2/α21 and K2 > K1/α12.",
+      "An equilibrium point exists where the lines intersect, but it is <b>unstable</b>: any small perturbation pushes the system away from it, toward one of two stable outcomes.",
+      "Result: whichever species starts with a numerical or positional advantage tends to win and exclude the other — the outcome depends on <b>initial conditions</b>, not just on the parameters.",
+      "This is the mathematical basis of <b>priority effects</b>: early colonizers can lock out otherwise-competitive later arrivals."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OUTCOME 4",
+    "title": "Stable coexistence equilibrium",
+    "items": [
+      "Geometry: the isoclines cross, but now each species' own isocline lies <i>inside</i> (closer to the origin than) the other's — i.e., K1 < K2/α21 and K2 < K1/α12.",
+      "The intersection point is a <b>stable</b> equilibrium: trajectories from any starting densities converge toward it.",
+      "Both species persist indefinitely at densities below their single-species carrying capacities — reduced by the presence of the competitor, but not eliminated.",
+      "This is the pattern Gause observed for <i>P. caudatum</i> and <i>P. bursaria</i>, which partitioned the habitat (bottom vs. suspended) and coexisted."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SUMMARY TABLE",
+    "title": "The four outcomes of Lotka-Volterra competition",
+    "headers": [
+      "Outcome",
+      "Isocline geometry",
+      "Parameter condition",
+      "Equilibrium type"
+    ],
+    "rows": [
+      [
+        "1. Species 1 wins",
+        "Sp. 1 isocline entirely outside sp. 2's",
+        "K1 > K2/α21 and K1/α12 > K2",
+        "Stable, at (K1, 0)"
+      ],
+      [
+        "2. Species 2 wins",
+        "Sp. 2 isocline entirely outside sp. 1's",
+        "K2 > K1/α12 and K2/α21 > K1",
+        "Stable, at (0, K2)"
+      ],
+      [
+        "3. Founder control",
+        "Isoclines cross; each outside the other near axes",
+        "K1/α12 < K2 and K2/α21 < K1",
+        "Unstable interior point; two alternative stable states"
+      ],
+      [
+        "4. Stable coexistence",
+        "Isoclines cross; each inside the other near axes",
+        "K1/α12 > K2 and K2/α21 > K1",
+        "Stable interior point"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MATH BEHIND OUTCOME 3",
+    "title": "Why the founder-control equilibrium is unstable",
+    "items": [
+      "At the interior crossing point in Outcome 3, both K1/α12 and K2/α21 are <b>smaller</b> than the competitor's carrying capacity — each species has a strong depressive effect on the other relative to its own self-limitation.",
+      "Perturb the system slightly toward higher N1: species 1's advantage compounds, pushing N2 down further, which further favors N1 — a positive feedback loop driving the system away from the equilibrium and toward (K1, 0).",
+      "The same logic run in reverse (perturb toward higher N2) drives the system to (0, K2).",
+      "Intuition: when interspecific competition is strong relative to intraspecific competition for <i>both</i> species, whichever species gets ahead further suppresses the other — competition is 'mutually intolerant.'"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MATH BEHIND OUTCOME 4",
+    "title": "Why the coexistence equilibrium is stable",
+    "items": [
+      "At the interior point in Outcome 4, each species is limited more strongly by its <i>own</i> density than by the competitor's — K1/α12 > K2 and K2/α21 > K1.",
+      "A small perturbation toward higher N1 increases intraspecific competition on species 1 more than it increases pressure on species 2, so species 1's growth slows and the system is pulled back toward equilibrium.",
+      "This is a negative feedback loop: any deviation from the equilibrium point is self-correcting, so trajectories from all starting points spiral or converge back to it.",
+      "Intuition: coexistence requires that each species 'gets in its own way' more than it gets in its competitor's way — the core idea we formalize next as niche differentiation."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Conditions for Coexistence",
+    "sub": "Why intraspecific competition must exceed interspecific competition"
+  },
+  {
+    "type": "term",
+    "eyebrow": "COEXISTENCE CONDITION 1",
+    "title": "K1/α12 > K2",
+    "def": "The number of species-2 individuals it would take (converted to species-1 equivalents) to fill species 1's resource space must exceed species 2's own carrying capacity.",
+    "bullets": [
+      "Equivalently: species 2, even at its own full carrying capacity K2, is not enough to competitively exclude species 1.",
+      "This ensures species 1 always has 'room to grow' even when species 2 is abundant."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "COEXISTENCE CONDITION 2",
+    "title": "K2/α21 > K1",
+    "def": "The mirror condition: species 1, even at its own carrying capacity K1, is not enough to competitively exclude species 2.",
+    "bullets": [
+      "Both conditions must hold simultaneously for stable coexistence (Outcome 4) — if only one holds, the result is one-sided exclusion (Outcomes 1 or 2), not coexistence."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "Combining the two conditions: what coexistence really requires",
+    "items": [
+      "Rearranging both conditions gives α12 < K1/K2 and α21 < K2/K1 — interspecific competition coefficients must be small relative to the ratio of carrying capacities.",
+      "In plain terms: <b>intraspecific competition must be stronger than interspecific competition</b> for both species simultaneously.",
+      "This is the quantitative version of a simple ecological idea — individuals of the same species compete for exactly the same resources (100% niche overlap), while individuals of different species, if their niches differ even partially, compete less intensely.",
+      "Coexistence is therefore only possible when species differ enough in resource use that they limit themselves more than they limit each other."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTRA VS. INTER",
+    "title": "Intraspecific vs. interspecific competition strength",
+    "items": [
+      "<b>Intraspecific competition</b>: individuals of the same species compete for identical resources — always maximal, since niche overlap with oneself is complete.",
+      "<b>Interspecific competition</b>: strength depends on the degree of niche overlap between the two species, captured by α12 and α21.",
+      "When niches overlap heavily (α near 1), interspecific competition approaches intraspecific competition in strength, making exclusion (Outcomes 1–3) more likely.",
+      "When niches overlap only partially (α well below 1), each species is buffered from the other, making stable coexistence (Outcome 4) more likely."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONTRASTING SCENARIOS",
+    "title": "Strong intraspecific vs. weak interspecific competition",
+    "left": {
+      "h": "Coexistence-favoring scenario",
+      "body": "Species use only partially overlapping resources (different diets, microhabitats, activity periods). α12 and α21 are both small. Each species' own density is what limits it most. Both coexistence conditions are satisfied — stable interior equilibrium."
+    },
+    "right": {
+      "h": "Exclusion-favoring scenario",
+      "body": "Species use nearly identical resources (like Gause's two Paramecium species competing for the same bacterial food in the same water column). α12 and α21 are both near or above 1. Interspecific effects rival or exceed intraspecific effects — one of the exclusion outcomes results."
+    },
+    "footnote": "The α values are, in effect, a quantitative measure of niche overlap."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING TO NICHE THEORY",
+    "title": "Coexistence conditions and niche differentiation",
+    "items": [
+      "The Lotka-Volterra coexistence conditions are the mathematical seed of the concept of <b>limiting similarity</b> — the idea that competing species must differ in resource use by some minimum amount to coexist.",
+      "This foreshadows later work (Hutchinson, MacArthur) on how much niche overlap a community of competitors can tolerate before exclusion sets in.",
+      "It also reframes competitive exclusion: exclusion isn't an exception to be avoided, it's the default outcome whenever niches overlap too much — coexistence is the special case requiring sufficient niche divergence.",
+      "This sets up Lecture 26's shift to resource-based (mechanistic) competition theory, which asks <i>why</i> particular α values arise from resource use patterns rather than treating them as fixed constants."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Phase-Plane Analysis and Gause's Data",
+    "sub": "Reading trajectories and mapping experiments onto the model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WALKTHROUGH",
+    "title": "How to analyze a phase plane, step by step",
+    "items": [
+      "<b>Step 1</b>: Plot species 1's isocline using its intercepts, (K1, 0) and (0, K1/α12).",
+      "<b>Step 2</b>: Plot species 2's isocline using its intercepts, (K2/α21, 0) and (0, K2).",
+      "<b>Step 3</b>: Identify whether the lines cross in the positive quadrant; if so, find the intersection (the candidate equilibrium).",
+      "<b>Step 4</b>: Determine which isocline lies 'inside' the other near each axis to classify the outcome as 1, 2, 3, or 4 using the summary table."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WALKTHROUGH",
+    "title": "Tracing example trajectories",
+    "items": [
+      "Pick a few starting points (N1, N2) scattered around the phase plane — including points on either side of the isoclines.",
+      "For each starting point, ask: is N1 above or below its isocline (does N1 grow or shrink)? Is N2 above or below its isocline (does N2 grow or shrink)?",
+      "Sketch a short arrow in the direction implied by both answers; repeating this across the plane builds an intuitive vector field.",
+      "Following the arrows from any starting point traces a trajectory that approaches the outcome predicted by the isocline geometry — this is the graphical proof that the outcome doesn't depend on where you start (Outcomes 1, 2, 4) or does depend on where you start (Outcome 3)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY",
+    "title": "Mapping Gause's P. aurelia vs. P. caudatum onto the model",
+    "items": [
+      "Experimental result (Lecture 24): <i>P. aurelia</i> always won; <i>P. caudatum</i> was always excluded, regardless of starting ratios.",
+      "This is a clean example of <b>Outcome 1</b> (or 2, depending on labeling): one isocline lies entirely outside the other, and the outcome is independent of initial densities — consistent with the reproducible, one-sided result Gause observed.",
+      "Implication: the two species had very heavily overlapping niches (both feeding on the same suspended bacteria), pushing α values high enough that one species' isocline dominates the other's everywhere."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY",
+    "title": "Mapping Gause's P. caudatum vs. P. bursaria onto the model",
+    "items": [
+      "Experimental result: both species persisted together, each at a lower density than in monoculture, because <i>P. bursaria</i> fed on yeast at the bottom of the tube while <i>P. caudatum</i> fed on bacteria in suspension.",
+      "This partial habitat/resource partitioning corresponds to relatively low α12 and α21 — each species' presence had a limited effect on the other's resource base.",
+      "This is <b>Outcome 4</b>: a stable interior equilibrium, matching the observed persistence of both species at reduced but nonzero densities.",
+      "Together, the two Gause pairings illustrate the full range the model predicts — from strict exclusion to stable coexistence — depending only on how much the species' resource use overlaps."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BEYOND GAUSE",
+    "title": "Other classic tests of the Lotka-Volterra framework",
+    "cards": [
+      {
+        "h": "Thomas Park — flour beetles",
+        "p": "Tribolium confusum and T. castaneum competing for flour resources; outcome depended on temperature and humidity, and sometimes on which species 'started' — evidence consistent with Outcome 3, founder control."
+      },
+      {
+        "h": "Barnacle zonation (Connell)",
+        "p": "Chthamalus and Semibalanus barnacles compete for intertidal space; competitive exclusion in the overlap zone matches Outcome 1/2 exclusion dynamics, with physiology setting the boundary."
+      },
+      {
+        "h": "Field plant competition",
+        "p": "Many plant competition studies estimate α coefficients from replacement-series experiments, directly testing the coexistence conditions derived here."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8",
+    "title": "Assumptions and Limitations",
+    "sub": "Where the phenomenological model falls short"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MODEL ASSUMPTIONS",
+    "title": "What the Lotka-Volterra competition model assumes",
+    "items": [
+      "Population growth is <b>continuous</b> and density-dependent effects act <b>instantaneously</b> — no time lags between a change in density and its effect on growth rate.",
+      "No <b>age or stage structure</b> — all individuals of a species are treated as ecologically identical, regardless of age, size, or life stage.",
+      "No <b>spatial structure</b> — populations are treated as well-mixed with no explicit geography, dispersal, or patchiness.",
+      "Competitive effects are strictly <b>linear</b> in density (a straight-line isocline) — doubling a competitor's density is assumed to exactly double its competitive effect."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PRACTICAL LIMITATIONS",
+    "title": "Why the model is hard to apply in practice",
+    "items": [
+      "Competition coefficients (α12, α21) are notoriously <b>difficult to estimate empirically</b> — they require careful mono- and mixed-culture experiments across a range of densities.",
+      "α is treated as a <b>fixed constant</b>, but in real populations the competitive effect of one species on another can change with environmental conditions, density, or life stage (as Park's flour beetle results showed).",
+      "The model is <b>phenomenological</b>: it describes the net outcome of competition without specifying the actual mechanism (which resource, how consumption translates to growth) — it tells us <i>that</i> species compete, not <i>why</i> or exactly how strongly, based on independently measurable biology.",
+      "These limitations motivate a more mechanistic alternative, which we take up in Lecture 26."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON MODELING COMPETITION",
+    "quote": "All models are wrong, but some are useful.",
+    "attrib": "attributed to George Box — apt for the Lotka-Volterra model: powerful for organizing qualitative predictions, limited as a quantitative tool without independently measured α values"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WRAPPING UP",
+    "title": "Recap of Lecture 25",
+    "items": [
+      "The Lotka-Volterra competition equations extend the logistic model to two species by subtracting a competitor term, α12N2 or α21N1, from each species' carrying capacity.",
+      "Competition coefficients (α) convert one species' individuals into 'equivalent' individuals of the other, quantifying the degree of niche overlap.",
+      "Zero-growth isoclines — straight lines in the N1–N2 phase plane — divide the plane into growth and decline regions for each species.",
+      "The relative position of the two isoclines produces exactly four outcomes: species 1 wins, species 2 wins, unstable founder control, or stable coexistence.",
+      "Stable coexistence requires intraspecific competition to exceed interspecific competition for both species (K1/α12 > K2 and K2/α21 > K1) — connecting directly to the concept of niche differentiation.",
+      "Gause's two experimental pairings map cleanly onto two of these four outcomes: exclusion for P. aurelia/P. caudatum, coexistence for P. caudatum/P. bursaria."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP",
+    "title": "Preview of Lecture 26: Resource Competition Theory and R*",
+    "items": [
+      "The Lotka-Volterra model is phenomenological — it fits competition to an α coefficient without explaining where that coefficient comes from mechanistically.",
+      "Lecture 26 introduces <b>resource competition theory</b>, developed by David Tilman, which models competition explicitly through shared, limiting resources rather than an abstract competition coefficient.",
+      "Central concept: <b>R*</b>, the equilibrium resource level to which a species draws a limiting resource down — the species that can persist at the lowest R* for a given resource will competitively exclude others depending on that same resource.",
+      "This mechanistic approach lets us predict competitive outcomes from measurable resource-uptake physiology, rather than needing to estimate α from competition experiments after the fact — and it will let us revisit today's four outcomes from a different angle."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "END OF LECTURE 25",
+    "title": "Questions?",
+    "sub": "Next: Lecture 26 — Resource Competition Theory and R* (Chapter 7, continued)"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 25</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

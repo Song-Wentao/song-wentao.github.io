@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 5: Density-Independent Growth III: Stochastic Environments</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Population Ecology · BIOL 4XX · Lecture 5",
+    "title": "Density-Independent Growth III: Stochastic Environments",
+    "sub": "Why real populations don't grow like the smooth curves of Lectures 3–4 — and why that matters for extinction risk",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 1"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We Left Off: Deterministic Growth",
+    "sub": "Lectures 3–4 assumed r and λ are fixed constants"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 3",
+    "title": "Discrete-Time Density-Independent Growth",
+    "items": [
+      "N(t+1) = λN(t), where λ is the finite rate of increase",
+      "λ > 1: population grows; λ = 1: stable; λ < 1: declines toward extinction",
+      "Over t time steps: N(t) = N(0)λ^t — geometric growth",
+      "Assumes non-overlapping generations, a single constant λ",
+      "λ was treated as a fixed, known parameter — no year-to-year variation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap · Lecture 4",
+    "title": "Continuous-Time Density-Independent Growth",
+    "items": [
+      "dN/dt = rN, where r is the intrinsic rate of increase",
+      "Solution: N(t) = N(0)e^(rt) — exponential growth",
+      "r > 0 growth, r = 0 stationary, r < 0 decline",
+      "Relationship: λ = e^r, or r = ln(λ)",
+      "Case study: human population growth approximated with a constant r",
+      "Both models: single, unchanging growth parameter — a deterministic world"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Gap",
+    "title": "A Deterministic World vs. the Real World",
+    "left": {
+      "h": "What the models assume",
+      "body": "A fixed r or λ, the same every year. Given N(0), the entire future trajectory of the population is completely determined — no surprises, no variability, perfectly predictable."
+    },
+    "right": {
+      "h": "What field data show",
+      "body": "Annual counts of real populations bounce around — good years and bad years driven by weather, food, predators, disease, and pure chance in who lives and who dies. r and λ are not constants; they are random variables."
+    },
+    "footnote": "Today: building stochasticity into the density-independent framework."
+  },
+  {
+    "type": "section",
+    "tag": "Motivation",
+    "title": "Why Add Randomness to the Model?",
+    "sub": "Because ignoring variability gives dangerously optimistic predictions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivating the Problem",
+    "title": "Real Populations Don't Grow at a Constant Rate",
+    "items": [
+      "Songbird clutch survival varies with spring temperature and rainfall",
+      "Ungulate calf recruitment swings with winter severity and forage",
+      "Insect populations boom and crash with resource pulses and weather extremes",
+      "Even in a 'good on average' environment, some years are bad — sometimes very bad",
+      "Question for today: does variability change our prediction of long-term fate, even if the average growth rate looks fine?"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Framing the Problem",
+    "quote": "A population that grows on average can still be headed for extinction — averages can lie when growth is multiplicative.",
+    "attrib": "Core theme of Lecture 5"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Stochasticity, Defined",
+    "term": "Stochasticity",
+    "def": "Random variation in a process, such that outcomes cannot be predicted with certainty even when the underlying rules are known — here, unpredictable variation in vital rates or in individual fates.",
+    "bullets": [
+      "Contrasts with the deterministic models of Lectures 3–4",
+      "Population ecologists distinguish two fundamentally different sources of randomness",
+      "Environmental stochasticity and demographic stochasticity",
+      "Both add variance around the mean growth rate, but for different reasons and with different consequences"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Source 1",
+    "title": "Environmental Stochasticity",
+    "sub": "Randomness that hits every individual in the population the same way"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Environmental Stochasticity",
+    "term": "Environmental Stochasticity",
+    "def": "Year-to-year (or site-to-site) variation in the growth rate (r or λ) caused by external, fluctuating environmental conditions — weather, resource abundance, predator/competitor densities, disease outbreaks.",
+    "bullets": [
+      "Affects all individuals in the population in a correlated way in a given year",
+      "A drought year lowers survival and reproduction for essentially everyone, not a random subset",
+      "Produces variance in λ itself, from one time period to the next",
+      "Does not average out across individuals within a year — it is a population-wide shock"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Environmental Stochasticity",
+    "title": "Sources of Environmental Variation",
+    "items": [
+      "Weather: temperature extremes, rainfall/drought, storms, snowpack",
+      "Resource availability: seed crops, prey abundance, primary productivity",
+      "Natural enemies: predator irruptions, pathogen outbreaks, parasite loads",
+      "Interspecific competition intensity, which can vary with community composition",
+      "Catastrophes: fire, flood, hurricane — extreme, low-probability environmental events"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Environmental Stochasticity",
+    "title": "How It Enters the Model",
+    "items": [
+      "Instead of one fixed λ, each time step draws a λ_t from a probability distribution",
+      "λ_t might be 1.3 in a good year, 0.7 in a bad year, 1.05 in an average year",
+      "N(t+1) = λ_t · N(t) — the multiplier itself changes randomly each year",
+      "The distribution of λ_t has a mean and a variance — both matter for long-term dynamics",
+      "Key insight previewed here: the variance, not just the mean, shapes population fate"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Source 2",
+    "title": "Demographic Stochasticity",
+    "sub": "Randomness in the fates of individual organisms, even under identical conditions"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Demographic Stochasticity",
+    "term": "Demographic Stochasticity",
+    "def": "Random variation in birth and death outcomes among individuals due to chance, even when every individual has the same underlying probability of surviving or reproducing.",
+    "bullets": [
+      "Arises because birth and death are discrete, probabilistic events for each individual",
+      "Analogous to coin flips: even with a fair coin (p = 0.5), a small number of flips can deviate substantially from the expected 50/50 split",
+      "Individuals are treated as independent — one individual's fate does not depend on another's",
+      "Unlike environmental stochasticity, it does not require any external variability at all"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Demographic Stochasticity",
+    "title": "A Coin-Flip Analogy",
+    "items": [
+      "Suppose each individual has a 50% chance of surviving the year (p = 0.5)",
+      "In a population of 1,000, the realized survival fraction will be very close to 50% almost every time",
+      "In a population of 4, the realized outcome could easily be 0%, 25%, 50%, 75%, or 100% survival by chance alone",
+      "Small sample size = large relative deviation from the expected mean",
+      "This is exactly why demographic stochasticity is a small-population problem"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Demographic Stochasticity",
+    "title": "Why It Matters Most in Small Populations",
+    "items": [
+      "Variance in realized growth rate scales roughly as 1/N — shrinks fast as N grows",
+      "In large populations, individual-level randomness averages out across many individuals ('law of large numbers')",
+      "In small populations, a few unlucky deaths or a run of no births can be catastrophic",
+      "A population of 5 individuals can be driven to extinction by chance alone, even under favorable average conditions",
+      "This makes demographic stochasticity a central concern in conservation biology"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Illustration",
+    "title": "Same Average Rate, Different Population Sizes",
+    "cards": [
+      {
+        "h": "N = 10, p(survive) = 0.7",
+        "p": "Expected survivors ≈ 7, but anywhere from 4 to 10 survivors is a plausible outcome by chance in a given year."
+      },
+      {
+        "h": "N = 1,000, p(survive) = 0.7",
+        "p": "Expected survivors ≈ 700, and the realized number will almost always fall within a narrow band around 700."
+      },
+      {
+        "h": "Takeaway",
+        "p": "Same probability, wildly different reliability. Demographic stochasticity is a story about sample size."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Compare",
+    "title": "Environmental vs. Demographic Stochasticity",
+    "sub": "Two distinct mechanisms, often acting together"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Side by Side",
+    "title": "Comparing the Two Sources of Stochasticity",
+    "headers": [
+      "Feature",
+      "Environmental Stochasticity",
+      "Demographic Stochasticity"
+    ],
+    "rows": [
+      [
+        "Source of randomness",
+        "External conditions (weather, resources, enemies)",
+        "Chance individual birth/death outcomes"
+      ],
+      [
+        "Who is affected",
+        "All individuals simultaneously, in a correlated way",
+        "Each individual independently"
+      ],
+      [
+        "Scales with population size?",
+        "Variance in λ roughly independent of N",
+        "Variance in realized growth shrinks as N grows (≈ 1/N)"
+      ],
+      [
+        "Matters most when...",
+        "Population is exposed to variable conditions, any size",
+        "Population size is small"
+      ],
+      [
+        "Can it be 'averaged away' by adding individuals?",
+        "No — a bad year hits everyone regardless of N",
+        "Largely yes — law of large numbers smooths it out at large N"
+      ],
+      [
+        "Typical modeling approach",
+        "Random draws of λ_t from a distribution each time step",
+        "Probabilistic (binomial/Poisson) birth-death simulation per individual"
+      ]
+    ],
+    "footnote": "In real populations, both operate simultaneously; their relative importance shifts with population size."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "Which Matters More — And When?",
+    "left": {
+      "h": "Small populations",
+      "body": "Both sources matter, but demographic stochasticity can dominate. A handful of bad-luck deaths can eliminate a population that would otherwise be fine — this is why conservation biology worries intensely about small populations."
+    },
+    "right": {
+      "h": "Large populations",
+      "body": "Demographic stochasticity becomes negligible — chance events average out across thousands of individuals. Environmental stochasticity remains the dominant source of year-to-year variability, since it hits the whole population at once."
+    },
+    "footnote": "Rockwood Ch. 1: demographic stochasticity is usually only a serious extinction risk below a few dozen to a few hundred individuals, depending on the species."
+  },
+  {
+    "type": "section",
+    "tag": "Variance",
+    "title": "Variance in Growth Rate",
+    "sub": "Moving from a single λ to a distribution of λ values"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reframing λ",
+    "title": "λ as a Random Variable",
+    "items": [
+      "Instead of a single constant, treat λ as having a probability distribution across years",
+      "That distribution has a mean, μ_λ, and a variance, σ²_λ",
+      "Lectures 3–4 implicitly assumed σ²_λ = 0 — no year-to-year variability",
+      "Today we relax that assumption and ask: how does σ²_λ change our prediction of long-term population size?",
+      "Perhaps surprisingly, variance alone — holding the arithmetic mean fixed — can flip a population from 'growing' to 'headed for extinction'"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Averages Mislead",
+    "title": "The Trap of the Arithmetic Mean",
+    "items": [
+      "Population growth is a multiplicative process: N(t) = N(0) · λ_1 · λ_2 · λ_3 · ... · λ_t",
+      "Multiplicative sequences are NOT well summarized by the arithmetic mean of the λ values",
+      "The arithmetic mean treats a big gain and an equally sized loss as canceling out",
+      "But a 50% loss followed by a 50% gain does NOT return you to where you started",
+      "Example: start with N=100. Lose 50% → 50. Gain 50% → 75. Arithmetic mean of (0.5, 1.5) is 1.0, but you ended below where you started"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Distinction",
+    "title": "Arithmetic Mean vs. Geometric Mean",
+    "term": "Geometric Mean",
+    "def": "The nth root of the product of n values — the correct way to average multiplicative growth factors like λ, as opposed to the arithmetic mean (sum divided by n), which is appropriate for additive processes.",
+    "bullets": [
+      "Geometric mean of λ_1, λ_2, ..., λ_t = (λ_1 · λ_2 · ... · λ_t)^(1/t)",
+      "Arithmetic mean ≥ geometric mean always, with equality only when there is no variance",
+      "The gap between them grows as variance in λ increases",
+      "This gap is the mathematical root of why variability suppresses long-term population growth"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Core Concept",
+    "title": "The Geometric Mean Growth Rate",
+    "sub": "The correct predictor of long-run population trajectory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Geometric Mean Governs Long-Term Fate",
+    "title": "The Logic of Multiplicative Growth",
+    "items": [
+      "N(t) = N(0) · λ_1 · λ_2 · ... · λ_t is a product, not a sum",
+      "Over many time steps, N(t) ≈ N(0) · (λ_geo)^t, where λ_geo is the geometric mean of the λ's",
+      "It is λ_geo — not the arithmetic mean — that determines whether the population grows or shrinks over the long run",
+      "If λ_geo > 1, the population trend is upward over time; if λ_geo < 1, it trends toward extinction, even if the arithmetic mean of λ exceeds 1",
+      "This is one of the most important — and counterintuitive — results in population ecology"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Formal Statement",
+    "title": "Approximating the Geometric Mean",
+    "items": [
+      "Exact: λ_geo = (λ_1 · λ_2 · ... · λ_t)^(1/t)",
+      "Useful approximation: λ_geo ≈ arithmetic mean(λ) − variance(λ) / (2 · arithmetic mean(λ))",
+      "This shows explicitly: higher variance in λ pulls the geometric (realized) growth rate down",
+      "Two populations can have identical arithmetic mean λ but very different fates depending on their variance",
+      "More environmental variability is, all else equal, bad news for a population's long-term persistence"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example — Setup",
+    "title": "A Population That 'Grows on Average' but Goes Extinct",
+    "left": {
+      "h": "The scenario",
+      "body": "A population alternates between two kinds of years: a good year with λ = 2.0 (population doubles) and a bad year with λ = 0.25 (population drops to a quarter). Each occurs with equal probability, one after the other."
+    },
+    "right": {
+      "h": "The arithmetic mean",
+      "body": "Arithmetic mean of λ = (2.0 + 0.25) / 2 = 1.125. Taken at face value, this looks like a healthy, growing population — more than 12% growth per year on average."
+    },
+    "footnote": "Now compare this to what actually happens to the population over time."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example — The Twist",
+    "title": "What Actually Happens Over Time",
+    "left": {
+      "h": "Track it step by step",
+      "body": "Start N(0) = 1,000. After a good year (×2.0): N = 2,000. After a bad year (×0.25): N = 500. After another good year: N = 1,000. After another bad year: N = 250. The population is shrinking over each two-year cycle, not growing."
+    },
+    "right": {
+      "h": "The geometric mean",
+      "body": "λ_geo = (2.0 × 0.25)^(1/2) = (0.5)^(1/2) ≈ 0.707. Since λ_geo < 1, the population declines toward extinction in the long run — despite an arithmetic mean of 1.125 that suggested growth."
+    },
+    "footnote": "The arithmetic mean says 'grows'; the geometric mean — and the actual trajectory — says 'extinction-bound.'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example — Interpretation",
+    "title": "Why This Happens",
+    "items": [
+      "A single catastrophic bad year (λ = 0.25) does proportionally more damage than a good year (λ = 2.0) does good — because losses compound on a smaller base going forward",
+      "Multiplicative processes punish variance asymmetrically: it takes a λ = 4 gain to offset a λ = 0.25 loss, not just an 'equal and opposite' λ = 1.75",
+      "The higher the variance in λ, for a fixed arithmetic mean, the lower λ_geo falls — and the more likely long-term decline becomes",
+      "This is sometimes summarized as: 'variance in vital rates is a tax on population growth'"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Generalizing the Lesson",
+    "title": "Three Take-Home Points on Variance and Growth",
+    "cards": [
+      {
+        "h": "Variance is not neutral",
+        "p": "Adding variance around a fixed arithmetic mean λ always pushes λ_geo downward — never upward. Variability is inherently costly to long-term growth."
+      },
+      {
+        "h": "Arithmetic mean overstates growth",
+        "p": "Reporting only the arithmetic mean of yearly λ values in a variable environment paints an overly optimistic picture of a population's true trajectory."
+      },
+      {
+        "h": "Small λ_geo differences compound",
+        "p": "Because growth is exponential, even small differences in λ_geo lead to dramatically different population sizes after many generations."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical Implication",
+    "title": "Why This Matters for Real Populations",
+    "items": [
+      "Any species living in a variable environment experiences some reduction in realized growth rate relative to its 'average-year' λ",
+      "More variable environments (e.g., deserts, high-latitude systems, unpredictable rainfall regions) impose a bigger geometric-mean penalty",
+      "Species life-history strategies (e.g., iteroparity, bet-hedging, dormancy) can be viewed partly as adaptations that reduce the variance in λ, protecting λ_geo",
+      "Conservation and wildlife management plans that only track average birth/death rates can seriously underestimate extinction risk"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Consequence",
+    "title": "Extinction Risk in Small, Variable Populations",
+    "sub": "When variance and small size combine"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Compounding Risks",
+    "title": "Small Size + Variability = Elevated Extinction Risk",
+    "items": [
+      "Small populations are simultaneously vulnerable to demographic stochasticity (chance individual outcomes) and environmental stochasticity (variable λ)",
+      "A single bad environmental year can push a small population's numbers low enough that demographic stochasticity becomes an additional, compounding threat",
+      "This creates a feedback: environmental stochasticity shrinks N → demographic stochasticity becomes more dangerous at low N → further decline is more likely",
+      "This spiral is sometimes called part of an 'extinction vortex' when combined with other factors (e.g., loss of genetic diversity, Allee effects — covered later in the course)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Quantifying Risk",
+    "title": "Extinction Probability Depends on Three Things",
+    "items": [
+      "Mean growth rate: a higher λ_geo lowers extinction risk, holding other factors constant",
+      "Variance in growth rate: higher variance in λ raises extinction risk, even at the same arithmetic mean",
+      "Initial (or current) population size: smaller N means less of a buffer against a run of bad luck or bad years",
+      "Time horizon: extinction probability rises the longer a population must persist — risk compounds over time"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Illustrating the Interaction",
+    "title": "Two Populations, Same Mean λ_geo, Different Size",
+    "left": {
+      "h": "Population A: N = 20",
+      "body": "A short run of bad years, or an unlucky demographic stretch, can plausibly drive this population to zero. Extinction risk over a management-relevant time horizon (e.g., 50 years) can be substantial."
+    },
+    "right": {
+      "h": "Population B: N = 20,000",
+      "body": "The same distribution of yearly λ values is far less likely to drive this population extinct in any realistic time horizon — there is a much larger buffer of individuals to absorb bad years."
+    },
+    "footnote": "Population size interacts multiplicatively with variance to determine extinction risk — this is a central theme of conservation biology."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Extreme Events",
+    "title": "The Special Role of Catastrophes",
+    "items": [
+      "Most models of environmental stochasticity assume a roughly symmetric or continuous distribution of λ values",
+      "But real environments occasionally produce catastrophes: rare, extreme, low-λ events (fire, hurricane, disease epidemic, extreme drought)",
+      "Catastrophic events disproportionately depress λ_geo because of the multiplicative-cost asymmetry shown in the worked example",
+      "Rare catastrophes can dominate a population's long-term fate even if 'typical' years look favorable"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Preview",
+    "title": "Introduction to Population Viability Concepts",
+    "sub": "A brief preview — full treatment in Lecture 16, Applied Population Ecology"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Preview Concept",
+    "title": "Population Viability Analysis",
+    "term": "Population Viability Analysis (PVA)",
+    "def": "A quantitative, often simulation-based approach that uses estimates of mean growth rate, variance in growth rate, and population size to project a population's probability of persistence (or extinction) over a specified time horizon.",
+    "bullets": [
+      "Directly builds on today's concepts: mean λ, variance in λ, and current N are the core inputs",
+      "Incorporates environmental and demographic stochasticity explicitly, often via simulation (repeated random draws of future conditions)",
+      "Outputs are typically probabilistic: e.g., '20% chance of extinction within 100 years' rather than a single deterministic prediction",
+      "Widely used in endangered species management, reserve design, and harvest/regulatory decision-making"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Preview Concept",
+    "title": "Minimum Viable Population",
+    "term": "Minimum Viable Population (MVP)",
+    "def": "The smallest population size estimated to have a specified probability of persisting for a specified time period, despite the effects of demographic, environmental, and genetic stochasticity.",
+    "bullets": [
+      "A classic benchmark figure (Shaffer 1981) often cited: 99% probability of persistence for 1,000 years — though thresholds vary widely by species and context",
+      "MVP is not a single universal number — it depends on λ_geo, variance in λ, catastrophe frequency, and the acceptable risk threshold chosen by managers",
+      "Used to set conservation targets: how many individuals, and how much habitat, are needed to keep extinction risk acceptably low",
+      "We will build the quantitative machinery for PVA and MVP estimates in Lecture 16"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Connecting the Dots",
+    "title": "From Today's Concepts to Applied Conservation",
+    "items": [
+      "Today's building blocks — mean λ, variance in λ, geometric mean, demographic vs. environmental stochasticity, population size — are exactly the inputs PVA models require",
+      "A species with a high arithmetic mean λ can still be a conservation priority if its variance is high and its population is small",
+      "This reframes 'is this population healthy?' away from a single growth-rate number and toward a fuller risk profile",
+      "Management interventions (e.g., reducing variance via supplemental feeding, increasing N via translocation) map directly onto the variables we discussed today"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Recap of Core Terms",
+    "title": "Vocabulary Check",
+    "cards": [
+      {
+        "h": "Environmental stochasticity",
+        "p": "Population-wide variation in growth rate driven by fluctuating external conditions."
+      },
+      {
+        "h": "Demographic stochasticity",
+        "p": "Chance variation in individual births/deaths; strongest at small population size."
+      },
+      {
+        "h": "Geometric mean growth rate",
+        "p": "The correct long-run average for multiplicative growth; always ≤ the arithmetic mean when variance > 0."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Putting It All Together: Today's Core Argument",
+    "items": [
+      "Real growth rates vary — from environmental fluctuation and from chance individual outcomes",
+      "Because population growth is multiplicative, variance is not a neutral 'noise' term — it systematically lowers long-run growth relative to the arithmetic mean",
+      "The geometric mean growth rate, not the arithmetic mean, correctly predicts a population's long-term trajectory",
+      "A population can have an arithmetic mean λ > 1 (looks like growth) yet a geometric mean λ < 1 (actually extinction-bound)",
+      "Small population size amplifies both sources of stochasticity, making variable, small populations disproportionately vulnerable to extinction",
+      "These ideas form the foundation of population viability analysis, developed fully in Lecture 16"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Guiding Principle",
+    "quote": "In a variable world, it is not enough to ask whether a population grows on average — you must ask whether it grows reliably.",
+    "attrib": "Synthesis of Rockwood, Ch. 1"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Check Your Understanding",
+    "title": "Self-Test: Can You Explain...",
+    "items": [
+      "...why the arithmetic mean of a sequence of λ values can overstate a population's long-term growth prospects?",
+      "...why demographic stochasticity mainly threatens small populations, while environmental stochasticity affects populations of any size?",
+      "...how to compute a geometric mean growth rate from a series of annual λ values?",
+      "...why a rare catastrophic year can have an outsized effect on long-term population trajectory?",
+      "...what population viability analysis is trying to estimate, and what inputs it needs?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Discussion",
+    "title": "Discussion Questions",
+    "sub": "Bring your thinking to the next class session"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 1",
+    "title": "Bet-Hedging in Variable Environments",
+    "items": [
+      "Desert annual plants often produce seeds that remain dormant in the soil for multiple years rather than germinating all at once, even in a good rainfall year",
+      "Using today's concept of the geometric mean growth rate, explain why this 'seed banking' strategy could be favored by natural selection even though it sacrifices some potential growth in good years",
+      "What is this strategy effectively doing to the variance of the population's realized growth rate?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Question 2",
+    "title": "Designing a Monitoring Program",
+    "items": [
+      "You are advising a wildlife agency tracking a small, isolated population (current N ≈ 60) of a threatened species",
+      "Given what you've learned about environmental and demographic stochasticity, what two or three pieces of data would you prioritize collecting to assess extinction risk?",
+      "Would you expect demographic or environmental stochasticity to be the more urgent concern at this population size? Justify your answer."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Before Next Class",
+    "title": "Looking Ahead: Lecture 6",
+    "left": {
+      "h": "Today's takeaway",
+      "body": "Density-independent growth models — deterministic or stochastic — assume the growth rate does not depend on population size itself. λ (or r) stays the same whether the population is at 10 individuals or 10 million."
+    },
+    "right": {
+      "h": "Lecture 6: Density Dependence — Concept and Evidence",
+      "body": "We relax that final assumption. Does growth rate actually change as population size changes? We will examine evidence for density dependence in real populations and introduce the logistic growth model as our first density-dependent framework."
+    },
+    "footnote": "Reading for Lecture 6: Rockwood, Ch. 2. Come prepared to discuss examples of populations you think might show density dependence."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 5</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

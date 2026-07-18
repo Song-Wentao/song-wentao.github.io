@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 35: Metacommunities I: Four Paradigms for Regional Community Structure</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 35",
+    "title": "Metacommunities I: Four Paradigms for Regional Community Structure",
+    "sub": "From local interactions to regional dynamics — unifying niche and spatial processes",
+    "footnote": "Mittelbach & McGill, Community Ecology, 2nd ed., Ch. 14 (pp. 1–2 of 2 lectures)"
+  },
+  {
+    "type": "section",
+    "tag": "Setting the Stage",
+    "title": "Why Zoom Out From a Single Local Community?",
+    "sub": "Every community you have studied so far sits inside a landscape of other communities"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Where We've Been",
+    "items": [
+      "Chs. 1–12 largely treated communities as closed, well-mixed local assemblages: competition, predation, niche partitioning, succession, diversity patterns.",
+      "Ch. 13 cracked the door open: fugitive species, competition-colonization tradeoffs, patchy environments — but mostly one or two species at a time.",
+      "Population Ecology (sibling course) covered metapopulations in depth: single-species patch occupancy, rescue effects, extinction-colonization balance.",
+      "Question for this unit: what happens when MANY interacting species disperse among MANY local patches simultaneously?",
+      "Answer requires a new conceptual object — the metacommunity — and a framework for classifying how it can be structured."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Metacommunity",
+    "term": "Metacommunity",
+    "def": "A set of local communities that are linked by the dispersal of multiple, potentially interacting species.",
+    "bullets": [
+      "Coined and formalized by Wilson (1992) and elaborated by Leibold et al. (2004); the metacommunity is to a community what a metapopulation is to a population — but with an entire species pool moving among patches, not just one species."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The Historical Problem: Two Traditions That Didn't Talk",
+    "items": [
+      "Niche-based community ecology (Chs. 3–10): local species composition is determined by environmental filtering, competition, and coexistence mechanisms operating WITHIN a site.",
+      "Spatial/dispersal-based population ecology: island biogeography theory (MacArthur & Wilson 1967) and metapopulation theory emphasized colonization, extinction, and dispersal as drivers of occurrence — largely ignoring species interactions.",
+      "By the 1990s–2000s it was clear that real communities are shaped by BOTH processes at once, and that local coexistence theory alone could not explain regional patterns of diversity and composition.",
+      "Metacommunity theory was built explicitly to unify these two traditions into a single framework.",
+      "Leibold, Holyoak, Mouquet, Amarasekare, Chase, et al. (2004, Ecology Letters) synthesized the field into what is now called the 'four paradigms' framework."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "Conceptual Lineage of Metacommunity Theory",
+    "items": [
+      {
+        "y": "1967",
+        "t": "MacArthur & Wilson — island biogeography theory (colonization/extinction, no interactions)"
+      },
+      {
+        "y": "1969",
+        "t": "Levins — metapopulation concept for a single species in a patch network"
+      },
+      {
+        "y": "1970s–80s",
+        "t": "Local coexistence theory matures (niche partitioning, keystone predation, resource competition)"
+      },
+      {
+        "y": "1994",
+        "t": "Tilman — competition-colonization tradeoff models formalize patch dynamics for multiple species"
+      },
+      {
+        "y": "2001",
+        "t": "Hubbell — Unified Neutral Theory of Biodiversity, extended to spatial dynamics"
+      },
+      {
+        "y": "2004",
+        "t": "Leibold et al. — 'The metacommunity concept: a framework for multi-scale community ecology' formalizes four paradigms"
+      },
+      {
+        "y": "2004–present",
+        "t": "Empirical tests, variance partitioning methods, and syntheses treat paradigms as a continuum"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Two Axes That Generate the Four Paradigms",
+    "items": [
+      "Axis 1 — Species differences: are patches occupied by ecologically EQUIVALENT species (identical niches, e.g., fugitive species) or by species with DIFFERENT niche requirements along environmental gradients?",
+      "Axis 2 — Dispersal rate: is dispersal low (movement is rare, local dynamics dominate) or high (movement is frequent enough to subsidize populations or homogenize composition)?",
+      "Crossing these two axes (plus whether patches are environmentally identical or heterogeneous) yields four idealized end-member paradigms.",
+      "Each paradigm makes different assumptions about the relative importance of (a) local niche-based interactions and (b) regional dispersal-based processes.",
+      "None of the four is 'correct' in isolation — they are simplifying caricatures useful for generating testable predictions."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "The Four Paradigms at a Glance",
+    "cards": [
+      {
+        "h": "1. Patch Dynamics",
+        "p": "Identical patches; species differ in competitive vs. colonizing ability; persistence via competition-colonization tradeoffs and disturbance."
+      },
+      {
+        "h": "2. Species Sorting",
+        "p": "Heterogeneous patches; species have different niche optima; dispersal is just enough to let species track and occupy their preferred environment."
+      },
+      {
+        "h": "3. Mass Effects",
+        "p": "Heterogeneous patches; dispersal is high enough to create source-sink subsidies, letting species persist outside their optimal niche."
+      },
+      {
+        "h": "4. Neutral",
+        "p": "Patches and species are effectively equivalent; composition is governed by ecological drift, dispersal limitation, and demographic stochasticity."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Paradigm 1",
+    "title": "Patch Dynamics",
+    "sub": "Scaling up the fugitive species idea from Chapter 13 to a whole guild"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Patch Dynamics: Core Assumptions",
+    "items": [
+      "All patches are identical in quality and environmental conditions — no environmental heterogeneity to sort species.",
+      "Patches are habitable but finite in space; local extinction occurs due to competitive exclusion, disturbance, or stochastic events, opening space.",
+      "Species differ from one another in a life-history tradeoff, classically competitive ability versus colonization/dispersal ability.",
+      "Superior competitors eventually exclude inferior ones locally, but inferior competitors persist regionally by colonizing empty patches faster.",
+      "This is a direct multi-species extension of the single fugitive-species patch models from Ch. 13 — now an entire assemblage is organized by the same tradeoff."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Patch Dynamics: Predictions",
+    "items": [
+      "Regional coexistence of competitively unequal species is possible even though local exclusion always occurs — analogous to Levins' metapopulation 'rescue' logic scaled to a community.",
+      "Local species richness at any patch is low relative to regional richness; local composition is a snapshot of successional/competitive turnover.",
+      "Diversity is maintained by a shifting mosaic: at any moment some patches are dominated by fugitive/colonizing species, others by competitive dominants.",
+      "Disturbance rate and patch turnover rate are key regional diversity controls — intermediate turnover maximizes coexistence (echoes intermediate disturbance ideas from Ch. 11).",
+      "Removing dispersal (isolating patches) should cause the poorest competitors to go locally extinct everywhere over time."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Competition-Colonization Tradeoff",
+    "term": "Competition-Colonization Tradeoff",
+    "def": "A tradeoff in which species that are strong local competitors have low dispersal/colonization ability, and species that disperse and colonize empty patches rapidly are weak local competitors.",
+    "bullets": [
+      "Introduced for single fugitive species in Ch. 13 (e.g., Hastings 1980, Tilman 1994); patch dynamics generalizes this to an entire community with many species arranged along a competition-colonization hierarchy."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Patch Dynamics: Empirical Signatures",
+    "items": [
+      "Species composition should differ strongly among identical-looking patches simply due to stochastic colonization history, NOT environmental differences.",
+      "A clear competitive hierarchy is detectable (transplant/removal experiments show consistent competitive dominance ranks).",
+      "Colonization ability (e.g., propagule production, dispersal distance) should trade off negatively with competitive ability across the species pool.",
+      "Classic systems: serpentine outcrop annual plants, rock-pool invertebrates, epiphytic bryophytes on treefall gaps, coral-reef space competitors.",
+      "Weak fit occurs when patches are NOT truly identical — real-world heterogeneity often contaminates patch dynamics tests, pointing toward species sorting."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Paradigm 2",
+    "title": "Species Sorting",
+    "sub": "Dispersal as a 'ticket to ride,' not the main structuring force"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Species Sorting: Core Assumptions",
+    "items": [
+      "Patches differ in environmental conditions (heterogeneity is essential — the opposite premise of patch dynamics).",
+      "Species differ in their niche requirements/optima along the same environmental gradients (this is classic Ch. 3–7 niche theory, now distributed across space).",
+      "Dispersal occurs, but only needs to be frequent enough that species can reach and colonize suitable patches — dispersal itself is not limiting or subsidizing.",
+      "Local competitive/niche processes are the dominant sorting force; the regional/spatial component simply supplies the propagules.",
+      "This paradigm essentially says: local coexistence theory operates at every patch, and metacommunity structure is the sum of many independent local outcomes."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Species Sorting: Predictions",
+    "items": [
+      "Local community composition tracks local environmental conditions closely — strong environment-composition correlation.",
+      "Beta diversity (turnover) among patches is explained primarily by environmental dissimilarity, not by geographic distance.",
+      "Local species richness approaches the number of species whose niche optimum matches that patch — communities are 'sorted,' not randomly assembled.",
+      "Removing or reducing dispersal should have little effect on composition as long as some minimal dispersal persists (composition is niche-, not dispersal-, limited).",
+      "Increasing dispersal beyond the minimum needed for colonization should NOT change local composition — a key point distinguishing this from mass effects."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Species Sorting: What Predicts Local Composition?",
+    "left": {
+      "h": "Strong Predictor",
+      "body": "<ul><li>Local environmental conditions (pH, moisture, temperature, resource levels)</li><li>Species' niche optima and tolerances</li><li>Local biotic interactions (competition, predation) filtering the colonizing pool</li></ul>"
+    },
+    "right": {
+      "h": "Weak / Non-Predictor",
+      "body": "<ul><li>Geographic distance between patches, once environment is controlled for</li><li>Dispersal rate, above the minimal threshold needed for colonization</li><li>Stochastic colonization history (unlike patch dynamics)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Species Sorting: Empirical Signatures",
+    "items": [
+      "Variance partitioning of community composition attributes most explained variation to the environmental component, with little residual spatial signal.",
+      "Reciprocal transplant experiments show species perform (survive, reproduce) best in patches matching their home environment.",
+      "Classic systems: pond zooplankton and macrophyte communities along nutrient/pH gradients, protist microcosms along temperature or resource gradients, plant communities along soil gradients.",
+      "Often considered the 'default' or null expectation in metacommunity ecology because it is the direct spatial extension of classical niche theory.",
+      "Empirically the most commonly supported paradigm in well-connected, heterogeneous landscapes with moderate dispersal."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Paradigm 3",
+    "title": "Mass Effects",
+    "sub": "When dispersal is strong enough to overwhelm local competitive exclusion"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Mass Effects: Core Assumptions",
+    "items": [
+      "Like species sorting, patches are environmentally heterogeneous and species have different niche optima.",
+      "The key difference: dispersal rates are HIGH — high enough that immigration meaningfully subsidizes local population dynamics.",
+      "Species can maintain positive population growth (or at least persist) in patches where they are competitively inferior or environmentally suboptimal, because immigrants continually arrive from source patches.",
+      "This blurs or prevents local competitive exclusion — species 'spill over' from where they do well into where they do poorly.",
+      "Directly builds on source-sink and rescue-effect logic from single-species metapopulation theory (Population Ecology course), now applied simultaneously to many interacting species."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Source-Sink Dynamics",
+    "term": "Source-Sink Dynamics",
+    "def": "A spatial population structure in which some patches (sources) produce a surplus of individuals that emigrate, while other patches (sinks) have negative local growth and would go extinct without continual immigration.",
+    "bullets": [
+      "In a mass-effects metacommunity, source-sink dynamics operate for MULTIPLE species simultaneously, so that sink populations of several species can co-occur locally even though local niche theory alone would predict their exclusion."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Mass Effects: Predictions",
+    "items": [
+      "Local species richness can EXCEED what local environmental conditions alone would support — 'extra' species maintained as sink populations.",
+      "Local composition reflects a blend of environmental matching AND regional species pool/proximity to source patches — weaker environment-composition correlation than species sorting.",
+      "Both environmental and spatial (distance) variables should explain significant, often overlapping, variance in composition.",
+      "Reducing dispersal should cause sink populations to disappear, REDUCING local diversity — opposite of the species sorting prediction.",
+      "Increasing dispersal can homogenize composition among patches (source populations swamp sinks), potentially lowering beta diversity while raising local (alpha) diversity."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Mass Effects: Empirical Signatures",
+    "items": [
+      "Variance partitioning shows substantial spatial or environment-by-space interaction components, not just pure environmental effects.",
+      "Distance-decay of similarity persists even after controlling for environment, reflecting dispersal-driven spillover among nearby patches.",
+      "Experimental dispersal manipulations (adding/removing corridors) change local richness, unlike the null result expected under species sorting.",
+      "Classic systems: stream invertebrate communities along longitudinal gradients, riparian/floodplain plant communities, highly connected pond networks, agricultural field margins receiving weed seed rain.",
+      "Often most detectable in landscapes with strong connectivity gradients (e.g., near vs. far from a large source population)."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Paradigm 4",
+    "title": "Neutral Dynamics",
+    "sub": "When species identity stops mattering — connecting back to Chapter 8"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Neutral Paradigm: Core Assumptions",
+    "items": [
+      "Direct spatial extension of the neutral theory of biodiversity covered in Ch. 8 (Hubbell 2001) — all individuals, regardless of species, have identical per-capita birth, death, and dispersal probabilities.",
+      "Patches need not be identical or heterogeneous in any way that matters, because species do not differ in their response to the environment.",
+      "Community dynamics are governed entirely by ecological drift (stochastic birth/death), dispersal limitation, and speciation at the regional scale — no niche differences drive composition.",
+      "Dispersal is limited (not infinite), which is what allows different local communities to drift apart in composition — analogous to genetic drift under limited gene flow.",
+      "This paradigm is the spatial, multi-patch version of the same zero-sum ecological drift dynamics you saw for a single local community in Ch. 8."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Neutral Paradigm: Predictions",
+    "items": [
+      "Local and regional composition are unrelated to environmental variables — no environment-composition correlation expected.",
+      "Beta diversity (turnover) is driven purely by geographic distance and dispersal limitation — nearby patches are more similar simply because propagules travel short distances, not because environments are similar (pure distance-decay).",
+      "Relative abundance distributions at both local and regional scales should match neutral theory's predicted log-series/zero-sum multinomial shapes.",
+      "Species identities are interchangeable: swapping which species is locally common vs. rare should have no predictable relationship to traits or environment.",
+      "Extinction and colonization are stochastic 'random walks' — no species has a systematic advantage, so which species persists at a site is largely a matter of chance and dispersal history."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Neutral Paradigm: Empirical Signatures",
+    "items": [
+      "Variance partitioning attributes most explained variation to pure spatial (geographic distance) terms, with near-zero pure environmental effects.",
+      "Strong distance-decay of community similarity even in environmentally homogeneous landscapes.",
+      "Rank-abundance and species-abundance distributions fit neutral model predictions (log-series, zero-sum multinomial) as well as or better than niche-based models.",
+      "Classic test systems: tropical tree communities on relatively homogeneous soils (Hubbell's BCI data), some marine sessile invertebrate/coral communities, certain microbial communities.",
+      "Rarely fits perfectly — most real datasets show BOTH environmental and spatial signal, which is exactly why the four paradigms are best seen as end members, not exclusive categories."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "The Four Paradigms Side by Side",
+    "headers": [
+      "Feature",
+      "Patch Dynamics",
+      "Species Sorting",
+      "Mass Effects",
+      "Neutral"
+    ],
+    "rows": [
+      [
+        "Patch environment",
+        "Identical",
+        "Heterogeneous",
+        "Heterogeneous",
+        "Irrelevant"
+      ],
+      [
+        "Species niche differences",
+        "None (equivalent)",
+        "Strong",
+        "Strong",
+        "None (equivalent)"
+      ],
+      [
+        "Dispersal rate",
+        "Intermediate",
+        "Just sufficient",
+        "High",
+        "Limited but nonzero"
+      ],
+      [
+        "Key mechanism",
+        "Competition-colonization tradeoff",
+        "Environmental filtering + colonization",
+        "Source-sink subsidy",
+        "Ecological drift"
+      ],
+      [
+        "Local vs. regional diversity",
+        "Local << regional (turnover-driven)",
+        "Local tracks environment",
+        "Local can exceed niche expectation",
+        "Governed by drift/dispersal limitation"
+      ],
+      [
+        "Effect of more dispersal",
+        "Homogenizes competitive outcomes",
+        "No change once threshold met",
+        "Increases local richness, may lower beta",
+        "Reduces drift-driven divergence"
+      ],
+      [
+        "Main empirical test",
+        "Stochastic composition on identical patches",
+        "Environment explains composition variance",
+        "Space & environment both explain variance",
+        "Pure distance-decay, neutral SAD fit"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The Common Thread: Dispersal Rate as an Organizing Axis",
+    "items": [
+      "Reading across the table, dispersal rate is the single variable that moves a metacommunity between paradigms most predictably.",
+      "Very low dispersal: local dynamics dominate, communities diverge via drift or competitive exclusion (neutral / patch dynamics territory).",
+      "Intermediate dispersal: just enough movement for species to find and occupy suitable patches (species sorting).",
+      "High dispersal: immigration subsidizes populations regardless of local suitability (mass effects); at the extreme, dispersal is so high it homogenizes everything into one well-mixed 'panmictic' community.",
+      "The degree of species niche differentiation is the second key axis — with niche differences, you get species sorting/mass effects; without them, you get patch dynamics/neutral dynamics."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Low vs. High Dispersal: Contrasting Consequences",
+    "left": {
+      "h": "Low Dispersal Regime",
+      "body": "<ul><li>Local extinction is not rescued — competitive exclusion or drift proceeds to completion</li><li>Beta diversity tends to be high (patches diverge)</li><li>Colonization history and priority effects matter strongly</li><li>Metacommunity resembles patch dynamics or neutral paradigm</li></ul>"
+    },
+    "right": {
+      "h": "High Dispersal Regime",
+      "body": "<ul><li>Immigration can rescue populations from local exclusion (mass effects)</li><li>Beta diversity can decline as patches homogenize</li><li>Source patches disproportionately determine regional composition</li><li>At extreme dispersal, metacommunity behaves like one large mixed community</li></ul>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "Dispersal Rate as a Continuum Across Paradigms",
+    "levels": [
+      {
+        "label": "Very Low Dispersal",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Low–Intermediate Dispersal",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Intermediate Dispersal",
+        "color": "#3f7d5c",
+        "width": "440px"
+      },
+      {
+        "label": "High Dispersal",
+        "color": "#568f6d",
+        "width": "380px"
+      },
+      {
+        "label": "Extreme Dispersal",
+        "color": "#6ea883",
+        "width": "320px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Not Mutually Exclusive: A Toolbox, Not a Taxonomy",
+    "items": [
+      "Leibold et al. (2004) were explicit that the four paradigms are idealized END MEMBERS of a continuous parameter space, not discrete categories nature falls into.",
+      "A single real metacommunity can show patch-dynamics-like behavior for one guild (e.g., poor dispersers) and species-sorting behavior for another (e.g., strong dispersers) simultaneously.",
+      "The same system can shift paradigm over time — e.g., a pond network behaves like species sorting in a wet year (moderate connectivity) and mass effects after a flood connects everything.",
+      "Best practice: treat the four paradigms as hypotheses to be tested against data (via variance partitioning, experiments), not boxes to sort systems into permanently.",
+      "The lasting contribution of the framework is the two organizing axes (niche differences, dispersal rate) rather than the four discrete labels themselves."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "We suggest that the metacommunity concept is best understood not as four alternative theories in competition with each other, but as four idealized points within a broader, continuous parameter space defined by the degree of environmental heterogeneity and the rate of dispersal.",
+    "attrib": "paraphrased from Leibold, Holyoak, Mouquet, Amarasekare, Chase, Hoopes, Holt, Shurin, Law, Tilman, Loreau & Gonzalez, Ecology Letters (2004)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "How Do Ecologists Actually Test These Paradigms?",
+    "items": [
+      "Variance partitioning: statistically decompose community composition variation into pure environmental, pure spatial, and shared environment-space components (using ordination + regression, e.g., RDA + Moran's eigenvector maps).",
+      "Reciprocal transplant / translocation experiments: test whether species perform better in their 'home' vs. 'away' environment.",
+      "Dispersal manipulation experiments: add or remove connectivity (corridors, active transport) and measure change in local richness/composition.",
+      "Comparative surveys across natural connectivity or environmental gradients (e.g., island distance series, stream networks).",
+      "Species abundance distribution and beta-diversity pattern fitting against neutral model null expectations."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Variance Partitioning",
+    "term": "Variance Partitioning",
+    "def": "A statistical technique that decomposes the variation in community composition among sites into components uniquely explained by environmental variables, uniquely explained by spatial variables, their shared/confounded portion, and unexplained residual variation.",
+    "bullets": [
+      "A large pure-environment fraction points toward species sorting; a large pure-space fraction with weak environment signal points toward neutral dynamics or patch dynamics; substantial shared environment+space variance is the classic mass-effects signature."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Distinguishing Mass Effects From Species Sorting in Practice",
+    "items": [
+      "Both can show environment-composition correlations, so environment alone doesn't distinguish them — look at whether SPACE also independently explains variance.",
+      "Mass effects predicts sink populations: individuals of a species present but with negative demographic performance (measure recruitment, survival, or fitness, not just presence).",
+      "Species sorting predicts that adding dispersal beyond a low threshold has no further effect; mass effects predicts continued increases in local richness with increasing dispersal.",
+      "Mass effects predicts a stronger distance-decay signature even after controlling for environmental distance; species sorting predicts distance-decay largely disappears once environment is controlled.",
+      "Manipulative removal of dispersal is the most decisive test: species sorting communities are robust to reduced dispersal, mass effects communities lose 'extra' sink species."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Classic Empirical Systems Used to Test the Paradigms",
+    "cards": [
+      {
+        "h": "Pond Zooplankton",
+        "p": "Cottenie & De Meester and colleagues used pond networks in Belgium to show mixed signatures — often environment-dominated (species sorting) but with detectable spatial/mass-effects signal in well-connected clusters."
+      },
+      {
+        "h": "Protist Microcosms",
+        "p": "Laboratory microcosm experiments (e.g., Cadotte, Loreau) directly manipulate dispersal rate and environmental heterogeneity, cleanly demonstrating transitions among paradigms under controlled conditions."
+      },
+      {
+        "h": "Stream Invertebrates",
+        "p": "Longitudinal connectivity along stream networks generates strong mass-effects signatures, since downstream drift constantly resupplies sink populations."
+      },
+      {
+        "h": "Tropical Trees (BCI)",
+        "p": "Hubbell's Barro Colorado Island data remain the touchstone case for testing neutral predictions against niche/environmental alternatives at large spatial scales."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Limitations and Critiques of the Four-Paradigm Framework",
+    "items": [
+      "The four paradigms were derived mostly from simple two-patch or homogeneous-landscape models; real landscapes have complex, hierarchical spatial structure not captured by the original models.",
+      "Categorizing an empirical system into one paradigm can be statistically ambiguous — variance partitioning results are sensitive to spatial scale, sampling design, and which environmental variables were measured.",
+      "The framework says little about how species INTERACTIONS (predation, mutualism, not just competition) shape metacommunity structure — it is heavily competition-centric.",
+      "Temporal dynamics and environmental change (rather than static heterogeneity) are not well incorporated in the original 2004 formulation.",
+      "Subsequent work (e.g., trait-based and process-based metacommunity frameworks, Leibold & Chase 2018 book) has revised and extended the typology while keeping its two core axes."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Beyond the Original Four: Where the Field Has Moved",
+    "items": [
+      "Leibold & Chase (2018), Metacommunity Ecology, reframe the four paradigms as combinations of a smaller set of underlying PROCESSES: selection (niche-based sorting), dispersal, drift, and speciation — echoing population genetics' four evolutionary forces.",
+      "This process-based view lets ecologists ask 'how much of each process operates here?' rather than forcing a system into one of four boxes.",
+      "Modern metacommunity models increasingly incorporate trophic structure (multiple interacting trophic levels dispersing across a landscape), not just competitors.",
+      "Network-based approaches now model realistic landscape connectivity (not just simple patch arrays), linking metacommunity theory to landscape ecology.",
+      "We will build on this process-based reframing next lecture when we discuss how metacommunity structure scales up to explain regional and continental diversity gradients."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Local Processes vs. Regional Processes: A Recap",
+    "left": {
+      "h": "Local (Within-Patch) Processes",
+      "body": "<ul><li>Resource competition, niche partitioning (Chs. 3–7)</li><li>Predation, keystone effects (Ch. 9–10)</li><li>Ecological drift within a site (Ch. 8)</li><li>Environmental filtering by local abiotic conditions</li></ul>"
+    },
+    "right": {
+      "h": "Regional (Among-Patch) Processes",
+      "body": "<ul><li>Dispersal rate and mode among patches</li><li>Environmental heterogeneity across the landscape</li><li>Patch connectivity/network structure</li><li>Regional species pool size and composition</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why This Matters for Conservation and Management",
+    "items": [
+      "Under species sorting, protecting environmental heterogeneity across a reserve network is key — dispersal corridors matter less once a threshold is met.",
+      "Under mass effects, corridors and connectivity are essential — removing them can eliminate species that persist only via sink populations.",
+      "Under patch dynamics, maintaining disturbance regimes and patch turnover is critical for regional coexistence of competitively unequal species.",
+      "Under neutral dynamics, regional species pool size and overall connectivity (not particular environmental targets) govern diversity maintenance.",
+      "Diagnosing which paradigm(s) best describe a target system BEFORE designing a reserve network avoids conservation actions that are ineffective or counterproductive."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Connecting Back to the Rest of the Course",
+    "items": [
+      "Ch. 8 (neutral theory) reappears here as the dispersal-limited, niche-equivalent end member — same math, now applied across a network of patches instead of one site.",
+      "Ch. 13 (patchy environments, fugitive species) reappears as patch dynamics — same competition-colonization logic, now generalized to an entire assemblage.",
+      "Niche theory (Chs. 3–7) reappears as species sorting and mass effects — the same environmental matching logic, now made explicitly spatial.",
+      "The metacommunity framework is therefore less a 'new theory' and more an organizing scaffold that shows how the tools you already have combine at a larger spatial scale.",
+      "This is why Ch. 14 sits near the end of the course: it requires and integrates almost everything that came before it."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Methodological Toolkit Recap",
+    "items": [
+      "Field surveys across environmental and spatial gradients, analyzed with variance partitioning (RDA/CCA + spatial eigenvectors).",
+      "Mesocosm and microcosm experiments manipulating dispersal rate and environmental heterogeneity directly (protist, zooplankton, plant systems).",
+      "Comparative studies across natural connectivity gradients (islands, ponds, stream reaches, habitat fragments).",
+      "Simulation models (patch-occupancy, individual-based, metacommunity simulation) used to generate quantitative predictions for each paradigm before testing against data.",
+      "Species abundance distribution and beta-diversity partitioning as an alternative, pattern-based line of evidence complementing process-based experiments."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Dispersal (in a metacommunity context)",
+    "term": "Dispersal (in a metacommunity context)",
+    "def": "The movement of individuals or propagules between local communities/patches, connecting otherwise independent local dynamics into a regional metacommunity.",
+    "bullets": [
+      "Dispersal rate is the single most important quantitative parameter distinguishing the four paradigms — too low and patches are effectively isolated; too high and the metacommunity behaves as one mixed community."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "A Worked Thought Experiment",
+    "items": [
+      "Imagine 20 identical ponds connected by occasional overland dispersal of aquatic beetles that all have similar niches but differ in colonization ability — expect PATCH DYNAMICS.",
+      "Now imagine those same 20 ponds vary strongly in pH and nutrient level, beetle species have distinct pH/nutrient optima, and dispersal is modest — expect SPECIES SORTING.",
+      "Keep the pH/nutrient heterogeneity but connect the ponds with a stream network allowing frequent movement — expect MASS EFFECTS, with sink populations appearing in unsuitable ponds.",
+      "Finally, imagine the beetles are all competitively and physiologically equivalent regardless of pond chemistry, with limited dispersal — expect NEUTRAL dynamics, composition driven by drift and distance.",
+      "The same 20 ponds, same beetle species pool — but four very different predicted patterns, depending only on niche differences and dispersal rate."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Four Paradigms, One Continuum",
+    "sub": "Setting up Lecture 36: from paradigm classification to explaining diversity gradients"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Summary: The Four Paradigms",
+    "items": [
+      "Patch Dynamics — identical patches, competition-colonization tradeoff, intermediate dispersal maintains regional coexistence of unequal competitors.",
+      "Species Sorting — heterogeneous patches, strong niche differences, dispersal only needs to exceed a minimal threshold; local composition tracks environment.",
+      "Mass Effects — heterogeneous patches, strong niche differences, HIGH dispersal creates source-sink subsidies that let species persist outside their niche optimum.",
+      "Neutral — species and patches functionally equivalent; composition governed by drift and dispersal limitation alone, independent of environment.",
+      "All four are idealized end members along two axes (niche differentiation, dispersal rate) — real metacommunities usually show a blend."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key Takeaways",
+    "items": [
+      "A metacommunity is a set of local communities linked by dispersal of multiple, potentially interacting species — the natural regional-scale extension of both community and metapopulation ecology.",
+      "The four-paradigm framework (Leibold et al. 2004) organizes decades of local (niche) and regional (spatial) theory into one testable scheme.",
+      "Dispersal rate and degree of niche differentiation are the two master variables; varying them moves a system smoothly among the four paradigms.",
+      "Paradigms are hypotheses to test with variance partitioning, transplant experiments, and dispersal manipulations — not fixed categories.",
+      "This framework sets up Lecture 36, where we ask how metacommunity structure scales up to explain large-scale patterns of diversity, including the local-regional richness relationship and diversity gradients."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Looking Ahead: Lecture 36",
+    "items": [
+      "Metacommunities II will build directly on today's framework to address: how does the local-regional richness relationship depend on which paradigm operates?",
+      "We will cover the saturating vs. proportional local-regional richness curves, and what each implies about the strength of local biotic limits on diversity.",
+      "We will connect metacommunity structure to spatial beta-diversity partitioning and large-scale diversity gradients (revisiting themes from earlier diversity lectures).",
+      "We will also discuss modern process-based reframings (selection, dispersal, drift, speciation) and how they generalize beyond the original four paradigms.",
+      "Come prepared having reviewed today's compare table — you will be asked to diagnose paradigm from data patterns in the next lecture's in-class exercise."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 35</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

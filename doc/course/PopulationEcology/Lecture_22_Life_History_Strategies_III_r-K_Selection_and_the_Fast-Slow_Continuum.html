@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 22: Life History Strategies III: r-K Selection and the Fast-Slow Continuum</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 22",
+    "title": "Life History Strategies III: r/K Selection and the Fast-Slow Continuum",
+    "sub": "From MacArthur & Wilson's classic dichotomy to the modern demographic view of life history variation",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 6 — Life History Strategies"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Where We've Been, Where We're Going",
+    "sub": "Recap of Lecture 21 and roadmap for today"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP — LECTURE 21",
+    "title": "Semelparity, Iteroparity, and Cole's Paradox",
+    "items": [
+      "<b>Semelparity:</b> one reproductive bout per lifetime, then death (e.g., Pacific salmon, century plants, annual weeds)",
+      "<b>Iteroparity:</b> repeated reproductive bouts across multiple seasons or years (e.g., most vertebrates, perennial plants)",
+      "<b>Cole's Paradox (1954):</b> naive models suggested a semelparous organism needs only one extra offspring to match the fitness of an iteroparous one — implying iteroparity should rarely evolve",
+      "Resolution: incorporating <b>realistic adult and juvenile survival</b> shows iteroparity is favored whenever adult survival is appreciable",
+      "Bet-hedging and environmental variability further favor spreading reproduction across time",
+      "Today we zoom out from single traits (semelparity vs. iteroparity) to <b>whole-organism strategies</b> — suites of correlated traits"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S ROADMAP",
+    "title": "What We'll Cover",
+    "items": [
+      "The classical <b>r/K selection theory</b> of MacArthur & Wilson (1967) and Pianka (1970)",
+      "How r/K theory connects back to <b>density-independent growth (r)</b> and <b>logistic growth/carrying capacity (K)</b> from Chapters 1–2",
+      "The classic textbook comparison: dandelions vs. elephants",
+      "Why r/K theory has been heavily <b>critiqued</b> and largely superseded",
+      "The modern <b>fast-slow life history continuum</b> — a demographic, comparative framework",
+      "Body size, phylogeny, and the fast-slow axis",
+      "Applied stakes: <b>extinction risk and conservation</b> for slow vs. fast species",
+      "Preview of Lecture 23: offspring size vs. number (Lack, Smith-Fretwell)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Classical r/K Selection Theory",
+    "sub": "MacArthur & Wilson (1967); Pianka (1970)"
+  },
+  {
+    "type": "term",
+    "eyebrow": "FOUNDATIONAL CONCEPT",
+    "title": "The Origins of r/K Selection",
+    "term": "r/K Selection Theory",
+    "def": "A theory proposing that the density of a population relative to its carrying capacity (K) determines which suite of life history traits is favored by natural selection.",
+    "bullets": [
+      "Introduced by Robert MacArthur and E.O. Wilson in <b>The Theory of Island Biogeography</b> (1967)",
+      "Popularized and elaborated by Eric Pianka (1970, \"On r- and K-Selection,\" American Naturalist)",
+      "Built directly on the <b>logistic growth equation</b>: dN/dt = rN(1 − N/K)",
+      "Named for the two parameters of that equation: <b>r</b> (intrinsic rate of increase) and <b>K</b> (carrying capacity)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THEORETICAL BASIS",
+    "title": "Recall: The Logistic Equation's Two Regimes",
+    "items": [
+      "When population density N is <b>far below K</b>, the (1 − N/K) term is close to 1 — growth is nearly exponential, governed almost entirely by <b>r</b>",
+      "When population density N is <b>near K</b>, growth slows sharply — competition for limited resources dominates, and success depends on efficiency, not raw growth rate",
+      "MacArthur & Wilson reasoned: selection acting on populations chronically kept <b>below K</b> (by disturbance, catastrophe, colonization) should favor genotypes that maximize <b>r</b>",
+      "Selection acting on populations that persist <b>near K</b> should favor genotypes that maximize competitive ability and persistence — i.e., are good <b>K-strategists</b>",
+      "This reframed Chapters 1–2's population-growth math as a source of <b>selective pressure on traits</b>, not just a description of numbers over time"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY DEFINITION",
+    "title": "r-Selection",
+    "term": "r-Selected Species",
+    "def": "Species favored by selection for traits that maximize the intrinsic rate of increase (r), typically in unstable, unpredictable, or disturbed environments where density rarely approaches K.",
+    "bullets": [
+      "Rapid development and early sexual maturity",
+      "Many small offspring per reproductive bout",
+      "Low investment per offspring; high offspring mortality",
+      "Short generation time and short lifespan",
+      "Often colonizing or opportunistic species"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY DEFINITION",
+    "title": "K-Selection",
+    "term": "K-Selected Species",
+    "def": "Species favored by selection for traits that succeed under crowded conditions near carrying capacity (K), typically in stable, predictable environments.",
+    "bullets": [
+      "Slow development and delayed sexual maturity",
+      "Few, large offspring per reproductive bout",
+      "High parental investment per offspring; higher offspring survival",
+      "Long generation time and long lifespan",
+      "Strong competitive ability; often territorial or resource-defending"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE CLASSIC COMPARISON",
+    "title": "r-Selected vs. K-Selected Traits",
+    "headers": [
+      "Trait",
+      "r-Strategist",
+      "K-Strategist"
+    ],
+    "rows": [
+      [
+        "Development rate",
+        "Rapid",
+        "Slow"
+      ],
+      [
+        "Age at maturity",
+        "Early",
+        "Delayed"
+      ],
+      [
+        "Lifespan",
+        "Short",
+        "Long"
+      ],
+      [
+        "Offspring number",
+        "Many",
+        "Few"
+      ],
+      [
+        "Offspring size / investment",
+        "Small, low investment",
+        "Large, high investment"
+      ],
+      [
+        "Reproductive events",
+        "Often semelparous",
+        "Often iteroparous"
+      ],
+      [
+        "Population regulation",
+        "Density-independent factors dominate",
+        "Density-dependent factors dominate"
+      ],
+      [
+        "Typical environment",
+        "Unstable, unpredictable, disturbed",
+        "Stable, predictable, crowded"
+      ],
+      [
+        "Competitive ability",
+        "Low",
+        "High"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CLASSIC EXAMPLES — r-STRATEGISTS",
+    "title": "Organisms Near the r End of the Spectrum",
+    "cards": [
+      {
+        "h": "Dandelions (Taraxacum)",
+        "p": "Rapid growth, wind-dispersed seeds produced in huge numbers, colonizes disturbed soil almost anywhere"
+      },
+      {
+        "h": "Weedy annual plants",
+        "p": "Fast life cycle, prolific seed production, thrive in disturbed or newly opened habitats"
+      },
+      {
+        "h": "Many insects (e.g., aphids, houseflies)",
+        "p": "Extremely short generation times, huge clutch/brood sizes, boom-bust population dynamics"
+      },
+      {
+        "h": "Bacteria and other microbes",
+        "p": "Minutes-to-hours generation times; classic exponential growth under favorable conditions"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CLASSIC EXAMPLES — K-STRATEGISTS",
+    "title": "Organisms Near the K End of the Spectrum",
+    "cards": [
+      {
+        "h": "Elephants",
+        "p": "Multi-year gestation, single calf, decades to sexual maturity, lifespan of 60–70 years, intense parental care"
+      },
+      {
+        "h": "Oak trees",
+        "p": "Decades to first reproduction, long lifespan (centuries), invests heavily in surviving competition and shade"
+      },
+      {
+        "h": "Albatrosses",
+        "p": "Delayed maturity (5–10+ years), single-egg clutches, long lifespan (>50 years), strong pair-bond investment"
+      },
+      {
+        "h": "Great apes",
+        "p": "Extended juvenile period, single offspring with years between births, intensive maternal investment"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "LINKING BACK",
+    "title": "r/K Theory as a Bridge Across the Course",
+    "left": {
+      "h": "Chapter 1 — Density-Independent Growth",
+      "body": "The exponential/geometric models (dN/dt = rN) describe growth unconstrained by density. r/K theory proposes that when populations actually experience this kind of unconstrained growth — after a disturbance, in a new habitat — selection favors traits that push r itself higher."
+    },
+    "right": {
+      "h": "Chapter 2 — Logistic Growth and K",
+      "body": "The logistic model (dN/dt = rN(1−N/K)) describes growth that slows as N approaches K. r/K theory proposes that populations chronically near K experience selection for traits that improve performance under crowding and resource limitation, not for raw growth rate."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HISTORICAL IMPACT",
+    "title": "Why r/K Theory Was So Influential",
+    "items": [
+      "Provided a simple, intuitive, <b>unifying framework</b> connecting population dynamics (Ch. 1–2) to life history evolution",
+      "Generated many testable predictions about which traits should co-occur",
+      "Widely taught for decades — became the default lens for thinking about life history variation",
+      "Applied broadly: island colonization, succession, invasive species, pest outbreaks, conservation planning",
+      "Still valuable today as a <b>conceptual entry point</b> and vocabulary — even though the strict theory has been largely revised"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Critiques of Classical r/K Theory",
+    "sub": "Why ecologists moved beyond the dichotomy"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CORE PROBLEMS",
+    "title": "Why r/K Selection Fell Out of Favor",
+    "items": [
+      "<b>It's a continuum, not a dichotomy:</b> real species fall along a gradient, and forcing them into two bins obscures more than it reveals",
+      "<b>Empirical support is mixed:</b> many predicted trait correlations do not hold up consistently across taxa when tested rigorously",
+      "<b>Conflates correlation with mechanism:</b> density-dependence is not the only — or even the primary — force shaping most observed trait correlations",
+      "<b>Ignores age-structure effects:</b> survival schedules and reproductive value at different ages matter more than a single density regime",
+      "<b>Doesn't account for bet-hedging:</b> some 'K-like' traits (e.g., iteroparity, small clutches) evolve as a hedge against unpredictable mortality, not competition near K",
+      "<b>Poor fit to some real systems:</b> e.g., some highly fecund species live in very stable environments, and vice versa"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CLOSER LOOK",
+    "title": "The Continuum Problem",
+    "left": {
+      "h": "The Dichotomy's Assumption",
+      "body": "Classical theory implicitly assumes each species can be assigned to one of two selective regimes — near K or far below K — with a matching, internally consistent trait package."
+    },
+    "right": {
+      "h": "What Data Actually Show",
+      "body": "Traits like offspring size, offspring number, maturation age, and lifespan often vary somewhat independently of one another, and species distribute continuously across trait space rather than clustering into two clouds."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BET-HEDGING PROBLEM",
+    "title": "Bet-Hedging Doesn't Fit the r/K Frame",
+    "items": [
+      "Bet-hedging traits (e.g., iteroparity, seed banking, variable offspring number) evolve to <b>reduce variance in fitness</b> across unpredictable years — not to maximize r or to compete near K",
+      "An organism could show 'r-like' fecundity and 'K-like' longevity simultaneously if bet-hedging is the dominant force, something the simple dichotomy cannot represent",
+      "Environmental <b>unpredictability</b> (variance in survival/reproduction), rather than density itself, is often the better predictor of life history traits",
+      "This was one of the key insights that helped push the field toward better demographic frameworks (see also Lecture 21's discussion of Cole's Paradox and iteroparity)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE AGE-STRUCTURE PROBLEM",
+    "title": "r/K Theory Ignores Age-Specific Vital Rates",
+    "items": [
+      "Classical r/K theory treats populations as if all individuals are ecologically equivalent",
+      "Real populations have <b>age-specific survival and fecundity schedules</b> (recall life tables, Ch. 5) that strongly shape which life histories are favored",
+      "Two species with identical 'r-selected' or 'K-selected' labels can have very different age structures and very different responses to perturbation",
+      "Modern life history theory instead asks: how do survival and fecundity <b>at each age</b> combine to determine fitness? This is a fundamentally more precise question than 'is this species near K?'"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "EMPIRICAL TESTS",
+    "title": "Mixed Support: A Closer Look at the Evidence",
+    "left": {
+      "h": "Cases That Fit",
+      "body": "Some comparisons align reasonably well with r/K predictions — e.g., pioneer weedy plants colonizing disturbed volcanic soil do show classic r-selected traits (rapid growth, prolific small seeds) compared to the late-successional K-selected trees that eventually replace them."
+    },
+    "right": {
+      "h": "Cases That Don't Fit",
+      "body": "Many experimental and comparative tests (e.g., in guppies, rodents, and insects) found that predicted trait packages did not consistently co-occur, or that variation in extrinsic mortality — not density — better explained the observed life histories."
+    },
+    "footnote": "Reznick, Bryant & Bashey (2002) explicitly reframed these results in terms of mortality-driven life history evolution rather than r/K selection"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AN ALTERNATIVE EXPLANATION",
+    "title": "Extrinsic Mortality as a Better Predictor",
+    "items": [
+      "A key alternative that emerged from these tests: life history traits track <b>extrinsic (age-independent) mortality risk</b> rather than density relative to K",
+      "High extrinsic mortality (e.g., heavy predation) favors early maturity and high reproductive effort — because waiting to reproduce is risky regardless of population density",
+      "Low extrinsic mortality favors delayed maturity and repeated reproduction, since individuals are likely to survive long enough to benefit from waiting",
+      "Classic guppy studies (Reznick and colleagues) manipulated predation risk experimentally and observed rapid evolutionary shifts in maturation age and reproductive allocation — <b>strong evidence for mortality-driven, not density-driven, selection</b>",
+      "This finding was a major contributor to the shift away from r/K theory and toward demographic-rate-based frameworks"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THE VERDICT FROM MODERN ECOLOGY",
+    "quote": "r- and K-selection theory, while historically important for stimulating research on life histories, has been largely abandoned by contemporary ecologists in favor of frameworks grounded directly in demographic rates.",
+    "attrib": "Paraphrased consensus of modern life history literature (e.g., Stearns 1992; Reznick et al. 2002)"
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "The Fast-Slow Life History Continuum",
+    "sub": "A demographic replacement for r/K selection"
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE MODERN FRAMEWORK",
+    "title": "Fast-Slow Continuum Defined",
+    "term": "Fast-Slow Life History Continuum",
+    "def": "An empirically derived axis of life history variation across species, based on covariation among demographic rates — reproductive rate, mortality rate, and generation time — rather than on a population's density relative to K.",
+    "bullets": [
+      "Identified through <b>comparative, multivariate analyses</b> of life history traits across many species (e.g., mammals, birds, reptiles, fish)",
+      "Consistently emerges as the <b>dominant axis of variation</b> in these datasets — a single continuum explains most of the variance among species",
+      "'Fast' and 'K' 'slow' species occupy opposite ends of this axis, much as in the old dichotomy — but the axis is derived from <b>data on demographic rates</b>, not assumed from density theory"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "FAST VS. SLOW",
+    "title": "The Fast-Slow Continuum: Defining Traits",
+    "headers": [
+      "Demographic Trait",
+      "Fast Life History",
+      "Slow Life History"
+    ],
+    "rows": [
+      [
+        "Reproductive rate",
+        "High",
+        "Low"
+      ],
+      [
+        "Age at first reproduction",
+        "Early",
+        "Late"
+      ],
+      [
+        "Lifespan",
+        "Short",
+        "Long"
+      ],
+      [
+        "Mortality rate",
+        "High",
+        "Low"
+      ],
+      [
+        "Generation time",
+        "Short",
+        "Long"
+      ],
+      [
+        "Parental investment per offspring",
+        "Low",
+        "High"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY DISTINCTION",
+    "title": "Fast-Slow ≠ r/K Selection",
+    "items": [
+      "Fast-slow is fundamentally <b>descriptive and comparative</b> — it summarizes how demographic rates covary across species in real data",
+      "r/K selection was fundamentally <b>mechanistic and predictive</b> — it proposed density relative to K as the causal selective force generating the pattern",
+      "The fast-slow continuum does <b>not require</b> that a species' position be caused by its density regime — many other factors (extrinsic mortality, resource availability, phylogenetic constraint) shape the axis",
+      "Fast-slow is agnostic about mechanism; researchers now separately investigate <b>why</b> a species sits where it does (extrinsic mortality theory, allometric constraints, etc.) rather than assuming density is the driver",
+      "In short: r/K asked 'what does density select for?' — fast-slow asks 'how do vital rates covary, empirically, across the tree of life?'"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE EVIDENCE BASE",
+    "title": "Comparative Studies Behind the Fast-Slow Axis",
+    "left": {
+      "h": "Mammals",
+      "body": "Multivariate analyses of mammalian life history traits (body size, litter size, gestation length, age at maturity, longevity) repeatedly recover a dominant fast-slow axis, often alongside a secondary axis related to body size and litter size trade-offs."
+    },
+    "right": {
+      "h": "Birds",
+      "body": "Comparative studies across bird families likewise find clutch size, age at first breeding, adult survival, and longevity strongly covarying along a single fast-slow gradient, from small short-lived passerines to large long-lived seabirds like albatrosses."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BODY SIZE AND PHYLOGENY",
+    "title": "Correlates of Position on the Fast-Slow Axis",
+    "items": [
+      "<b>Body size</b> is one of the strongest predictors: larger-bodied species tend strongly toward the <b>slow</b> end (elephants, whales, large raptors)",
+      "Smaller-bodied species tend toward the <b>fast</b> end (mice, small passerines, many insects), though body size and pace of life are correlated, not identical, axes",
+      "<b>Phylogeny</b> matters — closely related species tend to resemble each other in life history pace, reflecting shared physiological and developmental constraints",
+      "Metabolic rate scales with body size and helps explain part of the fast-slow pattern: smaller animals with higher mass-specific metabolic rates tend to have faster life histories",
+      "Even after controlling for body size statistically, a fast-slow axis remains detectable — so body size is a major correlate but not the sole explanation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODOLOGY NOTE",
+    "title": "How Ecologists Detect the Fast-Slow Axis",
+    "items": [
+      "Researchers compile <b>multi-species datasets</b> of demographic traits: body mass, litter/clutch size, gestation or incubation length, age at maturity, adult survival rate, maximum lifespan",
+      "These traits are analyzed using ordination methods such as <b>principal components analysis (PCA)</b> to find the major axes of covariation",
+      "Across mammals, birds, reptiles, and fish, the <b>first principal component</b> consistently aligns with a fast-slow gradient — capturing the largest share of variation in the dataset",
+      "A secondary axis often reflects body size / reproductive output trade-offs independent of pace of life",
+      "This statistical, cross-taxon consistency is what gives the fast-slow continuum much stronger empirical footing than the original r/K dichotomy"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MAPPING THE CONTINUUM",
+    "title": "Where Familiar Species Fall",
+    "cards": [
+      {
+        "h": "Fast — Field mouse",
+        "p": "Small body size, matures in weeks, large frequent litters, lifespan often <1 year in the wild"
+      },
+      {
+        "h": "Intermediate — White-tailed deer",
+        "p": "Moderate body size, matures in ~1–2 years, 1–3 offspring per year, lifespan 6–10+ years"
+      },
+      {
+        "h": "Slow — African elephant",
+        "p": "Huge body size, matures at 10–15 years, single calf every 3–5 years, lifespan 60–70 years"
+      },
+      {
+        "h": "Extreme slow — Bowhead whale / giant tortoise",
+        "p": "Very large body size or extreme longevity, extremely delayed maturity, very low annual mortality, lifespans exceeding a century"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Applications and Synthesis",
+    "sub": "Conservation implications and course integration"
+  },
+  {
+    "type": "term",
+    "eyebrow": "APPLIED CONCEPT",
+    "title": "Population Recovery Potential",
+    "term": "Maximum Sustainable Growth Rate (r_max)",
+    "def": "The highest achievable population growth rate for a species under ideal conditions — a direct demographic consequence of a species' position on the fast-slow continuum, and a key input to harvest and recovery models.",
+    "bullets": [
+      "Fast species have high r_max — populations can rebound quickly after a decline (e.g., many small fish, rodents)",
+      "Slow species have low r_max — even under ideal conditions, population growth after a decline is gradual (e.g., great whales, large sharks, elephants)",
+      "r_max sets an upper limit on sustainable harvest rates: harvesting faster than r_max drives a population toward decline",
+      "This directly operationalizes the fast-slow continuum for wildlife and fisheries management decisions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONSERVATION RELEVANCE",
+    "title": "Why the Fast-Slow Axis Matters for Management",
+    "items": [
+      "Position on the fast-slow continuum strongly predicts a population's <b>resilience to decline</b> and its recovery trajectory",
+      "<b>Slow species</b> (low reproductive rate, late maturity, long lifespan) recover very slowly once depleted — even modest additional mortality can drive long-term decline",
+      "<b>Fast species</b> (high reproductive rate, early maturity) can rebound quickly from population crashes if conditions improve, because their intrinsic rate of increase is high",
+      "This asymmetry has direct consequences for <b>fisheries management</b>, <b>hunting/harvest quotas</b>, and responses to <b>habitat loss</b>"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE COMPARISON",
+    "title": "Fisheries: Fast vs. Slow Species Under Harvest",
+    "left": {
+      "h": "Fast — Small Pelagic Fish (e.g., anchovy, sardine)",
+      "body": "High fecundity and short generation time allow populations to rebound within a few years even after steep harvest-driven declines, provided recruitment conditions are favorable."
+    },
+    "right": {
+      "h": "Slow — Sharks, Sturgeon, Rockfish",
+      "body": "Late maturity (often 10–20+ years), low fecundity, and long lifespan mean these species can be fished to near-collapse quickly and take decades — or fail — to recover even after harvest stops."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BROADER APPLIED EXAMPLES",
+    "title": "Fast-Slow Thinking Beyond Fisheries",
+    "items": [
+      "<b>Hunting/wildlife management:</b> large slow-reproducing mammals (elephants, rhinos, big cats) are disproportionately vulnerable to overharvest and poaching pressure",
+      "<b>Habitat loss:</b> slow species with long generation times respond to habitat degradation over decades, meaning population declines can be masked until it is very difficult to reverse — an 'extinction debt'",
+      "<b>Invasive species risk:</b> fast life histories are strongly associated with successful establishment and rapid spread following introduction",
+      "<b>Climate change vulnerability:</b> slow species have less capacity to adapt or shift ranges quickly across generations, compounding extinction risk",
+      "<b>Conservation prioritization frameworks</b> increasingly use fast-slow position (via demographic data) rather than r/K labels to assess extinction risk and set precautionary harvest limits"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "How the Two Frameworks Relate",
+    "items": [
+      "r/K selection theory correctly identified that life history traits <b>cluster along a major axis</b> — this core insight survives",
+      "What changed: the field replaced 'density relative to K causes this axis' with '<b>empirical covariation among vital rates</b> defines this axis, with multiple contributing causes'",
+      "The fast-slow continuum is the direct intellectual descendant of r/K theory — same basic gradient, better empirical grounding, no forced dichotomy",
+      "Modern life history theory also incorporates <b>extrinsic mortality</b>, <b>bet-hedging</b>, and <b>age-structured demography</b> — concepts that r/K theory could not accommodate",
+      "Vocabulary note: 'r-selected' and 'K-selected' remain common informal shorthand in casual usage, but 'fast' and 'slow' are now the preferred technical terms in the primary literature"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TERMINOLOGY CHECK",
+    "title": "Old Terms vs. New Terms",
+    "left": {
+      "h": "Classical (r/K) Vocabulary",
+      "body": "r-selected, K-selected, density-independent selection, density-dependent selection, r-strategist, K-strategist — tied conceptually to the logistic growth model and a species' position relative to carrying capacity."
+    },
+    "right": {
+      "h": "Modern (Fast-Slow) Vocabulary",
+      "body": "Fast life history, slow life history, pace of life, fast-slow axis, demographic rate covariation — tied to measured vital rates (fecundity, survival, maturation age, longevity) rather than to density theory."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "Things Students Often Get Wrong",
+    "items": [
+      "Misconception: 'r-selected' means 'has a high r value right now' — actually it refers to a suite of <b>evolved traits</b> favored historically by selection, not a current growth rate measurement",
+      "Misconception: all small animals are 'fast' and all large animals are 'slow' — body size is a strong correlate, not a perfect predictor (e.g., some large-bodied fish are relatively fast; some small-bodied bats are surprisingly slow for their size)",
+      "Misconception: semelparity always equals 'r-selected/fast' and iteroparity always equals 'K-selected/slow' — semelparous century plants live for years before their single reproductive event, showing these axes are related but not identical (see Lecture 21)",
+      "Misconception: the fast-slow continuum explains <b>why</b> a species evolved its strategy — it is primarily descriptive; mechanistic explanations (extrinsic mortality, resource availability) are a separate, ongoing area of research"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL HIERARCHY",
+    "title": "From Population Growth Models to Life History Theory",
+    "levels": [
+      {
+        "label": "Fast-Slow Continuum (modern synthesis)",
+        "color": "#2c7a7b",
+        "width": "260px"
+      },
+      {
+        "label": "r/K Selection Theory (classical framework)",
+        "color": "#3182ce",
+        "width": "340px"
+      },
+      {
+        "label": "Logistic Growth Model — K (Ch. 2)",
+        "color": "#4299e1",
+        "width": "420px"
+      },
+      {
+        "label": "Density-Independent Growth Model — r (Ch. 1)",
+        "color": "#63b3ed",
+        "width": "500px"
+      }
+    ],
+    "footnote": "Each layer builds conceptually on the one below it, culminating in today's demographic, comparative framework"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING THE WHOLE LIFE HISTORY UNIT",
+    "title": "How Chapter 6 Fits Together So Far",
+    "items": [
+      "<b>Lecture 20:</b> Introduced life history strategies broadly — trade-offs between growth, survival, and reproduction",
+      "<b>Lecture 21:</b> Semelparity vs. iteroparity, Cole's Paradox, and the role of adult survival in favoring repeated reproduction",
+      "<b>Lecture 22 (today):</b> Whole-organism strategy frameworks — r/K selection theory and its modern replacement, the fast-slow continuum",
+      "<b>Lecture 23 (next):</b> The offspring size vs. offspring number trade-off — how much to invest in each individual offspring"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A GUIDING PRINCIPLE",
+    "quote": "Life history traits do not evolve in isolation — they form integrated strategies shaped jointly by mortality schedules, resource availability, and evolutionary history.",
+    "attrib": "Core theme of modern life history theory (Stearns 1992; Roff 2002)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY CHECKPOINT",
+    "title": "Key Terms to Know",
+    "items": [
+      "r-selection, K-selection, r-strategist, K-strategist",
+      "Intrinsic rate of increase (r) and carrying capacity (K) as the theoretical roots of r/K theory",
+      "Density-dependent vs. density-independent selection",
+      "Fast-slow life history continuum",
+      "Pace of life",
+      "Bet-hedging (as a critique of r/K theory)",
+      "Extrinsic mortality (as a driver of fast-slow variation)",
+      "Extinction debt (in the context of slow species and habitat loss)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY CHECKPOINT",
+    "title": "Questions You Should Be Able to Answer",
+    "items": [
+      "Explain how the logistic growth equation's two parameters (r and K) gave rise to r/K selection theory",
+      "List the predicted trait differences between r-selected and K-selected species, and give two real examples of each",
+      "Give at least three specific critiques of classical r/K selection theory",
+      "Define the fast-slow continuum and explain how it differs conceptually from r/K selection (descriptive vs. mechanistic)",
+      "Explain why body size correlates with position on the fast-slow axis",
+      "Explain why slow species are more vulnerable to overharvest and habitat loss than fast species, using a concrete example"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "QUICK REFERENCE",
+    "title": "Summary: Three Frameworks Side by Side",
+    "headers": [
+      "Feature",
+      "r/K Selection",
+      "Fast-Slow Continuum"
+    ],
+    "rows": [
+      [
+        "Basis",
+        "Density relative to carrying capacity (K)",
+        "Covariation among measured demographic rates"
+      ],
+      [
+        "Structure",
+        "Dichotomy (two categories)",
+        "Continuum (single major axis)"
+      ],
+      [
+        "Origin",
+        "MacArthur & Wilson 1967; Pianka 1970",
+        "Comparative demographic analyses (multiple taxa, multiple studies)"
+      ],
+      [
+        "Mechanism claimed",
+        "Density-dependent vs. density-independent selection",
+        "Descriptive; mechanism studied separately (e.g., extrinsic mortality)"
+      ],
+      [
+        "Current status",
+        "Largely superseded, used informally",
+        "Dominant modern framework"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Recap and What's Next",
+    "sub": "Closing out life history strategy frameworks"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE RECAP",
+    "title": "Lecture 22 Summary",
+    "items": [
+      "r/K selection theory (MacArthur & Wilson 1967; Pianka 1970) proposed that a population's density relative to carrying capacity determines whether traits maximizing r or traits suited to life near K are favored",
+      "The theory drew directly on the density-independent (Ch. 1) and logistic (Ch. 2) growth models covered earlier in the course",
+      "Classic examples: dandelions, weeds, and many insects as r-strategists; elephants, oak trees, and albatrosses as K-strategists",
+      "r/K theory has been substantially critiqued: it forces a continuum into a dichotomy, has mixed empirical support, and ignores bet-hedging and age structure",
+      "The <b>fast-slow continuum</b> is the modern, empirically grounded replacement — a single major axis of demographic variation (reproductive rate, mortality, lifespan, maturation age) found consistently across taxa",
+      "Body size and phylogeny are strong correlates of position on the fast-slow axis",
+      "Fast vs. slow position has major applied consequences for conservation, fisheries, and hunting management — slow species recover far more slowly from population declines"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "LOOKING AHEAD",
+    "quote": "Having asked how fast or slow a species' whole life history runs, we turn next to a finer-grained question: within a single reproductive bout, how should limited resources be divided among offspring?",
+    "attrib": "Transition to Lecture 23"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW — LECTURE 23",
+    "title": "Next Time: Offspring Size vs. Offspring Number",
+    "items": [
+      "Final lecture of the Life History Strategies unit (Chapter 6)",
+      "Central question: given a fixed amount of reproductive investment, is it better to produce <b>many small offspring</b> or <b>few large offspring</b>?",
+      "<b>Lack's clutch size hypothesis:</b> optimal clutch size maximizes the number of surviving offspring, not the number laid",
+      "<b>Smith-Fretwell model:</b> a formal optimality model for offspring size vs. number trade-offs and how they depend on the relationship between offspring size and offspring fitness",
+      "This closes out Chapter 6 and sets up the transition to population interactions and community-level topics"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 22</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

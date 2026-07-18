@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 26: Interspecific Competition III: Resource Competition Theory and R-Star</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 26",
+    "title": "Interspecific Competition III: Resource Competition Theory and R*",
+    "sub": "A mechanistic alternative to Lotka-Volterra: modeling competition through shared limiting resources",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 7 — Interspecific Competition"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ROADMAP",
+    "title": "Where we are in Chapter 7",
+    "items": [
+      "<b>Lecture 24:</b> Foundations of interspecific competition — exploitation vs. interference, competitive exclusion principle",
+      "<b>Lecture 25:</b> The Lotka-Volterra competition model — isoclines, competition coefficients, four qualitative outcomes",
+      "<b>Lecture 26 (today):</b> Resource competition theory — R* — a mechanistic, resource-explicit alternative to Lotka-Volterra",
+      "<b>Lecture 27:</b> Mechanisms of coexistence — niche differentiation, character displacement, synthesis"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Why We Need Something Beyond Lotka-Volterra",
+    "sub": "The limits of a phenomenological model"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Lecture 25 in one slide: the Lotka-Volterra model",
+    "items": [
+      "Extends logistic growth to two species: dN₁/dt = r₁N₁[(K₁ − N₁ − α₁₂N₂)/K₁]",
+      "α₁₂ and α₂₁ are <b>competition coefficients</b> — the per-capita effect of species 2 on species 1's growth, and vice versa, in units of \"equivalent individuals\"",
+      "Zero-growth isoclines for each species can be plotted on an N₁ vs. N₂ graph",
+      "Four outcomes depending on isocline geometry: species 1 wins, species 2 wins, unstable coexistence (priority effects), or stable coexistence"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PROBLEM",
+    "title": "What Lotka-Volterra doesn't tell you",
+    "items": [
+      "The model is <b>phenomenological</b> — it describes the pattern of competition without specifying its cause or mechanism",
+      "α₁₂ and α₂₁ are fitted parameters, not measurable biological quantities — where do they actually come from?",
+      "The model is silent on <b>why</b> one species outcompetes another — what resource, behavior, or trait is actually driving the outcome?",
+      "K₁ and K₂ (carrying capacities) are themselves black boxes — set by resources, but the model never says which resources or how"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY LIMITATION",
+    "title": "Competition coefficients are hard to measure and interpret",
+    "term": "The α problem",
+    "def": "Competition coefficients must typically be estimated indirectly — by fitting population trajectories to the model — rather than measured directly from the biology of the organisms.",
+    "bullets": [
+      "Two species pairs can have identical α values for completely different biological reasons (shared food, shared predators, allelopathy, interference)",
+      "α is often assumed constant, but the true per-capita effect of one species on another can change with resource levels, density, or environmental conditions",
+      "Without knowing the mechanism, α values from one system cannot be generalized or predicted for another"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MOTIVATION",
+    "title": "What a better theory would need to do",
+    "items": [
+      "Ground competition in an <b>observable, measurable quantity</b> — not an abstract fitted coefficient",
+      "Explain <b>why</b> carrying capacity differs among species — link it to specific resources",
+      "Generate <b>testable, quantitative predictions</b> from independently measurable traits (e.g., growth rate as a function of resource concentration)",
+      "Extend naturally to communities with many species and many resources, not just pairwise comparisons"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THE SHIFT IN PERSPECTIVE",
+    "quote": "Rather than asking how much species affect each other directly, ask how each species performs as a function of the resource they both depend on.",
+    "attrib": "paraphrasing the logic of David Tilman's resource competition theory"
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Tilman's Resource Competition Theory",
+    "sub": "Competition as a consequence of resource-dependent growth"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BACKGROUND",
+    "title": "David Tilman and the origins of R* theory",
+    "items": [
+      "Developed by ecologist David Tilman beginning in the early 1980s, formalized in his 1982 book <i>Resource Competition and Community Structure</i>",
+      "Built on the idea that species compete <b>indirectly</b> — by consuming a shared resource down to different levels, not by directly interfering with one another",
+      "Grew out of experimental work with freshwater algae and diatoms competing for dissolved nutrients like silica and phosphorus",
+      "Reframes competition as a problem in population dynamics driven by resource supply and consumption, not abstract coefficients"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CORE IDEA",
+    "title": "Growth rate as a function of resource concentration",
+    "left": {
+      "h": "Lotka-Volterra approach",
+      "body": "Growth rate of species i depends on the population sizes of all competing species, scaled by fixed competition coefficients α. Resources are implicit, folded into K."
+    },
+    "right": {
+      "h": "Resource competition approach",
+      "body": "Growth rate of species i depends explicitly on the concentration R of a shared limiting resource. Each species has its own function relating growth rate to R, based on its physiology."
+    },
+    "footnote": "Both approaches can produce the same qualitative outcomes — but R* specifies the mechanism."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MECHANISM",
+    "title": "How resource competition actually plays out",
+    "items": [
+      "Each individual requires a resource (nutrient, light, water) to survive, grow, and reproduce",
+      "As a population grows, it draws the resource concentration down toward some minimum level",
+      "Birth rate increases with resource concentration; death rate is relatively constant (or resource-independent)",
+      "Population growth stops — reaches equilibrium — when birth rate equals death rate, which happens at a specific resource concentration for each species"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE CENTRAL CONCEPT",
+    "title": "The break-even resource concentration",
+    "term": "R*",
+    "def": "R* (\"R-star\") is the equilibrium resource concentration at which a species' birth rate exactly equals its death rate — the population's growth rate is zero.",
+    "bullets": [
+      "Below R*, the population's death rate exceeds its birth rate, and the population declines",
+      "Above R*, birth rate exceeds death rate, and the population grows, drawing the resource back down",
+      "R* is a species-specific trait, in principle measurable in monoculture, independent of any competitor"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW R* IS MEASURED",
+    "title": "Estimating R* in practice",
+    "items": [
+      "Grow a single species alone (monoculture) with a fixed, controlled supply of the limiting resource",
+      "Track the population until it reaches a stable equilibrium — the resource concentration stops declining",
+      "The resource concentration at that equilibrium is the species' R* for that resource",
+      "Because it uses only single-species data, R* avoids the need to fit competition coefficients from pairwise trials"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "The R* Rule and Its Graphical Logic",
+    "sub": "Why the lowest R* wins"
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE CENTRAL PREDICTION",
+    "title": "The rule that governs single-resource competition",
+    "term": "The R* Rule",
+    "def": "When two or more species compete for a single, shared, limiting resource, the species with the LOWEST R* will competitively exclude all others at equilibrium.",
+    "bullets": [
+      "The winning species can persist — maintain positive growth — even after drawing the resource down to a level too low for competitors to survive on",
+      "This is a form of competitive exclusion, but derived from resource physiology rather than an abstract competition coefficient",
+      "The rule assumes exploitative competition for one resource under equilibrium, well-mixed conditions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE LOGIC, STEP BY STEP",
+    "title": "Why the lowest-R* species wins",
+    "items": [
+      "Both species begin drawing down the shared resource as they grow",
+      "Resource concentration falls until it reaches the R* of whichever species has the HIGHER R* first",
+      "At that point, the higher-R* species' birth rate can no longer keep pace with death rate — its population begins to decline",
+      "The lower-R* species keeps growing (its break-even point hasn't been reached yet), pulling the resource down further",
+      "Resource concentration keeps falling until it settles at the lower R* — where the second species also can no longer persist"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE GRAPH",
+    "title": "Per-capita growth rate vs. resource concentration",
+    "left": {
+      "h": "The axes",
+      "body": "X-axis: resource concentration (R), increasing left to right. Y-axis: per-capita population growth rate (dN/N dt) for each species, plotted as a line."
+    },
+    "right": {
+      "h": "The key features",
+      "body": "Each species' line crosses zero growth at its own R* value. The species whose line crosses zero furthest to the LEFT (at lower R) is the superior competitor."
+    },
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE GRAPH",
+    "title": "Interpreting the two growth-rate curves",
+    "items": [
+      "Species A's line crosses zero at R*_A; Species B's line crosses zero at R*_B",
+      "If R*_A < R*_B, Species A can maintain positive growth at resource levels where Species B is already declining",
+      "As the shared resource is depleted toward R*_A, Species B's growth rate has already gone negative — it is losing the race",
+      "At equilibrium, resource concentration settles at R*_A; Species B's population trends to zero — competitive exclusion of B by A"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AN IMPORTANT NUANCE",
+    "title": "R* depends on the whole growth-vs-resource curve, not just one point",
+    "items": [
+      "The rule as stated applies at true equilibrium — transient dynamics before equilibrium can differ, especially with fluctuating resource supply",
+      "A species with a higher maximum growth rate can still lose if its R* is higher — high performance at rich resource levels does not guarantee success when resources run low",
+      "This is why R* is often a better predictor of long-term outcomes than early rates of increase",
+      "Environmental disturbance or pulsed resource supply can prevent the system from ever reaching the equilibrium the rule assumes"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Multiple Resources and Coexistence",
+    "sub": "When more than one thing is limiting"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND ONE RESOURCE",
+    "title": "What happens with two or more limiting resources?",
+    "items": [
+      "Real environments rarely offer only a single limiting resource — plants may need light AND nitrogen AND water; algae may need silica AND phosphorus AND nitrogen",
+      "R* theory extends naturally: each species has an R* value for EACH resource it depends on",
+      "If two species have different R* values for different resources, the outcome depends on which resource is limiting where, and in what ratio",
+      "This opens the door to <b>stable coexistence</b>, not just exclusion"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE EXTENSION",
+    "title": "Coexistence through resource specialization",
+    "term": "Resource-ratio hypothesis",
+    "def": "Two competing species can stably coexist if each is superior at acquiring a different limiting resource — that is, each has the lower R* for a different resource — and the ratio of resource supply favors each species in different parts of the habitat.",
+    "bullets": [
+      "Species A: lower R* for resource 1 (but higher R* for resource 2)",
+      "Species B: lower R* for resource 2 (but higher R* for resource 1)",
+      "Where the two resources are supplied in a ratio close to the trade-off point, both species can persist together at a stable equilibrium"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS MATTERS",
+    "title": "Resource ratios as a niche axis",
+    "items": [
+      "The ratio of two (or more) resources in the environment functions much like a niche axis in classical niche theory",
+      "Spatial or temporal variation in resource supply ratios can maintain multiple species across a landscape, even though no two species can coexist at any single point",
+      "This directly parallels the concept of niche differentiation — resource competition theory gives niche differentiation a concrete, measurable, mechanistic basis",
+      "Connects resource competition theory back to the broader theme of species coexistence that Lecture 27 will develop further"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "GRAPHICAL PICTURE",
+    "title": "Two resources, two species: zero net growth isoclines",
+    "left": {
+      "h": "Single resource",
+      "body": "Growth rate is a function of one resource axis; the lower-R* species always wins regardless of starting conditions — exclusion is inevitable."
+    },
+    "right": {
+      "h": "Two resources",
+      "body": "Each species has a zero-growth isocline in 2D resource space (like an L-shaped curve). Where these isoclines cross and resource supply falls in the right zone, stable coexistence is possible."
+    },
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Empirical Tests of R* Theory",
+    "sub": "From algae to grasslands"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CLASSIC SYSTEM",
+    "title": "Tilman's freshwater algae and diatom experiments",
+    "items": [
+      "Tilman tested R* predictions using freshwater diatoms (e.g., <i>Asterionella formosa</i> and <i>Cyclotella meneghiniana</i>) competing for silica (SiO₂) and phosphorus",
+      "Each species was grown alone in chemostats (continuous-flow culture vessels) to measure its R* for each nutrient independently",
+      "Predictions from single-species R* values were then tested against outcomes when the species were grown together in competition"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "cards",
+    "eyebrow": "KEY RESULTS",
+    "title": "What the diatom experiments showed",
+    "cards": [
+      {
+        "h": "Silica-limited trials",
+        "p": "The diatom species with the lower R* for silica consistently drove the resource down and excluded the competitor, matching the R* prediction."
+      },
+      {
+        "h": "Phosphorus-limited trials",
+        "p": "Rankings could reverse under phosphorus limitation — a different species had the lower R* for phosphorus, and it won instead."
+      },
+      {
+        "h": "Two-resource trials",
+        "p": "When both nutrients were supplied together at intermediate ratios, and each species had the lower R* for a different nutrient, stable coexistence was observed — matching the resource-ratio prediction."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS EVIDENCE MATTERS",
+    "title": "Quantitative, mechanistic confirmation",
+    "items": [
+      "The predictions were made BEFORE the competition experiments, using only independently measured single-species R* values — a genuinely predictive test, not a post-hoc fit",
+      "The outcomes matched R* predictions closely across multiple nutrient supply ratios",
+      "This was a major validation that resource-based competition theory could predict community outcomes from measurable physiological traits",
+      "Considered one of the most rigorous experimental confirmations of a competition theory in ecology"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND ALGAE",
+    "title": "Extending R* theory to terrestrial plants",
+    "items": [
+      "Tilman and colleagues extended the approach to grassland plant competition, focusing on soil nitrogen as the key limiting resource",
+      "Studies at the Cedar Creek Ecosystem Science Reserve (Minnesota) tested how plant species differ in their ability to draw down soil nitrogen",
+      "Species that reduced soil nitrogen to lower levels in monoculture tended to be superior competitors in mixed plantings, consistent with R* predictions",
+      "Light competition was also incorporated — plants compete simultaneously for below-ground nutrients and above-ground light, another example of multi-resource competition"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NUANCE FROM THE FIELD",
+    "title": "Where predictions get more complicated",
+    "items": [
+      "Field systems are rarely at the clean equilibrium the theory assumes — disturbance, seasonality, and herbivory complicate resource dynamics",
+      "Spatial heterogeneity in resource supply can allow coexistence that a simple single-patch R* model would not predict",
+      "Trade-offs beyond pure resource acquisition (e.g., tolerance of low resources vs. maximum growth rate) can modify outcomes",
+      "Despite these complications, R* remains one of the better single predictors of long-term competitive dominance in many plant and algal systems"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "R* Theory vs. Lotka-Volterra",
+    "sub": "Two frameworks, complementary lenses"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SIDE BY SIDE",
+    "title": "R* theory and Lotka-Volterra compared",
+    "headers": [
+      "Feature",
+      "Lotka-Volterra model",
+      "R* / resource competition theory"
+    ],
+    "rows": [
+      [
+        "Basis of competition",
+        "Abstract competition coefficients (α)",
+        "Explicit shared limiting resource(s)"
+      ],
+      [
+        "Type of model",
+        "Phenomenological (descriptive)",
+        "Mechanistic (causal)"
+      ],
+      [
+        "Key parameters",
+        "α₁₂, α₂₁, K₁, K₂ — fitted from population data",
+        "R* per species per resource — measured in monoculture"
+      ],
+      [
+        "Predicts exclusion when...",
+        "Isoclines don't cross, or cross unstably",
+        "Species compete for one resource; lower R* wins"
+      ],
+      [
+        "Predicts coexistence when...",
+        "Intraspecific effects exceed interspecific effects",
+        "Species differ in R* across multiple resources (resource ratio)"
+      ],
+      [
+        "Empirical measurability",
+        "Difficult — α often inferred indirectly",
+        "More direct — R* measurable via chemostat/monoculture growth"
+      ],
+      [
+        "Best suited to",
+        "General, system-agnostic qualitative predictions",
+        "Systems with identifiable, measurable limiting resources"
+      ]
+    ],
+    "footnote": "Both frameworks agree on the qualitative rule: exclusion without differentiation, coexistence with sufficient niche/resource differentiation."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW THE TWO MODELS RELATE",
+    "title": "Complementary, not contradictory",
+    "items": [
+      "Lotka-Volterra and R* theory make the same broad qualitative predictions about when exclusion vs. coexistence occurs",
+      "R* can be thought of as providing a <b>mechanistic derivation</b> of what the Lotka-Volterra competition coefficients represent biologically",
+      "In fact, under certain assumptions, α values in the Lotka-Volterra model can be mathematically derived from resource uptake and R* parameters",
+      "Choosing between them is often a matter of what data are available: use Lotka-Volterra when only population trajectories are known; use R* when resource dynamics can be measured directly"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "STRENGTHS AND LIMITS",
+    "title": "What each model does well",
+    "left": {
+      "h": "Lotka-Volterra strengths",
+      "body": "Simple, general, applicable even when the mechanism of competition (resource, interference, etc.) is unknown or difficult to measure. Useful for broad qualitative predictions and teaching core concepts."
+    },
+    "right": {
+      "h": "R* strengths",
+      "body": "Grounded in measurable physiological traits; generates quantitative, falsifiable, a priori predictions; extends naturally to multi-resource systems and explains WHY carrying capacities differ."
+    },
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LIMITATIONS OF R* THEORY ITSELF",
+    "title": "R* theory is not a universal solution either",
+    "items": [
+      "Assumes competition is purely exploitative (via resource depletion) — does not capture interference competition, allelopathy, or direct aggression well",
+      "Requires identifying and measuring the actual limiting resource(s), which can be difficult in complex, multi-resource natural systems",
+      "Assumes equilibrium dynamics; many natural populations are frequently disturbed and may rarely reach a stable resource equilibrium",
+      "Originally developed for organisms with simple resource requirements (algae, plants); extending it to animals with complex diets and behaviors is less straightforward"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Applications of Resource Competition Theory",
+    "sub": "From lakes to farms"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLICATION 1",
+    "title": "Plant community assembly",
+    "items": [
+      "R* theory helps explain which plant species dominate under particular soil nutrient and light regimes",
+      "Predicts that soils with different nutrient supply ratios (e.g., high N: low P vs. low N: high P) will favor different dominant species",
+      "Provides a mechanistic basis for understanding successional change as resource availability shifts over time",
+      "Informs restoration ecology: manipulating resource supply (e.g., adding or removing nutrients) can be used to favor desired plant species"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLICATION 2",
+    "title": "Algal bloom dynamics and eutrophication",
+    "items": [
+      "Nutrient pollution (especially phosphorus and nitrogen runoff) changes resource supply ratios in lakes and coastal waters",
+      "R* theory predicts which algal or cyanobacterial species will dominate under a given nutrient regime — often species with very low R* for the now-abundant nutrient",
+      "Helps explain why nutrient pollution frequently favors bloom-forming, sometimes toxic, cyanobacteria over more benign phytoplankton",
+      "Directly informs water-quality management: reducing a specific limiting nutrient can shift competitive dominance away from harmful bloom species"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLICATION 3",
+    "title": "Agricultural weed management",
+    "items": [
+      "Crop-weed competition can be understood through R* — which species draws critical resources (water, nitrogen, light) down further",
+      "Fertilization strategy can shift competitive balance: adding a resource can favor whichever competitor is more limited by that resource",
+      "Cover cropping and intercropping strategies can be designed around resource partitioning principles drawn from resource-ratio theory",
+      "Understanding R* for weeds vs. crops helps optimize resource management (irrigation, fertilizer timing) to favor crop dominance"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SUMMARY OF APPLICATIONS",
+    "title": "Where R* theory earns its keep",
+    "cards": [
+      {
+        "h": "Community ecology",
+        "p": "Explains species sorting along resource-supply gradients and successional dynamics in plant communities."
+      },
+      {
+        "h": "Aquatic ecosystems",
+        "p": "Predicts phytoplankton community shifts and harmful algal blooms under changing nutrient loads."
+      },
+      {
+        "h": "Applied/agricultural",
+        "p": "Guides fertilization, irrigation, and planting strategies to manage crop-weed competition."
+      },
+      {
+        "h": "Conservation & restoration",
+        "p": "Informs resource manipulation strategies to favor target species or suppress invasives."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8",
+    "title": "Synthesis and Recap",
+    "sub": "Tying Lecture 25 and Lecture 26 together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP: LECTURE 25",
+    "title": "The Lotka-Volterra model, revisited",
+    "items": [
+      "Extended logistic growth to two competing species using competition coefficients α₁₂ and α₂₁",
+      "Zero-growth isoclines on an N₁–N₂ plot summarize each species' equilibrium conditions",
+      "Four possible outcomes depending on isocline geometry: species 1 always wins, species 2 always wins, unstable coexistence (priority effects), stable coexistence",
+      "Powerful for qualitative predictions, but α is abstract and not easily tied to underlying biology"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP: LECTURE 26",
+    "title": "Resource competition theory and R*, revisited",
+    "items": [
+      "Tilman's theory reframes competition as resource-driven: growth rate as an explicit function of resource concentration",
+      "R* = the break-even resource concentration where birth rate equals death rate for a species",
+      "The R* rule: for one shared limiting resource, the species with the lowest R* wins — competitive exclusion via resource depletion",
+      "With multiple resources, differing R* values across resources allow stable coexistence — the resource-ratio hypothesis"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "Two lenses, one underlying truth",
+    "items": [
+      "Lotka-Volterra and R* theory converge on the same core insight: exclusion happens without sufficient differentiation; coexistence requires it",
+      "Lotka-Volterra tells you WHETHER species can coexist from population-level parameters; R* tells you WHY, in terms of resource physiology",
+      "Tilman's empirical work with algae and grasslands provided some of the strongest experimental support in ecology for a quantitative competition theory",
+      "Both frameworks set the stage for the deeper question of Lecture 27: what specific biological mechanisms generate the niche differentiation that allows coexistence?"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Two questions to test the R* rule",
+    "left": {
+      "h": "Question 1",
+      "body": "Species X has R* = 2 μM phosphorus; Species Y has R* = 5 μM phosphorus. If phosphorus is the sole limiting resource, which species wins, and what happens to phosphorus concentration at equilibrium?"
+    },
+    "right": {
+      "h": "Question 2",
+      "body": "Species X has the lower R* for nitrogen but the higher R* for light; Species Y is the reverse. Under what condition can both species coexist?"
+    },
+    "footnote": "Answers: (1) Species X wins; phosphorus settles near 2 μM, too low for Y to persist. (2) Coexistence is possible if the supply ratio of nitrogen to light favors each species in different microsites or times, per the resource-ratio hypothesis."
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL HIERARCHY",
+    "title": "From competitive exclusion to coexistence",
+    "levels": [
+      {
+        "label": "One resource, no differentiation → exclusion (lowest R* wins)",
+        "color": "#7a2e2e",
+        "width": "460px"
+      },
+      {
+        "label": "Multiple resources, some differentiation → possible coexistence",
+        "color": "#8a5a2e",
+        "width": "360px"
+      },
+      {
+        "label": "Strong resource-ratio differentiation → stable coexistence",
+        "color": "#2e6e5a",
+        "width": "260px"
+      },
+      {
+        "label": "Full niche differentiation → robust, stable community structure",
+        "color": "#2e4e8a",
+        "width": "160px"
+      }
+    ],
+    "footnote": "This hierarchy previews the coexistence mechanisms explored in Lecture 27."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TERMS FROM TODAY",
+    "title": "Vocabulary checklist",
+    "items": [
+      "<b>Resource competition theory (R* theory)</b> — Tilman's mechanistic model of competition via shared limiting resources",
+      "<b>R*</b> — the break-even resource concentration at which birth rate equals death rate",
+      "<b>R* rule</b> — the species with the lowest R* excludes competitors for a single shared limiting resource",
+      "<b>Resource-ratio hypothesis</b> — coexistence is possible when species differ in R* across multiple resources, matched to spatial/temporal variation in resource supply ratios",
+      "<b>Chemostat</b> — continuous-flow culture apparatus used to measure R* experimentally under controlled resource supply"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "section",
+    "tag": "UP NEXT",
+    "title": "Lecture 27 Preview",
+    "sub": "Mechanisms of coexistence and synthesis of the competition unit"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP: LECTURE 27",
+    "title": "Interspecific Competition IV: Coexistence Mechanisms and Synthesis",
+    "items": [
+      "Deep dive into <b>niche differentiation</b> — how species partition resources, space, and time to reduce competitive overlap",
+      "<b>Character displacement</b> — evolutionary divergence in competing species' traits as a response to (and reducer of) competition",
+      "Integrating Lotka-Volterra, R* theory, and niche theory into a unified conceptual framework for understanding coexistence",
+      "Closing synthesis of the full Interspecific Competition unit (Lectures 24–27), setting up the transition to predator-prey dynamics in Chapter 8"
+    ],
+    "footnote": null
+  },
+  {
+    "type": "quote",
+    "eyebrow": "LOOKING AHEAD",
+    "quote": "Knowing that the lowest-R* species wins tells us the outcome — the next question is how so many species manage to avoid that outcome in nature at all.",
+    "attrib": "framing question for Lecture 27"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 26</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

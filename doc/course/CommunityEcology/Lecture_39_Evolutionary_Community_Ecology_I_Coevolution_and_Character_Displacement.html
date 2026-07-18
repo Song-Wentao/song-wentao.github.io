@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 39: Evolutionary Community Ecology I: Coevolution and Character Displacement</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 39",
+    "title": "Evolutionary Community Ecology I: Coevolution and Character Displacement",
+    "sub": "When evolution and ecology run on the same clock",
+    "footnote": "Mittelbach & McGill, Community Ecology, 2nd ed., Ch. 16 (part 1 of 2)"
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Merging Ecology and Evolution",
+    "sub": "From evolution as backdrop to evolution as ecological process"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why bring evolution into community ecology?",
+    "items": [
+      "Classic community ecology often treats species traits as fixed — competition coefficients, niche positions, and interaction strengths are given, not evolving",
+      "But traits are products of natural selection acting within a community context, and selection can act fast",
+      "If evolution occurs on ecological timescales, community structure and species evolution become tangled, reciprocal processes",
+      "This lecture and the next ask: how do species interactions drive evolutionary change, and how does that evolutionary change feed back into community structure?",
+      "Today's focus: eco-evolutionary dynamics, character displacement, and coevolution; next lecture: evolution of diversity and niches at larger scales"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Eco-evolutionary dynamics",
+    "term": "Eco-evolutionary dynamics",
+    "def": "Reciprocal, often rapid interplay between ecological processes (population dynamics, species interactions, community assembly) and evolutionary processes (trait change via natural selection), occurring on comparable, observable timescales.",
+    "bullets": [
+      "Contrasts with the traditional assumption that evolution is too slow to matter for ecological patterns observed over years to decades."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The old assumption vs. the new synthesis",
+    "items": [
+      "Traditional view: ecological time (days to years) and evolutionary time (thousands to millions of years) are separable — ecologists study the former, evolutionary biologists the latter",
+      "Growing evidence: heritable trait change can occur within a few generations under strong selection",
+      "Rapid evolution can alter population growth rates, competitive outcomes, predator-prey cycles, and even ecosystem processes",
+      "Community ecologists now must ask not just 'who interacts with whom' but 'how do those interactions change the traits of the interactors, and how fast?'"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Evidence that evolution can be fast",
+    "cards": [
+      {
+        "h": "Trinidadian guppies",
+        "p": "Guppies moved from high-predation to low-predation streams evolve later maturity, larger size, and altered color pattern within 4–12 generations (Reznick & Endler)."
+      },
+      {
+        "h": "Threespine stickleback",
+        "p": "Marine stickleback colonizing freshwater lakes lose armor plating and pelvic spines within decades, tracking reduced predation and different physical demands."
+      },
+      {
+        "h": "Darwin's finches (Daphne Major)",
+        "p": "Beak depth in Geospiza fortis shifted measurably within a single generation following the 1977 drought (Grant & Grant, decades-long study)."
+      },
+      {
+        "h": "Soapberry bugs",
+        "p": "Beak length evolved to match the fruit size of an introduced host plant within about 20–50 years of host shift (Carroll & Boyd)."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Two views of the ecology–evolution relationship",
+    "left": {
+      "h": "Evolution as backdrop",
+      "body": "<ul><li>Traits are essentially static over ecological study periods</li><li>Community patterns explained solely by current trait values and environment</li><li>Feedback from ecology to evolution ignored or assumed negligible</li><li>Appropriate when generation times are long relative to study duration</li></ul>"
+    },
+    "right": {
+      "h": "Eco-evolutionary dynamics",
+      "body": "<ul><li>Traits can change appreciably within the timeframe of an ecological study</li><li>Trait change alters population and community dynamics in real time</li><li>Ecological change (e.g., new competitor, predator, resource) then reshapes selection pressures — a feedback loop</li><li>Requires integrating quantitative genetics, natural selection, and population/community dynamics</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Character Displacement",
+    "sub": "Evolutionary divergence driven by species interactions"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Character displacement",
+    "term": "Character displacement",
+    "def": "Evolutionary divergence in a trait (e.g., body size, beak shape) between two species where they co-occur, relative to where they occur alone, driven by selection to reduce costly interactions such as competition or hybridization.",
+    "bullets": [
+      "Coined by William Brown and E.O. Wilson (1956); one of the most direct lines of evidence for interspecific interactions shaping phenotypic evolution."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Brown & Wilson's (1956) criteria for character displacement",
+    "items": [
+      "Two closely related, ecologically similar species overlap geographically in part of their ranges and are allopatric (non-overlapping) elsewhere",
+      "Where sympatric, the species differ more strongly in the trait than where allopatric ('divergence in sympatry')",
+      "The trait difference is presumed to reduce competition (resource use) or reproductive interference (hybridization)",
+      "Pattern alone is suggestive; demonstrating process requires showing the trait affects fitness via the interaction, not just correlated with sympatry",
+      "Subsequent work (e.g., Schluter & McPhail 1992) proposed rigorous statistical/experimental tests to distinguish true character displacement from alternative explanations"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Classic Case 1",
+    "title": "Darwin's Finches",
+    "sub": "Beak size divergence on the Galápagos"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Geospiza fortis and G. fuliginosa on the Galápagos",
+    "items": [
+      "On islands where both species co-occur (sympatry), their beak sizes diverge — G. fortis evolves larger beaks, G. fuliginosa smaller",
+      "On islands where only one species is present (allopatry), that species has an intermediate beak size",
+      "Beak size determines which seeds a finch can efficiently crack — divergence reduces dietary overlap and competition for shared seed resources",
+      "Peter and Rosemary Grant's decades of work on Daphne Major turned this classic pattern into a study of process, tracking selection episode by episode",
+      "Confirms both parts of Brown & Wilson's criteria: divergence in sympatry, and a plausible resource-competition mechanism"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "Grant & Grant: watching character displacement happen",
+    "items": [
+      {
+        "y": "1973",
+        "t": "Long-term study of Geospiza fortis and G. scandens begins on Daphne Major"
+      },
+      {
+        "y": "1977",
+        "t": "Severe drought eliminates small, soft seeds; large-beaked birds survive better — strong directional selection for larger beak/body size"
+      },
+      {
+        "y": "1982-83",
+        "t": "El Niño floods favor small seeds; selection reverses toward smaller beak size"
+      },
+      {
+        "y": "2004-05",
+        "t": "Drought coincides with arrival of the larger-beaked G. magnirostris as a competitor"
+      },
+      {
+        "y": "2004-06",
+        "t": "G. fortis beak size shifts sharply smaller — character displacement documented in real time as a response to a new competitor"
+      },
+      {
+        "y": "Ongoing",
+        "t": "Study demonstrates rapid, fluctuating, and interaction-driven selection over <50 years — an eco-evolutionary dynamic"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Selection episodes on Daphne Major",
+    "cards": [
+      {
+        "h": "Drought (1977)",
+        "p": "Small seed supply crashes; only large, tough seeds remain. Large-beaked G. fortis survive at higher rates — classic directional selection."
+      },
+      {
+        "h": "Competitor arrival (2004)",
+        "p": "Large-beaked G. magnirostris establishes and depletes large seeds during a subsequent drought, flipping selection toward smaller beaks in G. fortis — displacement in action."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Classic Case 2",
+    "title": "Anolis Lizards",
+    "sub": "Body size and limb divergence in Caribbean anoles"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Character displacement in Anolis",
+    "items": [
+      "Caribbean Anolis lizards repeatedly evolved into a predictable set of habitat specialists ('ecomorphs': trunk-ground, trunk-crown, twig, crown-giant, etc.) on different islands",
+      "Where two similar-sized Anolis species co-occur, body size and perch-height use diverge more than expected from single-island (allopatric) populations",
+      "Divergence reduces competition for structural habitat and prey resources by partitioning the vertical and horizontal space of vegetation",
+      "Body size shifts have been documented within a few generations following experimental introductions of a competitor onto small islands (Losos and colleagues)",
+      "Because ecomorphs evolved independently on different islands (convergent evolution), Anolis is also a key case study for adaptive radiation, connecting character displacement to the origin of diversity (a theme in Lecture 40)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Two flavors of character displacement",
+    "left": {
+      "h": "Ecological (competitive) character displacement",
+      "body": "<ul><li>Divergence driven by interspecific competition for shared resources</li><li>Reduces niche/resource overlap, lowering competitive exclusion risk</li><li>Classic examples: finch beak size, Anolis body size/perch height</li><li>Predicted trait: resource-use traits (bill size, jaw morphology, body size)</li></ul>"
+    },
+    "right": {
+      "h": "Reproductive character displacement",
+      "body": "<ul><li>Divergence driven by selection against costly hybridization or wasted mating effort between species</li><li>Increases pre-mating reproductive isolation (mate recognition signals)</li><li>Classic examples: mating call frequency in frogs, flower color/timing, cuticular hydrocarbons in insects</li><li>Predicted trait: signaling/recognition traits (song, color, pheromones, genitalia)</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Reproductive character displacement",
+    "term": "Reproductive character displacement",
+    "def": "Divergence in mate-recognition traits between closely related species in sympatry, driven by selection against maladaptive hybridization or reproductive interference, resulting in greater trait differences where the species co-occur than where they occur alone.",
+    "bullets": [
+      "Also called 'reinforcement' when it strengthens pre-zygotic isolation between populations capable of producing unfit hybrids."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Ecological vs. reproductive character displacement",
+    "headers": [
+      "Feature",
+      "Ecological (competitive)",
+      "Reproductive"
+    ],
+    "rows": [
+      [
+        "Selective agent",
+        "Interspecific resource competition",
+        "Costly hybridization / mating errors"
+      ],
+      [
+        "Typical traits",
+        "Body size, beak/jaw shape, foraging morphology",
+        "Mating signals: song, color, pheromones"
+      ],
+      [
+        "Fitness cost avoided",
+        "Reduced resource intake, starvation risk",
+        "Wasted reproduction, unfit hybrid offspring"
+      ],
+      [
+        "Expected pattern",
+        "Trait divergence in sympatry vs. allopatry",
+        "Signal divergence in sympatry vs. allopatry"
+      ],
+      [
+        "Classic example",
+        "Darwin's finch beak size",
+        "Anuran (frog) mating call divergence"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Distinguishing pattern from process — cautions",
+    "items": [
+      "A sympatry–allopatry trait difference could arise from something other than in-situ evolutionary divergence",
+      "Alternative explanation 1: species sorting — only sufficiently divergent populations can coexist stably; similar ones exclude each other (no evolution required)",
+      "Alternative explanation 2: environmental correlation — sympatric sites simply differ in resources/environment for reasons unrelated to competition",
+      "Rigorous tests require: multiple independent sympatric/allopatric replicates, a demonstrated fitness function linking the trait to the resource/mate interaction, and ideally experimental manipulation (e.g., adding/removing a competitor)",
+      "Schluter & McPhail's stickleback work and the Grants' finch work remain gold-standard because they combine pattern, mechanism, and (in the finch case) direct observation of change"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "Character displacement provides some of the best evidence we have that species interactions leave a permanent evolutionary signature — but only when we can rule out the ghost of competition past.",
+    "attrib": "paraphrased from Schluter (2000), The Ecology of Adaptive Radiation"
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Coevolution",
+    "sub": "Reciprocal evolutionary change between interacting species"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Coevolution",
+    "term": "Coevolution",
+    "def": "An evolutionary change in a trait of one species in response to a trait of a second species, followed by an evolutionary response in the second species to the change in the first (Janzen 1980's strict definition requires this reciprocal, specific back-and-forth).",
+    "bullets": [
+      "Janzen (1980) warned against loosely calling any co-occurring adaptation 'coevolution' without evidence of reciprocal, specific selection."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Modes of coevolution",
+    "items": [
+      "Pairwise (specific) coevolution — reciprocal adaptation between two specific, tightly interacting species (e.g., a single plant and its specialist pollinator)",
+      "Diffuse coevolution — a species' traits are shaped by, and shape, an entire guild of interacting species rather than one partner (e.g., a plant defended against a suite of herbivores)",
+      "Escape-and-radiate coevolution — a lineage evolves a novel defense, escapes its enemies, diversifies; enemies eventually evolve counter-adaptations and diversify in turn (Ehrlich & Raven's classic plant-butterfly model)",
+      "Antagonistic coevolution — interactions with net negative fitness effect on one partner (predator-prey, host-parasite, plant-herbivore)",
+      "Mutualistic coevolution — interactions with net positive fitness effects for both partners (pollination, seed dispersal, cleaning symbioses)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Antagonistic Coevolution",
+    "title": "Predator-Prey Arms Races",
+    "sub": "Revisited from a coevolutionary lens"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The rough-skinned newt and garter snake arms race",
+    "items": [
+      "Rough-skinned newts (Taricha granulosa) produce tetrodotoxin (TTX), an extremely potent neurotoxin, in their skin",
+      "Garter snakes (Thamnophis sirtalis) that prey on the newts have evolved resistance via mutations in the sodium channel genes TTX targets",
+      "In populations with highly toxic newts, snakes show correspondingly high resistance — a geographic match, but resistance is metabolically costly (reduced crawl speed)",
+      "This is the textbook 'arms race': escalating offense (toxin) and defense (resistance) traits tracking each other across the landscape",
+      "Recall from earlier lectures on predator-prey dynamics — here the same interaction is reframed as a driver of trait evolution rather than population cycles"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Antagonistic Coevolution",
+    "title": "Plant-Herbivore Coevolution",
+    "sub": "Chemical defense and counter-defense"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Escalating defense and counter-defense",
+    "items": [
+      "Plants evolve chemical (alkaloids, terpenoids, cardenolides), physical (thorns, trichomes, latex), and phenological defenses against herbivory",
+      "Herbivores evolve detoxification enzymes, sequestration of plant toxins for their own defense, or behavioral avoidance of defended tissue",
+      "Ehrlich & Raven's (1964) escape-and-radiate model: novel plant defense reduces herbivory, plant lineage diversifies; herbivore lineage eventually evolves a counter-adaptation and itself diversifies onto the now-accessible plant clade",
+      "Produces a signature of matched, often clade-level, phylogenetic congruence between plant defense chemistry and herbivore counter-adaptation",
+      "Diffuse rather than strictly pairwise in most real systems — a single plant defends against many herbivore species simultaneously"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Case studies in plant-herbivore coevolution",
+    "cards": [
+      {
+        "h": "Milkweed and monarch butterflies",
+        "p": "Milkweeds produce cardenolides (cardiac glycosides); monarch caterpillars evolved insensitive sodium-potassium pumps and sequester the toxins for their own predator defense."
+      },
+      {
+        "h": "Wild parsnip and parsnip webworm",
+        "p": "Parsnip produces furanocoumarins; webworms evolved cytochrome P450 detoxification enzymes. Geographic variation in parsnip chemistry tracks webworm enzyme efficiency (Berenbaum's classic work)."
+      },
+      {
+        "h": "Crucifers and specialist herbivores",
+        "p": "Glucosinolate defenses in mustards are countered by specialist insects (e.g., cabbage white butterflies) that evolved enzymes to neutralize the toxic breakdown products."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Mutualistic Coevolution",
+    "title": "Coevolving Partners: Figs and Pollination",
+    "sub": "Reciprocal adaptation for mutual benefit"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Obligate mutualism",
+    "term": "Obligate mutualism",
+    "def": "A mutualistic interaction in which one or both partners cannot complete their life cycle without the other, generating strong reciprocal selection and often tight coevolutionary matching of traits.",
+    "bullets": [
+      "Obligate mutualisms are prime settings for pairwise coevolution because partner fidelity is high and fitness interests are tightly linked."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Figs and fig wasps: a coevolved obligate mutualism",
+    "items": [
+      "Each fig species (Ficus) is typically pollinated by one or a few specific species of tiny agaonid wasps, and each wasp species can generally reproduce only inside its specific fig's enclosed inflorescence (the syconium)",
+      "Female wasps enter the fig, pollinate the flowers (often actively, carrying pollen in specialized pouches), and lay eggs in some flowers as brood sites",
+      "The fig provides some flowers as wasp nurseries and others that mature into seeds — a division of reproductive 'labor' that is itself an evolved compromise",
+      "Fig and wasp phylogenies show substantial (though not perfect) cospeciation, consistent with a long history of reciprocal, pairwise coevolution",
+      "The relationship also has a cheating side: 'non-pollinating' fig wasps exploit the fig without providing pollination, and figs have evolved sanctions (e.g., dropping unpollinated fruit) that stabilize the mutualism"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Anatomy of the fig–fig wasp mutualism",
+    "cards": [
+      {
+        "h": "Species-specificity",
+        "p": "High partner fidelity (often 1:1 fig-to-pollinator matching) makes this among the most specialized mutualisms known, favoring tight reciprocal coadaptation."
+      },
+      {
+        "h": "Built-in policing",
+        "p": "Figs can abort syconia with too few pollinated flowers or too many wasp larvae, punishing 'cheating' wasps and stabilizing the exchange over evolutionary time."
+      },
+      {
+        "h": "Coevolved morphology",
+        "p": "Wasp ovipositor length tracks the length of the fig's floral styles; ostiole (entry pore) shape matches wasp head morphology for entry."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Mutualistic Coevolution",
+    "title": "Pollination Syndromes",
+    "sub": "Convergent trait suites linking flowers to pollinators"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "What is a pollination syndrome?",
+    "items": [
+      "A pollination syndrome is a suite of floral traits (color, shape, scent, reward, timing) that has convergently evolved in association with a particular class of pollinator",
+      "Traits function as a filter, attracting effective pollinators and excluding inefficient visitors that waste pollen or damage flowers",
+      "Syndromes reflect coevolved sensory and morphological matching: e.g., a pollinator's tongue length matches a flower's corolla tube depth",
+      "Syndromes are strongest and most predictable in specialized, often coevolved pairwise or near-pairwise systems (e.g., long-tongued hawkmoths and long-tubed flowers)",
+      "But syndromes are imperfect predictors of actual visitors in many communities — a key caution covered next"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Common pollination syndromes",
+    "headers": [
+      "Pollinator",
+      "Flower color",
+      "Scent",
+      "Shape/reward"
+    ],
+    "rows": [
+      [
+        "Bees",
+        "Blue, yellow, UV patterns",
+        "Mild, fresh",
+        "Landing platform; nectar guides; moderate nectar/pollen"
+      ],
+      [
+        "Birds (hummingbirds)",
+        "Red, orange",
+        "Usually none",
+        "Tubular, sturdy, copious dilute nectar"
+      ],
+      [
+        "Moths (nocturnal)",
+        "White, pale",
+        "Strong, sweet, evening-released",
+        "Long narrow tube; nectar deep and concentrated"
+      ],
+      [
+        "Flies (carrion/dung mimics)",
+        "Dull purple/brown",
+        "Fetid, rotting",
+        "Flat or trap-shaped; little/no nectar reward"
+      ],
+      [
+        "Bats",
+        "Dull white/green",
+        "Musty, fermented",
+        "Large, sturdy, nocturnally open, abundant nectar"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Caution: syndrome ≠ proof of tight coevolution",
+    "items": [
+      "Many flowers are visited by a broad range of pollinators despite fitting a 'syndrome' — convergence on a generalized attraction strategy, not evidence of pairwise coevolution with one species",
+      "Syndromes can arise from selection by the most effective or most frequent visitor even without long-term reciprocal adaptation in that visitor",
+      "Distinguishing true coevolution from one-sided adaptation (only the plant evolving in response to a pollinator that itself is unaffected) requires evidence of reciprocal fitness effects and reciprocal selection, not just trait matching",
+      "This ties back to Janzen's (1980) strict definition: correlated traits are necessary but not sufficient evidence for coevolution"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "The Geographic Mosaic Theory of Coevolution",
+    "sub": "John Thompson's framework for coevolution across landscapes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Geographic mosaic theory of coevolution",
+    "term": "Geographic mosaic theory of coevolution",
+    "def": "Thompson's framework proposing that coevolution is not uniform across a species' range but varies geographically due to spatial variation in the strength of reciprocal selection, local species composition, and gene flow among populations.",
+    "bullets": [
+      "Developed by John N. Thompson (1994, 2005) as a landscape-scale alternative to viewing coevolution as a single, spatially uniform process."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Three core components of the geographic mosaic",
+    "items": [
+      "Selection mosaics — the strength and even the direction of reciprocal selection between two interacting species varies from place to place, because local abiotic conditions, community composition, and genetic backgrounds differ",
+      "Coevolutionary hotspots and coldspots — hotspots are localities where reciprocal selection is strong and coevolution proceeds rapidly; coldspots are localities where selection is weak, one-sided, or absent, and traits may be shaped mainly by drift or other agents",
+      "Trait remixing — migration and gene flow move coevolved (and non-coevolved) genotypes among populations, mixing traits across the landscape and constantly reshuffling the local coevolutionary state",
+      "Together, these mean the 'geographic mosaic' is a dynamic, shifting patchwork rather than a single, fixed arms race playing out identically everywhere",
+      "The newt–garter snake TTX/resistance system is a textbook geographic mosaic: toxin and resistance levels vary in a matched but geographically patchy way, with clear hotspots of extreme escalation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Hotspots vs. coldspots",
+    "cards": [
+      {
+        "h": "Coevolutionary hotspot",
+        "p": "Reciprocal selection is strong in both directions; trait matching is tight and escalation can proceed (e.g., extreme newt toxicity paired with extreme snake resistance in specific populations)."
+      },
+      {
+        "h": "Coevolutionary coldspot",
+        "p": "One or both species experience weak or no reciprocal selection from the interaction — perhaps the partner is rare, alternative resources/prey are available, or abiotic factors dominate fitness — so trait matching is loose or absent."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Trait remixing across the landscape",
+    "items": [
+      "Gene flow can import poorly matched genotypes into a hotspot, temporarily degrading local coevolutionary fit",
+      "Gene flow can also export well-matched ('coevolved') alleles from a hotspot into a coldspot, creating trait expression where local selection alone would not have produced it",
+      "Genetic drift in small or edge populations can randomly fix trait values unrelated to the interaction, adding further mosaic variation",
+      "The relative strength of local selection versus regional gene flow determines whether a landscape shows tight local trait matching or a smoother, averaged trait distribution",
+      "This spatial framework explains why single-population studies of 'coevolution' can give misleading or non-generalizable pictures of the interaction as a whole"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Local Adaptation to the Biotic Community",
+    "sub": "Not just abiotic environment shapes trait evolution"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Two sources of selection on local populations",
+    "left": {
+      "h": "Abiotic local adaptation",
+      "body": "<ul><li>Selection driven by climate, soil, altitude, salinity, and other physical factors</li><li>Classic focus of local adaptation studies (e.g., clinal variation in flowering time, cold tolerance)</li><li>Detected via reciprocal transplant across environmental gradients</li><li>Typically produces smoother, gradual (clinal) trait variation</li></ul>"
+    },
+    "right": {
+      "h": "Biotic local adaptation",
+      "body": "<ul><li>Selection driven by the local community: competitors, predators, herbivores, pathogens, mutualist partners</li><li>Because community composition can vary sharply over short distances, biotic selection can produce patchier trait variation than abiotic gradients</li><li>Detected via reciprocal transplant or common-garden experiments that vary community context, not just physical environment</li><li>Directly links to character displacement and coevolutionary mosaics discussed above</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Evidence for local adaptation to biotic context",
+    "items": [
+      "Reciprocal transplant experiments that hold abiotic conditions constant but vary the local community (e.g., presence/absence of a key competitor or herbivore) can isolate biotic selection",
+      "Local plant populations sometimes show highest fitness when grown with their local herbivore or pathogen community, consistent with community-specific coevolved defense/tolerance",
+      "Predator community composition (not just predator presence) shapes prey defensive morphology and behavior locally (e.g., inducible defenses tuned to the locally dominant predator)",
+      "Because both interacting species can be locally adapting to each other, biotic selection is inherently reciprocal in a way most abiotic selection is not — a key conceptual link to coevolution",
+      "Local biotic adaptation is a major reason species' realized niches and interaction strengths differ across their geographic range, feeding directly back into community structure"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Abiotic vs. biotic selective agents: key differences",
+    "headers": [
+      "Property",
+      "Abiotic agents",
+      "Biotic agents"
+    ],
+    "rows": [
+      [
+        "Reciprocity",
+        "One-directional (organism adapts to climate; climate does not adapt back)",
+        "Often reciprocal (both interactors can evolve in response to each other)"
+      ],
+      [
+        "Spatial pattern",
+        "Often smooth, clinal gradients",
+        "Often patchy, tracking local community composition"
+      ],
+      [
+        "Temporal stability",
+        "Relatively stable over ecological timescales (barring climate change)",
+        "Can shift quickly as community composition changes (invasions, extinctions)"
+      ],
+      [
+        "Coevolutionary potential",
+        "Generally does not generate coevolution",
+        "Can generate arms races, mutualist matching, character displacement"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why this matters for community ecology",
+    "items": [
+      "If species are locally adapted to their community, then moving a species to a new community (invasion, restoration, climate-driven range shift) places it among partners/enemies it is not evolutionarily 'tuned' to — with unpredictable ecological consequences",
+      "Coevolutionary history helps explain why some introduced species are so successful (escape from coevolved enemies — the 'enemy release hypothesis') and why some native species struggle against novel competitors or predators",
+      "Community structure (who coexists with whom, at what abundance) is therefore not just an ecological outcome but partly an evolutionary one, built from a history of reciprocal selection",
+      "This sets up next lecture's question: how does this same eco-evolutionary reasoning scale up to explain the origin and maintenance of biodiversity itself (adaptive radiation, niche evolution, diversification rates)?"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "Coevolution is not a single arms race fought on one battlefield — it is a shifting mosaic of hotspots and coldspots, remixed continually by the movement of genes across a landscape.",
+    "attrib": "paraphrased from John N. Thompson, The Geographic Mosaic of Coevolution (2005)"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "From interaction to community pattern: levels of eco-evolutionary linkage",
+    "levels": [
+      {
+        "label": "Community structure",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Coevolved trait matching",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Local selection episode",
+        "color": "#3f7d5c",
+        "width": "440px"
+      },
+      {
+        "label": "Individual trait variation",
+        "color": "#568f6d",
+        "width": "380px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Synthesizing the eco-evolutionary feedback loop",
+    "items": [
+      "Species interactions (competition, predation, mutualism) impose selection on traits — the ecological process drives the evolutionary one",
+      "Trait evolution then changes the strength and outcome of those same interactions — the evolutionary process feeds back into ecology",
+      "Character displacement is this loop resolved into divergence that reduces conflict (competitive or reproductive)",
+      "Coevolution is this loop iterated reciprocally between two (or more) species, escalating or stabilizing depending on costs and benefits",
+      "The geographic mosaic theory reminds us this loop plays out differently from place to place, so 'the' outcome of an interaction is really a distribution of outcomes across a landscape"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Summary: key takeaways",
+    "items": [
+      "Eco-evolutionary dynamics: evolution can be fast enough to shape community ecology on observable timescales, not just serve as a slow backdrop",
+      "Character displacement (Darwin's finches, Anolis lizards) provides classic pattern-and-process evidence that competition drives trait divergence; reproductive character displacement shows the same logic applied to mate recognition",
+      "Coevolution ranges from antagonistic arms races (newt-snake TTX, plant-herbivore chemistry) to mutualistic trait matching (figs and fig wasps, pollination syndromes), and can be pairwise, diffuse, or escape-and-radiate",
+      "Thompson's geographic mosaic theory shows coevolution is spatially heterogeneous — hotspots, coldspots, and trait remixing via gene flow — not a single uniform process",
+      "Local adaptation to the biotic community, not just the abiotic environment, is a major and often reciprocal driver of trait evolution, linking evolutionary biology directly to the structure and dynamics of ecological communities",
+      "Next lecture (Ch. 16, part 2): scaling these ideas up to adaptive radiation, niche evolution, and the origins of biodiversity"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 39</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

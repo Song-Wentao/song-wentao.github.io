@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 41: Applied Population Ecology I: Harvesting and Maximum Sustainable Yield</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 41",
+    "title": "Applied Population Ecology I: Harvesting and Maximum Sustainable Yield",
+    "sub": "Turning logistic growth theory into management decisions — fisheries, wildlife, forestry, and pest control",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.) — applied synthesis of Ch. 2-5"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "From Theory to Application",
+    "items": [
+      "Part 1 (Ch. 1-6): the mechanics of population growth — exponential, logistic, life tables, demography",
+      "Part 2 (Ch. 7-12): interspecific interactions — competition, predation, mutualism, community structure",
+      "Lecture 40 closed Part 2 with a synthesis of how species interactions shape communities",
+      "<b>Part 3: Applied Population Ecology</b> (Lectures 41-42) — using everything so far to solve real management problems",
+      "Today: harvesting theory and Maximum Sustainable Yield (MSY)",
+      "Lecture 42: conservation biology and Population Viability Analysis (PVA)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Why Population Ecology Gets Applied",
+    "sub": "The stakes of predicting population response to removal"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE APPLIED PROBLEM",
+    "title": "Every Harvested Population Faces the Same Question",
+    "items": [
+      "<b>Fisheries:</b> how many tons of cod, tuna, or salmon can be caught each year without collapsing the stock?",
+      "<b>Wildlife hunting:</b> how many deer, elk, or waterfowl licenses should a wildlife agency issue?",
+      "<b>Forestry:</b> how many trees can be cut per rotation while keeping the forest stand productive?",
+      "<b>Pest control:</b> how much of a pest population must be removed to keep it below a damage threshold?",
+      "All four are the same underlying question: <b>given a population's growth dynamics, how much can we remove and still have it recover?</b>",
+      "Answering this requires the same tools from Ch. 2-5: growth models, carrying capacity, age structure, life tables"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BEYOND FISHERIES",
+    "title": "Harvest Theory Applies Broadly",
+    "cards": [
+      {
+        "h": "Forestry",
+        "p": "Rotation length and cutting rate determine whether a stand regenerates to pre-harvest productivity or degrades over successive cycles."
+      },
+      {
+        "h": "Pest control",
+        "p": "Removal (pesticide, trapping, biocontrol) must exceed the pest's compensatory growth rate to hold density below an economic damage threshold — otherwise the population rebounds."
+      },
+      {
+        "h": "Wildlife hunting",
+        "p": "Quotas and season lengths for deer, elk, and waterfowl are set using the same growth-rate logic as commercial fisheries."
+      },
+      {
+        "h": "Fisheries",
+        "p": "The most data-rich and historically consequential application — and the source of the field's most famous cautionary tale (North Atlantic cod)."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY DEFINITION",
+    "title": "Sustainable Harvest",
+    "term": "Sustainable harvest",
+    "def": "A rate of removal of individuals from a population that the population can replace through reproduction and survival, such that population size neither collapses nor grows without bound over the long term.",
+    "bullets": [
+      "Contrasts with <b>overharvest</b>: removal rate exceeds the population's capacity to replace losses",
+      "Also contrasts with <b>underharvest</b>: removal rate is so conservative that economic or management yield is left on the table",
+      "The applied challenge is finding the harvest rate that threads this needle — and doing so under real-world uncertainty"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Logistic Model as Harvest Foundation",
+    "sub": "Revisiting Ch. 2 (Lecture 7) to build harvest theory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "REVIEW",
+    "title": "The Logistic Growth Model, Revisited",
+    "items": [
+      "Recall from Lecture 7: <b>dN/dt = rN(1 − N/K)</b>",
+      "N = population size, r = intrinsic rate of increase, K = carrying capacity",
+      "Growth rate is zero at N = 0 and at N = K; it is <b>maximized at N = K/2</b>",
+      "This hump-shaped relationship between population size and growth rate is the entire foundation of harvest theory",
+      "Harvesting removes individuals — the question is how to add a harvest term to this equation without destabilizing the population"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE HARVEST EQUATION",
+    "title": "Logistic Growth with Harvest",
+    "term": "dN/dt = rN(1 − N/K) − H",
+    "def": "Population growth equals logistic growth minus the harvest rate H. The population increases only when logistic growth (replacement) exceeds the harvest removal.",
+    "bullets": [
+      "If H = 0, this reduces to the pure logistic model from Lecture 7",
+      "If H is constant and exceeds the population's maximum growth rate, extinction is inevitable",
+      "The form of H — constant number vs. proportional to N — fundamentally changes the population's stability (Part 3)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "GRAPHICAL INTUITION",
+    "title": "The Logistic Curve and Its Growth-Rate Hump",
+    "left": {
+      "h": "N vs. time (logistic curve)",
+      "body": "Population size traces an S-shaped (sigmoid) curve over time, rising slowly at low N, fastest through the middle, and leveling off as N approaches K. Growth rate dN/dt is the <b>slope</b> of this curve at each point."
+    },
+    "right": {
+      "h": "dN/dt vs. N (yield parabola)",
+      "body": "Plotting growth rate against population size N produces a symmetric parabola: zero at N=0, rising to a peak at N=K/2, then falling back to zero at N=K. This parabola IS the sustainable-yield curve."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY N = K/2",
+    "title": "Where Does Maximum Growth Rate Come From?",
+    "items": [
+      "Per-capita growth rate is r(1 − N/K); it declines linearly as N increases (density dependence)",
+      "Total growth rate dN/dt = N × [r(1 − N/K)] — a product of a rising term (N) and a falling term (1 − N/K)",
+      "This product is maximized where the two effects balance — calculus shows this occurs exactly at <b>N = K/2</b>",
+      "At low N, few individuals are reproducing even though per-capita rates are high — total surplus is small",
+      "At high N (near K), per-capita rates are suppressed by density dependence — total surplus is again small",
+      "The sweet spot in the middle is where the population produces the largest <b>surplus</b> that can be harvested without reducing N"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Maximum Sustainable Yield (MSY)",
+    "sub": "Derivation, the yield parabola, and its central management logic"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE CONCEPT",
+    "title": "Maximum Sustainable Yield",
+    "term": "MSY",
+    "def": "The largest harvest rate that can be removed from a population indefinitely without depleting it over time — theoretically equal to the population's maximum surplus production, occurring at N = K/2.",
+    "bullets": [
+      "Under logistic growth, MSY = rK/4 (the peak of the yield parabola)",
+      "At N = K/2, harvesting exactly the surplus growth each period holds the population at that equilibrium",
+      "MSY is a theoretical target, not a guaranteed safe number — it assumes the population sits precisely at N = K/2"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DERIVING MSY",
+    "title": "From the Logistic Equation to rK/4",
+    "items": [
+      "Start with dN/dt = rN(1 − N/K)",
+      "This is maximized where its derivative with respect to N equals zero: d/dN [rN(1 − N/K)] = r − 2rN/K = 0",
+      "Solving: <b>N = K/2</b>",
+      "Substitute N = K/2 back into the growth equation: dN/dt = r(K/2)(1 − (K/2)/K) = r(K/2)(1/2) = <b>rK/4</b>",
+      "So the maximum sustainable yield is <b>MSY = rK/4</b>, achieved by holding the population at N = K/2 and harvesting exactly the surplus each generation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE PARABOLA",
+    "title": "The Yield Curve in Practice",
+    "items": [
+      "X-axis: population size N (from 0 to K). Y-axis: sustainable yield (growth rate available for harvest)",
+      "The curve is zero at N = 0 (no individuals to reproduce) and zero at N = K (density dependence suppresses all surplus)",
+      "The peak at N = K/2 is the single point of maximum sustainable yield",
+      "Any harvest strategy that pushes the population below K/2 sacrifices yield <b>and</b> risks instability — the curve gets steeper (more sensitive) there",
+      "Managers historically aimed to hold populations at K/2 — but this requires knowing K and r precisely, which real populations rarely allow"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHY MSY IS SEDUCTIVE",
+    "title": "The Appeal of a Single Optimal Number",
+    "cards": [
+      {
+        "h": "Simplicity",
+        "p": "One formula (rK/4) gives managers and policymakers a clean, defensible target number for quotas."
+      },
+      {
+        "h": "Economic logic",
+        "p": "Maximizing yield each year maximizes catch, revenue, and food supply — an attractive goal for industry and regulators alike."
+      },
+      {
+        "h": "Historical dominance",
+        "p": "MSY became the legal standard for U.S. and international fisheries management for much of the 20th century."
+      },
+      {
+        "h": "But...",
+        "p": "As Part 4 will show, the assumptions behind rK/4 rarely hold in real populations — with serious consequences."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Harvest Strategies: Constant-Quota vs. Constant-Effort",
+    "sub": "Two ways to implement a harvest rule — and why they behave very differently"
+  },
+  {
+    "type": "term",
+    "eyebrow": "STRATEGY 1",
+    "title": "Constant-Quota Harvesting",
+    "term": "Constant quota",
+    "def": "A fixed number of individuals (H) removed each period, regardless of current population size.",
+    "bullets": [
+      "Equation: dN/dt = rN(1 − N/K) − H, where H is a fixed constant",
+      "Simple to administer and enforce — e.g., 'catch 10,000 tons this year' or 'issue 5,000 hunting tags'",
+      "Does <b>not</b> scale down when the population declines — the same absolute number is removed whether N is large or small"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "STRATEGY 2",
+    "title": "Constant-Effort Harvesting",
+    "term": "Constant effort",
+    "def": "A fixed proportion (harvest rate, E) of the population removed each period, so the harvest term is H = E·N.",
+    "bullets": [
+      "Equation: dN/dt = rN(1 − N/K) − EN, which simplifies to dN/dt = N[r(1 − N/K) − E]",
+      "Harvest automatically scales down as N declines (fewer individuals present → fewer removed)",
+      "Corresponds to real-world effort limits: a fixed number of fishing boat-days, trap-nights, or hunting-hours, where catch naturally tracks population density"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "HEAD TO HEAD",
+    "title": "Constant-Quota vs. Constant-Effort Harvesting",
+    "headers": [
+      "Feature",
+      "Constant-Quota Harvest",
+      "Constant-Effort Harvest"
+    ],
+    "rows": [
+      [
+        "Harvest term",
+        "Fixed number H (constant)",
+        "Proportional E·N (scales with N)"
+      ],
+      [
+        "Response to population decline",
+        "Harvest stays the same — does not shrink",
+        "Harvest automatically shrinks as N falls"
+      ],
+      [
+        "Stability",
+        "Destabilizing — can drive population to extinction if N drops below the level needed to sustain H",
+        "Self-correcting — approaches a stable equilibrium below K"
+      ],
+      [
+        "Risk at low N",
+        "High — quota can exceed total growth, causing runaway decline",
+        "Low — proportional removal leaves a growing residual population"
+      ],
+      [
+        "Real-world analogue",
+        "Fixed tonnage quota, fixed number of hunting tags",
+        "Fixed number of fishing days/boats, effort-limited licenses"
+      ],
+      [
+        "Data demands",
+        "Requires accurate, frequently updated population estimates to avoid overshoot",
+        "More forgiving of estimation error since harvest self-adjusts"
+      ]
+    ],
+    "footnote": "Both strategies can achieve MSY at equilibrium — but only constant-effort is robust to population fluctuations and estimation error."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY CONSTANT QUOTA FAILS",
+    "title": "The Mechanics of Quota-Driven Collapse",
+    "items": [
+      "Suppose managers set H at the MSY level (rK/4), assuming the population sits at N = K/2",
+      "If N drops below K/2 (due to a bad year, disease, or estimation error), the logistic growth term rN(1 − N/K) falls",
+      "But H stays fixed — so dN/dt = (smaller growth) − (same harvest) can become <b>negative</b>",
+      "Once dN/dt < 0, the population declines further, which shrinks growth even more, while H still doesn't change",
+      "This creates a <b>positive feedback loop toward extinction</b> — the defining failure mode of constant-quota systems",
+      "This is precisely the mechanism many economists and ecologists point to in historical fishery collapses"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY CONSTANT EFFORT IS MORE STABLE",
+    "title": "Self-Correction Under Proportional Harvest",
+    "items": [
+      "With H = EN, dN/dt = N[r(1 − N/K) − E]",
+      "As N falls, the harvest term EN falls right along with it — harvest pressure automatically eases",
+      "The population settles at a new stable equilibrium N* = K(1 − E/r), lower than K but non-zero as long as E < r",
+      "This built-in negative feedback is why constant-effort systems rarely drive populations to extinction on their own",
+      "Tradeoff: constant-effort still reduces equilibrium population size and yield can fluctuate year to year with N, complicating economic planning"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Critiques and Limitations of MSY",
+    "sub": "Why a clean formula meets a messy world"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PROBLEM WITH THE THEORY",
+    "title": "MSY's Core Assumptions — and Where They Break",
+    "items": [
+      "<b>Assumes equilibrium dynamics:</b> real populations fluctuate constantly with weather, disease, food supply, and predator cycles — they rarely sit still at N = K/2",
+      "<b>Assumes deterministic growth:</b> the logistic model ignores environmental stochasticity (random year-to-year variation) that can push N well below the target",
+      "<b>Ignores age/size structure:</b> the model treats all individuals as identical, but real populations are structured (Ch. 4-5) — see next slide",
+      "<b>Ignores time lags:</b> data on population size are always somewhat out of date, so quotas are set based on old information",
+      "<b>Requires precise knowledge of r and K</b> — parameters that are notoriously hard to estimate and can themselves shift over time"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE HIDDEN COST OF IGNORING AGE STRUCTURE",
+    "title": "Overharvesting Can Skew a Population Even When Numbers Look Fine",
+    "items": [
+      "MSY theory tracks total N — it says nothing about which individuals are removed",
+      "Many fisheries selectively catch the largest, oldest, most fecund individuals (bigger fish = bigger nets/hooks target them, and regulations often favor keeping large fish)",
+      "This truncates the age structure: fewer old, high-reproductive-value individuals remain (recall reproductive value, Lecture 15-16)",
+      "Total population count can appear stable while the population's <b>reproductive capacity</b> quietly erodes",
+      "This is a major reason age-structured models (next) are essential complements to simple logistic MSY"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CASE STUDY",
+    "quote": "The cod didn't just disappear — the size and age structure of the surviving stock had been hollowed out for years before the numeric collapse became undeniable.",
+    "attrib": "Common characterization of the North Atlantic cod fishery, in fisheries science retrospectives"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY 1",
+    "title": "The North Atlantic Cod Collapse (1992)",
+    "items": [
+      "For centuries, the Grand Banks and Scotian Shelf cod fishery was one of the richest in the world",
+      "From the 1960s-1980s, quotas were repeatedly set near or above scientifically estimated MSY, often under political and industry pressure to keep them high",
+      "Stock assessments underestimated fishing mortality and overestimated stock size — errors compounded by ignoring age-structure erosion",
+      "In 1992, the Canadian government declared a moratorium on Northern cod — the stock had collapsed to roughly 1% of its historical biomass",
+      "~35,000 people lost their jobs virtually overnight; the stock has still not fully recovered decades later",
+      "The collapse became the textbook cautionary tale of applying MSY rigidly, with poor data, under political override of scientific advice"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT WENT WRONG, SPECIFICALLY",
+    "title": "Anatomy of a Preventable Collapse",
+    "items": [
+      "<b>Poor data:</b> survey methods overestimated stock abundance for years leading up to collapse",
+      "<b>Political override:</b> scientific quota recommendations were repeatedly relaxed under industry lobbying",
+      "<b>Ignoring structure:</b> intense fishing pressure on larger/older cod compressed the age structure, reducing resilience",
+      "<b>No adaptive buffer:</b> quotas were not conservatively adjusted for uncertainty — MSY was treated as a safe ceiling rather than a risky upper bound",
+      "<b>Time lag:</b> by the time the numeric decline was obvious in the data, the population was already in freefall"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "CHRONOLOGY",
+    "title": "The Northern Cod Collapse, Step by Step",
+    "items": [
+      {
+        "y": "1960s",
+        "t": "Foreign factory trawlers enter the Grand Banks; total catches rise sharply above earlier, more modest levels"
+      },
+      {
+        "y": "1977",
+        "t": "Canada declares a 200-mile exclusive economic zone, intending to bring the fishery under domestic, science-based management"
+      },
+      {
+        "y": "1980s",
+        "t": "Quotas set repeatedly near or above scientific MSY estimates; survey methods overestimate stock abundance"
+      },
+      {
+        "y": "1989-1991",
+        "t": "Scientists warn of steep stock decline; warnings are downplayed as quotas remain high under industry pressure"
+      },
+      {
+        "y": "1992",
+        "t": "Canadian government declares a moratorium on Northern cod fishing; stock estimated at ~1% of historical biomass"
+      },
+      {
+        "y": "Today",
+        "t": "Stock remains far below historic levels decades later, despite the moratorium — a lasting lesson in delayed recovery"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THEORY VS. REALITY",
+    "title": "MSY Assumptions vs. What Actually Happened at the Cod Fishery",
+    "headers": [
+      "MSY Model Assumption",
+      "Reality at the Cod Fishery"
+    ],
+    "rows": [
+      [
+        "Population is at stable equilibrium",
+        "Population was already declining under sustained overfishing pressure"
+      ],
+      [
+        "r and K are known precisely",
+        "Survey methods systematically overestimated stock size for years"
+      ],
+      [
+        "No age/size structure effects",
+        "Selective removal of large, old cod eroded reproductive capacity long before numbers crashed"
+      ],
+      [
+        "No environmental stochasticity",
+        "Cold ocean conditions in the early 1990s further suppressed recruitment, compounding fishing pressure"
+      ],
+      [
+        "Quotas track the science",
+        "Quotas were repeatedly set above scientific recommendations under political and industry pressure"
+      ]
+    ],
+    "footnote": "Every core assumption behind rK/4 was violated simultaneously — a worst-case combination for a rigidly applied MSY policy."
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Age-Structured Harvest Models",
+    "sub": "Bringing the Leslie matrix and reproductive value into harvest theory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND SIMPLE MSY",
+    "title": "Why Age Structure Changes the Harvest Question",
+    "items": [
+      "Recall from Lectures 13-16: populations are structured into age classes with different survival, fecundity, and reproductive value",
+      "The Leslie matrix (Lecture 14) projects how a structured population changes over time given age-specific vital rates",
+      "Harvesting is rarely age-blind in reality — nets, traps, and hunting regulations select for certain sizes/ages",
+      "An age-structured harvest model asks: <b>which age classes can be harvested most heavily while doing the least damage to future population growth?</b>"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT REVISITED",
+    "title": "Reproductive Value and Harvest Targeting",
+    "term": "Reproductive value (Vx)",
+    "def": "An individual's expected future contribution to population growth, combining remaining survival and fecundity across all future age classes (Lecture 15-16).",
+    "bullets": [
+      "Individuals with <b>low</b> reproductive value (very young, pre-reproductive, or post-reproductive/senescent) can often be harvested with minimal impact on population growth",
+      "Individuals with <b>high</b> reproductive value (prime breeding age) are the most costly to remove — harvesting them disproportionately depresses future growth",
+      "Age-structured harvest theory therefore recommends protecting high-Vx age classes and concentrating harvest on low-Vx classes where biologically and economically feasible"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MATRIX APPROACH",
+    "title": "Building Harvest into the Leslie Matrix",
+    "items": [
+      "Standard Leslie matrix projects N(t+1) = A × N(t), where A contains age-specific survival and fecundity",
+      "A harvest-modified matrix subtracts age-specific harvest rates from the survival terms for targeted age classes",
+      "Projecting this modified matrix forward reveals the population's growth rate (λ) under a given harvest regime",
+      "<b>Elasticity analysis</b> (Lecture 16) identifies which matrix entries — and thus which age classes — most strongly influence λ",
+      "Management implication: elasticity analysis can reveal that harvesting a demographically 'expendable' age class sustains yield far better than an evenly spread harvest across all ages"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO MODELS, TWO LENSES",
+    "title": "Simple Logistic MSY vs. Age-Structured Harvest Models",
+    "left": {
+      "h": "Logistic MSY (Ch. 2)",
+      "body": "Tracks total N only. Assumes all individuals are demographically identical. Gives a single optimal harvest rate (rK/4) at N = K/2. Fast, simple, but blind to age structure."
+    },
+    "right": {
+      "h": "Age-structured harvest (Ch. 4-5)",
+      "body": "Tracks N within each age class via a Leslie matrix. Uses reproductive value and elasticity to identify which ages to protect vs. harvest. More data-intensive, but far more realistic and robust to structural erosion."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Case Studies in Practice",
+    "sub": "Contrasting failure and success in real harvest management"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY 2 — A SUCCESS STORY",
+    "title": "Waterfowl Management and Adaptive Harvest Management (AHM)",
+    "items": [
+      "The U.S. Fish and Wildlife Service manages duck hunting regulations using a program called <b>Adaptive Harvest Management</b>, established in the mid-1990s",
+      "Multiple competing population models (each with different assumptions about density dependence) are run simultaneously",
+      "Each year's monitoring data (breeding population surveys, harvest data) update the relative confidence in each model",
+      "Harvest regulations (season length, bag limits) are set using a decision framework that accounts for this model uncertainty directly, rather than trusting a single MSY estimate",
+      "Widely regarded as one of the most successful applications of adaptive management in wildlife harvest — waterfowl populations have remained broadly stable under sustained hunting pressure for decades"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY AHM SUCCEEDED WHERE COD FAILED",
+    "title": "Contrasting the Two Cases",
+    "items": [
+      "AHM explicitly builds in <b>uncertainty</b> about population dynamics rather than assuming a single correct model (unlike rigid MSY application in cod)",
+      "AHM updates quotas <b>every year</b> based on new monitoring data — quotas are never allowed to go stale",
+      "AHM has an institutional structure that limits political override of the monitoring-based decision rule",
+      "Cod management had good science available but was repeatedly overridden by short-term economic and political pressure",
+      "The lesson: MSY-style theory can work — but only when embedded in a management process that treats it as a guide under uncertainty, not a fixed target"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8",
+    "title": "Adaptive Management",
+    "sub": "The modern framework for harvest decisions under uncertainty"
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE MODERN PARADIGM",
+    "title": "Adaptive Management",
+    "term": "Adaptive harvest management",
+    "def": "An iterative management approach in which harvest quotas are set, population responses are monitored, and quotas are revised in light of new data — treating management itself as an ongoing experiment.",
+    "bullets": [
+      "Explicitly incorporates uncertainty about model structure, parameter values, and population state",
+      "Uses a monitor → assess → adjust → re-monitor cycle rather than a one-time optimal calculation",
+      "Often applies a <b>precautionary buffer</b> below theoretical MSY to guard against overestimation and stochastic downturns"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW THE CYCLE WORKS",
+    "title": "The Adaptive Management Loop",
+    "items": [
+      "1. <b>Set an initial harvest quota or rate</b>, informed by best available data and models (e.g., logistic MSY, age-structured projections)",
+      "2. <b>Monitor</b> the population using surveys, catch data, or tagging studies",
+      "3. <b>Compare</b> observed population response to what different competing models predicted",
+      "4. <b>Update confidence</b> in each model based on how well its predictions matched reality",
+      "5. <b>Adjust</b> the harvest quota for the next period accordingly — tightening restrictions if the population underperforms expectations",
+      "6. Repeat indefinitely — the system learns and self-corrects rather than committing permanently to one static number"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "PRINCIPLES OF SOUND HARVEST MANAGEMENT",
+    "title": "Lessons from Cod, Waterfowl, and Harvest Theory",
+    "cards": [
+      {
+        "h": "Buffer for uncertainty",
+        "p": "Never treat calculated MSY as a hard target — build in a margin of safety below it."
+      },
+      {
+        "h": "Monitor continuously",
+        "p": "Population estimates go stale quickly; harvest rules must be revisited on a regular cycle, not set once."
+      },
+      {
+        "h": "Track structure, not just numbers",
+        "p": "Age/size composition can reveal erosion long before total N shows a decline."
+      },
+      {
+        "h": "Insulate science from short-term pressure",
+        "p": "The cod collapse shows what happens when political and industry pressure override precautionary science."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING THE THREADS",
+    "title": "How This Lecture Synthesizes the Whole Course",
+    "items": [
+      "The logistic model and carrying capacity (Ch. 2, Lecture 7) supply the basic yield curve and MSY = rK/4",
+      "Density dependence (Ch. 3) explains why growth rate peaks at intermediate N rather than at low or high N",
+      "Life tables, the Leslie matrix, and reproductive value (Ch. 4-5, Lectures 13-16) explain why age structure matters for harvest targeting and elasticity",
+      "The result: modern harvest science is not a single equation but an integration of growth theory, demography, and adaptive decision-making under uncertainty"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Summary and Looking Ahead",
+    "sub": "Consolidating harvest theory before turning to conservation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "Lecture 41 Recap",
+    "items": [
+      "Harvest theory extends the logistic model: dN/dt = rN(1 − N/K) − H",
+      "Maximum Sustainable Yield occurs at N = K/2, giving MSY = rK/4 — the peak of a symmetric yield parabola",
+      "<b>Constant-quota</b> harvesting is destabilizing: fixed removal doesn't scale down as N falls, risking runaway decline",
+      "<b>Constant-effort</b> harvesting is self-correcting: proportional removal (H = EN) naturally eases as N declines",
+      "MSY theory assumes equilibrium, ignores age structure, stochasticity, and time lags — assumptions that fail in the real world",
+      "The North Atlantic cod collapse shows the cost of applying MSY rigidly under poor data and political pressure",
+      "Age-structured harvest models (Leslie matrix, reproductive value, elasticity) show which age classes to protect vs. harvest",
+      "Adaptive harvest management — exemplified by waterfowl management — is the modern solution: monitor, compare, adjust, repeat",
+      "Sustainable harvest is not a single number; it is an ongoing, data-driven, uncertainty-aware process"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SYNTHESIS",
+    "title": "The Layers of a Robust Harvest Management System",
+    "levels": [
+      {
+        "label": "Adaptive management: monitor, compare, adjust",
+        "color": "#1b4332",
+        "width": "460px"
+      },
+      {
+        "label": "Age-structured targeting: protect high reproductive value",
+        "color": "#2d6a4f",
+        "width": "400px"
+      },
+      {
+        "label": "Harvest strategy: constant-effort over constant-quota",
+        "color": "#40916c",
+        "width": "340px"
+      },
+      {
+        "label": "Foundation: logistic growth and MSY (rK/4 at N=K/2)",
+        "color": "#74c69d",
+        "width": "280px"
+      }
+    ],
+    "footnote": "Each layer builds on the one below it — dropping any layer reintroduces the risks that led to collapses like North Atlantic cod."
+  },
+  {
+    "type": "quote",
+    "eyebrow": "TAKEAWAY",
+    "quote": "MSY tells you the theoretical ceiling. Adaptive management is what keeps you from ever finding out the hard way where the floor is.",
+    "attrib": "Course synthesis, Applied Population Ecology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW",
+    "title": "Coming Up: Lecture 42 — Conservation and Population Viability Analysis",
+    "items": [
+      "Harvesting asks how much can be safely removed from a healthy population — conservation asks how to <b>rebuild or protect</b> a population already at risk",
+      "Lecture 42 introduces <b>Population Viability Analysis (PVA)</b>: quantitative modeling of extinction risk over time",
+      "We'll extend the stochastic and age-structured tools from today toward small-population problems: demographic stochasticity, genetic drift, and minimum viable population size",
+      "We'll examine how the same adaptive-management philosophy from today's fisheries and waterfowl cases applies to endangered species recovery planning",
+      "Together, Lectures 41-42 complete the course's arc: from the mechanics of populations to their real-world management and conservation"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 41</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

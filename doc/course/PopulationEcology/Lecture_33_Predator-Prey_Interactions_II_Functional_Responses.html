@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 33: Predator-Prey Interactions II: Functional Responses</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 33",
+    "title": "Predator-Prey Interactions II: Functional Responses",
+    "sub": "Why the shape of an individual predator's consumption curve determines whether predator-prey systems cycle, stabilize, or collapse",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 10 — Predator-Prey Interactions"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Recap & Motivation",
+    "sub": "What the basic Lotka-Volterra model leaves out"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING BACK — LECTURE 32",
+    "title": "The basic Lotka-Volterra predator-prey model",
+    "items": [
+      "Prey equation: <b>dN/dt = rN − aNP</b> — prey grow exponentially but are removed by predation",
+      "Predator equation: <b>dP/dt = faNP − qP</b> — predators grow from converted prey biomass, die at constant rate q",
+      "The term <b>aNP</b> is the predation rate: the number of prey killed per unit time",
+      "This produced neutrally stable coupled oscillations — closed elliptical cycles in the N–P phase plane",
+      "The model demonstrated that predator-prey interaction alone can generate cycling — a landmark qualitative result"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE HIDDEN ASSUMPTION",
+    "title": "What does 'a' really represent?",
+    "items": [
+      "In <b>aNP</b>, the parameter <b>a</b> is treated as a constant — the attack rate, or the proportion of the prey population encountered and captured by each predator per unit time",
+      "This means predation rate per predator = <b>aN</b> — it rises <b>linearly and without limit</b> as prey density N increases",
+      "Double the prey, and each predator is assumed to kill exactly twice as many — no matter how many prey are already available",
+      "There is no cap: even at extremely high prey density, a single predator could theoretically consume an unbounded number of prey per day"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THAT'S UNREALISTIC",
+    "title": "Predators have physical and behavioral limits",
+    "items": [
+      "Real predators need time to <b>pursue, subdue, kill, and consume</b> each prey item — this is called <b>handling time</b>",
+      "A predator that is busy handling one prey item cannot simultaneously be searching for the next one",
+      "Digestive capacity imposes <b>satiation</b> — a full predator stops killing regardless of how much prey remains available",
+      "As prey density climbs, an individual predator's consumption rate must eventually level off — it cannot rise forever",
+      "The basic L-V model's linear, unbounded aNP term is therefore a simplification that breaks down at high prey density"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE KEY CONCEPT",
+    "title": "Defining the functional response",
+    "term": "Functional response",
+    "def": "The relationship between an individual predator's rate of prey consumption and prey density — i.e., how many prey items one predator eats per unit time as a function of how many prey are available.",
+    "bullets": [
+      "Distinct from the <b>numerical response</b> (how predator population size or reproduction changes with prey density) — covered next lecture",
+      "First formalized by C.S. Holling (1959) from experiments on predation, giving rise to three classic curve shapes: Types I, II, and III",
+      "The functional response shape determines the mathematical form of the predation term in predator-prey models — and therefore the model's stability properties"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "HISTORICAL NOTE",
+    "title": "Where the framework comes from",
+    "term": "C.S. Holling (1959)",
+    "def": "Canadian ecologist who, through controlled experiments (famously using blindfolded human subjects locating sandpaper discs by touch — the origin of the 'disc equation' name), first formalized the idea that predator consumption rate is a mathematical function of prey density with characteristic, classifiable shapes.",
+    "bullets": [
+      "Holling's original experiments isolated searching and handling behavior under controlled conditions, letting him derive the functional forms mechanistically rather than just fit curves to data",
+      "His classification into Types I, II, and III remains the standard vocabulary used across ecology, epidemiology (host-pathogen), and even economics of foraging"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Holling Type I",
+    "sub": "The linear (and simplest) functional response"
+  },
+  {
+    "type": "term",
+    "eyebrow": "TYPE I",
+    "title": "Linear response with an upper ceiling",
+    "term": "Type I functional response",
+    "def": "Consumption rate rises linearly and proportionally with prey density, then hits an abrupt maximum (satiation) and stays flat.",
+    "bullets": [
+      "Mathematically: consumption rate = <b>a·N</b> for N below a threshold, then constant at the maximum thereafter",
+      "This is exactly the assumption built into the basic Lotka-Volterra model (before satiation) — a constant per-predator attack rate a",
+      "The simplest possible functional response — no handling-time saturation curve, just a straight line to a ceiling"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE TYPE I APPLIES",
+    "title": "Realistic mainly for filter feeders",
+    "items": [
+      "Type I is a good approximation for <b>passive filter feeders</b> — e.g., mussels, some zooplankton (Daphnia) filtering suspended particles from water",
+      "These predators don't actively pursue, subdue, or 'handle' individual prey the way a hunting predator does — filtering rate is largely mechanical",
+      "For most predators that actively hunt, capture, and process discrete prey items, Type I is unrealistic because it ignores handling time entirely",
+      "Because it lacks handling-time saturation, Type I is rarely used to model terrestrial or actively hunting predators"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY TYPE I FALLS SHORT",
+    "title": "The missing ingredient: handling time",
+    "items": [
+      "Type I assumes a predator can switch instantaneously from one captured prey item to searching for the next",
+      "In reality, subduing, killing, and eating prey <b>takes time</b> — time that is unavailable for searching",
+      "As prey density rises, an actively hunting predator spends an increasing fraction of its time handling captured prey rather than searching",
+      "This produces a <b>decelerating</b>, not linear, rise in consumption rate — which is exactly what Holling's Type II response captures"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TYPE I IN CONTEXT",
+    "title": "Type I as a limiting case, not a general rule",
+    "left": {
+      "h": "When it works",
+      "body": "Type I is a reasonable approximation only when handling time is negligible relative to search time, or when 'handling' is a passive, continuous process (filtering) rather than discrete capture events. It is best thought of as a special, simplified case."
+    },
+    "right": {
+      "h": "When it fails",
+      "body": "For nearly all actively hunting predators — pursuing, subduing, and consuming discrete prey — handling time cannot be ignored. Using a Type I response for such predators overstates predation rate at high prey density and misses the saturation dynamics that shape real populations."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Holling Type II",
+    "sub": "The saturating response and the disc equation"
+  },
+  {
+    "type": "term",
+    "eyebrow": "TYPE II",
+    "title": "The saturating (decelerating) functional response",
+    "term": "Type II functional response",
+    "def": "Consumption rate rises steeply at low prey density, then decelerates and approaches an asymptote (maximum) as prey density increases — a concave, saturating curve.",
+    "bullets": [
+      "The most commonly observed functional response in nature, especially among invertebrate and many vertebrate predators",
+      "Produced by Holling's classic 'disc equation' — derived from a simple time-budget model of searching versus handling",
+      "At low N, consumption rises almost linearly (like Type I); at high N, it flattens because handling time dominates the predator's time budget"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE DISC EQUATION",
+    "title": "Deriving Holling's Type II formula",
+    "items": [
+      "Predator's total time T is split between <b>searching time</b> (Ts) and <b>handling time</b> (Th): T = Ts + Th",
+      "Number of prey captured, Ne = a·Ts·N, where a = attack rate (encounter/capture efficiency) and N = prey density",
+      "Total handling time = h·Ne, where h = handling time per prey item",
+      "Solving Ts = T − h·Ne and substituting gives the <b>disc equation</b>: <b>consumption rate = (a·N) / (1 + a·h·N)</b>",
+      "As N → ∞, consumption rate → 1/h — the theoretical maximum set purely by handling time, regardless of how abundant prey become"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "INTERPRETING THE PARAMETERS",
+    "title": "What 'a' and 'h' each control",
+    "left": {
+      "h": "Attack rate (a)",
+      "body": "Governs the initial slope of the curve at low prey density — how efficiently a predator finds and captures prey when prey are scarce. A higher a means the curve rises more steeply near the origin, so predators are more effective hunters when prey is rare."
+    },
+    "right": {
+      "h": "Handling time (h)",
+      "body": "Governs where and how sharply the curve saturates. A longer handling time per prey item lowers the asymptote (1/h) and causes saturation to occur at lower prey densities — the predator becomes 'time-limited' sooner as prey become abundant."
+    },
+    "footnote": "Consumption rate = (a·N) / (1 + a·h·N) — the classic Holling disc equation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SHAPE OF THE CURVE",
+    "title": "Key properties of the Type II response",
+    "items": [
+      "Concave (decelerating) throughout its entire range — there is no inflection point, unlike Type III",
+      "Steepest slope occurs at the very lowest prey densities, where searching time dominates and handling time is negligible",
+      "Consumption rate asymptotically approaches 1/h, the handling-time-limited maximum, and never exceeds it",
+      "Because the curve rises fastest at low N, a predator's proportional impact on the prey population is disproportionately large when prey are scarce"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CRITICAL CONSEQUENCE",
+    "title": "Per-capita predation risk under Type II",
+    "items": [
+      "Per-capita predation risk = consumption rate ÷ N = a / (1 + a·h·N) — this is a <b>decreasing</b> function of N",
+      "In other words, an individual prey item's risk of being eaten is <b>highest when prey are rare</b> and declines as prey become abundant",
+      "This is the opposite of what would help stabilize the interaction — at low prey density, prey suffer the heaviest proportional losses, pushing the population toward further decline",
+      "This property is why Type II functional responses are considered <b>destabilizing</b> for predator-prey equilibria"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DESTABILIZATION IN PRACTICE",
+    "title": "Why Type II tends to promote cycles or collapse",
+    "items": [
+      "Because predation risk per prey individual is elevated at low N, Type II predators can drive already-declining prey populations even lower — amplifying troughs",
+      "This creates a tendency toward larger-amplitude oscillations or even prey extinction, rather than a self-damping approach to equilibrium",
+      "Many real-world boom-bust predator-prey cycles (e.g., some insect-host systems) are consistent with Type II dynamics",
+      "Type II functional responses are the default assumption in the influential Rosenzweig-MacArthur model, previewed later in Ch. 10"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A WORKED INTUITION",
+    "title": "Handling time as an opportunity cost",
+    "items": [
+      "Think of each predator as having a fixed daily time budget — every minute spent handling one prey item is a minute unavailable for finding the next",
+      "At low prey density, the predator spends almost all its time searching, so consumption tracks prey density closely (steep slope, near-Type I behavior)",
+      "At high prey density, prey are found almost instantly, so nearly all the predator's time is consumed by handling — the bottleneck shifts entirely from 'finding food' to 'processing food'",
+      "The asymptote 1/h is reached when the predator is handling prey essentially continuously, back-to-back, with no search time required at all"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Holling Type III",
+    "sub": "The sigmoid response and a potential prey refuge"
+  },
+  {
+    "type": "term",
+    "eyebrow": "TYPE III",
+    "title": "The sigmoid (S-shaped) functional response",
+    "term": "Type III functional response",
+    "def": "Consumption rate is low and rises slowly at low prey density, accelerates through an inflection point at intermediate density, then decelerates and saturates at high density — an S-shaped (sigmoid) curve.",
+    "bullets": [
+      "Unlike Types I and II, Type III has an <b>inflection point</b> — the curve is convex (accelerating) at low N and concave (decelerating) at high N",
+      "At very low prey density, per-capita predation risk is actually <b>low</b> — a sharp contrast with Type II",
+      "Mathematically often modeled as consumption rate = (a·N²) / (1 + a·h·N²), replacing the linear aN term with aN² to generate the initial acceleration"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE CURVE STARTS SLOW",
+    "title": "Mechanisms generating a Type III shape",
+    "items": [
+      "<b>Search image formation</b>: predators must 'learn' to efficiently detect and recognize a prey type; when that prey is rare, the predator hasn't formed a search image and encounters/captures are inefficient",
+      "<b>Prey switching</b>: a generalist predator preferentially targets whichever prey type is currently most abundant, and eats disproportionately little of a prey type when it is rare",
+      "<b>Spatial refuges</b>: at low density, prey may be concentrated in safe microhabitats (refuges) that predators rarely encounter, reducing capture success",
+      "<b>Predator learning curves</b>: capture efficiency (skill) improves with practice, which requires frequent encounters — rare prey give predators little chance to improve"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE STABILIZING CONSEQUENCE",
+    "title": "Per-capita predation risk under Type III",
+    "items": [
+      "Because consumption accelerates only after N passes a threshold, per-capita predation risk is <b>lowest at low prey density</b> and rises through the middle range before falling again at saturation",
+      "This is a form of <b>inverse density dependence</b> at low N — the rarer a prey population becomes, the proportionally safer each remaining individual is",
+      "That pattern functions as a built-in <b>low-density prey refuge</b>: as prey decline toward scarcity, predation pressure per capita relaxes, giving the population a chance to recover rather than being driven to extinction",
+      "For this reason, Type III functional responses are generally considered <b>stabilizing</b> for predator-prey equilibria"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAUTION",
+    "title": "Type III stabilizes — it does not guarantee stability",
+    "items": [
+      "A Type III response reduces (but does not eliminate) the tendency toward destabilizing cycles seen under Type II",
+      "Stability also depends on other model features — prey carrying capacity, predator numerical response, time lags, and spatial structure all interact with functional response type",
+      "Type III is best understood as removing one specific destabilizing mechanism (the low-N predation spike), not as a stability guarantee on its own"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PREY SWITCHING IN DETAIL",
+    "title": "How switching behavior generates the sigmoid shape",
+    "left": {
+      "h": "At low relative abundance",
+      "body": "A generalist predator encountering a prey type only rarely tends to ignore it in favor of more abundant, more easily found alternative prey — the predator's diet is disproportionately composed of common prey items relative to the rare type's actual availability."
+    },
+    "right": {
+      "h": "At higher relative abundance",
+      "body": "Once a prey type becomes common enough, the predator increasingly targets it — sometimes forming a specialized 'search image' for it — causing the predator's consumption of that prey type to rise disproportionately fast through the middle density range, producing the accelerating segment of the sigmoid curve."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Comparing the Three Types",
+    "sub": "Shape, mechanism, and stability side by side"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS",
+    "title": "Holling's three functional response types compared",
+    "headers": [
+      "Feature",
+      "Type I",
+      "Type II",
+      "Type III"
+    ],
+    "rows": [
+      [
+        "Curve shape",
+        "Linear rise to a hard ceiling",
+        "Concave; decelerating rise to asymptote",
+        "Sigmoid (S-shaped); accelerates then decelerates"
+      ],
+      [
+        "Governing equation",
+        "Consumption = a·N (capped)",
+        "Consumption = aN / (1 + a·h·N)",
+        "Consumption = aN² / (1 + a·h·N²)"
+      ],
+      [
+        "Predation risk at low N",
+        "Constant (proportional to a)",
+        "Highest — risk decreases with N",
+        "Lowest — risk increases then decreases"
+      ],
+      [
+        "Typical predators",
+        "Filter feeders (e.g., mussels, Daphnia)",
+        "Many invertebrates; some vertebrates",
+        "Vertebrate predators with switching/learning"
+      ],
+      [
+        "Effect on stability",
+        "Assumed in basic L-V model; no saturation realism",
+        "Destabilizing — amplifies cycles",
+        "Stabilizing — provides low-density refuge"
+      ],
+      [
+        "Key mechanism",
+        "No handling-time limitation modeled",
+        "Handling time / satiation",
+        "Search image, prey switching, spatial refuge, learning"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "VISUALIZING THE DIFFERENCE",
+    "title": "Consumption rate vs. prey density — three curves, one axis pair",
+    "left": {
+      "h": "Low-density behavior",
+      "body": "Type I and Type II both rise steeply from the origin — a predator eats prey roughly in proportion to how many it encounters, even when prey are scarce. Type III instead starts nearly flat near the origin, reflecting inefficient search, switching away from rare prey, or a spatial refuge that shields scarce prey from being found."
+    },
+    "right": {
+      "h": "High-density behavior",
+      "body": "All three curves ultimately reflect a predator's physical limits. Type I hits a hard, abrupt ceiling. Types II and III both approach the same kind of asymptote (~1/h, set by handling time) — but Type III approaches it via an S-curve with an inflection point, while Type II approaches it immediately from a steep initial rise."
+    },
+    "footnote": "The critical difference is the curve's behavior at LOW prey density — that is what drives the divergent stability outcomes"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MECHANISM SUMMARY",
+    "title": "What produces each curve shape, at a glance",
+    "cards": [
+      {
+        "h": "Type I — Mechanical filtering",
+        "p": "No active search or handling behavior; consumption scales directly with encounter rate until a physical (e.g., gut or filtering) capacity limit is reached."
+      },
+      {
+        "h": "Type II — Handling time",
+        "p": "Time spent pursuing, subduing, and consuming each prey item competes directly with time available to search for the next one, capping consumption at 1/h."
+      },
+      {
+        "h": "Type III — Search image & switching",
+        "p": "Predators are inefficient at detecting/pursuing a rare prey type; efficiency rises once that prey becomes common enough to specialize on or 'learn.'"
+      },
+      {
+        "h": "Type III — Refuges",
+        "p": "Spatial or structural refuges shelter prey disproportionately when prey are scarce, effectively lowering the predator's ability to find the last few individuals."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEFORE WE MOVE ON",
+    "title": "Checkpoint — the three types in one paragraph each",
+    "items": [
+      "<b>Type I</b>: consumption rises linearly with prey density then hits a hard ceiling; assumes no handling-time limitation; realistic mainly for passive filter feeders",
+      "<b>Type II</b>: consumption rises steeply then saturates smoothly (concave curve) due to handling time; per-capita risk is highest at low N; the classic destabilizing response",
+      "<b>Type III</b>: consumption rises slowly, then steeply, then saturates (S-shaped curve) due to switching/search image/refuges; per-capita risk is lowest at low N; the classic stabilizing response"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Stability Consequences",
+    "sub": "How the shape of the curve reshapes the predator-prey equilibrium"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FROM INDIVIDUAL CURVE TO POPULATION DYNAMICS",
+    "title": "Why functional response shape matters for the whole model",
+    "items": [
+      "In the basic L-V model, the predation term aNP assumes a Type I (linear, uncapped) response — an idealization useful for a first pass, but not realistic for most predators",
+      "Replacing aN with a saturating Holling Type II or sigmoid Type III term changes the predation term in the prey equation from linear to nonlinear in N",
+      "That nonlinearity changes the location and local stability of the model's equilibrium point (N*, P*) in the phase plane",
+      "This is the mathematical bridge between an individual-level behavioral curve (functional response) and population-level outcomes (stable point, damped oscillation, growing cycle, or extinction)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TYPE II AND INSTABILITY",
+    "title": "The destabilizing signature of Type II",
+    "items": [
+      "Because per-capita predation risk is highest at low prey density, Type II tends to <b>overshoot</b> — driving prey down further right when they are already scarce",
+      "This produces predator-prey systems prone to <b>diverging (growing) oscillations</b> rather than the neutral, closed cycles of the basic L-V model",
+      "Many documented boom-bust and outbreak-collapse cycles in predator-prey and host-parasitoid systems are consistent with Type II dynamics",
+      "Type II is therefore often cited as a key mechanistic explanation for real-world population cycling and volatility"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TYPE III AND STABILITY",
+    "title": "The stabilizing signature of Type III",
+    "items": [
+      "Because per-capita predation risk is <b>lowest</b> at low N, prey populations get a 'break' from proportional predation pressure exactly when they are most vulnerable to extinction",
+      "This tends to dampen oscillations and pull the system toward a stable equilibrium point rather than a diverging or neutrally cycling trajectory",
+      "Conservation and pest-management implications: if a generalist predator shows a Type III response, it can help suppress prey outbreaks at high density while still allowing the prey population to persist at low density",
+      "This is one reason generalist predators are sometimes favored in biological control — their switching behavior can stabilize pest populations at low densities"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A UNIFYING PRINCIPLE",
+    "title": "Density dependence in disguise",
+    "items": [
+      "Functional response type is fundamentally a statement about <b>density dependence in predation risk</b>",
+      "Type II = predation risk is a decreasing function of prey density → a form of positive feedback (destabilizing) at low N",
+      "Type III = predation risk rises then falls with prey density → negative feedback (stabilizing) is introduced at low N via the refuge effect",
+      "This connects functional response theory directly back to the density-dependence concepts from earlier in the course (Ch. 4–6) — now applied to a two-species interaction"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MANAGEMENT IMPLICATIONS",
+    "title": "Why functional response type matters beyond theory",
+    "cards": [
+      {
+        "h": "Biological pest control",
+        "p": "A biocontrol agent with a Type III response can hold a pest at low density (refuge effect works both ways at low pest density it can be slow to respond) while suppressing outbreaks at high density."
+      },
+      {
+        "h": "Endangered prey conservation",
+        "p": "If a prey species of conservation concern is hunted by a Type II predator, the prey's low-density predation risk is elevated — a serious extinction risk that management must actively mitigate."
+      },
+      {
+        "h": "Fisheries and harvested populations",
+        "p": "Predation (including human harvest, which can behave like a Type II 'predator') that remains efficient at low stock density can trigger depensation — a destabilizing collapse dynamic."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 7",
+    "title": "Empirical Examples",
+    "sub": "Which predators actually show which response"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TYPE II IN NATURE",
+    "title": "Common among invertebrate predators and parasitoids",
+    "items": [
+      "Many invertebrate predators and parasitoid wasps show classic Type II responses — e.g., predatory mites, ladybird beetles feeding on aphids, and numerous parasitoid-host systems",
+      "These predators typically specialize on a single or narrow prey type, so there is little opportunity for 'switching' behavior to produce a refuge",
+      "Handling time is often substantial relative to search time in these systems (e.g., subduing and consuming an aphid, or ovipositing in a host), producing the classic saturating curve",
+      "Type II is also common in some vertebrate predator-single-prey systems, particularly where the predator is a specialist"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TYPE III IN NATURE",
+    "title": "Common among generalist vertebrate predators",
+    "items": [
+      "Many vertebrate predators — birds, small mammals — show Type III responses when they have access to <b>multiple alternative prey types</b>",
+      "Classic example: avian predators that switch to feeding heavily on an insect prey species only once it becomes locally abundant, ignoring it when rare in favor of other food",
+      "Small mammal predators of insects and rodents often show Type III responses because they can substitute among alternative prey items as availability shifts",
+      "The switching behavior underlying these Type III curves is itself often driven by optimal foraging — predators allocate search effort to whichever prey currently offers the best return per unit effort"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CONCEPTUAL TAKEAWAY",
+    "quote": "The shape of a predator's functional response is not a mathematical nicety — it is the mechanistic link between individual foraging behavior and whether an entire predator-prey system cycles, stabilizes, or collapses.",
+    "attrib": "Synthesis of Holling (1959) and subsequent predator-prey theory, per Rockwood Ch. 10"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A CAUTION ON GENERALIZATION",
+    "title": "Real functional responses are often more complex",
+    "items": [
+      "Field-measured functional responses frequently show mixtures of behavior, or shift type depending on prey density range, habitat structure, or predator experience",
+      "Statistical fitting of functional response curves from experimental or field data typically uses likelihood-based methods to distinguish Type II from Type III given noisy count data — the two can look similar over limited data ranges",
+      "The Type I/II/III framework remains a foundational simplification — useful for building tractable models and generating testable predictions, even though real systems may not fall cleanly into one category"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MEASURING FUNCTIONAL RESPONSES",
+    "title": "How ecologists distinguish the types empirically",
+    "items": [
+      "Standard approach: hold predator density constant, vary prey density across a controlled range, and measure the number of prey consumed per predator per unit time",
+      "Type II vs. Type III is diagnosed by the initial shape of the curve — a linear or immediately-decelerating rise at low N indicates Type II, while an initially flat/accelerating rise indicates Type III",
+      "Statistically, this is often tested by fitting the proportion of prey eaten (not just number eaten) as a function of prey density — Type II shows a monotonically declining proportion, Type III shows a rise-then-decline (humped) proportion",
+      "Distinguishing the types matters directly for predicting whether a given predator-prey pair will be prone to destabilizing cycles or a stable low-density refuge"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 8",
+    "title": "Synthesis & Looking Ahead",
+    "sub": "Connecting functional response to next lecture's stability analysis"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MISSING HALF OF THE PICTURE",
+    "title": "Functional response vs. numerical response",
+    "items": [
+      "Functional response (today's topic) describes how much an <b>individual predator eats</b> as prey density changes — a behavioral, per-capita relationship",
+      "<b>Numerical response</b> (Lecture 34) describes how the <b>predator population size</b> itself changes with prey density — via reproduction, survival, or aggregative movement",
+      "Both responses jointly determine total predation pressure on the prey population: total kill rate = (per-predator consumption rate) × (number of predators)",
+      "A full understanding of predator-prey dynamics requires combining functional response type with numerical response type — the subject of the next lecture's stability analysis"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW OF THE MODEL AHEAD",
+    "title": "Toward the Rosenzweig-MacArthur model",
+    "items": [
+      "Lecture 34 will formally combine <b>logistic prey growth</b> (with a carrying capacity, unlike the basic L-V model's unbounded exponential prey growth) with a <b>Type II functional response</b> for predation",
+      "This combination is known as the <b>Rosenzweig-MacArthur model</b> — a cornerstone of modern predator-prey theory",
+      "It produces richer dynamics than the neutral cycles of the basic L-V model, including damped approaches to a stable equilibrium or sustained limit-cycle oscillations, depending on parameter values",
+      "The model also introduces the <b>paradox of enrichment</b> — increasing prey carrying capacity can destabilize the equilibrium and trigger larger-amplitude cycles, a direct consequence of Type II's destabilizing per-capita risk pattern discussed today"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP — LECTURE 33",
+    "title": "Key takeaways: functional responses",
+    "items": [
+      "The basic L-V model's aNP term implicitly assumes a <b>Type I</b> (linear, uncapped) functional response — unrealistic for most actively hunting predators",
+      "<b>Type II</b> (Holling disc equation, aN/(1+ahN)) is a decelerating, saturating curve driven by handling time; per-capita predation risk is highest at low prey density, making it <b>destabilizing</b>",
+      "<b>Type III</b> is a sigmoid curve driven by search image formation, prey switching, spatial refuges, and predator learning; per-capita predation risk is lowest at low prey density, making it <b>stabilizing</b> via a low-density prey refuge",
+      "Functional response type is fundamentally about the density-dependence (or its absence) of per-capita predation risk",
+      "Empirically, many invertebrate/specialist predators show Type II; many generalist vertebrate predators with prey-switching show Type III"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP — LECTURE 34",
+    "title": "Numerical responses, stability, and the Rosenzweig-MacArthur model",
+    "items": [
+      "Defining and classifying the <b>numerical response</b> — how predator abundance tracks prey density",
+      "Formal local stability analysis of predator-prey equilibria — equilibrium isoclines, Jacobians, and stability criteria",
+      "Building the <b>Rosenzweig-MacArthur model</b>: logistic prey growth + Type II functional response",
+      "The <b>paradox of enrichment</b> and its real-world implications for ecosystem management",
+      "Setting up Lectures 35's treatment of additional complexities: multiple prey, spatial heterogeneity, and coevolutionary dynamics"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 33</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

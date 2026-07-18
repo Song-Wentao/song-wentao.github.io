@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 31: Community Assembly and Species Traits II: Trait-Based and Phylogenetic Approaches to Assembly</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 31",
+    "title": "Community Assembly and Species Traits II: Trait-Based and Phylogenetic Approaches to Assembly",
+    "sub": "From assembly rules to functional traits and evolutionary history",
+    "footnote": "Mittelbach & McGill, Community Ecology, 2nd ed., Ch. 12 (\"Community Assembly and the Structuring Role of Biotic Interactions\"), pp. as assigned"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "From Assembly Rules to Traits",
+    "sub": "Recap and motivation for a trait-based framework"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Recap: Lecture 30 — The Assembly Process",
+    "items": [
+      "Community assembly = the sequence of colonization, establishment, and interaction that produces the local species composition drawn from a regional pool",
+      "Priority effects: order and timing of arrival can alter final community structure (historical contingency)",
+      "Diamond's (1975) assembly rules for New Guinea birds: certain species combinations never co-occur despite habitat suitability — proposed signature of competition",
+      "Checkerboard distributions: two species that never co-occur on the same islands even though each occurs widely — combinatorial evidence of exclusion",
+      "Major critique (Connor & Simberloff 1979): null models built from the same data can generate 'checkerboards' without any biology — need independent tests",
+      "Open question left from L30: if presence/absence patterns are ambiguous, can we do better by asking WHICH traits let species coexist?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why Move to Traits?",
+    "items": [
+      "Species identity is a poor currency for generalizing across communities — a trait-based approach asks what species DO, not just what they are called",
+      "Traits link directly to mechanisms: resource use, physiological tolerance, dispersal ability — the same axes that generate the coexistence theory from earlier lectures",
+      "Traits allow comparison across biogeographic regions with completely different species pools (e.g., comparing Australian and North American deserts using traits, not taxonomy)",
+      "Trait approaches promise predictive, mechanistic tests of assembly rather than post-hoc narrative about individual species",
+      "Sets up the second major research program in Ch. 12: moving from pattern description (checkerboards) to process-based trait and phylogenetic tests"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Functional Trait",
+    "term": "Functional Trait",
+    "def": "A morphological, physiological, phenological, or behavioral characteristic of an organism that influences its performance (growth, survival, reproduction) and, at the community level, its interactions with the environment and other species.",
+    "bullets": [
+      "Examples: specific leaf area, seed mass, body size, beak depth, rooting depth, photosynthetic pathway, thermal tolerance breadth."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Response Traits vs. Effect Traits",
+    "items": [
+      "Response traits: determine how a species responds to the abiotic environment and to competitors (e.g., drought tolerance, thermal niche breadth)",
+      "Effect traits: determine how a species affects ecosystem processes or other community members (e.g., leaf litter decomposability, nitrogen fixation)",
+      "A single trait can act as both a response and an effect trait (e.g., plant height affects light competition [effect] while also responding to disturbance regime [response])",
+      "This lecture focuses primarily on response traits, since assembly theory is about which species can enter/persist in a community",
+      "Distinction matters for linking community assembly to ecosystem function — a bridge to later lectures on ecosystem ecology"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Common Trait Categories Used in Assembly Studies",
+    "cards": [
+      {
+        "h": "Plant traits",
+        "p": "Specific leaf area (SLA), leaf nitrogen, seed mass, plant height, wood density — the 'leaf economics spectrum' of Wright et al. (2004)"
+      },
+      {
+        "h": "Animal morphology",
+        "p": "Body size, beak/bill dimensions, limb proportions — classic in Darwin's finches and desert rodent guilds"
+      },
+      {
+        "h": "Physiological traits",
+        "p": "Thermal tolerance limits, water-use efficiency, metabolic rate — link directly to environmental filtering"
+      },
+      {
+        "h": "Life-history traits",
+        "p": "Dispersal ability, longevity, reproductive timing — determine colonization potential and turnover"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Trait-Based Assembly: Two Opposing Forces",
+    "sub": "Environmental filtering vs. limiting similarity"
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Environmental Filtering",
+    "term": "Environmental Filtering",
+    "def": "The process by which abiotic conditions (climate, soil, disturbance) exclude species whose trait values fall outside the range tolerated at a site, causing co-occurring species to share similar trait values.",
+    "bullets": [
+      "Also called 'habitat filtering.' Predicts trait CLUSTERING (underdispersion) relative to the regional pool."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Limiting Similarity",
+    "term": "Limiting Similarity",
+    "def": "The principle (MacArthur & Levins 1967) that species must differ by a minimum amount in resource-use traits to coexist; species too similar in niche/trait space will competitively exclude one another.",
+    "bullets": [
+      "Predicts trait OVERDISPERSION (evenness/spacing) relative to the regional pool — the trait-based descendant of classical limiting-similarity theory."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Filtering vs. Limiting Similarity: Contrasting Predictions",
+    "headers": [
+      "Feature",
+      "Environmental Filtering",
+      "Limiting Similarity"
+    ],
+    "rows": [
+      [
+        "Dominant process",
+        "Abiotic sorting from regional pool",
+        "Biotic competitive exclusion of similar phenotypes"
+      ],
+      [
+        "Predicted trait pattern",
+        "Clustering / underdispersion",
+        "Overdispersion / even spacing"
+      ],
+      [
+        "Trait variance vs. null expectation",
+        "Lower than random",
+        "Higher than random"
+      ],
+      [
+        "Classic theoretical root",
+        "Niche/habitat matching",
+        "MacArthur & Levins (1967) limiting similarity"
+      ],
+      [
+        "Scale typically invoked",
+        "Regional-to-local (coarse)",
+        "Local, within-habitat (fine)"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Two Filters Acting in Sequence",
+    "left": {
+      "h": "Step 1 — Environmental Filter",
+      "body": "<ul><li>Regional pool filtered by abiotic tolerances</li><li>Removes species with unsuitable trait values</li><li>Leaves a trait-clustered subset able to persist locally</li><li>Operates first, at coarser spatial/temporal scale</li></ul>"
+    },
+    "right": {
+      "h": "Step 2 — Biotic/Competitive Filter",
+      "body": "<ul><li>Within the filtered subset, similar competitors sort out</li><li>Limiting similarity pushes surviving species apart in trait space</li><li>Can partially counteract clustering from Step 1</li><li>Operates second, at finer local scale</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Trait Dispersion: The Core Metric",
+    "items": [
+      "Trait dispersion = how spread out or clumped species' trait values are within a community, relative to what would be expected by chance from the regional pool",
+      "Overdispersion: traits more evenly/widely spaced than random draw — interpreted as evidence of competitive sorting (limiting similarity)",
+      "Underdispersion (clustering): traits more similar than random draw — interpreted as evidence of environmental filtering",
+      "Random/no pattern: traits statistically indistinguishable from a random draw from the pool — no detectable assembly signal for that trait",
+      "Critical point: dispersion patterns are inferred relative to a NULL MODEL, not from raw data alone — this is where methodology becomes central"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Trait Overdispersion",
+    "term": "Trait Overdispersion",
+    "def": "A community pattern in which co-occurring species are more different in a given trait than expected under a null model that randomly assembles communities from the regional pool.",
+    "bullets": [
+      "Classic interpretation: signature of limiting similarity / competitive exclusion of similar phenotypes."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Trait Underdispersion (Clustering)",
+    "term": "Trait Underdispersion (Clustering)",
+    "def": "A community pattern in which co-occurring species are more similar in a given trait than expected by chance from the regional pool.",
+    "bullets": [
+      "Classic interpretation: signature of environmental filtering. Caution: can also arise from shared ancestry (phylogenetic conservatism) without any contemporary filtering."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Foundational Empirical Studies",
+    "items": [
+      "Stubbs & Wilson (2004): tested plant trait dispersion in limestone pavement communities — found both patterns depending on trait and scale",
+      "Cornwell, Schwilk & Ackerly (2006): woody plant communities in California show trait clustering for traits tied to drought/fire tolerance, consistent with filtering",
+      "Weiher & Keddy (1995) framework: proposed the field explicitly test whether traits are more clustered or more even than null expectation — foundational methodological paper",
+      "General finding across many systems: filtering signals (clustering) are detected more often than overdispersion — has become an important empirical pattern requiring explanation (see critiques, Part 6)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Null Models for Trait Patterns",
+    "sub": "Why we cannot just eyeball trait spread"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Why Null Models Are Essential",
+    "items": [
+      "Regional species pools already differ in trait variance for reasons unrelated to local assembly (evolutionary history, biogeography)",
+      "Sample size (number of co-occurring species) strongly affects raw variance — small communities appear 'clustered' by statistical artifact alone",
+      "A null model asks: is the observed trait dispersion different from communities assembled at RANDOM from the same regional pool, holding richness constant?",
+      "Without this control, any statement like 'species X and Y co-occur despite similar traits' is uninterpretable",
+      "Same logic as the null models used to test Diamond's checkerboards in L30 — this is the trait-pattern analog of that debate"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Building a Null Model: General Recipe",
+    "items": [
+      "Define the regional species pool (all species that could plausibly colonize the site)",
+      "Randomly draw the same number of species as observed locally, many times (e.g., 999–9999 iterations)",
+      "Calculate the trait dispersion metric for each randomized community",
+      "Compare the observed value to the distribution of null values to get a standardized effect size and p-value",
+      "Choice of species pool is the single most consequential and most debated decision in this procedure — an overly broad pool inflates apparent filtering; an overly narrow pool can mask it"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Standardized Effect Size (SES)",
+    "term": "Standardized Effect Size (SES)",
+    "def": "SES = (Observed metric − Mean of null distribution) / SD of null distribution. Expresses how many standard deviations the observed community trait pattern deviates from random expectation.",
+    "bullets": [
+      "SES > 0 (and significant): overdispersion. SES < 0 (and significant): clustering/underdispersion. Widely used for both trait and phylogenetic metrics (see Part 4)."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Common Dispersion Metrics",
+    "cards": [
+      {
+        "h": "Variance ratio / trait range",
+        "p": "Simple measures of spread in trait values among co-occurring species relative to the pool"
+      },
+      {
+        "h": "Nearest-neighbor trait distance",
+        "p": "Mean distance in trait space to a species' closest trait-neighbor — sensitive to fine-scale packing"
+      },
+      {
+        "h": "Mean pairwise trait distance",
+        "p": "Average distance between all pairs of co-occurring species — sensitive to overall spread"
+      },
+      {
+        "h": "SES of the above",
+        "p": "Any raw metric can be standardized against a null distribution to yield a comparable effect size across sites/studies"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Phylogenetic Community Ecology",
+    "sub": "Using evolutionary relatedness as a proxy for ecological similarity"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "The Logic Behind Phylogenetic Approaches",
+    "items": [
+      "Motivation (Webb, Ackerly, McPeek & Donoghue 2002, 'Phylogenies and Community Ecology'): closely related species often share similar traits due to common descent",
+      "If traits are phylogenetically conserved, then phylogenetic relatedness can serve as a proxy for ecological similarity when trait data are unavailable or incomplete",
+      "This lets researchers exploit large, freely available phylogenies (e.g., from GenBank or phylogenomic trees) to test assembly hypotheses across huge species pools",
+      "The approach reframes classic questions: instead of 'are species too similar in trait X?' we ask 'are co-occurring species more or less closely related than expected by chance?'",
+      "Became one of the most cited frameworks in community ecology in the 2000s–2010s, spawning the subfield of phylogenetic community ecology"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Phylogenetic Signal",
+    "term": "Phylogenetic Signal",
+    "def": "The tendency of related species to resemble each other in a trait more than they resemble species drawn at random from the phylogeny — i.e., the degree to which trait similarity tracks evolutionary relatedness.",
+    "bullets": [
+      "Necessary assumption for phylogeny to act as a valid proxy for traits. Measured with statistics such as Blomberg's K or Pagel's lambda."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Phylogenetic Clustering",
+    "term": "Phylogenetic Clustering",
+    "def": "A community pattern in which co-occurring species are more closely related (on average) than expected under a null model drawing randomly from the regional phylogenetic pool.",
+    "bullets": [
+      "Under the assumption of conserved traits, interpreted as evidence of environmental filtering (close relatives share the traits that let them pass the filter)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Phylogenetic Overdispersion",
+    "term": "Phylogenetic Overdispersion",
+    "def": "A community pattern in which co-occurring species are more distantly related (on average) than expected by chance from the regional phylogenetic pool.",
+    "bullets": [
+      "Under the assumption of conserved traits, interpreted as evidence of limiting similarity/competitive exclusion among close relatives."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Webb et al. (2002) Framework",
+    "left": {
+      "h": "Phylogenetic Clustering",
+      "body": "<ul><li>Co-occurring species closer on the tree than random</li><li>Interpreted as environmental filtering (assuming trait conservatism)</li><li>Analogous to trait underdispersion</li><li>Common pattern in stressful/harsh environments</li></ul>"
+    },
+    "right": {
+      "h": "Phylogenetic Overdispersion",
+      "body": "<ul><li>Co-occurring species more distantly related than random</li><li>Interpreted as limiting similarity / competitive exclusion</li><li>Analogous to trait overdispersion</li><li>Predicted to be more common in benign, resource-rich environments</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key Caveat: Trait Convergence Breaks the Proxy",
+    "items": [
+      "The whole phylogenetic framework rests on traits being conserved (phylogenetic signal present) — if traits evolve labily or converge, relatedness no longer tracks ecological similarity",
+      "Convergent evolution: distantly related species independently evolve similar traits (e.g., cacti and euphorbs converging on succulence) — would produce phylogenetic overdispersion even under strong environmental filtering",
+      "Trait lability: rapid trait evolution within a lineage decouples close relatives' ecological roles — can produce phylogenetic clustering even when limiting similarity is operating on traits",
+      "Cavender-Bares et al. (2004, 2009) showed oak (Quercus) communities can show phylogenetic clustering AND trait overdispersion simultaneously — traits and phylogeny do not always align",
+      "Bottom line: phylogenetic pattern is not a free substitute for trait data — best practice is to measure BOTH traits and phylogeny where possible"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Combining Trait and Phylogenetic Patterns",
+    "headers": [
+      "Trait Pattern",
+      "Phylogenetic Pattern",
+      "Likely Interpretation"
+    ],
+    "rows": [
+      [
+        "Clustered",
+        "Clustered",
+        "Environmental filtering, traits conserved — clean, consistent signal"
+      ],
+      [
+        "Overdispersed",
+        "Overdispersed",
+        "Limiting similarity, traits conserved — clean, consistent signal"
+      ],
+      [
+        "Overdispersed",
+        "Clustered",
+        "Filtering acting on conserved traits + convergence/competition on a separate labile trait"
+      ],
+      [
+        "Clustered",
+        "Overdispersed",
+        "Trait convergence among distant relatives masks phylogenetic signal of filtering"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "",
+    "title": "Hierarchical Filters from Regional Pool to Local Community",
+    "levels": [
+      {
+        "label": "Regional species pool",
+        "color": "#1f4d38",
+        "width": "560px"
+      },
+      {
+        "label": "Environmental filter",
+        "color": "#2f6f4f",
+        "width": "500px"
+      },
+      {
+        "label": "Biotic filter",
+        "color": "#3f7d5c",
+        "width": "440px"
+      },
+      {
+        "label": "Local community",
+        "color": "#568f6d",
+        "width": "380px"
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "",
+    "title": "Key Milestones: From Assembly Rules to Trait/Phylogenetic Ecology",
+    "items": [
+      {
+        "y": "1967",
+        "t": "MacArthur & Levins formalize limiting similarity theory"
+      },
+      {
+        "y": "1975",
+        "t": "Diamond proposes assembly rules and checkerboard patterns"
+      },
+      {
+        "y": "1979",
+        "t": "Connor & Simberloff challenge checkerboards with null models"
+      },
+      {
+        "y": "1995",
+        "t": "Weiher & Keddy formalize trait-based null model tests"
+      },
+      {
+        "y": "2002",
+        "t": "Webb, Ackerly, McPeek & Donoghue link phylogeny to community assembly"
+      },
+      {
+        "y": "2004",
+        "t": "Cavender-Bares oak study; Stubbs & Wilson plant trait dispersion"
+      },
+      {
+        "y": "2006",
+        "t": "Cornwell, Schwilk & Ackerly trait clustering in California shrublands"
+      },
+      {
+        "y": "2009",
+        "t": "Kraft, Valencia & Ackerly test trait/phylogenetic dispersion in Amazonian trees"
+      },
+      {
+        "y": "2012",
+        "t": "HilleRisLambers et al. synthesize the trait-based assembly literature"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Case Studies",
+    "sub": "Testing trait- and phylogeny-based assembly in real systems"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Case Study: California Chaparral (Cornwell, Schwilk & Ackerly 2006)",
+    "items": [
+      "Compared trait dispersion (specific leaf area, height, seed mass) among co-occurring woody plants across sites differing in soil fertility and fire regime",
+      "Found strong trait clustering for traits linked to drought and fire tolerance — consistent with environmental filtering by harsh serpentine soils and fire",
+      "Some traits (e.g., seed mass, linked to regeneration niche) showed weaker or opposite signal — illustrates that different traits can show different assembly signatures within the same community",
+      "Demonstrates the importance of choosing ecologically relevant traits rather than testing all measurable traits indiscriminately"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Case Study: Amazonian Tree Communities (Kraft, Valencia & Ackerly 2008)",
+    "items": [
+      "Tested trait and phylogenetic dispersion of tree communities across a fine-scale environmental gradient (soil, topography) in Ecuadorian Amazon",
+      "At small spatial scales, found evidence for BOTH filtering (clustering for some traits) and limiting similarity (overdispersion for others) depending on trait and neighborhood size",
+      "Key methodological contribution: dispersion patterns were scale-dependent — signal changed with the spatial grain and species-pool definition used",
+      "Reinforced that assembly processes are not mutually exclusive; filtering and competition can operate simultaneously on different trait axes"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Additional Case Studies: Animals",
+    "cards": [
+      {
+        "h": "Darwin's finches (Galápagos)",
+        "p": "Beak depth overdispersion among co-occurring Geospiza species — classic character displacement / limiting similarity signature (Grant & Grant, long-term studies)"
+      },
+      {
+        "h": "Desert rodent guilds",
+        "p": "Body size and foraging-mode differences among co-occurring granivorous rodents (e.g., Sonoran Desert) tested against null expectations for size-ratio spacing"
+      },
+      {
+        "h": "North American breeding birds",
+        "p": "Phylogenetic clustering detected at continental scales (climate filtering), overdispersion at some local scales (competitive sorting) — scale-dependence again"
+      },
+      {
+        "h": "Old World leaf-warblers (Phylloscopus)",
+        "p": "Price et al. work showing niche and morphological divergence among co-occurring congeners consistent with limiting similarity"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Traits Along Environmental Gradients",
+    "items": [
+      "Trait means often shift predictably along gradients (elevation, aridity, soil fertility) — a form of filtering visible even without formal null models",
+      "Community-weighted mean trait value: the abundance-weighted average trait in a community — widely used to detect filtering along gradients",
+      "Example: specific leaf area declines and leaf thickness increases toward drier sites — reflects filtering for drought-tolerant strategies",
+      "Trait variance (dispersion) can decline even as the mean shifts — filtering can act on the mean, the variance, or both simultaneously",
+      "Gradient approaches complement the co-occurrence null-model approach and are often easier to interpret causally because the abiotic driver is directly measured"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "",
+    "title": "Local vs. Regional Scale Patterns",
+    "left": {
+      "h": "Regional / Continental Scale",
+      "body": "<ul><li>Environmental filtering dominates signal</li><li>Trait and phylogenetic clustering more commonly detected</li><li>Climate and large-scale habitat gradients are the main filters</li><li>Species pool definition less contentious (biogeographic realm)</li></ul>"
+    },
+    "right": {
+      "h": "Local / Fine Scale",
+      "body": "<ul><li>Biotic interactions (competition) become more detectable</li><li>Trait and phylogenetic overdispersion more likely, though still inconsistent</li><li>Microhabitat heterogeneity can itself act as a fine-scale filter</li><li>Species pool definition is the critical, often-debated choice</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Critiques and Limitations",
+    "sub": "Why trait-based and phylogenetic inference is harder than it looks"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Critique 1: Trait Lability and Convergence",
+    "items": [
+      "Phylogenetic proxy approach fails when traits evolve quickly (lability) or converge independently in distant lineages",
+      "Convergence is common for traits under strong selection (e.g., succulence, C4 photosynthesis, seed dispersal syndromes) — exactly the traits most relevant to assembly",
+      "Result: absence of phylogenetic signal does not mean absence of trait-based structuring — the two approaches can give opposite answers (Cavender-Bares oaks, again)",
+      "Growing consensus: measure functional traits directly whenever feasible; treat phylogeny as a complementary, not a replacement, signal"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Critique 2: Which Traits, and How Are They Measured?",
+    "items": [
+      "Trait selection is often driven by convenience/availability (easy to measure) rather than a demonstrated link to the hypothesized filter or interaction",
+      "Intraspecific trait variation is frequently ignored — using one mean trait value per species can mask real plasticity that matters for coexistence",
+      "Traits measured in isolation (e.g., leaf traits alone) may miss the multidimensional niche that actually governs coexistence (see earlier lectures on the n-dimensional niche)",
+      "Trait correlations (e.g., leaf economics spectrum) mean univariate tests can be misleading — multivariate trait space analyses are increasingly preferred",
+      "McGill et al. (2006, 'Rebuilding community ecology from functional traits') explicitly called for standardizing trait measurement protocols across studies"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Critique 3: Null Model and Inferential Problems",
+    "items": [
+      "Choice of regional species pool strongly determines results — different reasonable pool definitions can flip a result from clustering to overdispersion",
+      "Pattern-to-process inference is not one-to-one: as with Diamond's checkerboards (L30), a given trait/phylogenetic pattern can arise from multiple distinct processes",
+      "Statistical power is often low with realistic community sizes (few species, few individuals) — many 'non-significant' results may simply reflect low power, not absence of structure",
+      "Detecting a pattern (clustering/overdispersion) is not the same as demonstrating the mechanism (filtering/competition) — additional experimental or mechanistic evidence is needed",
+      "Some ecologists argue the field over-relies on pattern-based null-model tests when manipulative experiments (as covered in earlier weeks) provide stronger causal evidence"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "",
+    "title": "Convergent Evolution (in an assembly context)",
+    "term": "Convergent Evolution (in an assembly context)",
+    "def": "The independent evolution of similar traits in distantly related lineages, typically driven by similar selective pressures (e.g., similar climates or resource environments).",
+    "bullets": [
+      "Directly undermines the phylogeny-as-trait-proxy assumption; a major reason trait data and phylogenetic data can disagree."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "",
+    "title": "Strengths vs. Limitations of Trait/Phylogenetic Approaches",
+    "headers": [
+      "Aspect",
+      "Strength",
+      "Limitation"
+    ],
+    "rows": [
+      [
+        "Generality",
+        "Comparable across regions/taxa lacking shared species",
+        "Choice of traits/pool strongly shapes conclusions"
+      ],
+      [
+        "Mechanism",
+        "Links pattern to plausible ecological process",
+        "Pattern-process inference remains non-unique"
+      ],
+      [
+        "Data availability",
+        "Phylogenies increasingly available for many taxa",
+        "Phylogeny is only a valid trait proxy if signal is strong"
+      ],
+      [
+        "Scalability",
+        "Applicable from local plots to continental datasets",
+        "Statistical power often low at realistic local scales"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "",
+    "quote": "Community phylogenetics has been extraordinarily productive, but relatedness is a hypothesis about ecological similarity, not a measurement of it — the field's next step is to test that hypothesis rather than assume it.",
+    "attrib": "paraphrased from Cavender-Bares, Kozak, Fine & Kembel (2009), \"The merging of community ecology and phylogenetic biology\""
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Toward Synthesis: Integrating Traits, Phylogeny, and Demography",
+    "items": [
+      "HilleRisLambers, Adler, Harpole, Levine & Mayfield (2012) reviewed the trait-based coexistence literature and argued for combining trait/phylogenetic pattern tests with demographic data (growth, survival, fecundity)",
+      "Recommend testing whether trait differences actually translate into fitness/niche differences (stabilizing mechanisms) rather than assuming pattern implies mechanism",
+      "Call for pairing observational trait-dispersion studies with the experimental and modeling approaches from modern coexistence theory (recall the storage effect, niche vs. fitness differences from earlier lectures)",
+      "Emerging best practice: multi-trait, multi-scale designs with explicit null models AND, where possible, manipulative experiments or long-term demographic monitoring",
+      "This integrative agenda foreshadows how community assembly connects forward to Ch. 13 and later discussions of coexistence mechanisms and biodiversity maintenance"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "",
+    "title": "Future Directions in Trait-Based Assembly Research",
+    "cards": [
+      {
+        "h": "Intraspecific variation",
+        "p": "Incorporating individual- and population-level trait variation, not just species means, into dispersion analyses"
+      },
+      {
+        "h": "Multivariate trait space",
+        "p": "Moving from single-trait tests to whole trait-space (functional diversity) approaches that capture trade-offs among traits"
+      },
+      {
+        "h": "Joint species distribution models",
+        "p": "Statistical frameworks that estimate filtering and biotic association simultaneously from co-occurrence and trait/environment data"
+      },
+      {
+        "h": "Experimental validation",
+        "p": "Coupling pattern-based inference with transplant/removal experiments to directly test filtering and competition mechanisms"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Putting It Together",
+    "sub": "Trait-based and phylogenetic assembly as tools, not verdicts"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Key Takeaways",
+    "items": [
+      "Trait-based assembly reframes Diamond's assembly rules mechanistically: environmental filtering predicts trait/phylogenetic clustering; limiting similarity predicts overdispersion",
+      "Dispersion patterns are only interpretable relative to a well-justified null model — species pool definition is the single most consequential methodological choice",
+      "Phylogenetic relatedness is a useful but conditional proxy for ecological similarity — it depends on traits being phylogenetically conserved, which is not always true",
+      "Empirically, clustering (filtering) is detected more often than overdispersion, and different traits or scales within the same community can show opposite signals",
+      "Case studies (chaparral shrubs, Amazonian trees, Darwin's finches, desert rodents) show filtering and limiting similarity often act simultaneously on different trait axes",
+      "Critiques (trait lability, pool sensitivity, weak process inference) mean pattern-based tests should be paired with mechanistic/experimental evidence wherever possible"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "",
+    "title": "Looking Ahead: Lecture 32",
+    "items": [
+      "L32 completes the Ch. 12 sequence with 'Community Assembly and Species Traits III' — likely covering biotic interactions beyond competition (facilitation, mutualism) in assembly, and how assembly theory connects to coexistence theory",
+      "Bring your notes on limiting similarity and niche differences from the population/coexistence unit — we will revisit them explicitly",
+      "Recommended: skim Ch. 12 remaining sections and preview Ch. 13 for the transition to biodiversity maintenance mechanisms"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 31</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

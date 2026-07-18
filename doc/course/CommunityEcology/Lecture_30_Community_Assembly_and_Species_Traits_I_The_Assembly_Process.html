@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 30: Community Assembly and Species Traits I: The Assembly Process</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 30",
+    "title": "Community Assembly and Species Traits I: The Assembly Process",
+    "sub": "Opening Chapter 12 — from a regional species pool to a local community: dispersal, environment, and biotic interactions as sequential filters",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 12 — Community assembly and species traits"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Closing Part III, Opening Chapter 12",
+    "sub": "From food webs back to the oldest question in the course"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Where We Left Off: Lecture 29",
+    "items": [
+      "Lecture 29 closed <b>Chapter 11</b> by synthesizing food chain length, food web structure, and stability — how energetic, dynamical, and topological constraints combine to explain real web architecture.",
+      "That lecture itself was a synthesis: it pulled together material from <b>trophic cascades, omnivory, modularity, and network robustness</b> across the preceding lectures.",
+      "With Chapter 11 finished, we have now covered essentially the full modern toolkit of community ecology: <b>density dependence, competition, coexistence theory, niche and neutral theory, predation, mutualism, and food web structure</b>.",
+      "Chapter 12 asks what happens when we point all of that machinery at a single, concrete question we raised in the very first week of the course."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing",
+    "title": "A Question We Asked in Lecture 2 — Revisited",
+    "items": [
+      "Back in <b>Lecture 2</b>, discussing succession and the Clements–Gleason debate, we asked: given a pool of species available in a region, why do particular species end up together at a particular site?",
+      "At that point we had almost no tools to answer it — we could only describe patterns (facilitation, tolerance, inhibition models of succession) without a mechanistic account of <b>why</b> those patterns occur.",
+      "Chapter 12 returns to exactly this question — <b>community assembly</b> — but now we bring competition theory, coexistence mechanisms, niche differentiation, and network thinking to bear on it.",
+      "The central question of this lecture: <b>given a regional species pool, which species end up in a given local community, and why?</b>"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Defining Community Assembly",
+    "term": "Community assembly",
+    "def": "The process by which a subset of species from a regional species pool comes to co-occur in — and persist within — a particular local community, as a result of dispersal, environmental filtering, and biotic interactions.",
+    "bullets": [
+      "Assembly is not a one-time event: communities are continually being reassembled as species arrive, establish, interact, and sometimes go locally extinct.",
+      "The regional species pool is the starting point — the full set of species that could, in principle, occur at a site given their known ranges and habitat affinities.",
+      "The local community is the end product — a small, non-random subset of that pool."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Chapter Now",
+    "title": "A Synthesis Chapter — Deliberately Placed Last in Part III",
+    "items": [
+      "Chapter 12 is the capstone of <b>Part III: Putting the Pieces Together</b> — it is explicitly designed to require every major concept from the course so far.",
+      "<b>Density dependence & population regulation</b> (Part I) determine whether an arriving species can grow from rare.",
+      "<b>Competition and coexistence theory</b> (Ch7–8) determine whether ecologically similar species can co-occur once both are present.",
+      "<b>Niche theory</b> (Ch2–3) defines the axes along which environmental tolerance and resource use are measured.",
+      "<b>Predation, mutualism, and food web structure</b> (Ch9–11) determine whether a species can persist given the biotic community already in place.",
+      "Community assembly theory is the framework that organizes all of these into a single sequential process."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Terminology",
+    "title": "Regional Pool vs. Local Community: A Necessary Distinction",
+    "items": [
+      "The <b>regional species pool</b> is typically defined at the scale of a biogeographic region or landscape — bounded by dispersal capability, evolutionary history, and broad climate — and is usually far larger than any local species list.",
+      "The <b>local community</b> is the much smaller set of species actually co-occurring at a site small enough for direct species interactions to plausibly occur.",
+      "Defining the regional pool correctly is a persistent methodological challenge: pool boundaries drawn too broadly or too narrowly can create spurious appearance of filtering where none exists, or vice versa.",
+      "This regional-to-local framing directly parallels the metacommunity concept from Chapter 6 — assembly theory can be seen as the trait-and-filter lens on the same source-pool-to-local-patch structure."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Filter Framework",
+    "sub": "From regional pool to local community: dispersal, environment, and biotic interactions as sequential filters"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Model",
+    "title": "Assembly as a Series of Filters",
+    "items": [
+      "The dominant conceptual model in this chapter treats community assembly as a cascade of <b>filters</b> that progressively narrow a regional species pool down to a realized local community.",
+      "Each filter is a question the environment or community asks of every candidate species: can you get here? can you survive here? can you persist here?",
+      "Species that fail any filter are excluded from the local community — species that pass all filters make it through.",
+      "This is a heuristic, not a rigid law: filters can interact, act simultaneously rather than strictly in sequence, and their relative strength varies enormously among systems."
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Visualizing Assembly",
+    "title": "The Filter Cascade: Regional Pool to Local Community",
+    "levels": [
+      {
+        "label": "Regional species pool",
+        "color": "#1f4e5f",
+        "width": "520px"
+      },
+      {
+        "label": "Dispersal filter — can it reach the site?",
+        "color": "#2d6a7a",
+        "width": "440px"
+      },
+      {
+        "label": "Environmental filter — can it tolerate local conditions?",
+        "color": "#3c8896",
+        "width": "360px"
+      },
+      {
+        "label": "Biotic filter — can it establish among residents?",
+        "color": "#5aa6a8",
+        "width": "280px"
+      },
+      {
+        "label": "Realized local community",
+        "color": "#8fc4bd",
+        "width": "200px"
+      }
+    ],
+    "footnote": "Each successive filter removes species from the candidate set; the local community is what remains after all filters have acted."
+  },
+  {
+    "type": "term",
+    "eyebrow": "Filter 1",
+    "title": "The Dispersal Filter",
+    "term": "Dispersal filter",
+    "def": "The requirement that a species must physically reach a site before any other assembly process can act on it — assembly's necessary first gate.",
+    "bullets": [
+      "Governed by species' dispersal ability, distance from source populations, and landscape connectivity — themes we covered in the metapopulation and metacommunity material (Ch5–6).",
+      "A species perfectly suited to local conditions that never arrives simply cannot be part of the community — absence due to dispersal limitation looks identical, from the outside, to absence due to poor habitat.",
+      "This filter interacts with island biogeography (immigration rate as a function of isolation) and explains why species-poor, isolated sites often contain a non-random, dispersal-biased subset of the regional pool."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Filter 2",
+    "title": "The Environmental (Abiotic) Filter",
+    "term": "Environmental filter",
+    "def": "The requirement that an arriving species must physiologically tolerate the local abiotic conditions — temperature, moisture, soil chemistry, disturbance regime — to establish at all.",
+    "bullets": [
+      "Operates on a species' fundamental niche (Ch2): only species whose physiological tolerances overlap the local environmental envelope pass through.",
+      "Acts before any biotic interaction can occur — a species can be a superb competitor and still be filtered out by winter minimum temperature or soil pH.",
+      "Classic examples: serpentine soil floras, high-elevation alpine plant assemblages, and desert annual communities are all heavily shaped by strong abiotic filtering."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Filter 3",
+    "title": "The Biotic Filter",
+    "term": "Biotic filter",
+    "def": "The requirement that a species able to reach and tolerate a site must still establish and persist in the presence of resident competitors, predators, parasites, and (potentially) required mutualists.",
+    "bullets": [
+      "This is where the entire species-interaction toolkit of the course becomes directly relevant: competitive exclusion and coexistence mechanisms (Ch7–8), predation and top-down control (Ch9), mutualist dependency (Ch10), and network position (Ch11).",
+      "A species can pass the dispersal and environmental filters and still fail to establish because a superior competitor already occupies its niche, a keystone predator suppresses it, or an obligate mutualist partner is absent.",
+      "Because the biotic filter depends on who is already present, it makes assembly outcomes sensitive to community composition and history — the seed of the priority-effects idea we return to shortly."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Filters in the Field",
+    "title": "Each Filter, One Concrete Example",
+    "cards": [
+      {
+        "h": "Dispersal filter example",
+        "p": "Remote oceanic islands accumulate species almost entirely by chance long-distance dispersal — their floras are strongly biased toward taxa with wind- or bird-dispersed propagules, regardless of competitive ability."
+      },
+      {
+        "h": "Environmental filter example",
+        "p": "Post-fire chaparral is rapidly recolonized only by species with fire-cued germination or resprouting traits — the fire event itself acts as an abiotic filter independent of dispersal or competition."
+      },
+      {
+        "h": "Biotic filter example",
+        "p": "Introduced predator-free islands allow ground-nesting bird species to establish that would be immediately excluded on the mainland by mammalian predators — same dispersal and environmental match, different biotic filter outcome."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis",
+    "title": "Filters Interact — They Are Not Strictly Sequential",
+    "left": {
+      "h": "The idealized order",
+      "body": "Dispersal → environment → biotic interactions is a useful teaching sequence: it moves from the most permissive constraint (can it get here) to the most contingent (can it coexist with what's already there)."
+    },
+    "right": {
+      "h": "The messier reality",
+      "body": "In practice these filters can act simultaneously and feed back on one another — e.g., a resident competitor can alter local microclimate (biotic filter reshaping the environmental filter), or high propagule pressure can partly overcome poor environmental match."
+    },
+    "footnote": "The filter model is a heuristic for organizing causes of absence, not a strict causal chain."
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Necessary vs. Sufficient",
+    "title": "Passing a Filter Is Necessary, Not Sufficient",
+    "left": {
+      "h": "What passing means",
+      "body": "Passing the dispersal and environmental filters only means a species is a viable candidate for the local community — it establishes that exclusion by those two filters has not occurred, nothing more."
+    },
+    "right": {
+      "h": "Why the biotic filter still matters",
+      "body": "The biotic filter can still exclude an otherwise well-matched species — meaning strong environmental match alone never guarantees presence. This is precisely why trait data on their own can be ambiguous about which filter is responsible for an absence."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Two Opposing Signatures in Trait Space",
+    "sub": "Environmental filtering vs. competitive sorting — and how traits reveal which one dominates"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Traits",
+    "title": "Using Functional Traits to Detect Assembly Process",
+    "items": [
+      "Because assembly filters act on species' <b>traits</b> — physiological tolerances, resource-use strategies, body size, phenology — the trait composition of a local community carries a signature of which filters shaped it.",
+      "This gives ecologists an indirect but powerful tool: instead of directly observing dispersal, environmental tolerance, and competition happening in real time, we can look at the pattern of traits present in an assembled community and infer which process likely dominated.",
+      "This logic sets up the entire quantitative trait-based approach we develop further in Lecture 31 — today we establish the two core, opposing predictions."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Foundational Definition",
+    "title": "What Counts as a Functional Trait",
+    "term": "Functional trait",
+    "def": "Any measurable morphological, physiological, or phenological characteristic of an organism that influences its performance — growth, survival, or reproduction — and thus its fitness in a given environment.",
+    "bullets": [
+      "Examples relevant to assembly: body size, specific leaf area, seed mass, rooting depth, thermal tolerance range, dispersal mode, diet breadth.",
+      "A useful trait for assembly analysis should plausibly link mechanistically to either environmental tolerance (predicting convergence) or resource-use/competitive ability (predicting divergence) — not all traits are equally informative for every question.",
+      "Because different traits can be shaped by different filters simultaneously, assembly studies typically analyze several trait axes rather than a single composite score."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Prediction 1",
+    "title": "Environmental Filtering → Trait Convergence",
+    "term": "Trait convergence (clustering)",
+    "def": "The pattern in which co-occurring species share similar trait values, because only species with traits suited to local abiotic conditions pass the environmental filter.",
+    "bullets": [
+      "If the environmental filter dominates, we expect local communities to be composed of species that are <b>functionally similar</b> to one another — all sharing whatever trait syndrome allows tolerance of the local environment.",
+      "Example: alpine plant communities converge on traits like low stature, small leaves, and high freezing tolerance — species lacking these traits are simply filtered out, regardless of their competitive ability.",
+      "Statistically, trait convergence shows up as trait variance among co-occurring species that is smaller than expected from a random draw of the same size from the regional pool."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Prediction 2",
+    "title": "Competitive Sorting → Trait Divergence",
+    "term": "Trait divergence (overdispersion)",
+    "def": "The pattern in which co-occurring species have dissimilar trait values, because limiting similarity prevents species with near-identical resource-use traits from stably coexisting.",
+    "bullets": [
+      "This is a direct extension of <b>limiting similarity</b> theory from Chapters 7–8: species too similar in resource use cannot coexist, so strong competition should sort communities toward functional dissimilarity.",
+      "If competitive sorting dominates, local communities should contain species that are <b>more different</b> from one another in relevant traits than a random subset of the regional pool would be.",
+      "Statistically, trait divergence shows up as trait variance (or minimum trait spacing) among co-occurring species that is larger than expected from a random draw from the regional pool."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Direct Contrast",
+    "title": "Environmental Filtering vs. Competitive Sorting: Opposing Trait Signatures",
+    "headers": [
+      "Feature",
+      "Environmental Filtering",
+      "Competitive Sorting"
+    ],
+    "rows": [
+      [
+        "Underlying mechanism",
+        "Abiotic tolerance limits which species can persist",
+        "Limiting similarity prevents niche-overlapping species from coexisting"
+      ],
+      [
+        "Expected trait pattern",
+        "Convergence / clustering — species become more similar",
+        "Divergence / overdispersion — species become more different"
+      ],
+      [
+        "Trait variance vs. null expectation",
+        "Lower than random draw from regional pool",
+        "Higher than random draw from regional pool"
+      ],
+      [
+        "Theoretical root",
+        "Fundamental niche, physiological tolerance (Ch2)",
+        "Limiting similarity, coexistence theory (Ch7–8)"
+      ],
+      [
+        "Classic example",
+        "Alpine or serpentine floras sharing stress-tolerance traits",
+        "Guilds of similar-sized seed predators partitioning seed size"
+      ],
+      [
+        "Scale where it tends to dominate",
+        "Regional to landscape scale, strong environmental gradients",
+        "Local scale, within similar habitat patches"
+      ]
+    ],
+    "footnote": "Both processes can operate simultaneously on different trait axes within the same community — a key complication addressed in Lecture 31."
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Convergence in Practice",
+    "title": "Trait Convergence Across Systems",
+    "cards": [
+      {
+        "h": "Alpine tundra plants",
+        "p": "Convergent low stature, cushion growth form, and small leaves across unrelated lineages — a shared response to wind, cold, and short growing seasons."
+      },
+      {
+        "h": "Desert annuals",
+        "p": "Convergent rapid life cycles and drought-escape phenology among distantly related desert annual species responding to unpredictable rainfall."
+      },
+      {
+        "h": "Intertidal invertebrates",
+        "p": "Convergent desiccation-resistance traits among species occupying the same tidal height band, despite belonging to different phyla."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Divergence in Practice",
+    "title": "Trait Divergence Across Systems",
+    "cards": [
+      {
+        "h": "Darwin's finches",
+        "p": "Beak size divergence among co-occurring Galápagos finch species, classically interpreted as character displacement driven by limiting similarity in seed-size use."
+      },
+      {
+        "h": "Warbler guilds",
+        "p": "MacArthur's classic warblers partition foraging height within the same tree species, consistent with trait divergence reducing niche overlap among close competitors."
+      },
+      {
+        "h": "Granivorous rodent communities",
+        "p": "Co-occurring desert rodent species show divergent body size distributions correlated with divergent seed-size preferences, limiting direct competitive overlap."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Tension",
+    "title": "A Testable Tension, Not Just a Dichotomy",
+    "items": [
+      "Environmental filtering and competitive sorting make <b>opposite</b> predictions about trait structure — which makes trait patterns a genuinely testable signature of assembly process, not just a descriptive label.",
+      "But the two processes are not mutually exclusive: they can act on different traits simultaneously — e.g., convergence in drought-tolerance traits (environmental filter) combined with divergence in rooting depth or phenology (competitive sorting) within the same plant community.",
+      "This is why modern community assembly studies increasingly examine <b>multiple trait axes separately</b> rather than asking one blanket question of 'is this community filtered or sorted?'",
+      "We will formalize the statistical null-model machinery for detecting convergence and divergence in Lecture 31."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Assembly Rules and Priority Effects",
+    "sub": "Non-random co-occurrence, and why arrival order matters"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reprise",
+    "title": "Assembly Rules — From Diamond (Lecture 2 Preview) to a Formal Concept",
+    "items": [
+      "In Lecture 2 we previewed <b>Diamond's assembly rules</b> for New Guinea bird faunas — the observation that certain species combinations recur across islands far more often than chance, while other combinations essentially never co-occur.",
+      "We revisited this directly in <b>Lecture 16</b> with checkerboard distributions — pairs of ecologically similar species that almost never co-occur on the same island, a signature interpreted as competitive exclusion operating during assembly.",
+      "The general concept: community assembly is <b>non-random</b> — the filters discussed today generate detectable statistical structure in which species combinations occur together, testable against null models that shuffle species randomly across sites.",
+      "Assembly rules are, in effect, the community-level fingerprint left behind by the filter cascade acting on many co-occurring species pairs at once."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Development",
+    "title": "The Assembly Rules Debate, From Diamond to Null Models",
+    "items": [
+      {
+        "y": "1975",
+        "t": "Diamond proposes assembly rules from New Guinea bird distributions — non-random co-occurrence attributed to competition."
+      },
+      {
+        "y": "1979",
+        "t": "Connor & Simberloff challenge Diamond's rules as statistically unsupported without proper null models, igniting the influential null-model controversy."
+      },
+      {
+        "y": "1980s",
+        "t": "Development of rigorous null-model algorithms (e.g., fixed row/column sums in presence-absence matrices) to test co-occurrence patterns objectively."
+      },
+      {
+        "y": "2000s–present",
+        "t": "Trait-based and phylogenetic null models extend the same logic from raw co-occurrence to functional and evolutionary structure — the approach formalized further in Lecture 31."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Methodological Foundation",
+    "title": "Why Null Models Matter Here",
+    "term": "Null model",
+    "def": "A pattern-generating model that randomizes some aspect of the observed data (e.g., species occurrences) while holding other constraints fixed, used to test whether an observed community pattern differs from what chance alone would produce.",
+    "bullets": [
+      "The Connor & Simberloff critique of Diamond's assembly rules established that apparent non-randomness must be benchmarked against an explicit null model, not just eyeballed from raw data.",
+      "The same logic underlies testing trait convergence and divergence: observed trait variance is compared to the distribution of trait variances generated by many random draws from the regional pool.",
+      "Choice of null model (which constraints to hold fixed) can change conclusions — a recurring methodological caution in assembly research."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reprise",
+    "title": "Priority Effects — Now Central to the Model",
+    "items": [
+      "Also previewed in Lecture 2 (and touched on with alternative stable states): <b>priority effects</b> occur when the order and timing of species arrival influences which species ultimately establish and persist.",
+      "Two broad mechanisms: <b>inhibitory priority effects</b> (early arrivals monopolize resources, space, or modify conditions in ways that exclude later arrivals — e.g., pre-emptive resource use) and <b>facilitative priority effects</b> (early arrivals improve conditions for particular later arrivals, e.g., soil amelioration).",
+      "Priority effects mean the biotic filter is not a fixed, static test — it depends on assembly <b>history</b>, not just on the final list of species present in the regional pool.",
+      "This introduces genuine <b>historical contingency</b>: the same regional pool, same site, same abiotic conditions can assemble into different stable local communities depending purely on arrival sequence."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Historical Contingency in Assembly",
+    "term": "Historical contingency",
+    "def": "The dependence of a community's final composition on the particular sequence of past events (colonization order, disturbance timing, chance extinctions) rather than on deterministic environmental sorting alone.",
+    "bullets": [
+      "Priority effects are the clearest mechanistic source of historical contingency in assembly: identical starting conditions plus different arrival orders can produce different — sometimes alternative, stable — community states.",
+      "This directly echoes the multiple-stable-states framework from earlier in the course, but now framed explicitly as an assembly-process outcome rather than a purely dynamical one.",
+      "Historical contingency is the conceptual opposite of a purely deterministic filter model — if filters alone determined outcomes, the same pool and site would always yield the same community, which empirically is often not true."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "The Debate That Opened the Course",
+    "quote": "Is a community a tightly integrated, predictable superorganism assembling toward one determined endpoint — or an individualistic, contingent assemblage of species responding independently to conditions and history?",
+    "attrib": "The Clements vs. Gleason framing, Lecture 1 — now directly testable through assembly theory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Full Circle",
+    "title": "Clements vs. Gleason, Revisited With the Full Toolkit",
+    "items": [
+      "<b>Clements's</b> superorganism view predicts strong, deterministic filtering toward one characteristic climax community — assembly outcome determined almost entirely by environment, largely independent of arrival history.",
+      "<b>Gleason's</b> individualistic view predicts assembly outcomes that are contingent, path-dependent, and can vary among replicate communities in identical environments due to priority effects and stochastic colonization.",
+      "Modern community assembly theory does not simply declare a winner — it shows that <b>both</b> deterministic filtering (dispersal, environment, strong biotic sorting) and contingent, historical processes (priority effects, colonization stochasticity) operate simultaneously, with their relative importance varying by system.",
+      "This is the payoff of returning to Lecture 2's question with the full course toolkit: we can now say precisely <b>which mechanisms</b> generate Clements-like versus Gleason-like outcomes, rather than treating it as an unresolved philosophical dispute."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Illustrative Systems",
+    "title": "Priority Effects and Assembly History in Practice",
+    "cards": [
+      {
+        "h": "Experimental microcosms",
+        "p": "Protist and microbial community experiments show that manipulating arrival order alone — holding species pool and environment constant — produces divergent, persistent community compositions."
+      },
+      {
+        "h": "Old-field succession",
+        "p": "Which early colonists happen to establish first can determine the successional trajectory for decades, consistent with Gleason's individualistic model and inhibitory priority effects."
+      },
+      {
+        "h": "Coral reef recruitment",
+        "p": "Space pre-emption by early-settling corals or algae shapes which later recruits can establish, linking priority effects directly to the biotic filter."
+      },
+      {
+        "h": "Restoration ecology",
+        "p": "Applied assembly theory: manipulating seeding order deliberately to steer restored communities toward desired trajectories — priority effects as a management tool."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Assembly as the Course's Unifying Framework",
+    "sub": "Bringing the whole toolkit together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Every Major Concept From the Course Feeds the Filter Model",
+    "items": [
+      "<b>Dispersal filter</b> draws on metapopulation dynamics, source-sink structure, and island biogeography (Ch5–6).",
+      "<b>Environmental filter</b> draws on the fundamental niche concept and physiological tolerance (Ch2–3).",
+      "<b>Biotic filter</b> draws on competitive exclusion, limiting similarity, and coexistence mechanisms (Ch7–8); predation and top-down control (Ch9); mutualist dependency (Ch10); and food web position and indirect effects (Ch11).",
+      "<b>Priority effects and historical contingency</b> draw on density dependence and alternative stable states from the earliest population-dynamics material in the course.",
+      "Community assembly theory is therefore not a new, separate topic — it is the organizing structure that shows how everything else in the course fits together to answer one applied question."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Big Picture",
+    "title": "Two Complementary Ways to View a Community",
+    "left": {
+      "h": "Community as endpoint",
+      "body": "Earlier chapters largely treated the local community as a given — a fixed set of interacting species — and asked how interactions among them produce coexistence, structure, and dynamics."
+    },
+    "right": {
+      "h": "Community as process",
+      "body": "Chapter 12 reframes the community itself as the output of an ongoing filtering and colonization process acting on a much larger regional pool — asking not just how species already present interact, but why those particular species are present at all."
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Scale Matters",
+    "title": "How Filter Strength Shifts With Spatial Scale",
+    "left": {
+      "h": "Broad spatial scales",
+      "body": "Across a continent or strong climatic gradient, environmental filtering tends to dominate — climate and abiotic tolerance sort species into broadly convergent regional floras and faunas."
+    },
+    "right": {
+      "h": "Fine spatial scales",
+      "body": "Within a single, environmentally homogeneous patch, biotic filtering and competitive sorting tend to dominate — species already matched to local conditions must then sort out coexistence among themselves."
+    },
+    "footnote": "This scale-dependence is one reason trait convergence and divergence can both be detected in the same system depending on the spatial grain of analysis."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "What Chapter 12 Still Needs to Answer",
+    "items": [
+      "Today established the qualitative framework: filters, trait convergence vs. divergence, assembly rules, and priority effects.",
+      "Left open: <b>how do we rigorously measure</b> trait convergence and divergence, distinguishing real filtering signals from statistical noise or sampling artifacts?",
+      "Left open: how do assembly patterns extend from single traits to <b>whole functional and phylogenetic community structure</b> — do closely related species tend to co-occur or exclude one another, and why?",
+      "Lecture 31 develops the quantitative machinery — null models, standardized effect sizes, functional diversity indices, and phylogenetic community structure — needed to test these ideas rigorously."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Pitfalls",
+    "title": "Cautions When Interpreting Assembly Patterns",
+    "items": [
+      "Absence of a species from a local site can result from <b>any</b> filter failing — dispersal limitation, environmental intolerance, or biotic exclusion — and these are often hard to distinguish from observational data alone.",
+      "Trait convergence is not proof of environmental filtering, and trait divergence is not proof of competition — both patterns can arise from other processes (e.g., shared evolutionary history, sampling effects), which is why proper null models matter.",
+      "Priority effects require experimental manipulation of arrival order (or very fortunate natural experiments) to demonstrate convincingly — pattern alone in an observational study is weak evidence.",
+      "\"Non-random\" co-occurrence patterns depend heavily on the null model chosen — different reasonable null models can yield different conclusions about the same data."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Discussion Prompt",
+    "title": "Think-Pair-Share: Diagnosing an Assembly Pattern",
+    "items": [
+      "Scenario: a set of desert lizard species at one site all share similar body temperature tolerances but differ strongly in microhabitat use (perch height, burrow depth) and prey size.",
+      "Question 1: which trait axis suggests environmental filtering, and which suggests competitive sorting?",
+      "Question 2: what null model would you need to confirm that the microhabitat divergence is greater than expected by chance, rather than just a byproduct of trait variation in the regional pool?",
+      "Question 3: how would you experimentally distinguish a biotic filter effect from a priority effect in this system?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Consolidating Vocabulary",
+    "title": "Core Terms From Today",
+    "term": "Community assembly toolkit",
+    "def": "The core vocabulary needed going forward: regional species pool, dispersal filter, environmental (abiotic) filter, biotic filter, trait convergence, trait divergence, assembly rules, priority effects, historical contingency.",
+    "bullets": [
+      "Regional species pool: the full candidate set of species that could occur at a site given ranges and habitat affinities.",
+      "Filters: sequential (though interacting) constraints — dispersal, environment, biotic interactions — that narrow the pool to the realized community.",
+      "Trait convergence / divergence: opposing statistical signatures used to infer which filtering process dominated.",
+      "Priority effects / historical contingency: dependence of assembly outcome on arrival order and timing, not environment alone."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Putting It Together: A Hypothetical Old-Field Assembly",
+    "items": [
+      "Regional pool: 40 herbaceous plant species with seed sources within dispersal range of an abandoned agricultural field.",
+      "Dispersal filter: only ~25 species have propagules reaching the field in the first few years, biased toward wind- and animal-dispersed species.",
+      "Environmental filter: of those, species intolerant of the field's compacted, nutrient-poor soil are excluded, leaving ~15 candidates with converging drought- and nutrient-stress traits.",
+      "Biotic filter with priority effects: whichever fast-growing species happens to arrive and establish first pre-empts light and space, altering which of the remaining ~15 species can subsequently establish — different arrival sequences plausibly yield different final assemblages of ~8-10 species from the same starting 40.",
+      "This single example touches every mechanism introduced today — a preview of how Lecture 31 will formalize such cases quantitatively."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Study Skills",
+    "title": "Distinguishing the Three Filters on an Exam Question",
+    "left": {
+      "h": "Clues pointing to dispersal or environment",
+      "body": "Look for language about distance, isolation, colonization history, or physical/chemical tolerance limits (temperature, moisture, soil, disturbance) — these signal dispersal or environmental filtering."
+    },
+    "right": {
+      "h": "Clues pointing to the biotic filter",
+      "body": "Look for language about resident species, competitors, predators, or dependence on arrival order — these signal the biotic filter and potential priority effects, and should prompt you to consider historical contingency."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Angle",
+    "title": "Why This Matters Beyond Theory",
+    "items": [
+      "Invasion biology is applied assembly theory: a successful invader is, by definition, a species that has passed all three filters in a novel range — understanding which filter is weakest predicts invasion risk.",
+      "Restoration ecology increasingly uses filter logic deliberately: managers can manipulate the dispersal filter (seeding), the environmental filter (soil amendment), or the biotic filter (removing competitors, controlling arrival order) to steer outcomes.",
+      "Climate change assembly forecasts rely on this framework: as environmental filters shift with warming, predicting which regional-pool species can track suitable conditions and then out-compete or coexist with residents is now a central applied question.",
+      "Conservation prioritization for reintroduction increasingly treats assembly filters as a formal checklist before releasing species back into former ranges."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Summary and Looking Ahead",
+    "sub": ""
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 30 Summary",
+    "items": [
+      "Community assembly asks: given a regional species pool, which species end up in a local community, and why? — a question first raised in Lecture 2, now addressed with the course's full theoretical toolkit.",
+      "The filter framework models assembly as sequential (and interacting) constraints: <b>dispersal filter → environmental filter → biotic filter</b>, progressively narrowing the regional pool to the local community.",
+      "Environmental filtering predicts <b>trait convergence</b> (functionally similar co-occurring species); competitive sorting via limiting similarity predicts <b>trait divergence</b> (functionally dissimilar co-occurring species) — an opposing, testable pair of signatures.",
+      "Assembly rules formalize non-random species co-occurrence (Diamond, checkerboards); <b>priority effects</b> show that arrival order and timing generate historical contingency, connecting directly back to the Clements–Gleason debate that opened the course.",
+      "Chapter 12 is explicitly a synthesis chapter — density dependence, competition, coexistence, niche theory, predation, mutualism, and network structure all feed into the assembly framework."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming Up",
+    "title": "Preview: Lecture 31",
+    "items": [
+      "Lecture 31 — <b>\"Community Assembly and Species Traits II: Quantifying Trait-Based and Phylogenetic Structure\"</b> — develops the rigorous, quantitative machinery hinted at today.",
+      "We will cover null models and standardized effect sizes for detecting convergence/divergence statistically, functional diversity indices, and how to move from single-trait analyses to whole community functional structure.",
+      "We will also extend trait-based assembly thinking to <b>phylogenetic community structure</b> — do co-occurring species tend to be closely or distantly related, and what does that imply about the filtering processes at work?",
+      "Lecture 32 will close Chapter 12 and Part III, followed by Midterm II."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 30</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

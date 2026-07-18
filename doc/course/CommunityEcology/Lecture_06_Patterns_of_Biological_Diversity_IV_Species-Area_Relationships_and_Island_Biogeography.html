@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 6: Patterns of Biological Diversity IV: Species-Area Relationships and Island Biogeography</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "COMMUNITY ECOLOGY — BIOL 4XX — LECTURE 6",
+    "title": "Patterns of Biological Diversity IV: Species-Area Relationships and Island Biogeography",
+    "sub": "The power-law scaling of richness with area, MacArthur & Wilson's equilibrium theory of island biogeography, and a synthesis of Chapter 2's diversity patterns",
+    "footnote": "Reading: Mittelbach & McGill, Community Ecology (2nd ed.), Ch. 2 — Patterns of biological diversity; chapter synthesis"
+  },
+  {
+    "type": "section",
+    "tag": "PART I",
+    "title": "From Latitude to Area",
+    "sub": "Recapping Lecture 5 and introducing the species-area relationship"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 5",
+    "title": "The Latitudinal Diversity Gradient",
+    "items": [
+      "Species richness increases from the poles toward the equator across nearly all taxa — one of ecology's most general patterns.",
+      "Competing hypotheses: <b>energy/productivity</b>, <b>climate stability</b>, <b>evolutionary time</b>, <b>area of tropical biome</b>, and <b>diversification rate</b> differences.",
+      "No single mechanism fully explains the gradient — it likely reflects interacting historical, evolutionary, and ecological processes.",
+      "Today we turn from a <b>latitudinal</b> pattern to a <b>spatial-scaling</b> pattern: how richness changes with the size and isolation of the area sampled."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Pattern",
+    "title": "The Species-Area Relationship (SAR)",
+    "term": "Species-Area Relationship",
+    "def": "The near-universal empirical pattern that larger areas contain more species — one of the most well-documented and replicated patterns in all of ecology.",
+    "bullets": [
+      "Holds across taxa (plants, birds, insects, mammals), habitats (islands, mainlands, forest fragments), and spatial scales (square meters to continents).",
+      "First systematically described by botanists in the early 1900s (e.g., Arrhenius, Gleason); formalized mathematically over the 20th century.",
+      "Forms the empirical backbone for island biogeography theory and much of conservation reserve design."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Power-Law Form",
+    "title": "S = cA^z",
+    "items": [
+      "<b>S</b> = species richness, <b>A</b> = area sampled, <b>c</b> and <b>z</b> are fitted constants.",
+      "<b>c</b> reflects the richness expected at a unit area (roughly, the intercept) — depends on taxon, region, and productivity.",
+      "<b>z</b> is the <b>scaling exponent</b> — it describes how quickly richness accumulates as area increases, and is the parameter ecologists care about most.",
+      "A power law implies that doubling area does not double richness — the relationship is decelerating (concave down) on untransformed axes."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Linearizing the Pattern",
+    "title": "The Log-Log Form",
+    "items": [
+      "Taking logarithms of both sides of S = cA^z converts the power law into a straight line: <b>log(S) = log(c) + z·log(A)</b>.",
+      "This is the standard way ecologists estimate SAR parameters — plot log(species richness) against log(area) and fit a linear regression.",
+      "The <b>slope</b> of this line is the z-value; the <b>intercept</b> is log(c).",
+      "Log-log SARs are often strikingly linear over several orders of magnitude of area — a hallmark of a genuine scaling law."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Views of the Same Pattern",
+    "title": "Power-Law vs. Log-Log Representation",
+    "left": {
+      "h": "Untransformed: S = cA^z",
+      "body": "A decelerating curve — richness rises steeply at small areas, then levels off as area increases. Reflects diminishing returns: each additional unit of area adds proportionally fewer new species."
+    },
+    "right": {
+      "h": "Log-log: log(S) = log(c) + z·log(A)",
+      "body": "A straight line whose slope is z. This transformation is what allows ecologists to compare SARs across systems using a single summary statistic — the slope."
+    },
+    "footnote": "Both describe the identical underlying relationship — only the axes differ."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting z",
+    "title": "What Does the z-Value Mean?",
+    "items": [
+      "z quantifies how <b>sensitive</b> richness is to area — a steeper z means richness drops off faster as area shrinks (and vice versa).",
+      "Empirically, z is remarkably consistent within categories of sample type, even though c varies enormously across taxa and regions.",
+      "z is unitless and scale-invariant, which is why it can be compared meaningfully across very different systems — from lizards on islands to trees in forest plots."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Classic Contrast",
+    "title": "Mainland/Nested Samples vs. True Islands",
+    "headers": [
+      "Feature",
+      "Mainland / Continuous Habitat",
+      "True Islands / Isolated Habitats"
+    ],
+    "rows": [
+      [
+        "Typical z-value",
+        "≈ 0.10 – 0.20 (shallow)",
+        "≈ 0.25 – 0.35 (steep)"
+      ],
+      [
+        "Sampling design",
+        "Nested plots within a contiguous landmass",
+        "Discrete, isolated patches surrounded by inhospitable matrix"
+      ],
+      [
+        "Dispersal between areas",
+        "High — organisms move freely across boundaries",
+        "Low — colonization requires crossing a barrier (water, unsuitable habitat)"
+      ],
+      [
+        "Interpretation of small-area loss",
+        "Reflects local sampling of a shared regional pool",
+        "Reflects genuine extinction with limited rescue by immigration"
+      ],
+      [
+        "Example",
+        "Plant quadrats across a continuous prairie",
+        "Bird faunas of oceanic archipelagos"
+      ]
+    ],
+    "footnote": "Steeper island z-values reflect the compounding effects of isolation on both colonization and extinction."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Isolation Steepens the SAR",
+    "title": "Isolation Increases z",
+    "items": [
+      "On mainlands, small sample plots are still connected to a huge regional species pool by unimpeded dispersal — so even a small plot can host species that recolonize quickly after local loss.",
+      "On true islands, small islands are cut off from rescue: species lost to extinction are not easily replaced by immigration, so small islands end up disproportionately species-poor.",
+      "Isolation therefore steepens the slope — small islands lose species faster (relative to area) than small mainland plots do.",
+      "This insight foreshadows the dynamic, immigration-extinction framework we build next with island biogeography theory."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Note on Estimation",
+    "title": "Fitting and Comparing SARs in Practice",
+    "items": [
+      "Empirical z-values are typically estimated by linear regression on log-log axes; the fit quality (R²) is often very high, supporting the power-law form over alternatives.",
+      "Some systems fit a semi-log form (S vs. log A) better at very small scales, or show curvature at extremes — reminding us that S = cA^z is a useful approximation, not a universal law.",
+      "Comparing z-values across studies requires consistent sampling design — nested quadrats, true island chains, and habitat fragments are not always directly comparable without care."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART II",
+    "title": "Mechanisms Behind the SAR",
+    "sub": "Why does area, by itself, predict richness so well?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism 1",
+    "title": "Habitat Heterogeneity",
+    "items": [
+      "Larger areas tend to encompass a greater diversity of habitat types, microclimates, soil types, and resource conditions.",
+      "More habitat heterogeneity means more distinct niches — and more niches can support more coexisting species.",
+      "This mechanism predicts that richness should scale with the <b>number of distinct habitat types</b> sampled, not simply with raw area."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism 2",
+    "title": "Passive Sampling vs. Area-Per-Se Effects",
+    "items": [
+      "<b>Passive sampling hypothesis:</b> larger areas simply encounter more individuals, and therefore more species, purely as a statistical consequence — even with no habitat heterogeneity or difference in per-species dynamics.",
+      "<b>Area-per-se hypothesis:</b> larger areas support larger populations for every species present, which have inherently lower extinction risk (buffered against demographic and environmental stochasticity).",
+      "Both mechanisms predict a positive SAR, but they make different assumptions — disentangling them requires manipulative or comparative studies that control for habitat diversity and abundance."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis",
+    "title": "Four Complementary Explanations for the SAR",
+    "cards": [
+      {
+        "h": "Habitat Heterogeneity",
+        "p": "More area → more habitat types → more available niches."
+      },
+      {
+        "h": "Passive Sampling",
+        "p": "More area → more individuals encountered → more species purely by chance."
+      },
+      {
+        "h": "Area-Per-Se / Population Size",
+        "p": "More area → larger populations → lower extinction risk per species."
+      },
+      {
+        "h": "Disturbance & Extinction-Colonization",
+        "p": "More area → lower probability that a disturbance eliminates an entire population."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Scaling Across Levels",
+    "title": "The SAR as a Bridge Between Alpha and Gamma Diversity",
+    "items": [
+      "Recall from Lecture 3: <b>alpha diversity</b> is local, within-site richness; <b>gamma diversity</b> is total richness across a broader region; <b>beta diversity</b> links the two via turnover.",
+      "The SAR provides a quantitative, testable expression of this scaling: as you nest larger and larger areas, richness (alpha → gamma) increases in a predictable power-law fashion.",
+      "A steep SAR (high z) implies high beta diversity — species composition turns over quickly with distance or habitat change.",
+      "A shallow SAR (low z) implies low beta diversity — most of the regional species pool is already captured in small samples."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting the Diversity Concepts",
+    "title": "SAR, Turnover, and the Diversity Partition",
+    "left": {
+      "h": "Low z (shallow SAR)",
+      "body": "Richness accumulates slowly with area beyond the first small samples — most species are widespread and shared among sites. Beta diversity is low; alpha ≈ gamma even at modest scales."
+    },
+    "right": {
+      "h": "High z (steep SAR)",
+      "body": "Richness keeps climbing steeply as new areas are added — many species are habitat- or site-specific. Beta diversity is high; gamma diversity greatly exceeds local alpha diversity."
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART III",
+    "title": "The Theory of Island Biogeography",
+    "sub": "MacArthur & Wilson (1967): from a static pattern to a dynamic equilibrium"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Landmark Theory",
+    "title": "MacArthur & Wilson's Equilibrium Theory of Island Biogeography",
+    "term": "Theory of Island Biogeography (1967)",
+    "def": "A dynamic equilibrium model proposing that the number of species on an island reflects a balance between the ongoing rate of immigration of new species and the ongoing rate of extinction of resident species — not a fixed, static endpoint.",
+    "bullets": [
+      "Published as a monograph by Robert MacArthur and E. O. Wilson, building on earlier SAR observations.",
+      "Reframed island richness as a <b>process</b> (colonization and extinction happening continuously) rather than a fixed <b>pattern</b>.",
+      "One of the most influential theoretical frameworks in 20th-century ecology, with lasting impact on conservation biology."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Immigration Curve",
+    "title": "Immigration Rate Declines With Richness",
+    "items": [
+      "As more species successfully colonize an island, the pool of remaining mainland species not yet present shrinks — so the rate of arrival of <b>new</b> species declines.",
+      "Immigration rate is highest when the island is nearly empty (many potential new colonists) and approaches zero as the island fills up (few colonists left to arrive).",
+      "Immigration rate is also shaped by <b>isolation</b>: islands closer to the mainland source pool receive colonists at a higher rate at every level of existing richness than distant islands."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Extinction Curve",
+    "title": "Extinction Rate Increases With Richness",
+    "items": [
+      "As richness increases, more species are packed onto the island, populations become smaller on average, and interspecific competition intensifies — raising the extinction rate.",
+      "Extinction rate rises from near zero (few species present, so few can go extinct) toward higher values as richness climbs.",
+      "Extinction rate is also shaped by <b>island size</b>: smaller islands support smaller populations of each species, which are more vulnerable to stochastic loss, so extinction rates are elevated at every level of richness."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Classic Diagram",
+    "title": "Immigration and Extinction Curves",
+    "left": {
+      "h": "Immigration curve (declining)",
+      "body": "Plotted against species richness (x-axis) vs. rate (y-axis): starts high at S=0 and declines monotonically toward zero as richness approaches the full mainland pool (P)."
+    },
+    "right": {
+      "h": "Extinction curve (rising)",
+      "body": "Starts at zero when S=0 and rises monotonically as richness increases, because more resident species means more opportunities for any one of them to go extinct."
+    },
+    "footnote": "The equilibrium point is where these two curves cross."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where the Curves Cross",
+    "title": "The Equilibrium Richness, Ŝ",
+    "items": [
+      "The point where the immigration and extinction curves intersect defines the <b>equilibrium species richness (Ŝ)</b> — not a static number of species, but a stable turnover point.",
+      "At equilibrium, species are still constantly going extinct and being replaced by new immigrants — a phenomenon called <b>species turnover</b>.",
+      "If richness is below Ŝ, immigration exceeds extinction and richness rises; if above Ŝ, extinction exceeds immigration and richness falls — the equilibrium is <b>self-correcting (stable)</b>.",
+      "This dynamic view explains why island faunas can remain roughly constant in species number while species composition changes over time."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The Four Classic Scenarios",
+    "title": "Size and Distance Combine to Set Equilibrium Richness",
+    "cards": [
+      {
+        "h": "Near & Large",
+        "p": "High immigration, low extinction → highest equilibrium richness, reached fastest."
+      },
+      {
+        "h": "Near & Small",
+        "p": "High immigration, high extinction → moderate equilibrium richness, high turnover."
+      },
+      {
+        "h": "Far & Large",
+        "p": "Low immigration, low extinction → moderate equilibrium richness, reached slowly."
+      },
+      {
+        "h": "Far & Small",
+        "p": "Low immigration, high extinction → lowest equilibrium richness, reached slowly."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Testable Predictions",
+    "title": "How Size and Isolation Shape Island Communities",
+    "headers": [
+      "Prediction",
+      "Larger / Closer Islands",
+      "Smaller / More Distant Islands"
+    ],
+    "rows": [
+      [
+        "Immigration rate",
+        "Higher (especially when close)",
+        "Lower (especially when distant)"
+      ],
+      [
+        "Extinction rate",
+        "Lower (especially when large)",
+        "Higher (especially when small)"
+      ],
+      [
+        "Equilibrium richness (Ŝ)",
+        "Higher",
+        "Lower"
+      ],
+      [
+        "Species turnover rate",
+        "Can be high near, low far — depends on both axes",
+        "Often high due to elevated extinction on small islands"
+      ],
+      [
+        "Time to reach equilibrium",
+        "Faster on near islands",
+        "Slower on far islands"
+      ]
+    ],
+    "footnote": "Size mainly governs the extinction curve; distance mainly governs the immigration curve."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reinforcing Mechanism 1",
+    "title": "The Target Effect",
+    "items": [
+      "Larger islands present a bigger physical \"target\" for dispersing colonists — simply by geometry, they intercept more arriving propagules (e.g., wind-blown seeds, storm-displaced birds).",
+      "This means immigration rate is not only shaped by distance — island <b>size</b> itself can also elevate effective immigration through the target effect.",
+      "The target effect reinforces the size-richness relationship: large islands get both lower extinction AND a modest immigration boost."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reinforcing Mechanism 2",
+    "title": "The Rescue Effect",
+    "items": [
+      "Populations on islands close to a source area receive frequent immigrant individuals, which can prevent local extinction by demographic \"topping up\" — even before a species is formally lost.",
+      "This directly parallels the <b>metapopulation</b> concept from Population Ecology: immigration can rescue small, declining local populations from extinction.",
+      "The rescue effect means that realized extinction rates on near islands are lower than population size alone would predict — isolation, not just size, governs persistence.",
+      "Together, target and rescue effects show that immigration and extinction are not fully independent — proximity to a source suppresses extinction as well as boosting colonization."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART IV",
+    "title": "Testing the Theory",
+    "sub": "From natural experiments to deliberate manipulation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Classic Experiment",
+    "title": "Simberloff & Wilson's Mangrove Island Defaunation",
+    "items": [
+      "In the 1960s, Daniel Simberloff and E. O. Wilson tested island biogeography theory experimentally using small mangrove islets in the Florida Keys.",
+      "They selected several islands of varying size and distance from the mainland source pool, then <b>fumigated</b> each to eliminate its entire arthropod fauna — a true, controlled defaunation.",
+      "This let them observe <b>recolonization from a true zero</b>, directly testing whether richness would return to a predictable equilibrium."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Method",
+    "title": "Defaunation as a Natural Experiment",
+    "term": "Defaunation Experiment",
+    "def": "An experimental manipulation in which an entire community is removed from a habitat patch, allowing researchers to observe the trajectory and end-point of recolonization under controlled, known starting conditions.",
+    "bullets": [
+      "Islands were surveyed for arthropods before fumigation, fumigated, then re-censused repeatedly for about a year afterward.",
+      "This design cleanly separates colonization dynamics from confounding historical effects present in unmanipulated islands."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Results",
+    "title": "What the Mangrove Islands Showed",
+    "items": [
+      "Richness on defaunated islands recovered to roughly the <b>same equilibrium number</b> of species as before fumigation, within about a year — strong support for a stable, predictable equilibrium richness.",
+      "Species composition after recolonization was often <b>different</b> from the pre-fumigation community, directly demonstrating ongoing <b>species turnover</b> at equilibrium.",
+      "Islands closer to the mangrove source pool recolonized faster, consistent with the immigration curve's dependence on isolation.",
+      "This remains one of the most direct empirical tests of the dynamic equilibrium concept in ecology."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Natural Experiment",
+    "title": "Krakatau: Recolonization After Catastrophe",
+    "items": [
+      {
+        "y": "1883",
+        "t": "The volcanic island of Krakatau erupts catastrophically, sterilizing the island and eliminating essentially all terrestrial life."
+      },
+      {
+        "y": "1884–1886",
+        "t": "First surveys find only a handful of colonizing species (spiders, ferns, grasses) — richness near zero."
+      },
+      {
+        "y": "1900s–1920s",
+        "t": "Rapid accumulation of plant and animal species as colonists arrive from nearby Java and Sumatra."
+      },
+      {
+        "y": "1930s onward",
+        "t": "Species richness approaches an apparent equilibrium, with continued turnover among resident species."
+      },
+      {
+        "y": "Today",
+        "t": "Krakatau remains a long-running natural laboratory for testing colonization, succession, and island biogeography predictions."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Krakatau",
+    "title": "A Natural Test of Colonization Dynamics",
+    "items": [
+      "Krakatau's post-eruption recolonization mirrors the defaunation logic of Simberloff & Wilson's experiment, but at a much larger spatial and temporal scale.",
+      "The rapid initial rise in richness, followed by a slowing rate of accumulation, matches the shape predicted by a declining immigration curve combined with a rising extinction curve.",
+      "Because Krakatau is relatively close to large source islands (Java, Sumatra), its recolonization was faster than isolation-based predictions for a truly remote island would suggest.",
+      "Long-term monitoring shows ongoing species turnover even after richness stabilizes — consistent with a dynamic, not static, equilibrium."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond Oceanic Islands",
+    "title": "Modern Applications: Habitat Islands",
+    "items": [
+      "Island biogeography theory extends readily to any habitat patch surrounded by an inhospitable \"matrix,\" not just literal islands surrounded by ocean.",
+      "<b>Forest fragments</b> in an agricultural or urban matrix behave like islands — fragment size and isolation from continuous forest predict richness and extinction risk.",
+      "<b>Mountaintops</b> (sky islands) isolated by lowland habitat unsuitable for cold-adapted species function as islands for alpine and boreal species.",
+      "<b>Lakes and ponds</b> isolated by dry land function as islands for aquatic organisms, with colonization limited by dispersal between water bodies."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Habitat Islands in Practice",
+    "title": "Modern Analogs of Classic Islands",
+    "cards": [
+      {
+        "h": "Forest Fragments",
+        "p": "Logging and agriculture create isolated forest patches — richness declines with fragment size and isolation, exactly as SAR/IBT predict."
+      },
+      {
+        "h": "Mountaintop \"Sky Islands\"",
+        "p": "Cold-adapted species stranded on isolated peaks as lowlands warm — classic size/isolation dynamics apply to montane biotas."
+      },
+      {
+        "h": "Lakes and Ponds",
+        "p": "Aquatic communities isolated by land; colonization depends on connectivity (streams, wind-dispersed propagules, animal vectors)."
+      },
+      {
+        "h": "Urban Green Spaces",
+        "p": "Parks and remnant habitat patches within cities act as small, often highly isolated islands for many taxa."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART V",
+    "title": "Legacy, Limitations, and Chapter Wrap-Up",
+    "sub": "What island biogeography theory got right, what it missed, and how Chapter 2 fits together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Impact",
+    "title": "Island Biogeography and Conservation Reserve Design",
+    "items": [
+      "IBT provided the first rigorous theoretical basis for predicting how habitat loss and fragmentation would affect species richness — directly motivating conservation planning.",
+      "Its core prediction — that bigger, less isolated reserves retain more species — became a foundational principle in designing protected area networks.",
+      "It also raised urgent, practical questions: how large must a reserve be to sustain viable populations? How close together should reserves be to allow rescue/recolonization?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Practical Question",
+    "title": "How Large Must a Reserve Be?",
+    "items": [
+      "IBT motivated efforts to estimate a <b>minimum viable reserve size</b> needed to sustain equilibrium richness for a target set of species, especially area-demanding predators and large herbivores.",
+      "Minimum reserve size is species-specific: wide-ranging carnivores may need reserves orders of magnitude larger than what suffices for small-bodied invertebrates or plants.",
+      "In practice, planners combine SAR-based richness projections with population viability analysis and corridor/connectivity design rather than relying on IBT alone."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Revisited from Population Ecology",
+    "title": "The SLOSS Debate",
+    "term": "SLOSS (Single Large Or Several Small)",
+    "def": "A long-running conservation debate over whether, for a fixed total area of protected habitat, it is better to establish one single large reserve or several smaller reserves of equivalent combined area.",
+    "bullets": [
+      "Directly descends from island biogeography theory's size-extinction relationship and connects back to metapopulation and rescue-effect concepts from Population Ecology.",
+      "The \"correct\" answer depends on species traits, the spatial arrangement of reserves, connectivity, and the disturbance regime — there is no universal rule."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SLOSS",
+    "title": "Single Large vs. Several Small Reserves",
+    "headers": [
+      "Consideration",
+      "Single Large Reserve",
+      "Several Small Reserves"
+    ],
+    "rows": [
+      [
+        "Species with large area requirements",
+        "Favored — sufficient area for viable populations",
+        "Disfavored — each fragment may be too small"
+      ],
+      [
+        "Beta diversity across habitat types",
+        "Lower — one habitat type covered",
+        "Potentially higher — different fragments capture different habitats"
+      ],
+      [
+        "Vulnerability to a single catastrophic event",
+        "High — one disturbance can affect entire reserve",
+        "Lower — disturbance unlikely to hit all fragments at once"
+      ],
+      [
+        "Edge effects",
+        "Lower — favorable low edge-to-area ratio",
+        "Higher — greater total edge relative to area"
+      ],
+      [
+        "Rescue/recolonization potential",
+        "Not applicable (single unit)",
+        "Present if fragments are connected/close enough"
+      ]
+    ],
+    "footnote": "Modern consensus: the best design depends strongly on the focal species and landscape context — SLOSS is not resolved by a single rule."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Critique 1",
+    "title": "Oversimplifications of the Classic Theory",
+    "items": [
+      "The theory treats all species as ecologically <b>equivalent</b>, ignoring differences in dispersal ability, body size, trophic level, and habitat specialization that strongly affect real immigration and extinction rates.",
+      "Immigration and extinction rates are assumed <b>constant</b> functions of richness alone, but in reality they vary with species identity, season, and environmental change.",
+      "The theory says nothing about which particular species will be present at equilibrium — only the expected number."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Critique 2",
+    "title": "Missing Evolutionary Timescales and Unexplained Variation",
+    "items": [
+      "On very large or very old islands (e.g., Madagascar, Hawaii over geological time), <b>in-situ speciation</b> becomes an important source of new species — a process the original theory, focused on immigration/extinction, does not incorporate.",
+      "The theory does not fully explain the substantial variation observed in z-values across taxa and regions — habitat heterogeneity, taxon-specific dispersal, and evolutionary history all contribute but are not part of the core model.",
+      "Despite these critiques, IBT remains valuable precisely because its simplicity generated clear, testable predictions that drove decades of productive empirical research."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER WRAP-UP",
+    "title": "Synthesizing Chapter 2: Patterns of Biological Diversity",
+    "sub": "Four lectures, one integrated toolkit for describing and explaining biodiversity"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Arc of Chapter 2",
+    "title": "How the Four Lectures Fit Together",
+    "items": [
+      "<b>Lecture 3 — Measuring Diversity:</b> established the vocabulary — species richness, evenness, diversity indices, and the alpha/beta/gamma partition across spatial scales.",
+      "<b>Lecture 4 — Species Abundance Distributions:</b> showed that within any community, abundance is distributed unevenly among species (few common, many rare), and introduced models (log-normal, log-series) explaining these patterns.",
+      "<b>Lecture 5 — The Latitudinal Diversity Gradient:</b> examined the best-known large-scale geographic pattern in richness, and the many (non-exclusive) hypotheses proposed to explain it.",
+      "<b>Lecture 6 — Species-Area Relationships & Island Biogeography (today):</b> connected richness to spatial scale and isolation, and provided a dynamic, mechanistic model (immigration vs. extinction) for why area and isolation matter."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Chapter 2 at a Glance",
+    "title": "The Patterns of Biodiversity Toolkit",
+    "cards": [
+      {
+        "h": "L3: Measuring Diversity",
+        "p": "Richness, evenness, indices, and the alpha/beta/gamma spatial framework."
+      },
+      {
+        "h": "L4: Abundance Distributions",
+        "p": "Why communities are dominated by few common and many rare species."
+      },
+      {
+        "h": "L5: Latitudinal Gradient",
+        "p": "Why the tropics are so much richer — multiple interacting hypotheses."
+      },
+      {
+        "h": "L6: SAR & Island Biogeography",
+        "p": "Why bigger, less isolated areas hold more species — and a dynamic model explaining it."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Island biogeography theory's greatest legacy is not that it was perfectly correct, but that it turned a static pattern — more area, more species — into a dynamic, testable process of colonization and extinction.",
+    "attrib": "Paraphrased from Mittelbach & McGill, Community Ecology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Back",
+    "title": "Recap: Lecture 5 and Lecture 6",
+    "items": [
+      "Lecture 5 showed that richness varies predictably with <b>latitude</b>, driven by energy, climate stability, evolutionary time, and area effects operating over geological history.",
+      "Lecture 6 showed that richness varies predictably with <b>area and isolation</b>, captured by the SAR (S = cA^z) and explained dynamically by MacArthur & Wilson's immigration-extinction equilibrium.",
+      "Both patterns illustrate a recurring theme in community ecology: simple, well-documented empirical patterns invite — and often resist — a single mechanistic explanation.",
+      "Together, Chapter 2's four lectures equip you to both <b>describe</b> and <b>begin to explain</b> the major patterns of biological diversity on Earth."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "Preview: Lecture 7 — Biodiversity and Ecosystem Functioning I",
+    "items": [
+      "Lecture 7 opens <b>Chapter 3</b>, the second and final chapter of Part I, \"The Big Picture.\"",
+      "We shift from asking <b>why</b> diversity varies to asking <b>what diversity does</b> — how does species richness affect the functioning of ecosystems (productivity, stability, nutrient cycling)?",
+      "Key concepts to come: the diversity-productivity relationship, complementarity vs. selection effects, and early biodiversity-ecosystem-functioning (BEF) experiments.",
+      "This marks the transition from purely descriptive/pattern-based ecology toward the functional and applied consequences of biodiversity loss."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Community Ecology · BIOL 4XX</span>
+        <span>Lecture 6</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 35: Predator-Prey Interactions IV: Case Studies and Unit Synthesis</title>
+<style>
+  :root{
+    --bg:#0f1b1a;
+    --panel:#ffffff;
+    --ink:#16241f;
+    --ink-soft:#4a5c54;
+    --accent:#1f7a5c;
+    --accent-2:#c98a2c;
+    --accent-soft:#e6f2ec;
+    --line:#dbe6e0;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #f7faf8; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#cfe6dc; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#9fb8ae; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "POPULATION ECOLOGY — BIOL 4XX — LECTURE 35",
+    "title": "Predator-Prey Interactions IV: Real-World Case Studies and Unit Synthesis",
+    "sub": "Lynx and hare, wolves and moose, and what happens when Lotka-Volterra meets the real world",
+    "footnote": "Reading: Rockwood, Introduction to Population Ecology (2nd ed.), Ch. 10 — Predator-Prey Interactions; unit synthesis"
+  },
+  {
+    "type": "section",
+    "tag": "Part I",
+    "title": "Where We've Been: Lectures 32–34",
+    "sub": "From neutral cycles to a mechanistic, testable framework"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 32: The Basic Lotka-Volterra Model",
+    "items": [
+      "Two coupled differential equations: prey grow exponentially minus predation loss; predators grow from predation gains minus intrinsic death",
+      "Produces <b>neutrally stable cycles</b> — amplitude set entirely by initial conditions, never damping or growing",
+      "Predicts the classic 90°-out-of-phase pattern: predator peaks lag prey peaks",
+      "Biologically unrealistic: no prey carrying capacity, no functional response saturation, structurally unstable to perturbation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 33: Functional Responses",
+    "items": [
+      "<b>Type I</b>: intake rises linearly with prey density, then abruptly plateaus (filter feeders)",
+      "<b>Type II</b>: decelerating, saturating curve from handling time — the destabilizing 'consumer takes a break' response",
+      "<b>Type III</b>: sigmoidal — low intake at low prey density (switching, learning, refuges), then acceleration, then saturation — this shape is <b>stabilizing</b> at low prey density",
+      "Functional response describes per-predator kill rate as a function of prey density — the feeding side of the interaction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Lecture 34: Numerical Response and Realistic Models",
+    "items": [
+      "<b>Numerical response</b>: how predator reproduction/aggregation tracks prey density — the demographic side",
+      "<b>Rosenzweig-MacArthur model</b> combines logistic prey growth with a Type II functional response",
+      "Produces a <b>stable limit cycle</b> or a stable equilibrium point, depending on parameters — far more realistic than neutral LV cycles",
+      "<b>Paradox of enrichment</b>: increasing prey carrying capacity can destabilize the system, driving wider cycles and extinction risk — 'more food' is not always better"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Agenda",
+    "title": "From Theory to Field Data",
+    "items": [
+      "Two flagship long-term case studies: the <b>Canada lynx-snowshoe hare cycle</b> and the <b>Isle Royale wolf-moose system</b>",
+      "Additional real-world examples: invasive predators, biological control, reintroduction cascades",
+      "Why field data almost never look like clean textbook cycles — and what that tells us about model assumptions",
+      "A full synthesis of the Predator-Prey unit (Lectures 32–35) as one integrated framework",
+      "Bridge to Chapter 11: plant-herbivore interactions as a specialized form of 'predation'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part II",
+    "title": "The Canada Lynx–Snowshoe Hare Cycle",
+    "sub": "One of ecology's longest and most famous datasets"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Data Source",
+    "title": "Hudson's Bay Company Fur Records",
+    "items": [
+      "For nearly 200 years, the Hudson's Bay Company tracked numbers of lynx and snowshoe hare pelts trapped across boreal Canada",
+      "Elton and Nicholson first analyzed these records in the 1930s-40s and revealed a strikingly regular <b>~9-10 year cycle</b> in both species",
+      "Not a direct census — pelt counts are an index of trapping effort and animal abundance — but the periodicity is remarkably consistent across space and time",
+      "One of the few multi-century ecological time series available, making it a cornerstone case study for predator-prey theory"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Pattern",
+    "title": "The Classic Cycle",
+    "term": "~10-Year Lynx-Hare Cycle",
+    "def": "Snowshoe hare populations rise and crash roughly every 9-11 years, with lynx numbers tracking the same period but lagging by 1-2 years — the textbook signature of predator-prey coupling.",
+    "bullets": [
+      "Hare densities can vary 10- to 30-fold between cycle peak and trough",
+      "Lynx numbers track hare numbers with a consistent time lag, exactly as predicted by simple predator-prey models",
+      "For decades this was cited as the best real-world confirmation of Lotka-Volterra-type dynamics"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Pattern",
+    "title": "A Century of Lynx-Hare Cycling (Schematic)",
+    "items": [
+      {
+        "y": "Peak",
+        "t": "Hare population peaks — high food abundance, then vegetation browsing pressure intensifies"
+      },
+      {
+        "y": "+1-2 yr",
+        "t": "Lynx numbers peak, lagging behind hare peak as predator reproduction and immigration respond numerically"
+      },
+      {
+        "y": "Crash",
+        "t": "Hare population collapses sharply, often over just 1-2 years"
+      },
+      {
+        "y": "Trough",
+        "t": "Lynx population declines steeply following prey collapse; starvation and reduced reproduction"
+      },
+      {
+        "y": "Recovery",
+        "t": "Vegetation recovers, hare survival and reproduction rebound, cycle begins again"
+      },
+      {
+        "y": "~9-11 yr",
+        "t": "Full period repeats — one of the most regular cycles documented in vertebrate ecology"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Complication",
+    "title": "Is This a Pure Predator-Prey Cycle?",
+    "items": [
+      "The simplest interpretation: lynx predation drives hare declines, hare scarcity then drives lynx declines — classic two-species LV coupling",
+      "But experimental work (notably the large-scale <b>Kluane Lake Project</b> led by Charles Krebs and colleagues) complicates this picture",
+      "Hares heavily browse and damage their own winter food plants (willow, birch, alder) at high density, well before predators appear to be limiting",
+      "This points to a <b>hare-vegetation feedback</b> as an important driver of the crash, not predation alone"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Competing Explanations",
+    "title": "Two Hypotheses for the Lynx-Hare Cycle",
+    "headers": [
+      "Hypothesis",
+      "Driving Mechanism",
+      "Evidence For",
+      "Limitation"
+    ],
+    "rows": [
+      [
+        "Pure predator-prey cycle",
+        "Lynx (and other predators) directly drive hare mortality, and prey scarcity then drives lynx decline",
+        "Consistent lag between hare and lynx peaks matches LV/R-M predictions",
+        "Ignores documented food shortage and habitat damage effects on hares"
+      ],
+      [
+        "Food-limitation (hare-vegetation) cycle",
+        "Overbrowsing depletes winter food, lowering hare survival/fecundity independent of predation",
+        "Kluane experiments show food addition alone raises hare density substantially",
+        "Alone, does not fully explain the tight predator lag or predator-exclusion results"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Experimental Resolution",
+    "title": "The Kluane Experiments: Food, Predators, or Both?",
+    "items": [
+      "Researchers manipulated food supply (supplemental feeding), predator access (exclosures/fencing), and both together across large field plots",
+      "<b>Food addition alone</b>: hare density increased, but the cycle still occurred",
+      "<b>Predator exclusion alone</b>: hare survival improved, cycle amplitude dampened somewhat",
+      "<b>Food + predator exclusion together</b>: hare density increased far more than either treatment alone — roughly multiplicative, not additive, effect",
+      "Conclusion: predation and food limitation act <b>synergistically</b>, not as competing alternatives"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Modern Synthesis",
+    "title": "The Three-Trophic-Level View",
+    "items": [
+      "The most complete explanation treats the system as <b>three interacting trophic levels</b>: vegetation → snowshoe hare → lynx (and other predators, e.g. coyote, great horned owl, goshawk)",
+      "High hare density depletes vegetation and increases stress/vulnerability, which increases predation risk (indirect, non-lethal effects on behavior also matter)",
+      "Elevated predator numbers (lagging numerically) then accelerate the hare decline once vegetation-driven stress has already begun",
+      "This is a shift from a simple two-species predator-prey model to a <b>trophic cascade</b> framework — previewing themes for plant-herbivore interactions"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Takeaway",
+    "title": "What the Lynx-Hare System Teaches Us",
+    "left": {
+      "h": "Simple model, real support",
+      "body": "The basic predator-prey lag pattern really is present in one of ecology's best long-term datasets — this is genuine, celebrated evidence that predator-prey coupling shapes population dynamics in nature."
+    },
+    "right": {
+      "h": "But the mechanism is richer",
+      "body": "Multiple bottom-up (food) and top-down (predation) forces interact. A full explanation requires a three-trophic-level model, not a single predator-single prey pair — a caution against over-simplifying any single real system."
+    },
+    "footnote": "Krebs, Boutin & Boonstra, Ecosystem Dynamics of the Boreal Forest: The Kluane Project (2001)"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Comparing Systems",
+    "title": "Lynx-Hare vs. Isle Royale: Two Very Different Long-Term Studies",
+    "left": {
+      "h": "Lynx-hare (continental, ~200 years)",
+      "body": "Large, continuous boreal range with high population numbers, gene flow, and multiple predator and prey species present. Produces a remarkably regular cycle despite underlying complexity, because large numbers buffer against stochastic noise."
+    },
+    "right": {
+      "h": "Isle Royale (island, ~65 years)",
+      "body": "Small, closed island population with essentially two large-mammal species and no immigration route. Produces irregular dynamics dominated by disease, genetics, and weather, because small numbers amplify stochastic noise."
+    },
+    "footnote": "Population size and system openness strongly shape how closely observed dynamics resemble deterministic model predictions"
+  },
+  {
+    "type": "section",
+    "tag": "Part III",
+    "title": "Isle Royale: Wolves and Moose",
+    "sub": "The longest continuous predator-prey study in the world"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study System",
+    "title": "An Island Laboratory",
+    "items": [
+      "Isle Royale is a ~544 km² island in Lake Superior, part of the U.S. National Park Service system",
+      "Moose colonized the island in the early 1900s (likely by swimming); wolves arrived by crossing an ice bridge around 1949",
+      "Since 1958, researchers (originally Durward Allen, later Rolf Peterson and John Vucetich) have tracked both populations almost every year — now the <b>longest continuous predator-prey study on record</b>",
+      "Isolation makes it a rare natural experiment: a closed system with no immigration/emigration of large mammals under normal conditions"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "History",
+    "title": "Isle Royale Wolf-Moose Timeline (Selected Events)",
+    "items": [
+      {
+        "y": "~1900s",
+        "t": "Moose colonize the island; population grows largely unchecked by predators"
+      },
+      {
+        "y": "1949",
+        "t": "Wolves cross an ice bridge from the mainland and establish a resident population"
+      },
+      {
+        "y": "1958",
+        "t": "Formal long-term study begins under Durward Allen"
+      },
+      {
+        "y": "1980",
+        "t": "Wolf population crashes abruptly after a canine parvovirus outbreak, likely introduced by a visiting dog"
+      },
+      {
+        "y": "1990s-2000s",
+        "t": "Wolf population struggles with low genetic diversity; occasional moose irruptions follow low-wolf years"
+      },
+      {
+        "y": "2011-2018",
+        "t": "Wolf numbers collapse toward extinction (down to 2 closely related individuals) amid severe inbreeding depression"
+      },
+      {
+        "y": "2018-2019",
+        "t": "NPS begins active wolf reintroduction, translocating wolves from the mainland to restore predation pressure"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Dynamics Observed",
+    "title": "Crashes, Irruptions, and Irregular Cycles",
+    "items": [
+      "Unlike the tidy lynx-hare period, Isle Royale wolf and moose numbers have shown irregular booms and crashes over the decades",
+      "Moose irruptions occur when wolf numbers are low (e.g., after disease events), followed by overbrowsing of balsam fir and eventual moose die-offs from starvation and severe winters",
+      "Severe winters and tick outbreaks (which weaken moose independent of wolves) have repeatedly overridden the expected LV-style pattern",
+      "This is a real system dominated by <b>stochastic events</b> layered on top of deterministic predator-prey dynamics"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Genetics",
+    "title": "A Small, Isolated Population",
+    "term": "Genetic Bottleneck & Inbreeding Depression",
+    "def": "With no immigration route, the Isle Royale wolf population repeatedly shrank to just a handful of individuals, causing severe loss of genetic diversity and increasingly close inbreeding.",
+    "bullets": [
+      "By the 2010s nearly all remaining wolves were closely related, showing physical abnormalities (e.g., spinal deformities) linked to inbreeding",
+      "Reduced genetic diversity lowered disease resistance and reproductive success, accelerating the wolves' decline independent of prey availability",
+      "Demonstrates that in small, isolated populations, genetic and demographic stochasticity can dominate over deterministic predator-prey mathematics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Additional Complications",
+    "title": "Disease, Weather, and Human Intervention",
+    "items": [
+      "<b>Disease</b>: the 1980 parvovirus outbreak (likely human-introduced) caused a wolf crash unrelated to prey density",
+      "<b>Climate</b>: warmer winters reduce the ice bridges that once allowed rare genetic rescue via mainland wolf immigration, while also affecting moose thermal stress and tick survival",
+      "<b>Human management decision</b>: after decades of a strict 'natural regulation, hands-off' research policy, NPS ultimately chose active <b>wolf reintroduction</b> (2018-2019) to prevent wolf extirpation and restore top-down control on moose",
+      "This intervention itself became part of the experiment — a real-time test of whether restoring a predator can re-stabilize an island ecosystem"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Lessons",
+    "title": "What Isle Royale Adds Beyond Simple L-V Theory",
+    "cards": [
+      {
+        "h": "Island isolation",
+        "p": "No immigration/emigration means genetic and demographic effects that an open mainland population would never experience."
+      },
+      {
+        "h": "Small-population stochasticity",
+        "p": "Random events (disease, a lone dispersing wolf, a harsh winter) can swamp deterministic predator-prey signal when N is small."
+      },
+      {
+        "h": "Single alternate driver",
+        "p": "Moose population dynamics depend heavily on winter severity and food (balsam fir), not wolves alone — bottom-up forces matter."
+      },
+      {
+        "h": "Management is part of the system",
+        "p": "Human decisions — from hands-off policy to active reintroduction — now directly shape outcomes, blurring 'natural experiment' status."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Model vs. Reality",
+    "title": "Simple Lotka-Volterra vs. the Isle Royale System",
+    "headers": [
+      "Feature",
+      "Simple L-V / R-M Prediction",
+      "Isle Royale Reality"
+    ],
+    "rows": [
+      [
+        "Cycle regularity",
+        "Regular periodic cycles or a stable equilibrium/limit cycle",
+        "Irregular booms and crashes, no fixed period"
+      ],
+      [
+        "Population drivers",
+        "Predator and prey densities only",
+        "Disease, weather severity, tick outbreaks, genetics, human management"
+      ],
+      [
+        "Genetic effects",
+        "Not modeled",
+        "Severe inbreeding depression drove wolves toward extinction"
+      ],
+      [
+        "System openness",
+        "Often assumes closed, well-mixed population",
+        "Nearly closed island, with rare and now-vanishing ice-bridge immigration"
+      ],
+      [
+        "Human role",
+        "Absent from the model",
+        "Direct, deliberate intervention (2018-2019 reintroduction)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part IV",
+    "title": "Broader Case Studies",
+    "sub": "Invasive predators, biological control, and reintroduction cascades"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Invasive Predators",
+    "title": "Introduced Predators and Island Prey",
+    "items": [
+      "Island prey species often evolved with few or no mammalian predators, leaving them poorly defended against introduced predators",
+      "Classic examples: rats and cats devastating ground-nesting seabird colonies on Pacific islands; brown tree snakes eliminating most native forest bird species on Guam after accidental introduction",
+      "These interactions are frequently <b>far from equilibrium</b> — prey populations can be driven to local extinction rather than settling into any cycle, because prey lack effective defenses or refuges",
+      "Contrasts with co-evolved native predator-prey pairs (like lynx-hare), where millennia of interaction have shaped both attack and defense strategies"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Biological Control",
+    "title": "Using Predator-Prey Theory Deliberately",
+    "term": "Prickly Pear Cactus & Cactoblastis Moth",
+    "def": "One of the most successful classical biological control programs: the moth Cactoblastis cactorum was introduced to Australia in the 1920s to control invasive prickly pear cactus (Opuntia spp.), which had overrun tens of millions of hectares of farmland.",
+    "bullets": [
+      "Moth larvae bore into and destroy cactus pads; within a few years, cactus cover collapsed by well over 90% across the infested region",
+      "An intentional application of predator(herbivore)-prey principles: introduce a specialist natural enemy to suppress an invasive population",
+      "Now the cactus-moth system persists at low, patchy densities — arguably resembling a damped, low-amplitude version of predator-prey dynamics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Related but Distinct Case",
+    "title": "Myxomatosis and European Rabbits",
+    "items": [
+      "Myxoma virus was deliberately introduced to Australia (1950) and Europe to control invasive/overabundant European rabbit populations",
+      "Technically a <b>host-parasite</b> interaction rather than classical predation, but it is often taught alongside predator-prey case studies because the population dynamics are strikingly similar",
+      "Initial mortality exceeded 99%, but rabbit resistance and reduced virus virulence co-evolved rapidly — an evolutionary arms race that shifted the system toward a new, less lethal equilibrium",
+      "Illustrates that consumer-resource dynamics (predator-prey, host-parasite, host-parasitoid) share the same core mathematical structure even though the biology differs"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "A Term You'll See Again Next Unit",
+    "term": "Trophic Cascade",
+    "def": "An indirect effect in which a predator's impact on its prey propagates down to influence a third (or fourth) trophic level, such as vegetation — top-down control rippling through a food web.",
+    "bullets": [
+      "Isle Royale (wolves → moose → balsam fir) and Yellowstone (wolves → elk → willow/aspen) are the two most-cited large-mammal examples",
+      "Cascades can act through direct density reduction (fewer herbivores) or through behavioral changes (herbivores avoiding risky areas, sometimes called the 'ecology of fear')",
+      "This concept is the direct bridge into Chapter 11's plant-herbivore material"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reintroduction Cascades",
+    "title": "Yellowstone Wolves: A Preview",
+    "items": [
+      "Gray wolves were extirpated from Yellowstone National Park by the 1920s and reintroduced in 1995-1996",
+      "Their return altered elk population size and, notably, elk <b>behavior</b> (habitat use, vigilance) — a shift now described using the concept of a <b>trophic cascade</b>",
+      "Downstream effects have been reported on willow and aspen regeneration, beaver activity, and stream morphology — though the strength and universality of these cascades remains actively debated among ecologists",
+      "This case bridges directly into our next unit: predator effects that ripple down to affect plants, previewing plant-herbivore interactions (Ch. 11)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Big Picture",
+    "title": "Why Real Systems Rarely Show Clean L-V Cycles",
+    "items": [
+      "<b>Multiple prey species</b>: predators often switch among several prey types, decoupling any single pair from tidy cyclical dynamics",
+      "<b>Multiple predator species</b>: prey face a guild of predators (e.g., hare face lynx, coyotes, owls, goshawks simultaneously), diluting any single predator-prey signal",
+      "<b>Spatial structure</b>: real landscapes have patches, refuges, and dispersal corridors that homogeneous models ignore",
+      "<b>Weather and climate variation</b>: winter severity, drought, and other abiotic shocks routinely override biotic interactions",
+      "<b>Human harvesting and management</b>: hunting, trapping, culling, and reintroduction directly alter population trajectories",
+      "All of these are superimposed on the basic predator-prey dynamics — the math is a skeleton, not the whole organism"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Summary",
+    "title": "Sources of Deviation from Textbook Cycles",
+    "cards": [
+      {
+        "h": "Community complexity",
+        "p": "Multi-species prey and predator guilds spread out interaction strength, damping any single pairwise cycle."
+      },
+      {
+        "h": "Environmental stochasticity",
+        "p": "Weather, disease, and other random shocks can dominate small or isolated populations, as at Isle Royale."
+      },
+      {
+        "h": "Spatial heterogeneity",
+        "p": "Refuges and patchy landscapes create local asynchrony that averages out sharp, synchronized cycles."
+      },
+      {
+        "h": "Human influence",
+        "p": "Harvesting, land use change, and active management (culling or reintroduction) reshape dynamics directly."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Ecology",
+    "title": "Predator Management as a Conservation Tool",
+    "items": [
+      "Predator reintroduction (Isle Royale wolves, Yellowstone wolves) is now a deliberate management strategy to restore top-down regulation in degraded ecosystems",
+      "Biological control (Cactoblastis) intentionally imports a natural enemy relationship to suppress a pest population using the same dynamics we've modeled all unit",
+      "Each application requires anticipating cycle behavior, potential for overshoot (paradox-of-enrichment-like dynamics), and risk of the control agent itself becoming invasive",
+      "These programs are real, high-stakes tests of whether predator-prey theory can predict outcomes well enough to guide policy"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Study Roundup",
+    "title": "Four Systems, One Theoretical Core",
+    "cards": [
+      {
+        "h": "Lynx & hare",
+        "p": "Regular ~10-yr cycle; best explained by a three-trophic vegetation-hare-lynx model rather than simple two-species predation."
+      },
+      {
+        "h": "Wolves & moose (Isle Royale)",
+        "p": "Irregular dynamics; genetics, disease, and weather dominate a small, isolated predator-prey pair."
+      },
+      {
+        "h": "Cactoblastis & prickly pear",
+        "p": "Deliberate biological control; near-total prey (cactus) collapse followed by a low, patchy persistence equilibrium."
+      },
+      {
+        "h": "Wolves & elk (Yellowstone)",
+        "p": "Reintroduction cascade; direct and behavioral effects propagate to vegetation, previewing the next unit."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part V",
+    "title": "Unit Synthesis",
+    "sub": "Lectures 32–35: from neutral cycles to a real-world framework"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Conceptual Arc",
+    "title": "The Predator-Prey Unit, Step by Step",
+    "items": [
+      {
+        "y": "L32",
+        "t": "Basic Lotka-Volterra model: coupled exponential growth and simple mass-action predation; produces neutrally stable cycles"
+      },
+      {
+        "y": "L33",
+        "t": "Functional responses (Type I, II, III) refine how predation rate scales with prey density; Type II is destabilizing, Type III can stabilize at low density"
+      },
+      {
+        "y": "L34",
+        "t": "Numerical response and the Rosenzweig-MacArthur model add logistic prey growth and realistic predator reproduction; paradox of enrichment shows added resources can destabilize the system"
+      },
+      {
+        "y": "L35",
+        "t": "Real-world case studies (lynx-hare, Isle Royale, invasives, biocontrol) reveal multi-trophic, stochastic, and human-influenced complications beyond any two-species model"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Functional Response Recap",
+    "title": "Type I, II, and III at a Glance",
+    "headers": [
+      "Type",
+      "Shape",
+      "Mechanism",
+      "Stability Effect"
+    ],
+    "rows": [
+      [
+        "Type I",
+        "Linear rise, then abrupt plateau",
+        "No handling-time limit until a hard maximum (e.g., filter feeders)",
+        "Neutral — behaves like basic mass-action predation"
+      ],
+      [
+        "Type II",
+        "Decelerating, saturating curve",
+        "Handling time limits intake as prey become abundant",
+        "Destabilizing — predation rate lags at high prey density"
+      ],
+      [
+        "Type III",
+        "Sigmoidal (S-shaped)",
+        "Prey switching, learning, or refuges reduce attack at low density",
+        "Stabilizing — provides prey a low-density refuge from predation"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Numerical Response Recap",
+    "title": "Adding Predator Demography to the Picture",
+    "items": [
+      "Numerical response links predator birth/aggregation rates to prey availability, completing the predator side of the model",
+      "The Rosenzweig-MacArthur model pairs logistic prey growth (with carrying capacity K) with a Type II functional response",
+      "Depending on parameter values, this system settles into a <b>stable equilibrium</b> or a <b>stable limit cycle</b> — a major improvement in realism over the neutrally stable LV cycles",
+      "Graphical isocline analysis (prey and predator zero-growth isoclines) predicts which outcome occurs based on where the isoclines intersect"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Paradox of Enrichment Recap",
+    "title": "Why More Food Can Be Destabilizing",
+    "items": [
+      "Raising prey carrying capacity (K) shifts the predator isocline's intersection point toward the peak of the prey isocline, widening cycle amplitude",
+      "Larger-amplitude cycles bring prey (and sometimes predator) numbers closer to zero at each trough — increasing local extinction risk from demographic and environmental stochasticity",
+      "Real-world relevance: nutrient enrichment (eutrophication, fertilizer runoff, supplemental feeding) can destabilize consumer-resource systems rather than simply boosting all populations",
+      "A key conceptual bridge: purely deterministic model instability becomes a real extinction risk once finite population size and chance events are added — exactly what we saw at Isle Royale"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Integrated Framework",
+    "title": "Building Up Predator-Prey Theory",
+    "levels": [
+      {
+        "label": "Real-world complications: multi-species, spatial, stochastic, human (L35)",
+        "color": "#7f1d1d",
+        "width": "520px"
+      },
+      {
+        "label": "Numerical response + Rosenzweig-MacArthur + paradox of enrichment (L34)",
+        "color": "#b91c1c",
+        "width": "440px"
+      },
+      {
+        "label": "Functional responses: Type I / II / III (L33)",
+        "color": "#dc2626",
+        "width": "360px"
+      },
+      {
+        "label": "Basic Lotka-Volterra: neutral cycles (L32)",
+        "color": "#f87171",
+        "width": "280px"
+      }
+    ],
+    "footnote": "Each layer adds biological realism on top of the previous one, without discarding its core insight"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting Back",
+    "title": "Predator-Prey Dynamics and Population Regulation",
+    "left": {
+      "h": "Chapter 3 review",
+      "body": "Density-dependent processes regulate populations around some bounded range. Predation is one of the clearest density-dependent mortality factors — its rate can rise (Type III) or plateau (Type II) as prey density changes, directly shaping per-capita growth rate."
+    },
+    "right": {
+      "h": "Synthesis",
+      "body": "Predator-prey theory is Chapter 3's regulation concept made explicit and mechanistic: it identifies exactly which biological processes (attack rate, handling time, predator reproduction) generate density dependence, and predicts when that regulation is stabilizing versus destabilizing."
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bridging the Units",
+    "title": "Predation as One Case of Consumer-Resource Interaction",
+    "items": [
+      "Predation, herbivory, and host-parasite/parasitoid interactions all share the same underlying mathematical skeleton: a consumer that depletes and depends on a resource population",
+      "The myxomatosis-rabbit and Cactoblastis-cactus examples already showed this structural overlap between predation and other consumer-resource types",
+      "Differences arise from the biology of the resource: prey can flee or fight, hosts can be infected without necessarily dying immediately, and — as we'll see next — <b>plants can regrow and chemically defend themselves</b> in ways animal prey cannot",
+      "This sets up Chapter 11: plant-herbivore interactions as 'predation' with unique constraints imposed by plant biology"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Perspective",
+    "quote": "All models are wrong, but some are useful — the value of the Lotka-Volterra framework was never in perfectly predicting lynx and hare counts, but in giving us the vocabulary to ask why real systems deviate from it.",
+    "attrib": "Paraphrased ecological modeling principle (after George Box)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "What to Carry Forward from This Unit",
+    "items": [
+      "Predator-prey interactions generate oscillatory dynamics whose stability depends critically on functional and numerical response shape",
+      "Long-term field studies (lynx-hare, Isle Royale) provide genuine support for predator-prey coupling, but also reveal that real dynamics are multi-causal — trophic, genetic, climatic, and human factors all interact",
+      "The paradox of enrichment shows that simplistic 'more resources = better' intuition can be wrong once population dynamics are considered",
+      "Applied predator-prey theory underlies real conservation and management tools: biological control, invasive species management, and predator reintroduction programs",
+      "Every added layer of realism (functional response → numerical response → real-world complications) builds on, rather than discards, the previous layer's core insight"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 34",
+    "title": "For Reference: Numerical Response & the Paradox of Enrichment",
+    "items": [
+      "The Rosenzweig-MacArthur model combines logistic prey growth with a Type II functional response and an explicit predator numerical response",
+      "Isocline analysis shows the system can settle at a stable point or cycle in a stable limit cycle, depending on where prey and predator isoclines intersect",
+      "The paradox of enrichment: increasing prey carrying capacity (K) can destabilize the equilibrium and produce dangerously large-amplitude cycles",
+      "This result has direct applied relevance to eutrophication, supplemental feeding programs, and habitat enrichment in conservation management"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Full Lecture Recap",
+    "title": "Lecture 35 Summary",
+    "items": [
+      "The lynx-hare cycle is real and long-documented, but best explained by a three-trophic-level model (vegetation-hare-lynx), not pure two-species predation",
+      "Isle Royale's wolf-moose system shows how genetic bottlenecks, disease, weather, and human intervention can override simple predator-prey mathematics, especially in small, isolated populations",
+      "Biological control (Cactoblastis) and host-parasite systems (myxomatosis) apply predator/consumer-resource principles deliberately, with mixed and evolving outcomes",
+      "Real ecological systems rarely show clean L-V cycles because of multi-species interactions, spatial structure, weather, and human harvesting",
+      "The full predator-prey unit builds a layered, integrated framework: neutral cycles → functional responses → numerical response/R-M model/paradox of enrichment → real-world complications"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next: Chapter 11",
+    "title": "Preview — Plant-Herbivore Interactions I",
+    "sub": "Lecture 36: Plant defenses and the beginning of a new unit"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming Up",
+    "title": "Lecture 36: Plant-Herbivore Interactions I",
+    "items": [
+      "Herbivory is 'predation' on plants, but plants respond with unique tools: physical defenses (thorns, trichomes), chemical defenses (secondary compounds, tannins, alkaloids), and the ability to <b>regrow tissue</b> after being eaten",
+      "Because most plants survive individual feeding events, herbivore-plant dynamics differ fundamentally from predator-prey dynamics where individual prey typically die",
+      "We'll examine constitutive vs. induced defenses, the costs of defense allocation, and how these shape herbivore population dynamics",
+      "The Yellowstone wolf-elk-willow cascade previewed today becomes a central case study linking this new unit back to predator-prey theory"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Population Ecology · BIOL 4XX</span>
+        <span>Lecture 35</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>
