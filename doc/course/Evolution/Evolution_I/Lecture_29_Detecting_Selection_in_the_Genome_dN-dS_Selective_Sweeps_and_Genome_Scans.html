@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 29: Detecting Selection in the Genome: dN/dS, Selective Sweeps, and Genome Scans</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 29",
+    "title": "Detecting Selection in the Genome",
+    "sub": "dN/dS, Selective Sweeps, and Genome Scans",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 8, \"The History in Our Genes\" (lecture 3 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "Where we've been",
+    "title": "From neutral drift to detectable footprints",
+    "sub": "Lecture 27 gave us the neutral theory baseline; Lecture 28 gave us the molecular clock. Today: how deviations from those baselines reveal selection."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's agenda",
+    "title": "What we'll cover",
+    "items": [
+      "The dN/dS (Ka/Ks) ratio: comparing synonymous and nonsynonymous substitution rates",
+      "A worked conceptual example of computing and interpreting dN/dS",
+      "Selective sweeps: how a single beneficial mutation reshapes a whole genomic neighborhood",
+      "Hard sweeps versus soft sweeps",
+      "Genetic hitchhiking and why linked neutral variation gets dragged along",
+      "Genome scan methods: reduced diversity, extended haplotype homozygosity, site-frequency-spectrum skew",
+      "Case studies: lactase persistence, insect pesticide resistance, high-altitude adaptation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Quick recap",
+    "title": "Setting the neutral baseline",
+    "items": [
+      "Neutral theory (Kimura): most substitutions that reach fixation are selectively neutral, driven by drift alone",
+      "Under strict neutrality, the substitution rate equals the mutation rate — and is roughly constant, giving us the molecular clock",
+      "This baseline is the null hypothesis against which we test for selection",
+      "If a genomic region evolves faster or slower than the neutral expectation, something other than drift is likely acting on it",
+      "Today's tools are all, in essence, statistical comparisons to this neutral null"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Tool 1",
+    "title": "Reading selection off protein-coding sequence",
+    "sub": "The dN/dS ratio"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key concept",
+    "title": "dN/dS (Ka/Ks) ratio",
+    "term": "dN/dS (Ka/Ks) ratio",
+    "def": "The ratio of the rate of nonsynonymous substitutions per nonsynonymous site (dN, or Ka) to the rate of synonymous substitutions per synonymous site (dS, or Ks), calculated by comparing homologous coding sequences.",
+    "bullets": [
+      "Synonymous (silent) substitutions change a codon but not the amino acid it encodes",
+      "Nonsynonymous (replacement) substitutions change the amino acid",
+      "Synonymous sites are assumed to be nearly free of selection, so dS approximates the neutral mutation rate",
+      "Comparing dN to that neutral yardstick tells us whether amino-acid-changing mutations are being removed, ignored, or favored"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanics",
+    "title": "How dN/dS is actually calculated",
+    "items": [
+      "Align two homologous coding sequences (e.g., the same gene in two species, or two alleles within a species)",
+      "Classify every site in the alignment as synonymous or nonsynonymous based on the genetic code",
+      "Count substitutions of each class and divide by the number of sites of that class to get dN and dS",
+      "Correct for multiple hits at the same site (more than one substitution can occur at a single codon position over time)",
+      "Divide: dN/dS = (nonsynonymous substitutions per nonsynonymous site) / (synonymous substitutions per synonymous site)",
+      "The result is a single number that summarizes the net selective regime acting on that gene over the time since the sequences diverged"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Interpreting the ratio",
+    "title": "dN/dS as a signature of selection",
+    "headers": [
+      "dN/dS ratio",
+      "Selection type",
+      "Biological interpretation"
+    ],
+    "rows": [
+      [
+        "< 1 (dN < dS)",
+        "Purifying (negative) selection",
+        "Nonsynonymous mutations are deleterious and are removed by selection; this is the pattern for the vast majority of protein-coding genes"
+      ],
+      [
+        "= 1 (dN ≈ dS)",
+        "Neutral evolution",
+        "Nonsynonymous changes accumulate at the same rate as silent ones — no detectable functional constraint or benefit"
+      ],
+      [
+        "> 1 (dN > dS)",
+        "Positive (diversifying) selection",
+        "Amino-acid-changing mutations are favored and spread faster than silent ones — a strong signature of adaptive evolution"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked example",
+    "title": "Comparing a gene across two species",
+    "left": {
+      "h": "The setup",
+      "body": "<p>Suppose we align a 300-codon gene between two closely related species. We tally substitutions since their common ancestor:</p><ul><li>90 synonymous sites available, 9 synonymous substitutions observed → dS ≈ 0.10</li><li>210 nonsynonymous sites available, 4 nonsynonymous substitutions observed → dN ≈ 0.019</li></ul>"
+    },
+    "right": {
+      "h": "The calculation",
+      "body": "<p>dN/dS = 0.019 / 0.10 ≈ <strong>0.19</strong></p><ul><li>This is well below 1</li><li>Interpretation: strong purifying selection — most amino-acid-changing mutations that arose were eliminated</li><li>Consistent with a gene encoding a protein whose structure is tightly constrained (e.g., a core metabolic enzyme)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked example, continued",
+    "title": "Now flip the numbers: a gene under positive selection",
+    "items": [
+      "Same gene length, different substitution counts: dS ≈ 0.08 (8 synonymous substitutions), dN ≈ 0.15 (an unusually high number of nonsynonymous substitutions)",
+      "dN/dS = 0.15 / 0.08 ≈ 1.9 — well above 1",
+      "This pattern shows up in genes locked in molecular arms races: pathogen-recognition genes, sperm-egg recognition proteins, venom genes, and immune surveillance genes",
+      "The excess of amino-acid change is not noise — it means new protein variants were repeatedly favored and swept to fixation",
+      "Note: whole-gene dN/dS > 1 is a strong but conservative signal; positive selection acting on just a few codons can be masked by averaging over an entire gene"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Caveats",
+    "title": "Reading dN/dS with care",
+    "cards": [
+      {
+        "h": "Averaging dilutes signal",
+        "p": "Selection often acts on a handful of codons (e.g., an antigen-binding site). Averaging dN/dS across an entire gene can pull a strong local signal back below 1."
+      },
+      {
+        "h": "Codon-based models help",
+        "p": "Site-specific and branch-specific models (e.g., PAML) estimate dN/dS at individual codons or lineages rather than assuming one ratio for the whole gene and tree."
+      },
+      {
+        "h": "Low power at short timescales",
+        "p": "Over very recent divergences, too few substitutions have accumulated for dN/dS to be statistically reliable — this is why sweep-based methods (later in this lecture) fill that gap."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where purifying selection dominates",
+    "title": "Genes with dN/dS deeply below 1",
+    "items": [
+      "Histone proteins — among the most conserved sequences known; nearly every amino acid is functionally essential for DNA packaging",
+      "Core ribosomal proteins and translation machinery — errors are catastrophic for the cell",
+      "Cytochrome c and other central metabolic enzymes — precise three-dimensional structure is required for function",
+      "These genes show dN/dS often well under 0.1, reflecting billions of accumulated 'no' votes against amino-acid change"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where positive selection dominates",
+    "title": "Genes with dN/dS repeatedly above 1",
+    "items": [
+      "MHC (major histocompatibility complex) genes in vertebrates — diversifying selection maintains many alleles for pathogen recognition",
+      "Antimicrobial peptide genes — constant pressure from evolving pathogens favors new variants",
+      "Reproductive proteins (e.g., sperm-egg recognition genes like bindin in sea urchins) — sexual selection and species-recognition pressures drive rapid change",
+      "Primate immune genes engaged in host-pathogen arms races",
+      "A common thread: coevolutionary conflict, where the fitness landscape itself keeps shifting, favors continual amino-acid innovation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Tool 2",
+    "title": "When a beneficial mutation sweeps through a population",
+    "sub": "Selective sweeps"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key concept",
+    "title": "Selective sweep",
+    "term": "Selective sweep",
+    "def": "The rapid rise in frequency (and often fixation) of a beneficial allele, driven by positive selection, which simultaneously reduces genetic variation at physically linked neutral sites nearby.",
+    "bullets": [
+      "Named for the way a favored allele 'sweeps' through the population, carrying its chromosomal neighborhood with it",
+      "Leaves a distinctive, detectable signature in patterns of genetic variation long after the sweep is complete",
+      "The strength and width of the signature depend on selection coefficient, recombination rate, and time since the sweep"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanism",
+    "title": "How a sweep unfolds",
+    "items": [
+      "A new mutation (or a previously rare variant) confers a fitness advantage in the current environment",
+      "Selection increases its frequency generation after generation, faster than drift alone would allow",
+      "Because recombination takes time to break up chromosome segments, the DNA physically flanking the beneficial mutation rises in frequency along with it",
+      "As the beneficial allele approaches fixation, the linked flanking region approaches fixation too — even though the flanking sites themselves are selectively neutral",
+      "The result: a stretch of DNA around the selected site becomes far more uniform (less diverse) than the genome-wide average",
+      "The width of this depleted region reflects a race between selection (fast) and recombination (which erodes the linkage over time and generations)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two flavors of sweep",
+    "title": "Hard sweeps versus soft sweeps",
+    "left": {
+      "h": "Hard sweep",
+      "body": "<p>A single new mutation arises on one particular chromosomal background and is driven to fixation.</p><ul><li>Only one haplotype carries the beneficial allele at the outset</li><li>That single haplotype—and everything linked to it—sweeps to high frequency</li><li>Produces a deep, easily detected trough in diversity</li></ul>"
+    },
+    "right": {
+      "h": "Soft sweep",
+      "body": "<p>The beneficial allele is already present as standing genetic variation on multiple haplotype backgrounds, or arises independently more than once, before the environment changes and selection favors it.</p><ul><li>Several different haplotypes carry the allele and rise together</li><li>Diversity is reduced less severely because multiple linked backgrounds persist</li><li>Common when adaptation must happen fast from existing variation (e.g., pesticide exposure)</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Side-by-side",
+    "title": "Hard vs. soft sweep signatures",
+    "headers": [
+      "Feature",
+      "Hard sweep",
+      "Soft sweep"
+    ],
+    "rows": [
+      [
+        "Origin of beneficial allele",
+        "Single new mutation on one haplotype background",
+        "Standing variation on multiple backgrounds, or recurrent independent mutation"
+      ],
+      [
+        "Haplotype diversity after fixation",
+        "Very low — one haplotype dominates the region",
+        "Higher — multiple distinct haplotypes carry the allele"
+      ],
+      [
+        "Strength of genome-scan signature",
+        "Strong, easily detected dip in diversity and long-range homozygosity",
+        "Weaker and more subtle; can be missed by methods tuned for hard sweeps"
+      ],
+      [
+        "Typical trigger",
+        "Novel selective pressure requiring a genuinely new mutation",
+        "Rapid environmental change acting on variation already segregating in the population"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key concept",
+    "title": "Genetic hitchhiking",
+    "term": "Genetic hitchhiking",
+    "def": "The process by which neutral alleles change in frequency — often dramatically — simply because they are physically linked to a locus under strong positive selection, not because of any effect on fitness themselves.",
+    "bullets": [
+      "The neutral 'passenger' alleles have no causal role; their fate is determined entirely by their location on the chromosome relative to the selected site",
+      "Hitchhiking is the mechanistic explanation for why selective sweeps reduce diversity at linked neutral sites",
+      "First formalized by Maynard Smith and Haigh (1974) as the 'hitchhiking effect'"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences",
+    "title": "What hitchhiking does to a genomic neighborhood",
+    "items": [
+      "Local nucleotide diversity (π) drops sharply around the selected site, because most chromosomes in the region now trace back to the single sweeping haplotype",
+      "Linkage disequilibrium is elevated over unusually long physical distances around the site — recombination has not yet had time to break up the swept haplotype",
+      "The site frequency spectrum is skewed: an excess of rare, derived variants accumulates on the swept background as new mutations arise after the sweep, alongside a few variants pushed to intermediate/high frequency",
+      "As recombination continues generation after generation, the affected region shrinks — the closer to the selected site, the longer the depletion persists",
+      "This means the width of a sweep signature carries information about how recently the sweep occurred, and how strong selection was"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Layers of evidence",
+    "title": "Building the case for positive selection",
+    "levels": [
+      {
+        "label": "Reduced diversity across the region",
+        "color": "#4a1620",
+        "width": "560px"
+      },
+      {
+        "label": "Skewed allele-frequency spectrum",
+        "color": "#6b2c39",
+        "width": "460px"
+      },
+      {
+        "label": "Extended haplotype homozygosity",
+        "color": "#8a3f4d",
+        "width": "360px"
+      },
+      {
+        "label": "Fixed (or near-fixed) causal variant",
+        "color": "#a85a68",
+        "width": "260px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Timing",
+    "title": "How old is a sweep? Reading the decay",
+    "items": [
+      "Very recent sweeps (hundreds to a few thousand years): long, unbroken haplotypes; recombination hasn't had time to chop them up — best detected with haplotype-based methods like EHH",
+      "Intermediate-age sweeps (a few thousand to tens of thousands of years): reduced diversity persists in a narrower window; haplotype length signal has partly decayed",
+      "Ancient sweeps (well over 100,000 years, or fixed differences between species): haplotype signal is gone, but dN/dS comparisons between species can still detect the historical episode of adaptive protein change",
+      "This is exactly why we pair dN/dS (deep time, between-species) with sweep-based genome scans (shallow time, within-species) — they cover complementary windows of evolutionary history"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Tool 3",
+    "title": "Finding sweeps at genome scale",
+    "sub": "Genome scan methods"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The strategy",
+    "title": "What is a genome scan?",
+    "items": [
+      "A genome-wide survey that compares a chosen statistic (diversity, haplotype structure, allele-frequency pattern, or population differentiation) at every window across the genome",
+      "Regions that are extreme outliers relative to the rest of the genome — the neutral background — are flagged as candidate targets of selection",
+      "Because genome scans rely on comparing a locus to the rest of the genome, they do not require knowing anything about the gene's function in advance — they are discovery tools",
+      "Modern scans use dense SNP genotyping or whole-genome resequencing of many individuals within a population",
+      "A candidate region identified by a scan still needs functional follow-up to confirm the causal gene and mutation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Signatures of a sweep",
+    "title": "Three genome-scan signals used to detect selection",
+    "cards": [
+      {
+        "h": "Reduced nucleotide diversity",
+        "p": "A local dip in π (average pairwise nucleotide differences) relative to the genome-wide background — the classic hitchhiking footprint of a completed or nearly completed sweep."
+      },
+      {
+        "h": "Extended haplotype homozygosity (EHH)",
+        "p": "Unusually long stretches of identical haplotype sequence surrounding a candidate allele, indicating too little time has passed for recombination to break up the swept chromosome — best for very recent or ongoing sweeps."
+      },
+      {
+        "h": "Site-frequency-spectrum skew",
+        "p": "An excess of rare or high-frequency derived variants relative to neutral expectations (captured by statistics such as Tajima's D), reflecting the distorted genealogy left behind by a sweep."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key concept",
+    "title": "Extended haplotype homozygosity (EHH)",
+    "term": "Extended haplotype homozygosity (EHH)",
+    "def": "A measure of the probability that two randomly chosen chromosomes carrying a given allele are identical (homozygous) over a given distance from that allele; conceptually, it tracks how far an unbroken haplotype extends before recombination breaks it up.",
+    "bullets": [
+      "Under neutrality, haplotype identity decays quickly with distance as recombination shuffles chromosomes each generation",
+      "Around a recently and strongly selected allele, haplotype identity decays much more slowly — the swept haplotype is unusually long because there hasn't been time for recombination to erode it",
+      "EHH-based statistics (such as iHS, the integrated haplotype score) compare haplotype decay on the candidate allele's background to decay on the alternative allele's background",
+      "Most powerful for detecting incomplete or very recent sweeps, which are exactly the cases where diversity-based methods have the least signal to work with"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "How EHH is used in practice",
+    "title": "Reading an EHH scan",
+    "items": [
+      "Researchers pick a 'core' SNP (the putatively selected site or a candidate region) and measure haplotype homozygosity outward from it in both directions",
+      "A slow decay curve — homozygosity staying high over long genetic distances — signals a young, strong sweep",
+      "Comparing the decay on the derived (candidate) allele to the decay on the ancestral allele highlights loci where one haplotype background is anomalously long compared to the rest of the genome",
+      "This approach conceptually parallels looking for very few 'family names' (haplotypes) all sharing a suspiciously recent common ancestor along one stretch of chromosome",
+      "EHH-based scans have successfully flagged loci including LCT (lactase persistence) and EPAS1 (high-altitude adaptation), both covered later in this lecture"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Complementary signal",
+    "title": "Site-frequency-spectrum skew in more detail",
+    "items": [
+      "The site frequency spectrum (SFS) is simply the distribution of allele frequencies across all polymorphic sites in a region",
+      "Under strict neutrality and a constant population size, the SFS follows a predictable shape with mostly low-frequency variants",
+      "A completed hard sweep leaves behind an excess of rare variants (new mutations that arose after the sweep on the now-uniform background) plus a scarcity of intermediate-frequency variants",
+      "Tajima's D formalizes this: it compares the average number of pairwise nucleotide differences to the number of segregating sites",
+      "A strongly negative Tajima's D in a region (relative to genome-wide background) is consistent with a recent selective sweep; a positive Tajima's D can instead point toward balancing selection maintaining multiple alleles"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A classic statistic",
+    "title": "Tajima's D as a genome-scan tool",
+    "left": {
+      "h": "What it measures",
+      "body": "<p>Tajima's D compares two estimators of genetic diversity that should agree under neutral, constant-size population expectations:</p><ul><li>π — average pairwise nucleotide differences (sensitive to intermediate-frequency variants)</li><li>Watterson's θ — based on the number of segregating sites (sensitive to rare variants)</li></ul>"
+    },
+    "right": {
+      "h": "How to read it",
+      "body": "<p>D = 0 is the neutral expectation.</p><ul><li>D significantly negative: excess of rare variants — consistent with a recent selective sweep (or population expansion)</li><li>D significantly positive: excess of intermediate-frequency variants — consistent with balancing selection (or population contraction/bottleneck)</li><li>Genome scans flag windows where D is an outlier relative to the rest of the genome</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Toolkit summary",
+    "title": "Genome scan methods at a glance",
+    "headers": [
+      "Method",
+      "What it measures",
+      "Best timescale"
+    ],
+    "rows": [
+      [
+        "Nucleotide diversity (π) drop",
+        "Reduction in genetic variation around a locus",
+        "Recent to intermediate-age sweeps"
+      ],
+      [
+        "Extended Haplotype Homozygosity (EHH)",
+        "Length of unbroken haplotypes around a candidate allele",
+        "Very recent, ongoing or incomplete sweeps"
+      ],
+      [
+        "Site frequency spectrum (SFS) skew",
+        "Excess of rare (or shifted) derived allele frequencies near a locus",
+        "Recent, often complete sweeps"
+      ],
+      [
+        "Tajima's D",
+        "Deviation of average pairwise differences from neutral expectation",
+        "Recent sweeps (negative D) vs. balancing selection (positive D)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reality check",
+    "title": "Limitations of genome scans",
+    "items": [
+      "Demographic events — population bottlenecks, expansions, admixture — can mimic sweep signatures genome-wide, so scans need appropriate null models tailored to a population's actual history",
+      "Background selection (purifying selection removing linked deleterious mutations) can also locally reduce diversity, creating a false positive for a 'sweep'",
+      "Recombination rate varies across the genome; low-recombination regions naturally show reduced diversity and extended haplotypes even without selection",
+      "Outlier-based scans are inherently comparative — they flag the most extreme regions, which does not guarantee every flagged region reflects true positive selection",
+      "Best practice: corroborate a candidate signal with multiple independent statistics, and ideally with independent lines of evidence (functional data, replicate populations)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "From theory to biology",
+    "title": "Selective sweeps in action",
+    "sub": "Three case studies where genome scans caught evolution red-handed"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case study 1",
+    "title": "Lactase persistence",
+    "term": "Lactase persistence",
+    "def": "The continued expression of the lactase enzyme (which digests the milk sugar lactose) into adulthood, in contrast to the ancestral mammalian pattern of lactase decline after weaning.",
+    "bullets": [
+      "One of the best-documented cases of recent, strong positive selection in the human genome",
+      "Associated with regulatory variants near the LCT gene, not changes to the lactase protein itself",
+      "A textbook example of gene-culture coevolution: a cultural practice (dairying) created the selective environment for a genetic trait"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case study 1, detail",
+    "title": "The LCT / MCM6 signal",
+    "left": {
+      "h": "The genetics",
+      "body": "<p>The lactase-persistence allele is not in the LCT coding sequence but in a regulatory enhancer within the neighboring MCM6 gene.</p><ul><li>Single nucleotide variants there keep the LCT promoter switched on into adulthood</li><li>Different persistence alleles arose independently in Europe and in African pastoralist populations — a striking case of convergent evolution</li></ul>"
+    },
+    "right": {
+      "h": "The genome-scan evidence",
+      "body": "<p>Around the European persistence allele, genome scans find:</p><ul><li>An unusually long haplotype (strong EHH) — one of the longest such signals found in the human genome</li><li>Sharply reduced local diversity</li><li>Estimated selection coefficients among the strongest documented for any human trait (on the order of several percent fitness advantage per generation)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case study 1, context",
+    "title": "Why lactase persistence swept so fast and so hard",
+    "items": [
+      "Selection intensified after the domestication of cattle, sheep, and goats (roughly 7,000-10,000 years ago) made milk available to adults as a calorie- and nutrient-dense food",
+      "In populations with a long history of dairy pastoralism, persistence allele frequency now exceeds 90% in parts of Northern Europe",
+      "In populations without a dairying tradition, the ancestral 'lactase non-persistent' pattern remains common — a clean natural experiment linking culture to genotype",
+      "This is a hard-sweep-like signal in Europe: one haplotype background dominates, consistent with selection acting on a single (or very few) mutational origin(s)",
+      "The African persistence alleles arose independently, illustrating that the same phenotype can evolve via different underlying mutations in different populations"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case study 2",
+    "title": "Insecticide/pesticide resistance",
+    "term": "Insecticide resistance",
+    "def": "The evolved capacity of an insect population to survive exposure to a chemical pesticide that previously killed most individuals, typically arising from mutations affecting the pesticide's molecular target or its detoxification.",
+    "bullets": [
+      "One of the fastest, most repeatedly documented examples of selective sweeps in real time",
+      "Resistance has evolved independently, over and over, in many insect species exposed to many different chemical classes",
+      "A powerful demonstration that soft sweeps from standing variation can drive rapid adaptation when selection pressure is intense and novel"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case study 2, detail",
+    "title": "kdr mutations and target-site resistance",
+    "left": {
+      "h": "The mechanism",
+      "body": "<p>The 'knockdown resistance' (kdr) mutations occur in the voltage-gated sodium channel gene, the molecular target of DDT and pyrethroid insecticides.</p><ul><li>Point mutations alter the channel's structure enough to reduce insecticide binding</li><li>Found convergently in mosquitoes, houseflies, and many other pest species</li></ul>"
+    },
+    "right": {
+      "h": "The genome-scan evidence",
+      "body": "<p>Around kdr and related resistance loci:</p><ul><li>Sharp local reduction in diversity following widespread pesticide use</li><li>Often a soft-sweep pattern — multiple resistance haplotypes rising together, since the mutations were present at low frequency before spraying began, or arose recurrently</li><li>Detectable within just decades, illustrating sweep dynamics on an observable human timescale</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case study 2, context",
+    "title": "Beyond target-site mutations",
+    "items": [
+      "Metabolic resistance: amplification or upregulation of detoxifying enzymes (esterases, cytochrome P450s, glutathione S-transferases) that break down the insecticide before it reaches its target",
+      "Gene duplication of esterase genes has been directly observed sweeping through mosquito populations under insecticide pressure",
+      "Because agricultural and public-health pesticide use imposes extremely strong, sudden selection, resistance sweeps are often among the fastest documented in nature",
+      "This case study underscores a practical stakes: understanding sweep dynamics has direct application to resistance management in agriculture and vector control (e.g., malaria mosquito control)",
+      "It also illustrates soft sweeps particularly well — resistance alleles frequently pre-exist at low frequency in a population before the chemical is ever introduced"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Case study 3",
+    "title": "High-altitude hypoxia adaptation",
+    "term": "High-altitude adaptation",
+    "def": "A suite of physiological and genetic adaptations that allow human populations living at extreme elevation (chronic low oxygen availability) to avoid the harmful consequences — such as excessive red blood cell production — that afflict unacclimatized lowlanders.",
+    "bullets": [
+      "Independently evolved in at least three high-altitude human populations: Tibetans, Andeans, and Ethiopian highlanders",
+      "A striking case where different populations solved the same physiological problem via different genes and different mechanisms",
+      "The Tibetan EPAS1 signal is one of the strongest, most rapid known selective sweeps in humans"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case study 3, detail",
+    "title": "EPAS1 in Tibetans",
+    "left": {
+      "h": "The genetics",
+      "body": "<p>EPAS1 encodes a transcription factor (HIF-2α) central to the body's response to low oxygen.</p><ul><li>The Tibetan-adapted EPAS1 haplotype blunts the typical hypoxia response of overproducing red blood cells, avoiding dangerously thick blood</li><li>Remarkably, the adaptive haplotype was introgressed from Denisovans — an extinct hominin lineage — into the ancestors of modern Tibetans</li></ul>"
+    },
+    "right": {
+      "h": "The genome-scan evidence",
+      "body": "<p>The EPAS1 region in Tibetans shows one of the largest allele-frequency differences ever recorded between human populations.</p><ul><li>Strong EHH signal indicating a young, powerful sweep</li><li>Estimated to have reached high frequency within roughly the last 3,000 years — an extraordinarily fast sweep by human standards</li><li>Illustrates how genome scans can date and quantify ongoing, recent human adaptation</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case study 3, comparison",
+    "title": "Tibetans versus Andeans: convergent problem, divergent solutions",
+    "items": [
+      "Andean highlanders show adaptive signals primarily around EGLN1 and other genes in the same hypoxia-response pathway, but with a different physiological strategy: many Andeans maintain elevated hemoglobin/red blood cell counts rather than suppressing them",
+      "Ethiopian highlanders show yet another distinct genetic and physiological profile, with signals at different loci again",
+      "This is a clear illustration of convergent evolution at the level of the phenotype (tolerance of chronic hypoxia) but divergence at the level of genotype and mechanism",
+      "Together with the Denisovan-introgression finding, the EPAS1 story also shows that genome scans can reveal not just selection but its surprising evolutionary source (archaic introgression)",
+      "All three populations demonstrate positive selection acting on standing or introgressed variation — largely soft-sweep-like dynamics rather than single new mutations"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Case studies together",
+    "title": "Three sweeps compared",
+    "headers": [
+      "Case study",
+      "Gene / region",
+      "Selective pressure",
+      "Approx. age of selection"
+    ],
+    "rows": [
+      [
+        "Lactase persistence",
+        "LCT / MCM6 enhancer",
+        "Dairy farming; milk as an adult food source",
+        "~7,000-10,000 years; independent origins in Europe & Africa"
+      ],
+      [
+        "Insecticide resistance",
+        "Sodium channel (kdr), esterase genes",
+        "Synthetic pesticide exposure",
+        "Decades, since roughly the 1940s-1950s"
+      ],
+      [
+        "High-altitude adaptation",
+        "EPAS1 (Tibetans), EGLN1 (Andeans)",
+        "Chronic hypoxia at high elevation",
+        "~3,000 years (Tibetan EPAS1, from introgressed Denisovan DNA) to longer for other loci"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A perspective",
+    "quote": "The genome is not just a record of ancestry — it is a record of the battles organisms have fought, and won, against the challenges of their environment. Every sweep is a scar left by a victory.",
+    "attrib": "Paraphrased theme from Zimmer & Emlen, Ch. 8"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Why these three case studies matter together",
+    "items": [
+      "They span three very different types of selective pressure: cultural/dietary (lactase), chemical/anthropogenic (pesticides), and physiological/environmental (altitude)",
+      "They span a huge range of timescales, from decades (pesticide resistance) to a few thousand years (EPAS1, LCT)",
+      "They illustrate both hard-sweep-like (European LCT) and soft-sweep-like (pesticide resistance, EPAS1 introgression) dynamics",
+      "Each was first flagged by a genome scan (unusual diversity, EHH, or allele-frequency patterns) and then confirmed with functional and physiological follow-up",
+      "Together they show that selection is not just an abstraction from textbooks — it is actively, measurably shaping genomes within human-observable timeframes"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Putting it together",
+    "title": "dN/dS versus sweep scans: complementary lenses",
+    "left": {
+      "h": "dN/dS",
+      "body": "<p>Compares coding sequence between species (or deeply diverged lineages).</p><ul><li>Detects selection accumulated over long evolutionary time (millions of years)</li><li>Reveals the net historical outcome of selection on a protein</li><li>Blind to very recent events — too few substitutions have had time to occur</li></ul>"
+    },
+    "right": {
+      "h": "Genome scans (sweeps)",
+      "body": "<p>Compares diversity/haplotype patterns within a single population.</p><ul><li>Detects selection acting over hundreds to tens of thousands of years</li><li>Reveals ongoing or recently completed adaptive events</li><li>Signal decays and disappears as recombination erases it over deep time</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "End-of-lecture summary",
+    "title": "Key takeaways",
+    "items": [
+      "dN/dS compares nonsynonymous to synonymous substitution rates to reveal purifying (< 1), neutral (= 1), or positive (> 1) selection on protein-coding genes over deep time",
+      "A selective sweep occurs when a beneficial allele rises rapidly in frequency, dragging linked neutral variation with it via genetic hitchhiking",
+      "Hard sweeps (single new mutation) leave a strong, narrow signature; soft sweeps (standing variation, multiple origins) leave a weaker, more diffuse one",
+      "Genome scans detect sweeps using reduced local diversity, extended haplotype homozygosity (best for recent/ongoing sweeps), and site-frequency-spectrum skew (e.g., Tajima's D)",
+      "Human case studies — lactase persistence, insecticide resistance, and high-altitude EPAS1/EGLN1 adaptation — show these signatures in real, well-documented genomes",
+      "dN/dS and sweep-based genome scans are complementary tools covering different evolutionary timescales, from millions of years down to mere decades"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Vocabulary check",
+    "title": "Terms you should be able to define and apply",
+    "items": [
+      "dN/dS (Ka/Ks) ratio, synonymous vs. nonsynonymous substitution",
+      "Purifying selection, neutral evolution, positive/diversifying selection",
+      "Selective sweep, hard sweep, soft sweep",
+      "Genetic hitchhiking, linkage disequilibrium",
+      "Genome scan, nucleotide diversity (π), extended haplotype homozygosity (EHH), site frequency spectrum (SFS), Tajima's D",
+      "Standing genetic variation, introgression (in the context of EPAS1)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next time — Lecture 30",
+    "title": "Genome Evolution: Duplication, Transposable Elements, and Chapter 5-8 Synthesis",
+    "sub": "We zoom out from single-gene selection to whole-genome architecture — plus a review session for Midterm II"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 29</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 44: Course Synthesis I: The Mechanisms Toolkit — From Mutation to Macroevolution</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 44",
+    "title": "Course Synthesis I: The Mechanisms Toolkit",
+    "sub": "From Mutation to Macroevolution — Reassembling Chapters 1-9 into One Framework",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 10 of 11) — Course Synthesis I"
+  },
+  {
+    "type": "section",
+    "tag": "OPENING",
+    "title": "Reassembling the Toolkit",
+    "sub": "We have spent 43 lectures taking evolutionary biology apart, chapter by chapter. Today we put it back together."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Synthesize Now",
+    "title": "The Purpose of This Lecture",
+    "items": [
+      "This is lecture 10 of 11 in the Applied & Synthesis unit — the first of two closing lectures that step back from individual topics to see the whole course as one argument.",
+      "Lectures 1-34 built the mechanistic toolkit chapter by chapter (Ch1-9); lectures 35-41 applied that toolkit to real problems (medicine, conservation, agriculture, human evolution); lectures 42-43 handled integrative case studies and presentation logistics.",
+      "Today we walk back through Chapters 1-9 in order, asking of each: what was the central question, what was the key concept, and how did it hand off to the next chapter?",
+      "The goal is not new content — it is seeing the connective tissue you may have missed the first time through: variation feeds selection, selection acts on phenotypes built by development, development is programmed by molecules, and molecules diverge over deep time recorded in fossils and trees.",
+      "Lecture 45 will be the comprehensive final review and will explicitly bridge this course (Evolution I: mechanisms) to Evolution II (macroevolution, speciation, and the history of life in greater depth)."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Course Architecture",
+    "title": "The Arc of Evolution I, Chapter by Chapter",
+    "items": [
+      {
+        "y": "Ch 1",
+        "t": "How scientists study evolution — observation, hypothesis, and evidence"
+      },
+      {
+        "y": "Ch 2",
+        "t": "The history of evolutionary thought — from Lamarck to the Modern Synthesis"
+      },
+      {
+        "y": "Ch 3",
+        "t": "Fossils and geological time — reading the rock record of life"
+      },
+      {
+        "y": "Ch 4",
+        "t": "Phylogenetics and the tree of life — reconstructing relationships"
+      },
+      {
+        "y": "Ch 5",
+        "t": "Sources of heritable variation — mutation, recombination, gene flow"
+      },
+      {
+        "y": "Ch 6",
+        "t": "Forces of change — genetic drift and natural selection"
+      },
+      {
+        "y": "Ch 7",
+        "t": "Quantitative genetics — evolution of complex, continuous traits"
+      },
+      {
+        "y": "Ch 8",
+        "t": "Molecular evolution — the genome as a historical document"
+      },
+      {
+        "y": "Ch 9",
+        "t": "Evo-devo — how small genetic changes build large phenotypic differences"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "The Foundations",
+    "sub": "Chapters 1-4 — how we know what we know about evolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 1 Recap",
+    "title": "How Scientists Study Evolution",
+    "items": [
+      "Central question: is evolution a testable, observable scientific process, or merely a historical narrative we accept on faith?",
+      "Key concept: evolution generates specific, falsifiable predictions — about fossils, genomes, experimental populations, and biogeography — that can be checked against data.",
+      "The course opened by establishing evolution as an operational science: direct observation (Grants' finches, Lenski's E. coli), comparative method (cross-species patterns), and inference from indirect evidence (fossils, DNA) all converge on the same conclusions.",
+      "This chapter set the epistemological ground rules used in every chapter since: a claim about evolution is only as good as the evidence and the method used to test it.",
+      "Hands off to Chapter 2 by asking: given that evolution is testable, how did scientists actually arrive at the theory in the first place?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 1 Key Term",
+    "title": "Hypothesis-Driven Comparative Method",
+    "term": "Hypothesis-Driven Comparative Method",
+    "def": "The scientific strategy of comparing patterns across many species, populations, or lineages to test predictions derived from evolutionary theory, distinguishing it from untestable historical storytelling.",
+    "bullets": [
+      "Combines experimental manipulation (where possible) with observational comparison across natural replicates",
+      "Underlies virtually every subsequent chapter's evidentiary standard, from fossil dating to phylogenetic reconstruction"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 2 Recap",
+    "title": "The History of Evolutionary Thought",
+    "items": [
+      "Central question: how did our understanding of biological change develop, and why did it take until the 19th century for a coherent mechanism to emerge?",
+      "Key concept: Darwin and Wallace's insight was not that species change (many before them suspected this) but that natural selection provides a mechanism requiring no external designer.",
+      "We traced the lineage of ideas: fixed-species essentialism, Lamarck's inheritance of acquired characters, Lyell's uniformitarian deep time, Malthus's population pressure, and finally the Darwin-Wallace synthesis of 1858-59.",
+      "The 20th-century Modern Synthesis then fused Darwinian selection with Mendelian genetics, resolving the blending-inheritance problem that had troubled Darwin himself.",
+      "Hands off to Chapter 3 by asking: what physical evidence, beyond living species, supports this historical narrative of change over time?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 2 Key Term",
+    "title": "The Modern Synthesis",
+    "term": "The Modern Synthesis",
+    "def": "The mid-20th-century unification of Darwinian natural selection with Mendelian particulate genetics and population genetics theory, resolving how discrete heritable units could produce gradual, continuous evolutionary change.",
+    "bullets": [
+      "Architects included Fisher, Haldane, Wright, Dobzhansky, and Mayr",
+      "Established the population — not the individual — as the fundamental unit that evolves"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting Chapters 1-2",
+    "title": "From Method to Theory",
+    "left": {
+      "h": "Chapter 1 gave us the tools",
+      "body": "<p>A scientific standard for what counts as evidence and how to test evolutionary claims — observation, experiment, and comparison.</p>"
+    },
+    "right": {
+      "h": "Chapter 2 gave us the theory",
+      "body": "<p>A historical account of how those tools, applied by Darwin, Wallace, and their successors, converged on natural selection and then the Modern Synthesis as the best-supported explanation for biological diversity.</p><ul><li>Together they set up the question Chapter 3 must answer: where is the physical record of this change?</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 3 Recap",
+    "title": "Fossils and Geological Time",
+    "items": [
+      "Central question: does the rock record actually preserve a coherent history of life changing over time, and can we trust its dates?",
+      "Key concept: radiometric dating, stratigraphy, and the law of superposition give fossils an absolute chronological framework spanning ~3.5 billion years.",
+      "We examined transitional fossils (Tiktaalik, whale ancestors, hominin lineages) as direct tests of predictions made by common-descent theory — each was found in the geological layer and location predicted in advance.",
+      "The fossil record's incompleteness (Chapter 3's honest caveat) does not undermine the pattern — sampling biases are themselves predictable and testable.",
+      "Hands off to Chapter 4 by asking: how do we organize the pattern of relatedness among all these fossil and living forms into a rigorous family tree?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 3 Key Term",
+    "title": "Transitional Fossil",
+    "term": "Transitional Fossil",
+    "def": "A fossil exhibiting a combination of ancestral and derived traits that documents an evolutionary transition between major groups, found in the time and place predicted by phylogenetic and geological reasoning.",
+    "bullets": [
+      "Example: Tiktaalik roseae — fish-like body with tetrapod-like wrist bones, found in 375-million-year-old Devonian rock exactly where predicted",
+      "Not a single 'missing link' but one snapshot within a continuous lineage of change"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 4 Recap",
+    "title": "Phylogenetics and the Tree of Life",
+    "items": [
+      "Central question: given a set of species (living or fossil), how do we reconstruct their true evolutionary relationships?",
+      "Key concept: shared derived characters (synapomorphies) — not overall similarity — reveal common ancestry; homology must be distinguished from convergent homoplasy.",
+      "We built cladograms using parsimony and likelihood methods, learned to read nodes as most-recent-common-ancestors, and used molecular sequence data alongside morphology to resolve relationships.",
+      "Phylogenies became the organizing scaffold for the rest of the course — every subsequent mechanism (selection, drift, molecular divergence, developmental change) is mapped onto branches of this tree.",
+      "Hands off to Chapter 5 by asking: what actually generates the heritable differences that phylogenetic methods are tracking across those branches?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 4 Key Term",
+    "title": "Synapomorphy",
+    "term": "Synapomorphy",
+    "def": "A shared, derived (novel) trait inherited from a common ancestor that is used as evidence to group taxa together on a phylogenetic tree, as distinct from ancestral traits or convergently evolved similarities.",
+    "bullets": [
+      "Contrasts with homoplasy — similarity arising independently through convergent or parallel evolution rather than shared ancestry",
+      "The logical backbone of cladistic tree-building methods introduced in Chapter 4"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting Chapters 3-4",
+    "title": "From Physical Record to Relationship Map",
+    "left": {
+      "h": "Chapter 3: When did it happen?",
+      "body": "<p>Fossils and geological dating anchor evolutionary events in absolute time, showing that lineages appear, persist, and go extinct in a coherent temporal sequence.</p>"
+    },
+    "right": {
+      "h": "Chapter 4: How is everything related?",
+      "body": "<p>Phylogenetics converts the raw pattern of similarity and difference — from fossils and living taxa alike — into a testable hypothesis of relatedness.</p><ul><li>Fossils calibrate the tree's timescale; the tree, in turn, tells us where to predict new transitional fossils.</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Generating Variation",
+    "sub": "Chapter 5 — the raw material evolution requires"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 5 Recap",
+    "title": "Sources of Heritable Variation",
+    "items": [
+      "Central question: where does the raw material for evolution actually come from, and why is variation never exhausted?",
+      "Key concept: mutation is the ultimate source of all new genetic variation; recombination, gene flow, and sexual reproduction reshuffle existing variation into new combinations every generation.",
+      "We distinguished point mutations, insertions/deletions, chromosomal rearrangements, and gene/genome duplications, each with different consequences for phenotype and evolutionary potential.",
+      "Standing genetic variation in populations — much of it neutral or mildly deleterious until the environment changes — is the reservoir that selection later draws upon; evolution is rarely mutation-limited over the timescales we studied.",
+      "Hands off to Chapter 6 by asking: once variation exists in a population, what determines whether a given variant increases, decreases, or drifts randomly in frequency?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 5 Key Term",
+    "title": "Standing Genetic Variation",
+    "term": "Standing Genetic Variation",
+    "def": "The pool of genetic differences already present within a population at any given time, generated by past mutation and recombination, available for selection to act on without waiting for new mutations to arise.",
+    "bullets": [
+      "Explains rapid adaptive responses to sudden environmental change (e.g., pesticide or antibiotic resistance)",
+      "Contrasted in Chapter 5 with de novo mutation as an evolutionary source of variation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Forces of Change",
+    "sub": "Chapters 6-7 — how variation becomes evolutionary change in populations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 6 Recap",
+    "title": "Genetic Drift and Natural Selection",
+    "items": [
+      "Central question: what are the actual mechanisms that change allele frequencies from one generation to the next?",
+      "Key concept: evolution is any change in allele frequency; it can occur through natural selection (non-random, driven by differential survival/reproduction) or genetic drift (random sampling error, strongest in small populations).",
+      "We formalized the Hardy-Weinberg null model and then relaxed each assumption in turn to show how mutation, migration, non-random mating, drift, and selection each produce departures from equilibrium.",
+      "Selection was subdivided into directional, stabilizing, disruptive, and balancing forms, with drift shown to dominate in small populations (bottlenecks, founder effects) and be swamped by selection in large ones.",
+      "Hands off to Chapter 7 by asking: how do these same forces act on complex, continuously varying traits controlled by many genes rather than a single locus?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 6 Key Term",
+    "title": "Genetic Drift",
+    "term": "Genetic Drift",
+    "def": "Random change in allele frequencies from generation to generation due to chance sampling of gametes, with effects inversely proportional to effective population size — strongest in small populations and negligible in large ones.",
+    "bullets": [
+      "Can fix neutral or even mildly deleterious alleles by chance, independent of their fitness effects",
+      "Distinguished throughout Chapter 6 from natural selection, which is non-random with respect to fitness"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Chapter 6 Deep Dive",
+    "title": "Drift versus Selection",
+    "left": {
+      "h": "Genetic Drift",
+      "body": "<p>Random, undirected sampling error in allele frequency.</p><ul><li>Strongest effect in small populations</li><li>Can fix neutral or deleterious alleles by chance</li><li>Produces no adaptation, only fluctuation</li></ul>"
+    },
+    "right": {
+      "h": "Natural Selection",
+      "body": "<p>Non-random, fitness-driven change in allele frequency.</p><ul><li>Effect scales with selection coefficient, not population size alone</li><li>Systematically increases frequency of fitness-enhancing alleles</li><li>The only evolutionary force that reliably produces adaptation</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 7 Recap",
+    "title": "Quantitative Genetics",
+    "items": [
+      "Central question: most ecologically important traits (body size, coloration, behavior) vary continuously and are shaped by many genes — how does evolutionary theory handle this?",
+      "Key concept: heritability (h²) partitions phenotypic variance into genetic and environmental components, predicting the response to selection via the breeder's equation R = h²S.",
+      "We examined the infinitesimal model, in which many loci of small effect sum (with environmental input) to produce a normally distributed phenotype, and how selection on the tails of that distribution shifts the population mean.",
+      "Artificial selection experiments (maize oil content, dog breeds, Illinois corn lines) and natural examples (Darwin's finch beak depth) demonstrated the breeder's equation's predictive power over both short and long timescales.",
+      "Hands off to Chapter 8 by asking: what is actually happening at the level of DNA sequence itself as these allele frequency changes accumulate over evolutionary time?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 7 Key Term",
+    "title": "Heritability (h²)",
+    "term": "Heritability (h²)",
+    "def": "The proportion of phenotypic variance in a trait within a population attributable to additive genetic variance, used to predict the evolutionary response to selection via the breeder's equation.",
+    "bullets": [
+      "A population-specific, environment-specific statistic — not a fixed property of a trait or species",
+      "High heritability does not mean a trait is unaffected by environment, only that genetic differences explain much of the observed variance in that setting"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting Chapters 5-6-7",
+    "title": "The Microevolutionary Core",
+    "left": {
+      "h": "The logical chain",
+      "body": "<p>Chapter 5 supplies variation → Chapter 6 supplies the forces (drift, selection) that change allele frequencies → Chapter 7 shows how those same forces scale up to shape complex, polygenic, continuously varying traits.</p>"
+    },
+    "right": {
+      "h": "Why this matters",
+      "body": "<p>Together, Chapters 5-7 constitute the classical population-genetic core of microevolution — everything needed to explain change within a species over observable timescales.</p><ul><li>Chapters 8-9 now ask what is happening beneath this population-genetic layer, at the molecular and developmental level.</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Molecular and Developmental Mechanisms",
+    "sub": "Chapters 8-9 — the genomic and developmental substrate of phenotypic evolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 8 Recap",
+    "title": "Molecular Evolution",
+    "items": [
+      "Central question: can the genome itself be read as a historical document, and what does DNA sequence divergence tell us about evolutionary process and timing?",
+      "Key concept: the neutral theory holds that most molecular substitutions are selectively neutral or nearly so, fixed by drift at a roughly clock-like rate, which allows DNA divergence to be used to date splits between lineages.",
+      "We compared synonymous versus non-synonymous substitution rates (dN/dS) to detect purifying selection, positive selection, and relaxed constraint across genes and lineages.",
+      "Molecular clocks, calibrated against fossil dates from Chapter 3, let us date divergences even where the fossil record is sparse, and comparative genomics revealed conserved noncoding regulatory elements alongside rapidly evolving ones.",
+      "Hands off to Chapter 9 by asking: how do these molecular-level sequence changes actually translate into differences in organismal form during development?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 8 Key Term",
+    "title": "Neutral Theory of Molecular Evolution",
+    "term": "Neutral Theory of Molecular Evolution",
+    "def": "Kimura's proposal that the majority of molecular-level genetic changes are selectively neutral, and that their fixation is governed primarily by genetic drift rather than natural selection, producing an approximately constant molecular clock.",
+    "bullets": [
+      "Does not deny that selection shapes phenotypic evolution — it applies mainly to silent/synonymous and non-functional sequence change",
+      "Provides the statistical null model against which molecular signatures of positive selection (elevated dN/dS) are detected"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 9 Recap",
+    "title": "Evo-Devo: The Genetics of Development",
+    "items": [
+      "Central question: how can small genetic changes produce the large, discrete morphological differences we see between species — wings, limbs, body plans?",
+      "Key concept: a shared 'toolkit' of deeply conserved regulatory genes (e.g., Hox genes) builds vastly different body plans; evolutionary novelty arises less from new genes than from rewiring when, where, and how much toolkit genes are expressed.",
+      "We examined cis-regulatory evolution — mutations in non-coding switches that alter gene expression pattern without changing the protein itself — as a major, less pleiotropically costly route to morphological change.",
+      "Heterochrony (changes in developmental timing) and heterotopy (changes in developmental location) were shown to generate dramatic phenotypic novelty from conserved genetic machinery, from stickleback armor plates to Galápagos finch beak shape.",
+      "Closes the mechanistic arc: molecular changes (Ch8) acting on regulatory switches during development (Ch9) are the proximate bridge between genotype and the phenotypes that selection and drift (Ch6-7) actually act upon."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Chapter 9 Key Term",
+    "title": "Cis-Regulatory Evolution",
+    "term": "Cis-Regulatory Evolution",
+    "def": "Evolutionary change occurring in non-coding DNA regulatory elements that control when, where, and how much a gene is expressed, rather than in the protein-coding sequence itself — a major mechanism generating morphological novelty.",
+    "bullets": [
+      "Allows modular changes in one body region/tissue without pleiotropic costs elsewhere, unlike coding mutations in pleiotropic toolkit genes",
+      "Central to explaining rapid, repeated morphological evolution such as pelvic spine loss in freshwater stickleback populations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Connecting Chapters 8-9",
+    "title": "From Sequence to Shape",
+    "left": {
+      "h": "Chapter 8: The genome as archive",
+      "body": "<p>DNA sequence divergence records evolutionary history and reveals where selection has acted, but by itself does not explain how sequence differences become anatomical differences.</p>"
+    },
+    "right": {
+      "h": "Chapter 9: The genome as blueprint",
+      "body": "<p>Evo-devo supplies the missing mechanistic link — showing how regulatory mutations identified through molecular methods actually reprogram developmental gene networks to build new forms.</p><ul><li>Together, Chapters 8-9 close the loop from genotype to phenotype that Chapters 5-7 assumed but did not fully explain.</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Full Synthesis",
+    "title": "Chapters 1-9: One Framework, Nine Pieces",
+    "headers": [
+      "Chapter",
+      "Central Question",
+      "Key Concept",
+      "Connects Forward To"
+    ],
+    "rows": [
+      [
+        "Ch 1",
+        "Is evolution testable science?",
+        "Hypothesis-driven comparative method",
+        "Provides the evidentiary standard for the historical theory in Ch 2"
+      ],
+      [
+        "Ch 2",
+        "How did the theory develop?",
+        "Modern Synthesis unifies selection + genetics",
+        "Motivates the search for physical evidence of change (Ch 3)"
+      ],
+      [
+        "Ch 3",
+        "Is there a physical record of change?",
+        "Transitional fossils in dated strata",
+        "Anchors absolute timing needed to build/calibrate trees (Ch 4)"
+      ],
+      [
+        "Ch 4",
+        "How are all species related?",
+        "Synapomorphy-based phylogenetics",
+        "Provides the branches on which variation (Ch 5) accumulates"
+      ],
+      [
+        "Ch 5",
+        "Where does variation come from?",
+        "Mutation, recombination, gene flow",
+        "Supplies raw material for drift/selection to act on (Ch 6)"
+      ],
+      [
+        "Ch 6",
+        "What changes allele frequencies?",
+        "Genetic drift and natural selection",
+        "Extends from single loci to complex polygenic traits (Ch 7)"
+      ],
+      [
+        "Ch 7",
+        "How do complex traits evolve?",
+        "Heritability and the breeder's equation",
+        "Raises the question of the underlying DNA-level changes (Ch 8)"
+      ],
+      [
+        "Ch 8",
+        "What is happening in the genome?",
+        "Neutral theory and molecular clocks",
+        "Asks how sequence change becomes morphological change (Ch 9)"
+      ],
+      [
+        "Ch 9",
+        "How does genotype build phenotype?",
+        "Toolkit genes and cis-regulatory evolution",
+        "Completes the loop feeding back into selection acting on phenotype"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "The Conceptual Hierarchy",
+    "title": "From Molecular Mechanism to Macroevolutionary Pattern",
+    "levels": [
+      {
+        "label": "Macroevolutionary Pattern (Ch 3-4)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Population-Level Change: Drift & Selection (Ch 6-7)",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Heritable Variation (Ch 5)",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Molecular Sequence Change (Ch 8)",
+        "color": "#a85a68",
+        "width": "380px"
+      },
+      {
+        "label": "Developmental Gene Regulation (Ch 9)",
+        "color": "#c47b87",
+        "width": "300px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Pyramid",
+    "title": "How the Levels Actually Interact",
+    "items": [
+      "The pyramid is not strictly a one-way ladder — it is a cycle in disguise: developmental regulation (Ch9) constrains what molecular changes (Ch8) can affect phenotype, phenotype variation (Ch5) is filtered by drift/selection (Ch6-7), and the accumulated result over deep time is the pattern documented in the fossil record and phylogenies (Ch3-4).",
+      "Macroevolutionary pattern, in turn, sets the stage (extinctions, radiations, available niches) that determines which variants are advantageous in the next generation — closing the loop back down to the molecular level.",
+      "This is why the course insisted early (Ch1) on testable, comparative methods: without them, this multi-level causal loop would be an untestable story rather than a scientific framework.",
+      "Every applied topic in lectures 35-41 is best understood as this same pyramid instantiated in a specific real-world system."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "The Unifying Principle",
+    "quote": "Nothing in biology makes sense except in the light of evolution.",
+    "attrib": "Theodosius Dobzhansky, 1973"
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "The Toolkit in Action",
+    "sub": "Reviewing the Applied Unit (Lectures 35-41) as demonstrations of Chapters 1-9 at work"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applied Unit Overview",
+    "title": "What Lectures 35-41 Actually Demonstrated",
+    "items": [
+      "Lectures 35-41 were not a departure from the mechanistic core of the course — they were case studies proving that the Chapter 1-9 toolkit generalizes to medicine, agriculture, conservation, and our own species.",
+      "Each applied topic required drawing on multiple chapters simultaneously: antibiotic resistance needs Ch5 (mutation) + Ch6 (selection) + Ch8 (molecular tracking of resistance genes).",
+      "This is the core synthesis insight: real-world evolutionary problems are never confined to a single chapter's concept — they demand the integrated framework built across the whole course.",
+      "The next two slides review specific applied case studies as worked examples of the toolkit in action."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Toolkit in Action I",
+    "title": "Applied Case Studies, Part 1",
+    "cards": [
+      {
+        "h": "Antibiotic & Pesticide Resistance",
+        "p": "Standing variation (Ch5) + strong directional selection (Ch6) drives rapid allele frequency change; molecular surveillance (Ch8) tracks resistance genes spreading through populations in real time."
+      },
+      {
+        "h": "Conservation Genetics",
+        "p": "Small, fragmented populations are dominated by drift (Ch6), eroding heritable variation (Ch5) and heritability of fitness traits (Ch7) — explaining why inbreeding depression threatens endangered species."
+      },
+      {
+        "h": "Agricultural Breeding",
+        "p": "Artificial selection applies the breeder's equation (Ch7) directly, while genomic selection tools use molecular markers (Ch8) to predict breeding value before phenotypes are even expressed."
+      },
+      {
+        "h": "Human Evolution & Health",
+        "p": "Phylogenetic methods (Ch4) reconstruct our lineage from fossils (Ch3); evo-devo (Ch9) explains traits like lactase persistence via regulatory, not coding, change."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Toolkit in Action II",
+    "title": "Applied Case Studies, Part 2",
+    "cards": [
+      {
+        "h": "Cancer as Somatic Evolution",
+        "p": "Tumor cell lineages undergo mutation (Ch5), clonal selection (Ch6), and can be tracked with molecular phylogenetic methods (Ch4, Ch8) — evolutionary theory applied within a single body."
+      },
+      {
+        "h": "Viral & Pathogen Evolution",
+        "p": "Rapid generation times make viral populations ideal for observing molecular clocks (Ch8) and selection (Ch6) in real time, informing vaccine design and outbreak tracing."
+      },
+      {
+        "h": "Invasive Species Management",
+        "p": "Founder effects and drift (Ch6) during introduction, followed by rapid adaptive divergence (Ch5-Ch7), explain why invasives evolve so quickly in new ranges."
+      },
+      {
+        "h": "Developmental Disorders & Evo-Devo Medicine",
+        "p": "Understanding conserved toolkit genes (Ch9) has directly informed the diagnosis of human congenital limb and craniofacial disorders."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Toolkit in Action — Synthesis",
+    "title": "One Toolkit, Many Applications",
+    "left": {
+      "h": "The common thread",
+      "body": "<p>Every applied example uses the same underlying causal chain: variation arises (Ch5) → forces act on it (Ch6-7) → molecular signatures record it (Ch8) → developmental mechanisms explain phenotypic outcomes (Ch9) → phylogenetic and fossil context situates it in time (Ch3-4).</p>"
+    },
+    "right": {
+      "h": "Why this matters for you",
+      "body": "<p>The applied unit was not a set of unrelated 'fun facts' — it was proof that the abstract mechanisms course you just finished is directly usable in medicine, agriculture, and conservation careers.</p><ul><li>This is precisely the argument Dobzhansky made about biology as a whole.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Integrative Themes",
+    "title": "Threads That Ran Through the Entire Course",
+    "items": [
+      "Variation is never the limiting factor over the timescales we studied — the interesting questions are almost always about which forces act on existing variation, and how strongly.",
+      "Nothing evolves in isolation from its history: every mechanism chapter (5-9) depends on the phylogenetic and temporal scaffolding built in Chapters 3-4.",
+      "Genotype-to-phenotype mapping is not simple or linear — Chapter 9's regulatory logic explains why the same toolkit genes can build a fly wing and a human hand.",
+      "Scale matters: the same evolutionary forces (drift, selection) operate identically whether we are discussing a single locus (Ch6), a polygenic trait (Ch7), or an entire genome (Ch8) — only the unit of analysis changes.",
+      "Testability (Ch1) is not a one-time filter applied at the start of the course — it is the standard every subsequent chapter's claims had to meet."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Scale Comparison",
+    "title": "Microevolution versus Macroevolution: Where the Chapters Sit",
+    "headers": [
+      "Scale",
+      "Chapters Primarily Involved",
+      "Typical Timescale",
+      "Representative Question"
+    ],
+    "rows": [
+      [
+        "Microevolution",
+        "Ch 5, 6, 7",
+        "Generations to centuries",
+        "Why did beak depth increase after a drought?"
+      ],
+      [
+        "Molecular/Genomic",
+        "Ch 8",
+        "Thousands to millions of years",
+        "How long ago did two lineages split?"
+      ],
+      [
+        "Developmental",
+        "Ch 9",
+        "Individual generation, evolves over many generations",
+        "Why do stickleback populations repeatedly lose pelvic spines?"
+      ],
+      [
+        "Macroevolution",
+        "Ch 3, 4",
+        "Millions to billions of years",
+        "When did tetrapods diverge from lobe-finned fish?"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Misconceptions, Revisited",
+    "title": "Errors the Whole-Course View Corrects",
+    "items": [
+      "Misconception: evolution is 'just a theory' in the colloquial sense — corrected by Chapter 1's demonstration that it is a rigorously tested scientific framework with the same evidentiary standard as any other theory.",
+      "Misconception: mutations are rare and evolution is mutation-limited — corrected by Chapter 5's demonstration that standing variation, not new mutation, drives most short-term adaptive change.",
+      "Misconception: natural selection is the only evolutionary force — corrected by Chapter 6's formal treatment of drift, especially in small populations.",
+      "Misconception: complex traits like intelligence or height are governed by 'a gene for X' — corrected by Chapter 7's polygenic, quantitative framework.",
+      "Misconception: evolution requires new genes to build new structures — corrected by Chapter 9's demonstration that regulatory rewiring of conserved toolkit genes is the more common route to morphological novelty."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Looking Ahead",
+    "title": "From Mechanisms to Macroevolutionary Patterns",
+    "left": {
+      "h": "What Evolution I established",
+      "body": "<p>The mechanistic toolkit: how variation arises, how forces of change act on it at every scale from a single locus to the whole genome, and how development translates genotype into phenotype.</p>"
+    },
+    "right": {
+      "h": "What Evolution II will build on this",
+      "body": "<p>With the mechanisms in hand, Evolution II turns to macroevolutionary patterns in their own right — speciation, adaptive radiation, mass extinction, and the deep history of major evolutionary transitions.</p><ul><li>Every mechanism from this course becomes a tool for explaining those larger-scale patterns.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Skills Developed",
+    "title": "What This Course Actually Trained You to Do",
+    "items": [
+      "Evaluate evidence critically — distinguishing correlation from tested causal mechanism, a skill introduced in Chapter 1 and exercised in every chapter since.",
+      "Read and construct phylogenetic trees, and correctly interpret what nodes, branch lengths, and topology do and do not imply about ancestry.",
+      "Apply quantitative reasoning to biological data — Hardy-Weinberg calculations, heritability estimates, dN/dS ratios, and molecular clock dating.",
+      "Recognize that pattern (what we observe) and process (the mechanism producing it) are logically distinct, and that connecting them rigorously is the central task of evolutionary biology.",
+      "Transfer abstract mechanistic reasoning to applied, real-world problems — precisely what the L35-41 applied unit required of you."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture Summary I",
+    "title": "Key Takeaways: The Chapter-by-Chapter Walk",
+    "items": [
+      "Chapters 1-4 (Foundations) established that evolution is testable science, told its historical development, documented it in the fossil record, and organized relatedness via phylogenetics.",
+      "Chapter 5 supplied the raw material — heritable variation — without which no subsequent mechanism could operate.",
+      "Chapters 6-7 formalized the forces (drift, selection) that convert variation into allele-frequency change, extending from single loci to complex polygenic traits.",
+      "Chapters 8-9 grounded these forces in molecular reality and showed how molecular change is translated into phenotypic novelty through development."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture Summary II",
+    "title": "Key Takeaways: Why the Whole Is More Than the Parts",
+    "items": [
+      "No single chapter's mechanism operates alone in a real biological system — every applied case study from L35-41 required combining tools from at least three or four chapters.",
+      "The pyramid from molecular mechanism to macroevolutionary pattern is best understood as a feedback loop, not a one-way ladder.",
+      "Dobzhansky's dictum captures the course's central thesis: evolutionary theory is not one topic among many in biology — it is the framework that makes every other biological observation coherent.",
+      "Lecture 45 will complete this synthesis with a comprehensive final review and will explicitly connect this course's mechanistic toolkit to the macroevolutionary focus of Evolution II."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Closing Concept",
+    "title": "Evolutionary Synthesis",
+    "term": "Evolutionary Synthesis",
+    "def": "The integration of multiple levels of biological analysis — molecular, developmental, population-genetic, phylogenetic, and paleontological — into a single coherent explanatory framework for the history and diversity of life.",
+    "bullets": [
+      "Distinct from, but historically connected to, the 20th-century 'Modern Synthesis' of Chapter 2",
+      "The organizing principle behind this entire lecture's chapter-by-chapter walk-through"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "COMING UP — LECTURE 45",
+    "title": "Course Synthesis II",
+    "sub": "The comprehensive final review, and the bridge from Evolution I to Evolution II"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Preview",
+    "title": "What Lecture 45 Will Cover",
+    "items": [
+      "A comprehensive, exam-oriented final review integrating all nine chapters and the applied unit into a single study framework.",
+      "Worked practice problems spanning Hardy-Weinberg, heritability, phylogenetic tree-reading, and molecular clock calculations.",
+      "A explicit look ahead to Evolution II: how speciation, adaptive radiation, and mass extinction will draw directly on the mechanisms toolkit built in this course.",
+      "Guidance on synthesizing the semester's material for the cumulative final exam, including which cross-chapter connections are most likely to be tested."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 44</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

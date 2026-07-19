@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 6: Generalized Linear Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 6",
+    "title": "Generalized Linear Models",
+    "sub": "What if the response is a count, not continuous? Poisson, negative-binomial, and logistic regression in R, Python, and Julia",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Picking Up The Thread",
+    "title": "\"What If The Response Is A Count?\"",
+    "sub": "Lecture 5 ended with this question about linear models -- today we answer it"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Problem",
+    "title": "Why Ordinary Linear Models Fail For Counts",
+    "items": [
+      "Counts are non-negative integers (0, 1, 2, ...) -- a linear model happily predicts -3.7 ticks",
+      "Variance grows with the mean for count data -- linear models assume constant variance (homoscedasticity)",
+      "Residuals from a linear fit to counts are typically right-skewed and heteroscedastic, violating the normal-errors assumption",
+      "Bounding at zero plus a long right tail means the normal distribution is simply the wrong error model"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Meet The Data",
+    "title": "TICKS: Highly Skewed, Full Of Zeros",
+    "items": [
+      "grouseticks.csv: TICKS = number of ticks counted on each red grouse chick (n = 403 chicks)",
+      "About 31% of chicks have zero ticks -- a spike at zero no bell curve can produce",
+      "Mean TICKS ~ 2 but variance ~ 60+ -- variance/mean ratio around 27, nowhere near the 1:1 that Poisson assumes",
+      "A histogram of TICKS is a tall bar at zero with a long thin tail out past 30 -- the opposite of a bell curve"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Count Data Properties",
+    "title": "Three Reasons Counts Need A Different Model",
+    "cards": [
+      {
+        "h": "Non-negative integers",
+        "p": "A linear model's predicted values are unbounded and continuous; counts can never be negative or fractional in reality."
+      },
+      {
+        "h": "Mean-variance relationship",
+        "p": "For Poisson-type processes, variance scales with the mean. Constant-variance assumptions break down immediately."
+      },
+      {
+        "h": "Heteroscedasticity",
+        "p": "Sites/chicks with higher expected counts show more absolute scatter -- residual spread is not constant across the predictor range."
+      },
+      {
+        "h": "Skew and zero-inflation",
+        "p": "Ecological count data is routinely right-skewed with many zeros, unlike the symmetric residuals a linear model needs."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Framework",
+    "title": "Generalized Linear Models",
+    "sub": "One framework, three pieces, many response types"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Definition",
+    "title": "The Link Function",
+    "term": "Link function",
+    "def": "A function g() that connects the mean of the response, mu, to the linear predictor: g(mu) = beta0 + beta1*x1 + ... In a Poisson GLM the canonical link is the log; in a binomial GLM it is the logit. The link lets a model with an unbounded linear predictor produce predictions that stay within the response's valid range (e.g. always positive for counts, always in [0,1] for probabilities).",
+    "bullets": [
+      "Log link: g(mu) = log(mu) -- keeps predicted counts/rates positive",
+      "Logit link: g(mu) = log(mu / (1-mu)) -- keeps predicted probabilities in (0, 1)",
+      "Identity link: g(mu) = mu -- the ordinary linear model is a GLM with an identity link and Gaussian errors"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Anatomy Of A GLM",
+    "title": "Three Components, Every Time",
+    "items": [
+      "1. Random component -- the probability distribution assumed for the response (Gaussian, Poisson, Binomial, Negative Binomial, ...)",
+      "2. Linear predictor -- the familiar beta0 + beta1*x1 + beta2*x2 + ... combination of covariates, still linear in the coefficients",
+      "3. Link function -- maps the linear predictor onto the scale the random component needs (log for counts, logit for probabilities)",
+      "Ordinary linear regression is the special case: Gaussian random component + identity link"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Choosing A Family",
+    "title": "GLM Families At A Glance",
+    "headers": [
+      "Family",
+      "Link",
+      "Use case"
+    ],
+    "rows": [
+      [
+        "Gaussian",
+        "identity",
+        "Continuous, roughly symmetric response (ordinary linear model)"
+      ],
+      [
+        "Poisson",
+        "log",
+        "Counts with variance approx. equal to the mean"
+      ],
+      [
+        "Binomial",
+        "logit",
+        "Presence/absence, proportions, binary outcomes"
+      ],
+      [
+        "Negative Binomial",
+        "log",
+        "Overdispersed counts -- variance exceeds the mean"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Model 1",
+    "title": "The Poisson GLM",
+    "sub": "The default starting point for count data"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Specification",
+    "title": "Poisson GLM: TICKS ~ YEAR + cHEIGHT",
+    "items": [
+      "Random component: TICKS_i ~ Poisson(mu_i)",
+      "Linear predictor: log(mu_i) = beta0 + beta_YEAR96*I(YEAR=96) + beta_YEAR97*I(YEAR=97) + beta_cHEIGHT*cHEIGHT_i",
+      "Log link guarantees mu_i > 0 no matter what the linear predictor evaluates to",
+      "Poisson's defining assumption: Var(TICKS_i) = mu_i -- variance equals the mean, exactly, with no separate dispersion parameter to estimate"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code",
+    "title": "Fitting Poisson And Negative-Binomial GLMs in R",
+    "left": {
+      "h": "Poisson GLM -- glm()",
+      "body": "<pre><code>ticks &lt;- read.csv(&quot;data/grouseticks.csv&quot;)\nticks$YEAR &lt;- factor(ticks$YEAR)\n\npois_fit &lt;- glm(\n  TICKS ~ YEAR + cHEIGHT,\n  family = poisson(link = &quot;log&quot;),\n  data = ticks\n)\nsummary(pois_fit)\n\n# overdispersion ratio\ndeviance(pois_fit) / df.residual(pois_fit)\n#&gt; 8.63  (&gt;&gt; 1: overdispersed)</code></pre>"
+    },
+    "right": {
+      "h": "Negative-Binomial GLM -- MASS::glm.nb()",
+      "body": "<pre><code>library(MASS)\n\nnb_fit &lt;- glm.nb(\n  TICKS ~ YEAR + cHEIGHT,\n  data = ticks\n)\nsummary(nb_fit)\nnb_fit$theta   #&gt; 0.78 (dispersion)\n\nAIC(pois_fit)  #&gt; 4382.8\nAIC(nb_fit)    #&gt; 1941.7 (much better)</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python Code",
+    "title": "Fitting Poisson And Negative-Binomial GLMs in Python",
+    "left": {
+      "h": "Poisson GLM -- statsmodels formula API",
+      "body": "<pre><code>import statsmodels.api as sm\nimport statsmodels.formula.api as smf\n\nticks = pd.read_csv(&quot;data/grouseticks.csv&quot;)\nticks[&quot;YEAR&quot;] = ticks[&quot;YEAR&quot;].astype(str).astype(&quot;category&quot;)\n\npois_fit = smf.glm(\n    &quot;TICKS ~ YEAR + cHEIGHT&quot;, data=ticks,\n    family=sm.families.Poisson()\n).fit()\nprint(pois_fit.summary())\n\nratio = pois_fit.deviance / pois_fit.df_resid\n# ratio = 8.63  (&gt;&gt; 1: overdispersed)</code></pre>"
+    },
+    "right": {
+      "h": "Negative-Binomial GLM -- sm.families.NegativeBinomial",
+      "body": "<pre><code># statsmodels&#x27; GLM NegativeBinomial needs a fixed\n# alpha; profile over a grid and keep the best fit\nbest = max(\n    (smf.glm(&quot;TICKS ~ YEAR + cHEIGHT&quot;, ticks,\n             family=sm.families.NegativeBinomial(alpha=a)\n     ).fit() for a in np.linspace(0.05, 3, 60)),\n    key=lambda f: f.llf\n)\nprint(best.summary())\n\npois_fit.aic, best.aic\n#&gt; (4382.8, 1939.7)</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia Code",
+    "title": "Fitting Poisson And Negative-Binomial GLMs in Julia",
+    "left": {
+      "h": "Poisson GLM -- GLM.jl glm()",
+      "body": "<pre><code>using CSV, DataFrames, CategoricalArrays, GLM\n\nticks = CSV.read(&quot;data/grouseticks.csv&quot;, DataFrame)\nticks.YEAR = categorical(string.(ticks.YEAR))\n\npois_fit = glm(@formula(TICKS ~ YEAR + cHEIGHT),\n               ticks, Poisson(), LogLink())\n\nratio = deviance(pois_fit) / dof_residual(pois_fit)\n# ratio = 8.63  (&gt;&gt; 1: overdispersed)</code></pre>"
+    },
+    "right": {
+      "h": "Negative-Binomial GLM -- GLM.jl negbin()",
+      "body": "<pre><code># GLM.jl&#x27;s plain NegativeBinomial() distribution needs\n# a KNOWN theta -- unlike MASS::glm.nb() it does not\n# estimate theta by ML on its own. Use negbin(), which\n# alternates IRLS with ML re-estimation of theta:\nnb_fit = negbin(@formula(TICKS ~ YEAR + cHEIGHT),\n                 ticks, LogLink())\n\naic(pois_fit), aic(nb_fit)\n#&gt; (4382.8, 1941.7)</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading The Output",
+    "title": "Interpreting Poisson Coefficients",
+    "items": [
+      "On the log-link scale, coefficients are additive: beta_cHEIGHT = -0.0215 means log(mu) drops by 0.0215 per metre of altitude",
+      "Exponentiate to get rate ratios on the response scale: exp(-0.0215) = 0.979 -- each extra metre multiplies expected tick count by 0.979 (a 2.1% decrease)",
+      "exp(beta_YEAR96) = 1.51 -- chicks in 1996 carry 51% more ticks than the 1995 reference year, holding altitude fixed",
+      "exp(beta_YEAR97) = 0.185 -- chicks in 1997 carry only about 18.5% as many ticks as in 1995 -- a dramatic year effect"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "A Critical Check",
+    "title": "Checking For Overdispersion",
+    "sub": "The single most important diagnostic after fitting any Poisson GLM"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Definition",
+    "title": "Overdispersion",
+    "term": "Overdispersion",
+    "def": "When the observed variance in the data exceeds what the assumed distribution predicts. For a Poisson GLM, overdispersion means Var(y) > mean(y) by more than sampling noise would explain -- common causes are unmodeled clustering/aggregation, missing covariates, and excess zeros.",
+    "bullets": [
+      "Diagnostic: residual deviance / residual degrees of freedom",
+      "Ratio approx. 1 -- Poisson assumption looks reasonable",
+      "Ratio >> 1 (rule of thumb: > 1.5-2) -- overdispersion is present; standard errors from Poisson will be too small and p-values too optimistic"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Computing The Ratio",
+    "title": "Deviance / df For The Tick Poisson Model",
+    "items": [
+      "Residual deviance = 3443.8 on 399 residual degrees of freedom",
+      "Dispersion ratio = 3443.8 / 399 = 8.63",
+      "8.63 is roughly 8-9x higher than the 1.0 a well-specified Poisson model should show",
+      "Every language in this course computes it the same way: deviance(fit) / df.residual(fit) (R), fit.deviance / fit.df_resid (Python), deviance(fit) / dof_residual(fit) (Julia)"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "A Real Teaching Moment",
+    "title": "The Tick Data ARE Overdispersed -- And That's Expected",
+    "cards": [
+      {
+        "h": "It's in the title",
+        "p": "Elston et al. (2001) called their paper 'Analysis of aggregation' -- tick burden is clumped by biology, not a data-cleaning mistake."
+      },
+      {
+        "h": "Ticks aggregate",
+        "p": "Ticks cluster on hosts through shared exposure (brood, location, timing), producing far more variance than independent Poisson counts allow."
+      },
+      {
+        "h": "Not a bug to fix",
+        "p": "A ratio of 8.63 is not evidence something went wrong in data entry -- it is a real ecological signature of clustered parasite burden."
+      },
+      {
+        "h": "The fix is a better model",
+        "p": "Rather than discard the Poisson fit, we swap in a distribution built to handle exactly this: the negative binomial."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Model 2",
+    "title": "The Negative-Binomial GLM",
+    "sub": "Same log link, one extra parameter to absorb overdispersion"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Definition",
+    "title": "Negative-Binomial Regression",
+    "term": "Negative binomial GLM",
+    "def": "A count-data GLM that adds a dispersion parameter (theta, or its inverse alpha) to the Poisson mean-variance relationship: Var(y) = mu + mu^2/theta. As theta grows large the negative binomial converges to Poisson (Var = mu); smaller theta allows substantially more variance than the mean, exactly what overdispersed count data need.",
+    "bullets": [
+      "Same linear predictor and log link as the Poisson model -- only the variance function changes",
+      "theta is estimated from the data (R: MASS::glm.nb; Julia: GLM.jl negbin(); Python: profiled via a grid search over alpha since statsmodels needs alpha supplied)",
+      "Fitted theta for the tick data: about 0.78 -- a small theta, consistent with heavy aggregation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Comparison",
+    "title": "Poisson vs. Negative Binomial: AIC Says It All",
+    "items": [
+      "Poisson AIC: 4382.8    Negative-Binomial AIC: 1941.7",
+      "A difference of roughly 2441 AIC points is enormous -- there is no ambiguity about which model the data prefer",
+      "Coefficient estimates for YEAR and cHEIGHT are similar in direction and magnitude between the two models -- the story about which covariates matter doesn't change",
+      "What changes: standard errors roughly double or more under NB, and the (correct) uncertainty is now honestly represented instead of artificially small"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Model 3",
+    "title": "Binomial GLM (Logistic Regression)",
+    "sub": "From counts to yes/no: modelling presence and absence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Second Worked Example",
+    "title": "Recoding TICKS As Presence/Absence",
+    "items": [
+      "Toy recoding: present = 1 if TICKS > 0, else 0 -- collapses the count down to a binary outcome",
+      "About 69% of chicks have present = 1 (at least one tick found)",
+      "Model: present_i ~ Bernoulli(p_i), with logit(p_i) = beta0 + beta_cHEIGHT * cHEIGHT_i",
+      "The same conceptual shift as Poisson vs. linear regression: a link function (logit) keeps predicted probabilities inside (0, 1) instead of letting the linear predictor run unbounded"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code",
+    "title": "Binomial GLM: present ~ cHEIGHT",
+    "left": {
+      "h": "R -- glm(family = binomial)",
+      "body": "<pre><code>ticks$present &lt;- as.integer(ticks$TICKS &gt; 0)\n\nbin_fit &lt;- glm(\n  present ~ cHEIGHT,\n  family = binomial(link = &quot;logit&quot;),\n  data = ticks\n)\nsummary(bin_fit)\n\nexp(coef(bin_fit)[&quot;cHEIGHT&quot;])\n#&gt; 0.974  (odds ratio)\n\npredict(bin_fit,\n  newdata = data.frame(cHEIGHT = c(-50, 0, 50)),\n  type = &quot;response&quot;)\n#&gt; 0.906  0.719  0.405</code></pre>"
+    },
+    "right": {
+      "h": "Python -- sm.families.Binomial()",
+      "body": "<pre><code>ticks[&quot;present&quot;] = (ticks[&quot;TICKS&quot;] &gt; 0).astype(int)\n\nbin_fit = smf.glm(\n    &quot;present ~ cHEIGHT&quot;, data=ticks,\n    family=sm.families.Binomial()\n).fit()\nprint(bin_fit.summary())\n\nnp.exp(bin_fit.params[&quot;cHEIGHT&quot;])\n#&gt; 0.974  (odds ratio)\n\nbin_fit.predict(\n    pd.DataFrame({&quot;cHEIGHT&quot;: [-50, 0, 50]}))\n#&gt; 0.906  0.719  0.405</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code",
+    "title": "Binomial GLM in Julia",
+    "left": {
+      "h": "Julia -- GLM.jl glm(..., Binomial(), LogitLink())",
+      "body": "<pre><code>ticks.present = Int.(ticks.TICKS .&gt; 0)\n\nbin_fit = glm(@formula(present ~ cHEIGHT),\n              ticks, Binomial(), LogitLink())\n\nexp(coef(bin_fit)[2])\n#&gt; 0.974  (odds ratio)\n\npredict(bin_fit,\n  DataFrame(cHEIGHT = [-50.0, 0.0, 50.0]))\n#&gt; 0.906  0.719  0.405</code></pre>"
+    },
+    "right": {
+      "h": "Same fit, three languages, same numbers",
+      "body": "<p>Note how closely the coefficient, odds ratio, and predicted probabilities agree across R, Python, and Julia -- all three call the same IRLS (iteratively reweighted least squares) algorithm under the hood to maximize the binomial log-likelihood.</p><p>Small differences you may see (4th decimal place) come only from convergence tolerances, not from any real disagreement about the model.</p>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Diagnostics Beyond The Ratio",
+    "title": "Three Warning Signs A Poisson Model Needs Help",
+    "cards": [
+      {
+        "h": "Deviance/df >> 1",
+        "p": "The core overdispersion check used all lecture -- the fastest single diagnostic to compute."
+      },
+      {
+        "h": "Excess zeros",
+        "p": "If the proportion of zeros in the data is far above what your fitted Poisson or NegBinom predicts, a zero-inflated model may be needed (a topic for later)."
+      },
+      {
+        "h": "Patterned residuals",
+        "p": "Plotting deviance residuals against fitted values or covariates should show no trend -- a curve or fan shape means the mean model itself is misspecified."
+      },
+      {
+        "h": "Unstable SEs",
+        "p": "If Poisson and NegBinom give similar coefficients but wildly different standard errors, trust the NegBinom SEs -- they account for the extra variance."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two Scales, One Model",
+    "title": "Coefficients On The Link Scale vs. The Response Scale",
+    "items": [
+      "Link scale (what glm() actually estimates): beta_cHEIGHT = -0.0264 -- the change in log-odds of presence per metre of altitude",
+      "Response scale via exp(coef): odds ratio 0.974 -- each extra metre multiplies the odds of tick presence by 0.974 (a 2.6% decrease in odds)",
+      "Poisson works the same way: beta on the log scale, exp(beta) gives a rate ratio (multiplicative change in expected count)",
+      "Report link-scale coefficients for inference (SEs, tests) and exponentiated coefficients for communicating effect sizes to non-statisticians"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Quick Reference",
+    "title": "Transforming Coefficients By Family",
+    "headers": [
+      "Family",
+      "Link-scale coefficient",
+      "exp(coefficient) means"
+    ],
+    "rows": [
+      [
+        "Poisson / NegBinom",
+        "change in log(mean count)",
+        "rate ratio -- multiplicative change in expected count"
+      ],
+      [
+        "Binomial",
+        "change in log-odds",
+        "odds ratio -- multiplicative change in the odds of the event"
+      ],
+      [
+        "Gaussian (identity link)",
+        "change in the mean",
+        "not applicable -- coefficients are already on the response scale"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Predicted Probability Of Tick Presence By Altitude",
+    "items": [
+      "At cHEIGHT = -50 (50m below average altitude): predicted P(present) = 0.906",
+      "At cHEIGHT = 0 (average altitude): predicted P(present) = 0.719",
+      "At cHEIGHT = +50 (50m above average altitude): predicted P(present) = 0.405",
+      "This is the logistic curve at work: equal steps in cHEIGHT do NOT produce equal steps in probability -- the effect is largest near p = 0.5 and compresses near 0 and 1"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Definition",
+    "title": "Rate Ratio",
+    "term": "Rate ratio",
+    "def": "In a Poisson or negative-binomial GLM with a log link, exp(beta) for a covariate is the multiplicative factor by which the expected count changes for a one-unit increase in that covariate, holding all other covariates fixed. A rate ratio of 1.0 means no effect; above 1.0 means the expected count increases; below 1.0 means it decreases.",
+    "bullets": [
+      "exp(beta_cHEIGHT) = 0.979 for TICKS -- each extra metre of altitude multiplies expected tick count by 0.979",
+      "Rate ratios compose multiplicatively across covariates, unlike the additive coefficients on the log scale",
+      "The binomial-GLM analogue is the odds ratio -- same exponentiation trick, different underlying quantity"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Data Behind Today's Lecture",
+    "title": "Elston et al. (2001), Parasitology",
+    "sub": "One of ecology's most-taught GLMM datasets -- and you've now fit its foundation models"
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Source",
+    "quote": "Analysis of aggregation, a worked example: numbers of ticks on red grouse chicks.",
+    "attrib": "Elston, D.A., Moss, R., Boulinier, T., Arrowsmith, C. & Lambin, X. (2001), Parasitology 122: 563-569"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Dataset Matters",
+    "title": "grouseticks Is A Canonical Teaching Dataset",
+    "items": [
+      "Used as the worked example in Zuur, Ieno, Walker, Saveliev & Smith (2009), Mixed Effects Models and Extensions in Ecology with R -- the standard GLMM reference in ecology",
+      "Featured in Bolker et al. (2009, Trends in Ecology & Evolution), 'Generalized linear mixed models: a practical guide for ecology and evolution' -- one of the most-cited GLMM papers in the field",
+      "Its nested structure (chicks within BROOD within LOCATION) is exactly why it is still taught today -- it's the standard example for showing why grouped ecological data need mixed models",
+      "Today we fit the GLMs that ignore that structure; next lecture we fix that"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "What We Covered Today",
+    "items": [
+      "Why linear models break down for count data: non-negative integers, mean-variance coupling, heteroscedasticity",
+      "The GLM framework: random component + linear predictor + link function, unifying Gaussian, Poisson, Binomial, and Negative-Binomial regression",
+      "Poisson GLM for TICKS ~ YEAR + cHEIGHT, and how to check it with the deviance/df overdispersion ratio",
+      "Negative-binomial GLM as the fix when overdispersion is present -- confirmed here with a dramatic AIC improvement",
+      "Binomial GLM (logistic regression) for presence/absence, and reading coefficients on both the link and response scales"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Lecture 7: Mixed-Effects Models",
+    "sub": "The independence assumption we've been quietly making -- and why it doesn't hold here"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "TICKS Are Not Independent Observations",
+    "items": [
+      "Every GLM today assumed each chick's tick count was an independent draw, given YEAR and cHEIGHT",
+      "But TICKS come from the same BROOD (118 broods) and the same LOCATION (63 locations) -- chicks in one brood share a mother, a nest, and shared exposure to ticks",
+      "Chicks in the same brood will tend to have correlated tick burdens -- pretending they're independent understates uncertainty all over again, just like ignoring overdispersion did",
+      "Lecture 7 introduces random effects for BROOD and LOCATION -- generalized linear MIXED models that respect this grouped structure"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Before You Move On",
+    "title": "Self-Check: Do You Know...",
+    "cards": [
+      {
+        "h": "When to reach for Poisson",
+        "p": "A count response, and a reason to expect variance approx. equal to the mean before you've checked."
+      },
+      {
+        "h": "How to check overdispersion",
+        "p": "Residual deviance divided by residual degrees of freedom -- compute it, always, after any Poisson fit."
+      },
+      {
+        "h": "When to switch to NegBinom",
+        "p": "When that ratio is well above 1 -- add a dispersion parameter rather than trusting Poisson SEs."
+      },
+      {
+        "h": "How to read a rate/odds ratio",
+        "p": "exp(coefficient) turns an additive log-scale effect into a multiplicative effect on counts or odds."
+      }
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "End of Lecture 6",
+    "title": "Generalized Linear Models",
+    "sub": "Poisson, negative-binomial, and binomial GLMs in R, Python, and Julia -- next stop: mixed-effects models",
+    "footnote": "Ecological Modelling with R, Python, and Julia -- Lecture 7: Mixed-Effects Models"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 6</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

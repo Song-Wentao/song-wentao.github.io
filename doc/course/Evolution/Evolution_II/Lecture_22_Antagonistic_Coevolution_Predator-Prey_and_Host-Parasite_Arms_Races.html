@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 22: Antagonistic Coevolution: Predator-Prey and Host-Parasite Arms Races</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 22",
+    "title": "Antagonistic Coevolution: Predator-Prey and Host-Parasite Arms Races",
+    "sub": "Reciprocal selection where one species' gain is another's loss",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 15, \"Intimate Partnerships\" (lecture 2 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "OPENING",
+    "title": "When Adaptation Meets Counter-Adaptation",
+    "sub": "A newt so toxic it could kill 25 humans, paired with a snake immune to that same poison — how does natural selection produce this?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We'll Cover",
+    "items": [
+      "Quick recap: coevolution definitions and types from Lecture 21",
+      "Antagonistic coevolution as a category — defining reciprocal, negative-sum interactions",
+      "Predator-prey arms races: rough-skinned newt tetrodotoxin vs. garter snake resistance",
+      "The geographic mosaic of coevolution — why escalation varies by population",
+      "Predator-prey speed: the cheetah-gazelle case",
+      "Host-parasite coevolution and the Red Queen hypothesis",
+      "Virulence-resistance tradeoffs and coevolutionary cycling",
+      "What the \"arms race\" metaphor implies — and where it misleads",
+      "Applied cases: antibiotic and pesticide resistance as ongoing arms races",
+      "Preview: Lecture 23 turns to mutualistic coevolution"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP — LECTURE 21",
+    "title": "Coevolution: Where We Left Off",
+    "items": [
+      "Coevolution: reciprocal evolutionary change between two (or more) interacting species, each acting as an agent of selection on the other",
+      "Distinguished from independent evolution and from one-sided adaptation to a static environment",
+      "Specific coevolution (pairwise, tightly reciprocal) vs. diffuse coevolution (many species, weaker reciprocal effects)",
+      "Coevolution can be classified by the sign of the fitness outcome for each partner: (+/+) mutualistic, (+/–) antagonistic, and intermediate cases",
+      "Today we focus on the (+/–) category: antagonistic coevolution — one lineage's adaptive win is imposed as the other's cost"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Antagonistic Coevolution",
+    "term": "Antagonistic Coevolution",
+    "def": "Reciprocal evolutionary change between two species locked in a relationship where a trait that increases one species' fitness decreases the other's — as in predation, parasitism, or herbivory — such that each round of adaptation in one lineage selects for counter-adaptation in the other.",
+    "bullets": [
+      "Fitness interests are opposed, not aligned, unlike mutualistic coevolution",
+      "Classic drivers: predator-prey, host-parasite, host-pathogen, plant-herbivore interactions",
+      "Produces escalating, reciprocal selection pressure — often described metaphorically as an \"arms race\""
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHARACTERIZING THE CATEGORY",
+    "title": "Features of Antagonistic Coevolution",
+    "items": [
+      "Negative-sum locally, in the sense that one partner's trait gain directly imposes a cost on the other — contrast with mutualism's positive-sum dynamic",
+      "Selection is frequency- and density-dependent: rare, effective counter-adaptations spread fast because they face little defense in the population",
+      "Traits often are costly to produce and maintain (toxin synthesis, immune investment, sensory vigilance), creating tradeoffs against growth and reproduction",
+      "Can generate escalation (traits ratchet upward in magnitude) or cycling (allele frequencies oscillate without net escalation), depending on genetics and constraints",
+      "Because each side must merely keep pace, absolute performance can rise for millions of years while relative advantage stays roughly constant — the Red Queen framing"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART I",
+    "title": "Predator-Prey Coevolutionary Arms Races",
+    "sub": "When capture ability and escape/defense ability drive each other upward"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREDATOR-PREY COEVOLUTION",
+    "title": "The Basic Logic",
+    "items": [
+      "Predators exert selection on prey to avoid, escape, or resist being eaten; surviving, defended prey then exert selection on predators to overcome those defenses",
+      "Selection pressure is frequently asymmetric — a classic framing is the \"life-dinner principle\" (Dawkins & Krebs 1979): the prey that fails to escape loses its life, while the predator that fails to catch it merely loses a meal",
+      "This asymmetry predicts prey often evolve defenses faster/more strongly than predators evolve counters, though many exceptions exist depending on how essential a single prey species is to the predator's diet",
+      "Defenses evolve in multiple currencies: chemical (toxins), morphological (armor, spines), behavioral (vigilance, flight speed), and crypsis/mimicry",
+      "Two textbook systems illustrate contrasting arms-race mechanisms: chemical/genetic (newt-snake) and locomotor/physiological (cheetah-gazelle)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CLASSIC CASE STUDY",
+    "title": "Tetrodotoxin (TTX)",
+    "term": "Tetrodotoxin (TTX)",
+    "def": "An extraordinarily potent neurotoxin that blocks voltage-gated sodium channels in nerve and muscle cells, halting the action potentials required for nerve signaling and muscle contraction; produced (or sequestered) by rough-skinned newts (Taricha granulosa) as a defense against predation.",
+    "bullets": [
+      "One of the most lethal non-protein toxins known — a single newt can carry enough TTX to kill many adult humans",
+      "Also found unrelated in pufferfish, some octopuses, and other taxa — a case of convergent deployment of the same toxin",
+      "In newts, TTX is concentrated in skin and other tissues, released when the newt is attacked or handled"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY IN DEPTH",
+    "title": "Rough-Skinned Newt vs. Common Garter Snake",
+    "left": {
+      "h": "The Newt's Weapon",
+      "body": "<p>Rough-skinned newts (<i>Taricha granulosa</i>) of the Pacific Northwest produce tetrodotoxin in skin secretions as an anti-predator defense.</p><ul><li>TTX blocks sodium channels (Na<sub>V</sub>1.4) essential for nerve and muscle function</li><li>Lethal to nearly all potential predators, including humans, in tiny doses</li><li>Toxin levels vary substantially among newt populations, from mild to extraordinarily high</li></ul>"
+    },
+    "right": {
+      "h": "The Snake's Countermeasure",
+      "body": "<p>Common garter snakes (<i>Thamnophis sirtalis</i>) are the newt's near-only predator able to survive and continue eating them.</p><ul><li>Resistance arises from amino-acid substitutions in the snake's skeletal-muscle sodium channel gene that block TTX binding without destroying channel function</li><li>Resistant snakes can eat highly toxic newts and survive, though heavily resistant snakes often show reduced locomotor performance (they crawl more slowly) after eating toxic prey</li><li>This performance cost is a key piece of evidence that resistance is genuinely costly, not free</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GEOGRAPHIC MOSAIC OF ESCALATION",
+    "title": "Why Toxicity and Resistance Track Each Other Across Sites",
+    "items": [
+      "Edmund Brodie Jr. and Edmund Brodie III's long-term fieldwork mapped newt toxin levels and snake resistance across dozens of populations in Oregon, Washington, and California",
+      "Result: a tight, geographically variable match — populations with extremely toxic newts tend to have highly resistant snakes, and populations with mildly toxic newts have low-resistance snakes",
+      "This is a textbook example of the geographic mosaic of coevolution (Thompson): coevolutionary intensity is not uniform across a species' range but forms a patchwork of \"hotspots\" of strong reciprocal selection and \"coldspots\" where one or both traits lag",
+      "The most extreme hotspot populations (e.g., Benton County, Oregon) show toxin levels and resistance far exceeding what would be needed against any other predator — evidence of runaway, escalating reciprocal selection specific to this one predator-prey pair",
+      "Because snakes are mobile and gene flow moves resistance alleles between sites, some coldspot populations show \"mismatch\" — snakes more resistant, or newts more toxic, than the local partner would predict, a signature of ongoing geographic dynamics rather than a fixed endpoint"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "DATA SNAPSHOT",
+    "title": "Reading the Newt-Snake Arms Race",
+    "cards": [
+      {
+        "h": "Toxin Escalation",
+        "p": "Some hotspot newt populations carry TTX levels thousands of times the dose lethal to an untreated predator — far beyond what generalist predators require."
+      },
+      {
+        "h": "Resistance Cost",
+        "p": "Highly resistant snakes show measurably slower crawl speed, a locomotor cost that should cap how far resistance can escalate."
+      },
+      {
+        "h": "Population Mismatch",
+        "p": "Some sites show snakes more resistant than local newts are toxic, or vice versa — a signature of migration lag in the geographic mosaic, not equilibrium."
+      },
+      {
+        "h": "Single-Predator Signal",
+        "p": "Extreme toxicity tracks specifically with garter snake resistance, not with other potential newt predators, pointing to a tight, specific coevolutionary pair."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "SPATIAL FRAMEWORK",
+    "title": "The Geographic Mosaic Theory of Coevolution",
+    "term": "Geographic Mosaic Theory of Coevolution",
+    "def": "A framework developed by John Thompson proposing that coevolution is not a single, uniform process across a species' range, but rather a spatially structured mosaic: local populations differ in the strength of reciprocal selection (coevolutionary \"hotspots\" vs. \"coldspots\"), in which traits are under selection (trait remixing), and in the resulting phenotype matching, all linked by gene flow, genetic drift, and local extinction/recolonization.",
+    "bullets": [
+      "Directly explains why newt toxicity and snake resistance vary so much from population to population rather than being uniform across the species' ranges",
+      "Predicts that coevolution should be studied as a landscape-level, not just pairwise, process"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SPATIAL FRAMEWORK",
+    "title": "Coevolutionary Hotspots and Coldspots",
+    "left": {
+      "h": "Hotspots",
+      "body": "<p>Populations where reciprocal selection between the two species is strong.</p><ul><li>Both partners' traits are tightly matched and often extreme (e.g., Benton County, Oregon newts/snakes)</li><li>Local ecological conditions make the interaction a major fitness driver for both species — e.g., the predator has few alternative prey, or the prey has few alternative defenses</li><li>Selection here can drive rapid, escalating change over relatively short evolutionary time</li></ul>"
+    },
+    "right": {
+      "h": "Coldspots",
+      "body": "<p>Populations where reciprocal selection is weak or absent.</p><ul><li>One or both species interact only weakly with the other locally — e.g., the predator is rare, or alternative prey/hosts dominate the diet</li><li>Trait values may lag behind, or be inherited via gene flow from nearby hotspots rather than shaped by local selection</li><li>Selection mosaics like this maintain genetic variation across the metapopulation as a whole</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SPATIAL FRAMEWORK",
+    "title": "Hotspot vs. Coldspot Population Characteristics",
+    "headers": [
+      "Feature",
+      "Coevolutionary Hotspot",
+      "Coevolutionary Coldspot"
+    ],
+    "rows": [
+      [
+        "Strength of reciprocal selection",
+        "Strong — each species is a major selective force on the other",
+        "Weak — interaction is a minor part of either species' selective environment"
+      ],
+      [
+        "Trait matching",
+        "Tight (toxin level tracks resistance level closely)",
+        "Loose or mismatched"
+      ],
+      [
+        "Trait extremity",
+        "Often most extreme values in the species",
+        "Typically moderate or low values"
+      ],
+      [
+        "Source of local trait value",
+        "Local selection",
+        "Local selection plus gene flow from hotspots"
+      ],
+      [
+        "Newt-snake example",
+        "Benton County, Oregon",
+        "Populations with low newt toxicity and low snake resistance"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "PREDATOR-PREY CASE STUDY",
+    "title": "Cheetah-Gazelle Speed Arms Race",
+    "term": "Cheetah-Gazelle Coevolution",
+    "def": "A classic (if more debated) example of a locomotor arms race in which cheetah (Acinonyx jubatus) chase speed and Thomson's gazelle (Eudorcas thomsonii) escape speed/agility are hypothesized to have coevolved reciprocally, each lineage's pursuit or evasion performance selecting for improvement in the other.",
+    "bullets": [
+      "Cheetahs are the fastest land animal, reaching speeds around 100+ km/h in short bursts, with skeletal, cardiovascular, and muscular specializations for acceleration",
+      "Gazelles combine high sustained speed with extreme agility (rapid turns, \"stotting\" jumps) that can defeat a faster but less maneuverable pursuer",
+      "Unlike the newt-snake case, this arms race lacks a single simple genetic marker — it's inferred from comparative morphology, physiology, and predator-prey performance studies rather than a known allele"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY IN DEPTH",
+    "title": "Speed, Acceleration, and Agility",
+    "left": {
+      "h": "Predator Adaptations",
+      "body": "<p>Cheetah traits associated with pursuit predation:</p><ul><li>Lightweight, elongated skeleton and flexible spine that increases stride length</li><li>Enlarged heart, lungs, and adrenal glands supporting rapid oxygen delivery</li><li>Non-retractable claws acting like cleats for traction during sprints</li><li>Long tail functioning as a counterbalance/rudder during high-speed turns</li></ul>"
+    },
+    "right": {
+      "h": "Prey Adaptations",
+      "body": "<p>Gazelle traits associated with predator evasion:</p><ul><li>High sustained running speed and stamina, useful against pursuit predators over distance</li><li>Extreme maneuverability — sharp cutting turns that cost a faster but less agile predator valuable time and energy</li><li>\"Stotting\" (pronking): a stiff-legged jumping display hypothesized to signal high individual condition to the predator, potentially discouraging pursuit altogether (honest signaling rather than pure speed)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTERPRETING THIS CASE",
+    "title": "Speed Arms Race — What the Evidence Actually Supports",
+    "items": [
+      "Because cheetahs and gazelles diverged from many other predator/prey lineages over millions of years, attributing specific traits to reciprocal selection from this one pairing (vs. a broader guild of predators/prey) is harder than in the newt-snake system",
+      "Cheetahs hunt multiple prey species and gazelles are hunted by multiple predators (lions, leopards, wild dogs, hyenas) — this is closer to diffuse coevolution than the newt-snake system's tight, specific pairing",
+      "Still a useful teaching case for the arms-race logic: locomotor performance in predator and prey both sit near physiological limits, consistent with long-term escalation pressure on both sides",
+      "Stotting illustrates that not all anti-predator traits are simple \"faster/stronger\" escalation — some traits (honest condition signals) can defuse pursuit entirely, a reminder that arms races are not always won by brute-force escalation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MORE PREDATOR-PREY ARMS RACES",
+    "title": "Escalation Takes Many Forms",
+    "items": [
+      "Crypsis and detection: cryptic coloration in prey (and ambush predators) coevolving against ever-improving visual/olfactory detection systems in the other party",
+      "Batesian and Müllerian mimicry: palatable species mimicking toxic models (Batesian) creates selection on predators to discriminate finely, which in turn can select for better mimicry fidelity",
+      "Shell thickness in marine snails vs. crushing claw strength in predatory crabs — a well-documented \"escalation\" case (Vermeij's \"escalation hypothesis\") visible in the fossil record over tens of millions of years",
+      "Plant chemical defenses (e.g., cardenolides, alkaloids) vs. herbivore detoxification enzymes — technically plant-herbivore antagonism, mechanistically parallel to predator-prey toxin arms races",
+      "Bombardier beetle chemical defense vs. toad gape-and-swallow tactics, including documented cases of beetles surviving being swallowed by triggering their defensive spray internally"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW WE KNOW IT'S COEVOLUTION",
+    "title": "Criteria for Demonstrating True Coevolution",
+    "items": [
+      "Daniel Janzen (1980) cautioned against loosely calling any matched pair of traits \"coevolved\" and proposed stricter criteria: (1) genetic variation for the trait in both species, (2) evidence of reciprocal selection acting between them, and (3) evidence the traits actually changed in response to one another, ideally traceable across generations or populations",
+      "The newt-snake system satisfies these unusually well: documented heritable variation in toxin level and resistance, direct fitness consequences (death vs. survival) tied to the trait match, and geographic covariation consistent with reciprocal selection rather than one species merely tracking a fixed environment",
+      "Weaker cases (e.g., cheetah-gazelle) are still informative, but require care distinguishing genuine reciprocal coevolution from each species independently adapting to a broad, multi-species community of predators/prey (diffuse coevolution)",
+      "Fossil-record evidence for arms races (see next slide) generally cannot fully meet Janzen's criteria because reciprocal genetic response is hard to demonstrate directly in extinct lineages — such evidence is best read as consistent with, not proof of, coevolution"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DEEP TIME EVIDENCE",
+    "title": "Escalation in the Fossil Record",
+    "items": [
+      "Geerat Vermeij's \"escalation hypothesis\" documents a long-term increase in anti-predator armor (shell thickness, spines, narrow apertures) in marine gastropods and bivalves alongside increasing durophagous (shell-crushing) predator power over the Phanerozoic",
+      "Predator innovations tracked in the fossil record include increasingly powerful crab and lobster claws, shell-drilling predatory snails, and improved fish jaw mechanics for crushing prey",
+      "Drill holes left by predatory naticid and muricid gastropods in fossil shells can be measured directly, providing a rare, quantifiable proxy for predation pressure and prey defense across millions of years",
+      "This deep-time record complements the newt-snake and myxoma-rabbit case studies by showing that antagonistic coevolution operates, and leaves a legible signature, over vastly longer timescales than a typical field study can observe directly"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART II",
+    "title": "Host-Parasite Coevolution",
+    "sub": "From individual toxin genes to genome-wide immune arms races"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOST-PARASITE COEVOLUTION",
+    "title": "A Different Kind of Antagonism",
+    "items": [
+      "Parasites (and pathogens) depend on exploiting host resources/tissues; hosts are selected to resist, tolerate, or clear infection — again a reciprocal, negative-sum relationship",
+      "Compared to predator-prey, generation times are often wildly mismatched: many parasites/pathogens reproduce far faster than their hosts, giving them a potential evolutionary-speed advantage",
+      "Large host population sizes, sexual recombination, and specialized immune systems (e.g., MHC diversity in vertebrates) are among the countermeasures hosts have evolved against this speed disadvantage",
+      "Because parasites/pathogens track host genotypes so tightly, host-parasite systems are the primary empirical arena for testing the Red Queen hypothesis"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CENTRAL FRAMEWORK",
+    "title": "The Red Queen Hypothesis",
+    "term": "Red Queen Hypothesis",
+    "def": "Proposed by Leigh Van Valen (1973), the hypothesis that species must continually evolve just to maintain their fitness relative to the co-evolving species (competitors, predators, parasites) around them — named for the Red Queen's line in Lewis Carroll's Through the Looking-Glass: \"it takes all the running you can do, to keep in the same place.\"",
+    "bullets": [
+      "Originally proposed from patterns of constant extinction probability in the fossil record (van Valen's \"Law of Extinction\")",
+      "Later extended and most powerfully applied to host-parasite coevolution: hosts must keep re-evolving resistance as parasites keep evolving new ways to infect",
+      "Also invoked as a leading hypothesis for the evolutionary maintenance of sexual reproduction — recombination generates novel genotype combinations fast enough to stay ahead of coevolving parasites"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CALLBACK — LINKING THE COURSE TOGETHER",
+    "title": "You've Seen the Red Queen Before",
+    "items": [
+      "Evolution I, Lecture 16 introduced the Red Queen hypothesis in the context of the evolution and maintenance of sexual reproduction — recombination as a way to outrun coevolving parasites (the \"Red Queen hypothesis for sex\")",
+      "Evolution II, Lecture 5 revisited Red Queen dynamics when discussing frequency-dependent selection and negative frequency-dependent selection maintaining genetic polymorphism",
+      "Today's lecture is the third and most complete treatment: we now ground the Red Queen in a concrete mechanism — reciprocal, frequency-dependent selection between hosts and parasites — rather than treating it as an abstract metaphor",
+      "Takeaway across all three lectures: the Red Queen is not one single claim, but a family of related ideas unified by the theme of relative, not absolute, fitness tracking in a changing biotic environment"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM",
+    "title": "How Red Queen Dynamics Play Out Between Host and Parasite",
+    "left": {
+      "h": "From the Parasite's Side",
+      "body": "<p>Parasites are under strong selection to infect the locally common host genotype, because common genotypes offer the most available hosts.</p><ul><li>Genotypes that can overcome common host defenses spread rapidly</li><li>Large population sizes and short generation times let parasites track host genotype frequencies quickly</li><li>This creates negative frequency-dependent selection favoring rare host genotypes (a novel host genotype the parasite hasn't yet adapted to)</li></ul>"
+    },
+    "right": {
+      "h": "From the Host's Side",
+      "body": "<p>Hosts are selected to resist whatever parasite genotype is currently common, and rare host resistance alleles have an advantage.</p><ul><li>As a resistant host genotype spreads, it becomes common — and thus becomes the parasite's next target</li><li>The result: neither host resistance alleles nor parasite infectivity alleles rise to fixation; frequencies cycle over time</li><li>Sexual recombination lets hosts continually generate new allele combinations, a moving target the parasite must keep re-adapting to</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TRADEOFF",
+    "title": "Virulence-Resistance Tradeoffs",
+    "term": "Virulence-Resistance Coevolution",
+    "def": "The reciprocal evolutionary dynamic in which parasite virulence (the degree of harm inflicted on the host) and host resistance (or tolerance) evolve in response to one another, each shaped by underlying fitness costs that prevent either trait from escalating without limit.",
+    "bullets": [
+      "Virulence is not simply favored to maximize — a parasite that kills its host too quickly may lose transmission opportunities, producing selection for intermediate, \"optimal\" virulence rather than maximal virulence",
+      "Host resistance is typically costly too (immune investment trades off against growth/reproduction), so hosts do not evolve maximal resistance either",
+      "These opposing cost structures, layered on top of Red Queen frequency dynamics, help explain why host-parasite systems often settle into fluctuating rather than runaway-escalating dynamics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CLASSIC EMPIRICAL SYSTEM",
+    "title": "Myxoma Virus and the European Rabbit",
+    "items": [
+      "Myxoma virus was deliberately introduced into Australian European rabbit (Oryctolagus cuniculus) populations in 1950 as a biological control, initially killing over 99% of infected rabbits",
+      "Over subsequent decades, viral strains of markedly lower virulence became dominant in the field — not because avirulent strains were introduced, but because intermediate-virulence strains transmitted better (they kept hosts alive and mobile longer, spreading via mosquito vectors) than the most lethal strains",
+      "Simultaneously, rabbit populations evolved increased genetic resistance to myxoma virus, confirmed experimentally by challenging wild-caught rabbits with the original standard virus strain and comparing survival to unexposed lab populations",
+      "This is one of the best-documented real-time examples of coevolution: both intermediate virulence evolution in the pathogen and genetic resistance evolution in the host were measured directly, not just inferred",
+      "The system illustrates the virulence-resistance tradeoff directly: neither maximal virulence nor maximal resistance was the observed outcome"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MORE HOST-PARASITE EXAMPLES",
+    "title": "Red Queen Dynamics Across Systems",
+    "cards": [
+      {
+        "h": "Daphnia and Pasteuria",
+        "p": "The water flea Daphnia magna and its bacterial parasite Pasteuria ramosa show classic local adaptation cycling, used in experimental evolution studies to directly test Red Queen predictions."
+      },
+      {
+        "h": "Human MHC Diversity",
+        "p": "The extreme polymorphism of the vertebrate MHC (major histocompatibility complex) immune-recognition genes is widely interpreted as maintained by ongoing pathogen-driven balancing selection."
+      },
+      {
+        "h": "Plant R-genes vs. Pathogen Effectors",
+        "p": "Plant disease-resistance (R) genes and pathogen effector/avirulence genes coevolve in a gene-for-gene arms race central to agricultural crop breeding."
+      },
+      {
+        "h": "Cuckoo-Host Egg Mimicry",
+        "p": "Brood-parasitic cuckoos evolve eggs mimicking host eggs; hosts evolve finer egg-pattern discrimination to detect and reject foreign eggs — an arms race over recognition, not toxins or speed."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MOLECULAR ARMS RACES",
+    "title": "Even More Antagonistic Coevolution Across the Tree of Life",
+    "cards": [
+      {
+        "h": "Bats vs. Moths",
+        "p": "Echolocating bats and moth ultrasound-detecting ears form a sensory-jamming arms race; some moths have independently evolved clicks that jam bat sonar or advertise unpalatability."
+      },
+      {
+        "h": "Cone Snails vs. Fish",
+        "p": "Fish-hunting cone snails inject rapidly evolving venom peptide cocktails (conotoxins); prey fish nervous systems are under reciprocal selection to resist specific toxin targets."
+      },
+      {
+        "h": "CRISPR-Cas vs. Bacteriophage",
+        "p": "Bacteria acquire phage DNA fragments into CRISPR arrays for sequence-specific immunity; phages evolve anti-CRISPR proteins and mutate target sequences — a molecular-scale, single-generation-visible arms race."
+      },
+      {
+        "h": "Electric Fish Signal Jamming",
+        "p": "Some electric fish species evolve species-specific electric organ discharge signatures partly to avoid signal interference/eavesdropping from electroreceptive predators and rival signalers."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MOLECULAR-SCALE CASE STUDY",
+    "title": "CRISPR-Cas: A Host-Parasite Arms Race You Can Watch in Real Time",
+    "left": {
+      "h": "Bacterial Defense",
+      "body": "<p>CRISPR-Cas systems give bacteria and archaea a form of heritable, sequence-specific immune memory against bacteriophage (viral) infection.</p><ul><li>Bacteria that survive phage infection incorporate short phage DNA fragments (spacers) into their CRISPR array</li><li>These spacers guide Cas nucleases to recognize and cut matching phage DNA on reinfection</li><li>Populations rapidly accumulate diverse spacer libraries under phage pressure</li></ul>"
+    },
+    "right": {
+      "h": "Phage Counter-Evolution",
+      "body": "<p>Bacteriophages evolve mechanisms to escape CRISPR-based recognition.</p><ul><li>Point mutations in the phage's target (protospacer) sequence can prevent Cas recognition despite a matching spacer</li><li>Some phages encode anti-CRISPR (Acr) proteins that directly inhibit the bacterial Cas machinery</li><li>Because bacterial and phage generation times are extremely short, this arms race can be observed unfolding over days to weeks in laboratory chemostat experiments — a uniquely fast, tractable model of Red Queen dynamics</li></ul>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SPATIAL STRUCTURE",
+    "title": "Escalation Intensity Across the Coevolutionary Mosaic",
+    "levels": [
+      {
+        "label": "Hotspot: intense reciprocal selection, tightest trait matching",
+        "color": "#4a1620",
+        "width": "560px"
+      },
+      {
+        "label": "Trait-remixing zone: partial matching, gene flow blending",
+        "color": "#8a3f4d",
+        "width": "440px"
+      },
+      {
+        "label": "Coldspot: weak/no reciprocal selection locally",
+        "color": "#c47b87",
+        "width": "320px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COST ACCOUNTING",
+    "title": "Why Resistance and Virulence Are Never \"Free\"",
+    "items": [
+      "Immune/resistance costs in hosts: constitutive immune investment can trade off against growth rate, developmental time, or reproductive output — well documented in insects, plants, and vertebrates via experimental immune-challenge studies",
+      "Autoimmunity/self-damage risk: highly reactive resistance mechanisms (strong immune responses, toxin resistance mutations that alter essential channel proteins) can carry collateral costs to normal physiological function, as seen in the reduced locomotor performance of highly TTX-resistant garter snakes",
+      "Transmission costs of virulence: a pathogen strain that is too virulent kills or immobilizes its host before achieving onward transmission, capping the fitness benefit of ever-higher virulence (the logic behind myxoma virus stabilizing at intermediate virulence)",
+      "Because both sides face real costs, the frequent real-world outcome is a dynamic balance point (whether cycling or slowly escalating) rather than unconstrained escalation toward one side's total victory"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "CONCEPTUAL HISTORY",
+    "title": "Development of the Red Queen Idea",
+    "items": [
+      {
+        "y": "1973",
+        "t": "Leigh Van Valen proposes the Red Queen hypothesis from constant extinction-rate patterns in the fossil record"
+      },
+      {
+        "y": "1970s-80s",
+        "t": "Hypothesis extended to explain the evolutionary maintenance of sexual reproduction against coevolving parasites"
+      },
+      {
+        "y": "1980s-90s",
+        "t": "Gene-for-gene and matching-allele models formalized to describe host-parasite genetic specificity"
+      },
+      {
+        "y": "1990s-2000s",
+        "t": "Thompson develops the geographic mosaic theory of coevolution, extending Red Queen logic across spatial structure"
+      },
+      {
+        "y": "2000s-present",
+        "t": "Experimental evolution systems (Daphnia-Pasteuria, bacteria-phage) provide direct, real-time tests of Red Queen cycling predictions"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "GENETIC MODELS",
+    "title": "How Geneticists Model Host-Parasite Specificity",
+    "left": {
+      "h": "Gene-for-Gene Model",
+      "body": "<p>Originally developed in plant pathology (Flor, 1950s).</p><ul><li>For each host resistance gene, there is a matching parasite avirulence/virulence gene</li><li>A parasite can only infect if it has evolved past every resistance gene the host carries</li><li>Tends to produce arms-race escalation: hosts accumulate more resistance genes, parasites accumulate more virulence genes</li></ul>"
+    },
+    "right": {
+      "h": "Matching-Allele Model",
+      "body": "<p>Common framework for animal host-parasite systems (e.g., invertebrate immune systems).</p><ul><li>A parasite genotype can only successfully infect a host genotype it specifically \"matches\"</li><li>Selection is strongly negative frequency-dependent: rare host genotypes escape currently common parasite genotypes</li><li>Tends to produce cycling rather than directional escalation — closer to the classic Red Queen \"running in place\" image</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "Why Host-Parasite Systems Often Cycle Rather Than Escalate",
+    "items": [
+      "Under matching-allele dynamics, negative frequency-dependent selection actively favors whichever host/parasite genotype is currently rare — this maintains polymorphism and drives allele-frequency cycling rather than fixation",
+      "Under gene-for-gene dynamics, escalation (adding more resistance/virulence genes) is more likely, but is checked by the costs of carrying many resistance or virulence genes",
+      "Real systems often show a mix: escalation in trait number/diversity, with cycling in which specific alleles are momentarily favored",
+      "This distinction matters directly for predicting disease dynamics: cycling systems predict fluctuating epidemics tied to host genotype frequency, while escalating systems predict a long-term trend toward more elaborate resistance/virulence machinery"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO DYNAMICS, ONE FRAMEWORK",
+    "title": "Escalation vs. Cycling: Two Faces of Antagonistic Coevolution",
+    "left": {
+      "h": "Escalation",
+      "body": "<p>Trait magnitude ratchets upward over generations in both lineages.</p><ul><li>Typical when traits are quantitative and additive (e.g., toxin dose, claw strength, shell thickness)</li><li>Slows as physiological/metabolic costs rise, approaching an asymptote rather than continuing indefinitely</li><li>Best illustrated by newt TTX levels and Vermeij's fossil-record shell-thickness/claw-strength trends</li></ul>"
+    },
+    "right": {
+      "h": "Cycling",
+      "body": "<p>Allele or genotype frequencies oscillate over time without a net directional trend.</p><ul><li>Typical under negative frequency-dependent selection, especially matching-allele host-parasite genetics</li><li>Neither side gains lasting ground; \"winning\" is temporary and self-limiting because success makes a genotype common, and common genotypes become the next target</li><li>Best illustrated by Red Queen dynamics in Daphnia-Pasteuria and related experimental systems</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS TABLE",
+    "title": "Predator-Prey vs. Host-Parasite Antagonistic Coevolution",
+    "headers": [
+      "Feature",
+      "Predator-Prey",
+      "Host-Parasite"
+    ],
+    "rows": [
+      [
+        "Typical mechanism",
+        "Morphological, chemical, or locomotor trait escalation",
+        "Genetic/immune recognition and infection-mechanism specificity"
+      ],
+      [
+        "Generation time symmetry",
+        "Often roughly similar (both are macro-organisms)",
+        "Often highly asymmetric — parasite generations far shorter than host's"
+      ],
+      [
+        "Typical trait example",
+        "Toxin potency (newt) / chase speed (cheetah)",
+        "Resistance allele / virulence factor (myxoma-rabbit)"
+      ],
+      [
+        "Dominant dynamic",
+        "Escalation (arms race magnitude increases over time)",
+        "Cycling (Red Queen — allele frequencies oscillate)"
+      ],
+      [
+        "Key limiting cost",
+        "Locomotor or metabolic performance cost of the trait",
+        "Transmission cost of virulence; fitness cost of resistance"
+      ],
+      [
+        "Best-documented case",
+        "Rough-skinned newt / garter snake (TTX resistance)",
+        "Myxoma virus / European rabbit"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE METAPHOR, EXAMINED",
+    "title": "What \"Arms Race\" Gets Right",
+    "items": [
+      "Captures the reciprocal, escalatory logic well: an advance by one side creates selection pressure that favors a counter-advance in the other, much like military arms races between rival states",
+      "Highlights that investment can rise on both sides even while relative competitive standing stays roughly unchanged — this is the essence of the Red Queen framing",
+      "Explains otherwise-puzzling extreme traits (absurdly high TTX levels, elaborate immune gene families) as products of sustained reciprocal selection rather than one-sided optimization against a static environment",
+      "Draws attention to the cost side of the equation — just as military escalation drains resources, biological escalation is checked by real physiological and metabolic costs"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE METAPHOR, EXAMINED",
+    "title": "Where the \"Arms Race\" Metaphor Misleads",
+    "items": [
+      "No side is strategizing or intending escalation — the metaphor is illustrative, not literal; evolution has no foresight or goals, only differential survival/reproduction each generation",
+      "\"Winning\" is not a stable endpoint in most systems — genuine, permanent one-sided victories (e.g., total extinction of the other party) are rare, since they eliminate the selection pressure that drives further escalation (and often eliminate the winner's food source or the loser's threat, altering the interaction entirely)",
+      "The metaphor implies inevitable escalation, but many systems instead cycle (Red Queen dynamics) without any net directional trend — cycling is not \"losing,\" it's a stable, ongoing dynamic",
+      "Human arms races involve rational actors responding within a single generation; biological arms races require multiple generations of selection and are constrained by standing genetic variation, mutation supply, and developmental/physiological limits — the timescales and mechanisms are fundamentally different",
+      "Escalation can be halted or reversed by costs, environmental change, extinction of one partner, or a shift to a new dominant enemy — arms races are not open-ended in practice"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FRAMING THE IDEA",
+    "quote": "Now, here, you see, it takes all the running you can do, to keep in the same place.",
+    "attrib": "The Red Queen, in Lewis Carroll's Through the Looking-Glass — adopted by Leigh Van Valen (1973) as the namesake for his hypothesis of continual reciprocal adaptation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "POSSIBLE LONG-TERM OUTCOMES",
+    "title": "How Antagonistic Coevolution Can Resolve",
+    "items": [
+      "Continued escalation: both traits keep increasing in magnitude, typically slowing as physiological/metabolic costs rise (diminishing returns) — the newt-snake system, at its most extreme sites, may be approaching such limits",
+      "Stable cycling: allele frequencies oscillate around an equilibrium without net directional change, especially under matching-allele/negative frequency-dependent dynamics (many host-parasite systems)",
+      "Local extinction of one partner: if one species cannot keep pace (e.g., insufficient genetic variation, small population size), it may be driven extinct or extirpated locally, which necessarily halts the arms race",
+      "Partner switching: a predator or parasite shifts to a different, less-defended host/prey species, releasing the original pair from reciprocal selection — a common real-world \"exit\" from escalating antagonism",
+      "Transition toward commensalism or reduced antagonism: some highly coevolved parasite-host relationships trend toward reduced virulence over very long timescales, though this is not a universal rule"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "APPLIED RELEVANCE",
+    "title": "Antagonistic Coevolution Is Not Just Academic",
+    "cards": [
+      {
+        "h": "Antibiotic Resistance",
+        "p": "Bacteria and antibiotics represent an artificial but very real arms race: human-driven selection (antibiotic use) drives resistance evolution, an urgent applied version of host-parasite-style dynamics."
+      },
+      {
+        "h": "Pesticide Resistance",
+        "p": "Insecticide/herbicide resistance in agricultural pests mirrors predator-prey escalation, with humans playing the role of a rapidly \"evolving\" predator via changing chemical formulations."
+      },
+      {
+        "h": "Crop Breeding vs. Pathogens",
+        "p": "Agricultural breeding programs must continually introduce new resistance (R) genes into crop varieties as pathogen populations evolve to overcome existing gene-for-gene resistance — a managed Red Queen race."
+      },
+      {
+        "h": "Vaccine and Pathogen Evolution",
+        "p": "Rapidly evolving pathogens (e.g., influenza, many RNA viruses) can evolve around host immunity or vaccine-induced immunity, requiring updated vaccines — a direct, consequential Red Queen dynamic in human health."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "Clearing Up Frequent Misunderstandings",
+    "items": [
+      "Misconception: \"the more toxic/resistant, the more fit, without limit.\" Reality: both toxicity and resistance carry real costs, so selection favors an optimum, not an unbounded maximum",
+      "Misconception: coevolution requires species to be doing this \"on purpose.\" Reality: it's an emergent statistical outcome of differential survival and reproduction across generations, with no intentionality",
+      "Misconception: an arms race always means one side is \"ahead.\" Reality: relative standing (not absolute trait value) is often what matters for fitness — this is the entire point of the Red Queen framing",
+      "Misconception: coevolutionary intensity is uniform across a species' range. Reality: the geographic mosaic theory shows that hotspots and coldspots of coevolution coexist, connected by gene flow"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION PROMPTS",
+    "title": "Questions to Bring to Section",
+    "items": [
+      "If garter snake resistance carries a locomotor cost, why hasn't resistance been selected against in populations where newts are only mildly toxic?",
+      "How would you experimentally distinguish escalating (arms-race) dynamics from cycling (Red Queen) dynamics in a host-parasite system you haven't studied before?",
+      "Why might myxoma virus virulence stabilize at an intermediate level rather than evolving toward maximum lethality or complete harmlessness?",
+      "What role does gene flow play in creating \"mismatched\" newt-snake populations, and what would you predict happens to toxicity/resistance at the mismatch site over time?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Antagonistic coevolution describes reciprocal adaptation where one partner's fitness gain is imposed as the other's cost — the (+/–) category of coevolutionary interactions",
+      "Predator-prey arms races (newt/snake TTX resistance; cheetah/gazelle speed) show trait escalation shaped by genetics, physiology, and geography — the geographic mosaic theory explains why intensity varies across a species' range",
+      "Host-parasite coevolution is the primary testing ground for the Red Queen hypothesis: reciprocal, frequency-dependent selection that can produce escalation, cycling, or both depending on the underlying genetic model (gene-for-gene vs. matching-allele)",
+      "Virulence and resistance are each constrained by real costs, so most systems settle toward intermediate, dynamic states rather than one-sided \"victories\"",
+      "The \"arms race\" metaphor is a useful heuristic for escalatory, reciprocal selection, but breaks down if taken to imply intentionality, inevitable escalation, or a stable final winner",
+      "These same dynamics scale up to consequential applied problems: antibiotic resistance, pesticide resistance, and pathogen evolution against host and vaccine-induced immunity"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CLOSING THOUGHT",
+    "quote": "In the antagonistic pairings of life, adaptation is never a finish line — it is a pace that must be maintained.",
+    "attrib": "Course synthesis, drawing on Van Valen's Red Queen hypothesis (1973)"
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — L23",
+    "title": "From Arms Races to Alliances",
+    "sub": "Lecture 23 turns to mutualistic coevolution: pollinator relationships, symbioses, and the evolution of cooperation between species"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 22</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 20: Trends, Constraints, and Chapter 14 Synthesis</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 20",
+    "title": "Trends, Constraints, and the Chapter 14 Synthesis",
+    "sub": "Why does life get bigger (sometimes)? Why doesn't it evolve everything imaginable? And can whole species — not just individuals — be units of selection?",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 14, \"Macroevolution: The Long Run\" (lecture 4 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "WHERE WE'VE BEEN",
+    "title": "Chapter 14 So Far",
+    "sub": "Three lectures on the long run of evolution — now we tie them together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Lectures 17–19: The Story So Far",
+    "items": [
+      "L17 — Tempo and mode: punctuated equilibrium vs. phyletic gradualism; the fossil record's pattern of stasis punctuated by rapid change at speciation",
+      "L18 — Adaptive radiation: rapid diversification into many ecological niches from a single ancestor (Darwin's finches, cichlids, Anolis lizards)",
+      "L19 — Mass extinction and recovery: the Big Five, selectivity of extinction, and how extinction resets the adaptive landscape",
+      "Common thread: macroevolution is not simply microevolution added up over long time spans — new patterns and processes emerge at this scale",
+      "Today: two more genuinely macroevolutionary phenomena (trends, constraints) plus a candidate higher-level process (species selection), then synthesis"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "Four Stops on the Way to Chapter 15",
+    "items": [
+      "1. Evolutionary trends — do lineages have directionality over millions of years, and if so, why?",
+      "2. Developmental and phylogenetic constraints — why hasn't every imaginable body plan evolved?",
+      "3. Species selection — can differential speciation and extinction rates shape macroevolutionary patterns on their own?",
+      "4. Chapter 14 synthesis — tempo/mode + radiation + extinction + trends/constraints as one coherent picture",
+      "Then: a preview of Chapter 15, \"Intimate Partnerships\" — coevolution between species"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Evolutionary Trends",
+    "sub": "Directional change in a lineage's traits over geological time"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Evolutionary Trend",
+    "term": "Evolutionary Trend",
+    "def": "A consistent, directional change in the average value of a trait across a lineage or clade, sustained over long spans of geological time — for example, a persistent increase in average body size within a clade from its origin to the present.",
+    "bullets": [
+      "Trends are patterns observed in the fossil record over millions of years, not predictions about any single population's short-term trajectory",
+      "A trend can occur even if most individual species within the clade show no directional change themselves",
+      "The central question: is a trend actively driven by natural selection favoring one direction, or does it emerge passively from other processes?"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY",
+    "title": "Cope's Rule: Driven Trend or Passive Diffusion?",
+    "left": {
+      "h": "Cope's Rule",
+      "body": "<p>Named for paleontologist Edward Drinker Cope, this is the classic claim that <b>lineages tend to evolve toward larger body size over time</b>.</p><ul><li>Observed in many clades: horses, many dinosaur lineages, some foraminifera, and numerous marine invertebrates</li><li>Proposed advantages of large size: better predator avoidance, wider diet breadth, greater fecundity or offspring survival, competitive dominance</li><li>Traditionally interpreted as a <b>\"driven\" trend</b> — natural selection consistently favors bigger individuals within each lineage, generation after generation</li></ul>"
+    },
+    "right": {
+      "h": "The Passive-Diffusion Critique",
+      "body": "<p>Many trends attributed to selection may instead be a <b>statistical artifact of a boundary</b>.</p><ul><li>If body size starts small (there's a minimum viable size for a new clade) and then evolves with no directional bias — just random walk — the <i>average</i> size of the clade will still increase over time, simply because size can't decrease past the lower wall but can increase indefinitely</li><li>This is \"passive diffusion away from a lower boundary,\" not active selection for bigger size</li><li>Distinguishing driven from passive requires looking at whether the <i>minimum</i> size also increases (driven) or stays pinned near the origin (passive) — McShea's framework</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND BODY SIZE",
+    "title": "Other Proposed Macroevolutionary Trends",
+    "items": [
+      "Increasing brain-to-body size ratio (encephalization) in several mammalian lineages, including horses and primates",
+      "Increasing shell ornamentation and complexity of suture lines in ammonites over the Mesozoic",
+      "Increasing complexity of skeletal armor and defensive structures in some marine invertebrate lineages",
+      "Increasing structural complexity of eyes across independent lineages within certain clades",
+      "As with body size, each of these requires the same diagnostic question: is there a driving selective force, or a passive walk away from a boundary condition?"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CLASSIC CASE STUDY",
+    "title": "The Horse Lineage: Cope's Rule Under the Microscope",
+    "left": {
+      "h": "The Traditional Story",
+      "body": "<p>Nineteenth-century paleontologists (including Cope himself) used the North American horse fossil record — from the small, forest-dwelling <i>Eohippus</i> (\"dawn horse\") to the large modern <i>Equus</i> — as the textbook example of a driven trend toward larger body size, longer legs, and reduced toe number.</p><ul><li>Popularized as a straight \"ladder\" of progressive size increase over ~55 million years</li></ul>"
+    },
+    "right": {
+      "h": "What Rigorous Reanalysis Found (Bruce MacFadden and others)",
+      "body": "<p>When the full, bushy horse phylogeny (dozens of side-branching genera, not a single ladder) is analyzed statistically:</p><ul><li>Average body size does increase over the clade's history</li><li>But <b>within many individual horse lineages</b>, size fluctuates up and down, including several reversals toward smaller size</li><li>The overall increase is better described as a mix of some directional selection episodes (tied to the spread of open grasslands favoring larger grazers) plus passive-diffusion effects from the small-bodied ancestral condition</li><li>Illustrates why the driven/passive distinction requires the full clade's phylogeny, not just endpoints</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "TWO MODELS",
+    "title": "Driven vs. Passive Trends",
+    "headers": [
+      "Feature",
+      "Driven Trend",
+      "Passive Trend"
+    ],
+    "rows": [
+      [
+        "Underlying process",
+        "Directional selection consistently favors one trait state",
+        "Undirected (random) change bounded by a lower or upper limit"
+      ],
+      [
+        "Minimum value over time",
+        "Increases along with the mean",
+        "Stays near the ancestral starting point"
+      ],
+      [
+        "Variance over time",
+        "May stay constant or narrow",
+        "Increases as the distribution spreads away from the boundary"
+      ],
+      [
+        "Every lineage's individual trajectory",
+        "Most lineages show the same directional change",
+        "Individual lineages show no consistent direction; only the aggregate mean shifts"
+      ],
+      [
+        "Example interpretation",
+        "Larger body size favored in each descendant species (Cope's Rule, strong form)",
+        "Body size can't get much smaller than the ancestral condition, so average size rises as lineages diversify in a size-neutral random walk"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "TESTING THE MODELS",
+    "title": "How Paleontologists Tell Driven from Passive",
+    "cards": [
+      {
+        "h": "Track the Minimum, Not Just the Mean",
+        "p": "Plot the smallest species in the clade through time, not only the average. If the floor rises too, the trend looks driven; if the floor stays flat, passive diffusion is more likely."
+      },
+      {
+        "h": "Compare Sister Clades",
+        "p": "If a trend is driven by selection tied to an ecological role, closely related clades lacking that ecology should not show the same trend, giving a natural control."
+      },
+      {
+        "h": "Model the Variance",
+        "p": "A spreading distribution with no shift in the mode is the signature prediction of a passive random walk against a reflecting boundary."
+      },
+      {
+        "h": "Look for Extinction Bias",
+        "p": "A driven trend can also arise if larger species simply survive extinction events better — selection acting at the species level on the fate of lineages, not necessarily on individuals within them."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COMPLICATIONS",
+    "title": "Cope's Rule Has Exceptions and Reversals",
+    "left": {
+      "h": "Evidence Against a Universal Rule",
+      "body": "<ul><li>Many clades show <b>no significant size trend</b> at all when tested rigorously</li><li>Some clades show decreasing size over time (dwarfing), especially on islands with limited resources (\"island rule\")</li><li>Mass extinction events can reset body-size trends abruptly — the end-Cretaceous extinction removed most large-bodied dinosaurs, and surviving mammalian lineages had to re-evolve large size from small ancestors</li></ul>"
+    },
+    "right": {
+      "h": "Why This Matters for Macroevolution",
+      "body": "<p>Cope's Rule illustrates a general lesson for this whole chapter: <b>patterns visible only over millions of years require macroevolutionary explanations</b>, and those explanations are not automatically \"more selection, more directionally.\"</p><ul><li>Statistical/structural artifacts (bounded random walks) can mimic the signature of selection</li><li>Rigorous macroevolutionary science must rule out passive explanations before invoking directional selection</li><li>This connects to L19: extinction selectivity can also produce apparent \"trends\" by pruning the size distribution non-randomly</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "METHODS",
+    "title": "Statistical Approaches to Detecting Trends",
+    "headers": [
+      "Method",
+      "What It Tests",
+      "Limitation"
+    ],
+    "rows": [
+      [
+        "Minimum/maximum tracking",
+        "Whether the floor and/or ceiling of trait values shifts over time, not just the mean",
+        "Requires dense, well-sampled fossil record across the full clade"
+      ],
+      [
+        "Ancestor-descendant comparison",
+        "Whether descendant species differ systematically from direct ancestors in the trait",
+        "Requires confident phylogenetic reconstruction, often unavailable"
+      ],
+      [
+        "Random-walk (Brownian motion) simulation",
+        "Whether observed trait distributions differ from a null model of undirected change",
+        "Null model itself carries assumptions about rates that may not hold"
+      ],
+      [
+        "Independent contrasts / phylogenetic comparative methods",
+        "Whether a trait shift correlates with an ecological or genetic variable across independent lineages, controlling for shared ancestry",
+        "Statistically powerful but computationally and data intensive"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON READING PATTERN AS PROCESS",
+    "quote": "A trend in the fossil record is a pattern. Driven change and passive diffusion are two very different processes that can produce that same pattern — and only careful analysis of variance and minima, not the trend line alone, can tell them apart.",
+    "attrib": "paraphrased from Zimmer & Emlen, Ch. 14, drawing on Daniel McShea's work on trend mechanisms"
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Developmental and Phylogenetic Constraints",
+    "sub": "Why hasn't evolution produced every conceivable form?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Developmental Constraint",
+    "term": "Developmental Constraint",
+    "def": "A bias or limitation on the range of phenotypic variation that can be produced by an organism's developmental system, such that some conceivable morphologies are difficult or impossible for natural selection to ever act on — because development simply never generates them as raw material.",
+    "bullets": [
+      "Distinguished from a functional constraint (a form is possible to build but selection disfavors it) — a developmental constraint means the variation is rarely or never produced in the first place",
+      "Arises from the physics and logic of how gene regulatory networks build bodies: shared signaling pathways, conserved gene regulatory modules, and the sequential, hierarchical nature of embryonic development",
+      "Explains why evolution is not a free search of all possible morphospace — only a biased subset of forms are developmentally accessible from any starting point"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Phylogenetic Constraint",
+    "term": "Phylogenetic Constraint",
+    "def": "A limitation on future evolutionary trajectories imposed by a lineage's evolutionary history — because a clade inherited a particular body plan, developmental toolkit, or anatomical arrangement from its ancestors, certain modifications become far more (or less) accessible than others.",
+    "bullets": [
+      "Example: tetrapod limbs are built from a deeply conserved pentadactyl (five-digit) ground plan inherited from early tetrapod ancestors — whales, bats, and horses all modify this same underlying plan rather than evolving fundamentally new limb architectures",
+      "Phylogenetic constraint is why convergent solutions to similar problems (e.g., flight, aquatic locomotion) still bear the fingerprint of each lineage's ancestral starting point",
+      "Overlaps heavily with developmental constraint because inherited developmental toolkits are usually the mechanism by which phylogenetic history limits future variation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONNECTING BACK",
+    "title": "Revisiting Evolution I's Evo-Devo Unit",
+    "left": {
+      "h": "What You Already Know",
+      "body": "<p>In Evolution I (Chapters 1–9) you covered the molecular logic of evo-devo:</p><ul><li>Highly conserved <b>toolkit genes</b> (e.g., Hox genes) that pattern the body axis across enormously divergent animal phyla</li><li><b>Modularity</b> — development is organized into semi-independent units (e.g., individual limbs, segments) that can be modified somewhat independently</li><li><b>Heterochrony</b> — changes in the timing or rate of developmental events as a major source of morphological novelty</li><li>Small regulatory changes in when/where toolkit genes are expressed can produce large phenotypic effects</li></ul>"
+    },
+    "right": {
+      "h": "The Macroevolutionary Payoff",
+      "body": "<p>Chapter 14 asks: what do these developmental facts predict about the <i>pattern</i> of life's diversification over hundreds of millions of years?</p><ul><li>Because toolkit genes are so deeply conserved, entire phyla share the same basic \"rules\" for building bodies — this is why body plans established early in animal history (the Cambrian) have persisted essentially unchanged since</li><li>Modularity permits radiation within a body plan (e.g., diverse limb shapes across tetrapods) but rarely produces a wholesale new body plan</li><li>Constraint and evolvability are two sides of the same coin: the very features that limit some kinds of change (deep toolkit conservation) are what make other kinds of change (repeated, rapid modification of a module) easy</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TYPES OF CONSTRAINT",
+    "title": "Not All Constraints Are Developmental",
+    "items": [
+      "Developmental constraints — biases in what variation development can generate (discussed above)",
+      "Phylogenetic constraints — limits imposed by inherited body plans and history (discussed above)",
+      "Physical/structural constraints — the laws of physics and engineering limit viable forms regardless of history (e.g., there is an upper size limit for flying animals given muscle physiology and wing-loading; skeletal materials have finite strength)",
+      "Genetic constraints — pleiotropy (one gene affecting multiple traits) and genetic correlations between traits can prevent one trait from evolving independently of another, even when selection favors it",
+      "Together these categories explain why the space of realized biological forms is a tiny, structured subset of all conceivable forms — \"the space of the possible\" is far larger than \"the space of the actual\""
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MEASURING CONSTRAINT",
+    "title": "Morphospace and Disparity: Quantifying \"the Space of the Possible\"",
+    "items": [
+      "Morphospace — a mathematical space in which every possible combination of trait values (e.g., shell coiling parameters, limb proportions) defines a point; realized organisms occupy only some points",
+      "Disparity — a quantitative measure of how much of morphospace is actually occupied by real organisms, distinct from diversity (which just counts species/taxa)",
+      "Classic finding: disparity in many clades (e.g., Cambrian arthropods, Paleozoic crinoids) was established early and explored broadly, with LATER diversification mostly filling in variations on those early themes rather than exploring new regions of morphospace",
+      "Empty regions of morphospace that are never occupied, despite being geometrically and physically plausible, are strong circumstantial evidence for developmental or phylogenetic constraint",
+      "Raup's classic study of theoretical shell coiling geometry showed that real gastropod and ammonite shells cluster in only a fraction of all mathematically possible coiling forms — a foundational demonstration of constraint using morphospace"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CLASSIC EXAMPLES",
+    "title": "Constraint in Action",
+    "cards": [
+      {
+        "h": "The Panda's Thumb",
+        "p": "Giant pandas manipulate bamboo with a false \"thumb\" built from an enlarged wrist bone (the radial sesamoid), not a true opposable digit — because the mammalian hand plan was already committed to five digits, evolution jury-rigged a workaround rather than growing a sixth true digit."
+      },
+      {
+        "h": "Vertebrate Eye Wiring",
+        "p": "The vertebrate retina is wired \"backwards,\" with photoreceptors facing away from incoming light and the optic nerve punching through the retina, creating a blind spot — a suboptimal design retained because of how the eye develops from ancestral tissue, not because it's functionally ideal."
+      },
+      {
+        "h": "Tetrapod Digit Number",
+        "p": "Despite huge ecological diversification, tetrapod limbs almost never exceed five digits (the ancestral condition), even in lineages where more digits might seem advantageous — the ancestral limb-patterning network channels variation toward modifying, not multiplying, digits."
+      },
+      {
+        "h": "Segmented Body Plans",
+        "p": "Arthropods and vertebrates independently evolved segmentation, and in both lineages, once segmentation was established as a developmental module, subsequent evolution overwhelmingly modifies segment number and identity rather than abandoning segmentation altogether."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SORTING THE CATEGORIES",
+    "title": "Four Kinds of Constraint Compared",
+    "headers": [
+      "Constraint Type",
+      "Source of the Limit",
+      "Example"
+    ],
+    "rows": [
+      [
+        "Developmental",
+        "Rules of embryonic development and gene regulatory networks",
+        "Absence of a sixth digit in tetrapod limbs; pandas evolve a false thumb instead"
+      ],
+      [
+        "Phylogenetic",
+        "Inherited ancestral body plan / evolutionary history",
+        "Whale flippers retain the pentadactyl tetrapod limb plan internally"
+      ],
+      [
+        "Physical/structural",
+        "Laws of physics and material properties",
+        "Upper size limits on flying insects and birds set by wing-loading and muscle physics"
+      ],
+      [
+        "Genetic",
+        "Pleiotropy and genetic correlations among traits",
+        "Selection on one trait drags a genetically correlated trait along, even if that second trait is not itself favored"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "AN OLD DEBATE",
+    "title": "Constraint vs. Adaptation: How Much Explains What?",
+    "left": {
+      "h": "The Adaptationist View",
+      "body": "<p>A strong adaptationist program (critiqued famously by Gould and Lewontin's \"spandrels\" paper) risks treating every trait as optimally shaped by selection for its current function.</p><ul><li>Under this view, most macroevolutionary pattern is explained by natural selection tracking changing environments and ecological opportunities</li><li>Risk: it can lead to just-so stories that ignore historical and developmental limits on what selection had available to work with</li></ul>"
+    },
+    "right": {
+      "h": "The Constraint-Aware View",
+      "body": "<p>Chapter 14's synthesis position: selection and constraint are complementary, not competing, explanations.</p><ul><li>Selection explains <i>which</i> of the developmentally accessible variants persist and spread</li><li>Constraint explains <i>why certain variants were never available</i> for selection to act on in the first place</li><li>A full macroevolutionary explanation for any trait or trend should ask both questions — what did selection favor, and what could development even produce?</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON ADAPTATIONIST STORYTELLING",
+    "quote": "Not every part of an organism is optimally shaped for its current use; some are historical by-products of how the body is built, retained because development never offered selection an alternative.",
+    "attrib": "paraphrased from Stephen Jay Gould and Richard Lewontin, \"The Spandrels of San Marco and the Panglossian Paradigm\" (1979), as discussed in Zimmer & Emlen, Ch. 14"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE FLIP SIDE",
+    "title": "When Constraints Are Released",
+    "cards": [
+      {
+        "h": "Snake Limb Loss and (Non-)Reversal",
+        "p": "Snakes lost limbs from a limbed ancestor by altering Hox gene expression timing; despite Dollo's Law suggesting complex lost structures rarely re-evolve, the underlying limb-patterning network persists in a latent state, occasionally producing vestigial hindlimb spurs in some lineages."
+      },
+      {
+        "h": "Cave Fish and Eye Loss",
+        "p": "Many cave-adapted fish lineages independently lose eyes, showing how relaxed selection plus pleiotropic developmental trade-offs (energy reallocated to other sensory structures) can rapidly release a trait from its ancestral constraint in one direction (loss) while blocking re-evolution in the other."
+      },
+      {
+        "h": "Key Innovations as Constraint-Breakers",
+        "p": "A key innovation (e.g., the pharyngeal jaw in cichlid fish) can free a lineage from a prior structural limitation, opening new regions of morphospace and often triggering the adaptive radiations discussed in L18."
+      },
+      {
+        "h": "Genome Duplication and New Raw Material",
+        "p": "Whole-genome duplication events (documented at the base of vertebrates and again in teleost fish) provide redundant gene copies that can evolve new functions, loosening pleiotropic constraints that had linked ancestral traits together."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Common Misconceptions About Trends and Constraints",
+    "items": [
+      "Misconception: \"A trend in the fossil record proves selection favored that direction.\" Reality: passive diffusion from a boundary can produce an identical trend line without any directional selection",
+      "Misconception: \"Constraint means evolution is stuck or has stopped.\" Reality: constrained lineages can still diversify enormously — constraint shapes the AXES along which diversification happens, it doesn't halt diversification",
+      "Misconception: \"Evolutionary trends apply to every lineage in a clade equally.\" Reality: trends describe the aggregate/average pattern; many individual lineages within a trending clade may show no trend or even the opposite pattern",
+      "Misconception: \"Constraints are permanent.\" Reality: constraints can be released over evolutionary time by key innovations, genome duplication, or relaxed selection, as the previous slide's examples show"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Species Selection",
+    "sub": "A genuinely macroevolutionary process — selection above the level of the individual"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Species Selection",
+    "term": "Species Selection",
+    "def": "A higher-level evolutionary process in which differences among species in their rates of speciation and/or extinction — driven by species-level traits (\"emergent characters\") — determine which lineages proliferate and which go extinct, independent of how those traits affect the fitness of individual organisms within each species.",
+    "bullets": [
+      "Analogous in structure to natural selection acting on individuals, but the \"units\" being sorted are entire species, and the \"currency\" is speciation and extinction rate rather than individual birth and death rate",
+      "First formalized by Steven Stanley in the 1970s as an extension of hierarchical selection theory",
+      "Considered by many evolutionary biologists to be the clearest candidate for a process that operates ONLY at the macroevolutionary scale and cannot be reduced to individual-level selection summed over time"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TELLING THE LEVELS APART",
+    "title": "Species Selection vs. Individual-Level Selection",
+    "left": {
+      "h": "Individual-Level (Ordinary) Selection",
+      "body": "<p>Operates within a single population/species.</p><ul><li>Unit sorted: individual organisms</li><li>Currency: differential survival and reproduction of individuals</li><li>Timescale: generations within a species' existence</li><li>Example: within a bird population, individuals with better camouflage survive predation and leave more offspring — allele frequencies shift</li></ul>"
+    },
+    "right": {
+      "h": "Species Selection",
+      "body": "<p>Operates among species within a clade, over geological time.</p><ul><li>Unit sorted: whole species (or lineages)</li><li>Currency: differential rates of speciation and extinction of species</li><li>Timescale: millions of years, across many species' origins and extinctions</li><li>Example: within a clade, species with broad geographic ranges may have consistently lower extinction rates than narrowly distributed species, so the clade comes to be dominated by wide-ranging species over time — regardless of any individual-level fitness advantage</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT COUNTS AS A SPECIES-LEVEL TRAIT",
+    "title": "Emergent Characters That Can Drive Species Selection",
+    "items": [
+      "Geographic range size — widely distributed species tend to have lower extinction risk (more resistant to localized disturbance) than narrowly endemic species",
+      "Population structure and gene flow — species broken into many small, semi-isolated populations may speciate more readily than species with one large panmictic population",
+      "Mating system and sexual selection intensity — strong sexual selection can accelerate reproductive isolation and thus speciation rate in some clades",
+      "Dispersal ability — species with low dispersal (e.g., some snails, flightless insects) may speciate faster because populations become isolated more easily, but may also face higher extinction risk from local catastrophes",
+      "Ecological specialization vs. generalism — narrow specialists may speciate readily as they track fragmented resources, but generalists often persist longer through environmental change",
+      "Critical point: these are properties of populations/species as wholes, not of the individual organisms that compose them — an individual organism doesn't \"have\" a geographic range or a speciation rate"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A KEY DISTINCTION",
+    "title": "Vrba's Effect Hypothesis vs. Species Selection Proper",
+    "left": {
+      "h": "Species Sorting via the \"Effect Hypothesis\"",
+      "body": "<p>Paleontologist Elisabeth Vrba distinguished cases where a trait's association with speciation/extinction rate is a <b>side-effect of ordinary individual-level selection</b>.</p><ul><li>Example: a trait favored by individual selection for a narrow diet also happens to make populations more geographically fragmented, incidentally raising speciation rate</li><li>Here the trait is under individual selection; its effect on species-level rates is an emergent by-product, not the target of a higher-level selective process</li></ul>"
+    },
+    "right": {
+      "h": "True Species Selection",
+      "body": "<p>Vrba reserved \"species selection\" strictly for cases where the trait affecting speciation/extinction rate has <b>no direct individual-level fitness effect</b> at all.</p><ul><li>Example: geographic range size itself is not a trait an individual organism \"has\" — it is a property that only exists at the population/species level</li><li>Only these cases are unambiguous evidence of an evolutionary process operating irreducibly above the individual</li><li>This distinction is central to the modern debate over how much macroevolutionary pattern truly requires higher-level selection</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CLASSIC CASES",
+    "title": "Evidence Cited for Species Selection",
+    "cards": [
+      {
+        "h": "Cretaceous Marine Gastropods (Jablonski)",
+        "p": "David Jablonski's studies of fossil marine snails found that species with planktonic (widely dispersing) larvae had lower extinction rates than species with non-dispersing larvae — a species-level trait (larval dispersal mode) predicting species-level survival, distinct from any individual-level fitness effect."
+      },
+      {
+        "h": "Brooding vs. Broadcasting Bivalves",
+        "p": "Bivalve clades with brooding reproduction (retaining young, low dispersal) tend to show higher speciation rates but also higher extinction rates than broadcast-spawning clades with high dispersal — illustrating a trait affecting both sides of the species-selection ledger."
+      },
+      {
+        "h": "Sexual Dimorphism and Speciation Rate",
+        "p": "Some comparative analyses across bird and fish clades suggest that strong sexual dimorphism/sexual selection correlates with elevated speciation rates, consistent with a species-level effect of a trait that also operates on individuals within populations."
+      },
+      {
+        "h": "North American Mammal Body Size",
+        "p": "Analyses of Cenozoic mammal clades have been used to test whether body-size trends (Cope's Rule again) partly reflect species selection — larger-bodied species surviving extinction pulses better — linking Part 1's trends discussion directly to species selection."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE SELECTION HIERARCHY",
+    "title": "Levels of Selection Compared",
+    "headers": [
+      "Level",
+      "Unit Sorted",
+      "Currency",
+      "Timescale"
+    ],
+    "rows": [
+      [
+        "Gene-level selection",
+        "Alleles",
+        "Differential replication of alleles",
+        "Generations"
+      ],
+      [
+        "Individual-level selection",
+        "Organisms",
+        "Differential survival and reproduction",
+        "Generations"
+      ],
+      [
+        "Species selection",
+        "Species/lineages",
+        "Differential speciation and extinction rates",
+        "Millions of years"
+      ],
+      [
+        "Clade selection (contested)",
+        "Entire clades",
+        "Differential clade diversification/persistence",
+        "Tens of millions of years"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON HIGHER-LEVEL SELECTION",
+    "quote": "If a trait spreads through a clade not because it makes individual organisms fitter, but because species bearing it speciate faster or go extinct less often, then something is happening in evolution that cannot be seen by watching any single population for even a very long time.",
+    "attrib": "paraphrased summary of Steven Stanley's species selection hypothesis, as presented in Zimmer & Emlen, Ch. 14"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CRITIQUES AND CAUTIONS",
+    "title": "Is Species Selection Really Necessary?",
+    "items": [
+      "Skeptics argue that many apparent cases of species selection can be re-described as the aggregate outcome of individual-level selection operating consistently across many populations, without needing a distinct higher-level process",
+      "Distinguishing true species selection from 'species sorting' (a trait's association with survival is a side-effect of individual selection, not a cause acting at the species level) is empirically very difficult",
+      "The clearest, least controversial cases involve traits that have no plausible individual-level fitness effect at all (e.g., geographic range size, degree of population subdivision) — these are the strongest evidence for a genuinely emergent species-level process",
+      "Even skeptics generally agree species selection is at least theoretically coherent — the debate is mainly about how often it is the primary explanation for an observed pattern, not whether it can occur",
+      "This debate mirrors the broader units-of-selection controversy in evolutionary biology (individual vs. group vs. gene vs. species level) that recurs throughout the field"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION",
+    "title": "Applying the Framework: Discussion Questions",
+    "items": [
+      "If a clade shows increasing average body size after a mass extinction, what specific data would you need to determine whether this is a driven trend, passive diffusion, or species selection favoring larger-ranged (and often larger-bodied) survivors?",
+      "Can you think of a trait that plausibly has NO individual-level fitness effect but could still bias a species' extinction risk — i.e., a strong candidate for Vrba's strict definition of species selection?",
+      "How would you distinguish a developmental constraint from a case where selection simply never favored a particular form because it was never advantageous in any environment the lineage encountered?",
+      "Given everything in Chapter 14, is macroevolution best described as 'more of the same' population-genetic processes scaled up, or as a domain requiring genuinely new theoretical concepts? Defend your answer with at least two specific examples from this chapter"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "Chapter 14 Synthesis",
+    "sub": "Tempo/mode, adaptive radiation, mass extinction, and trends/constraints as one picture of macroevolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING THE THREADS",
+    "title": "Species Selection Needs Punctuated Equilibrium",
+    "items": [
+      "Species selection (Part 3) presupposes that species are reasonably discrete, stable entities with clear origination and extinction events — exactly the picture painted by punctuated equilibrium (L17), where most change is concentrated at speciation and species persist in stasis between",
+      "Under strict phyletic gradualism, where lineages blend continuously into descendants with no sharp speciation events, it becomes harder to define the discrete 'species' units that species selection requires",
+      "This is one reason punctuated equilibrium and species selection were developed by an overlapping community of paleontologists (Eldredge, Gould, Stanley) in the 1970s as a connected package of ideas about macroevolution",
+      "It illustrates how the four topics of this chapter are not independent — the tempo/mode debate from L17 has direct consequences for whether species selection (L20) is even a coherent, testable process"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE FOUR PILLARS OF CHAPTER 14",
+    "title": "Putting the Whole Chapter Together",
+    "headers": [
+      "Topic (Lecture)",
+      "Central Question",
+      "Key Mechanism/Pattern"
+    ],
+    "rows": [
+      [
+        "Tempo & mode (L17)",
+        "Does evolutionary change accumulate gradually or in rapid bursts?",
+        "Punctuated equilibrium (rapid change at speciation, stasis between) vs. phyletic gradualism"
+      ],
+      [
+        "Adaptive radiation (L18)",
+        "Why do some lineages diversify explosively into many species and niches?",
+        "Ecological opportunity (new habitat, key innovation, or reduced competition) unlocks rapid speciation and niche differentiation"
+      ],
+      [
+        "Mass extinction & recovery (L19)",
+        "What happens when most of life is wiped out, and how does it recover?",
+        "Selectivity of extinction reshuffles the adaptive landscape; survivors seed new radiations in the aftermath"
+      ],
+      [
+        "Trends & constraints (L20)",
+        "Does life move in consistent directions, and why doesn't it evolve every possible form?",
+        "Driven vs. passive trends; developmental/phylogenetic/physical/genetic constraints; species selection as a higher-level sorting process"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "HIERARCHY OF PROCESS",
+    "title": "Levels at Which Macroevolutionary Pattern Is Generated",
+    "levels": [
+      {
+        "label": "Clade-level diversification patterns",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Species selection (speciation/extinction rates)",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Species-level events (speciation, extinction)",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Population-level selection & drift",
+        "color": "#a85a68",
+        "width": "380px"
+      },
+      {
+        "label": "Individual variation from development",
+        "color": "#c47b87",
+        "width": "300px"
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "GEOLOGICAL THREAD",
+    "title": "Chapter 14's Concepts Mapped Onto Deep Time",
+    "items": [
+      {
+        "y": "~541 Ma",
+        "t": "Cambrian explosion establishes most major animal body plans — the deep phylogenetic constraints still visible today originate here"
+      },
+      {
+        "y": "~252 Ma",
+        "t": "End-Permian mass extinction (\"the Great Dying\") removes ~90% of marine species, resetting ecological opportunity"
+      },
+      {
+        "y": "~251–200 Ma",
+        "t": "Early Triassic recovery and radiation of archosaurs, setting the stage for dinosaur diversification — adaptive radiation following mass extinction"
+      },
+      {
+        "y": "~66 Ma",
+        "t": "End-Cretaceous mass extinction removes non-avian dinosaurs; surviving mammal lineages undergo rapid adaptive radiation into vacated niches"
+      },
+      {
+        "y": "~66–0 Ma",
+        "t": "Cenozoic body-size trends in mammals (Cope's Rule debates) unfold against this post-extinction ecological backdrop, shaped throughout by developmental constraint and, plausibly, species selection"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE UNIFYING IDEA",
+    "title": "What Makes This All \"Macroevolution\"?",
+    "items": [
+      "Every topic in Chapter 14 describes pattern or process visible only when you zoom out to the scale of species, clades, and geological time — none of them can be fully seen or tested by studying a single population over a few generations",
+      "Tempo/mode is about how change is distributed across a lineage's whole history, not about any one speciation event",
+      "Adaptive radiation is about the branching pattern of many lineages from a common ancestor, not about adaptation within one population",
+      "Mass extinction is about which of many co-existing lineages survive a rare, catastrophic event — often for reasons unrelated to normal-time fitness",
+      "Trends require tracking a statistic across an entire clade through time; constraints require comparing what evolution did produce to the much larger space of what it did not",
+      "Species selection is the clearest case of all: a process defined entirely at the level of species, with no individual-level analogue",
+      "Together, these show that macroevolutionary theory needs its own vocabulary and its own tests — it is continuous with microevolution in its ultimate genetic basis, but not reducible to a simple sum of population genetics"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SYNTHESIS",
+    "title": "How the Four Pillars Interact",
+    "left": {
+      "h": "Extinction Sets Up Radiation",
+      "body": "<p>Mass extinction (L19) is often the trigger for adaptive radiation (L18):</p><ul><li>Clearing dominant lineages creates the ecological opportunity that radiations require</li><li>The K-Pg extinction's removal of non-avian dinosaurs is the textbook case enabling mammalian radiation</li><li>Recovery intervals after mass extinctions show elevated rates of both speciation and morphological innovation — tempo (L17) speeding up in real time</li></ul>"
+    },
+    "right": {
+      "h": "Trends and Constraints Shape the Outcome",
+      "body": "<p>What a radiation produces is not unlimited (L20):</p><ul><li>Developmental and phylogenetic constraints channel radiating lineages toward modifying an inherited body plan, not inventing new ones</li><li>Apparent trends within a post-extinction radiation (e.g., renewed increase in body size) must be checked against the driven-vs-passive framework before being attributed to selection</li><li>Species selection may determine which of the newly radiated lineages ultimately proliferate versus dead-end, adding a filter on top of ordinary individual selection</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHY IT MATTERS",
+    "title": "Practical Stakes of the Trends/Constraints/Species-Selection Framework",
+    "cards": [
+      {
+        "h": "Conservation Prioritization",
+        "p": "If species-level traits like range size and population subdivision predict extinction risk independent of individual fitness, conservation biology can use these traits to flag vulnerable species before population declines are even detected."
+      },
+      {
+        "h": "Predicting Responses to Climate Change",
+        "p": "Understanding whether current biodiversity trends reflect driven selection or passive/constraint-limited processes affects how confidently we can extrapolate future trajectories under rapid environmental change."
+      },
+      {
+        "h": "Evo-Devo and Synthetic Biology",
+        "p": "Mapping developmental constraints tells bioengineers which modifications to an organism's body plan are developmentally 'easy' versus requiring deep rewiring of conserved gene networks."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "Chapter 14 in Four Ideas",
+    "cards": [
+      {
+        "h": "Pattern ≠ Process",
+        "p": "A directional trend, a burst of diversification, or a selective extinction can each be produced by more than one underlying mechanism — rigorous macroevolutionary science tests among alternative processes rather than assuming the most dramatic one."
+      },
+      {
+        "h": "History Constrains the Future",
+        "p": "Development and phylogeny do not just record the past — they actively bias which future forms are accessible to selection, making evolution a path-dependent process, not a free search of morphospace."
+      },
+      {
+        "h": "Selection Can Act Above the Organism",
+        "p": "Species selection shows that Darwinian logic — heritable variation in a unit's rate of proliferation — can apply at the level of whole species, not only individual organisms."
+      },
+      {
+        "h": "Macroevolution Needs Deep Time",
+        "p": "None of this chapter's four core phenomena is visible on human timescales; they only emerge from the fossil record's record of hundreds of millions of years, which is why paleontology remains central to evolutionary theory."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "Lecture 20 Recap",
+    "items": [
+      "Evolutionary trends (e.g., Cope's Rule) can arise either from directional selection (\"driven\") or from a bounded random walk away from a starting limit (\"passive diffusion\") — telling them apart requires tracking minima and variance, not just the mean",
+      "Developmental, phylogenetic, physical, and genetic constraints together explain why realized biological diversity is a small, structured subset of all conceivable forms — connecting directly back to Evolution I's evo-devo toolkit-gene material",
+      "Species selection is a higher-level evolutionary process in which species-level traits (range size, dispersal, population structure) bias speciation and extinction rates, independent of individual-level fitness — the strongest current candidate for a process unique to the macroevolutionary scale",
+      "Chapter 14 as a whole establishes that macroevolution has its own patterns (tempo/mode, radiation, extinction selectivity, trends/constraints) that require explanations beyond simply extrapolating population genetics over long time",
+      "This closes out Chapter 14 — next we shift from the long-run dynamics of single lineages to how species evolve in response to each other"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "COMING UP — LECTURE 21",
+    "title": "Chapter 15: Intimate Partnerships",
+    "sub": "Coevolution — how interacting species become each other's most important selective force"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Preview: What Chapter 15 Will Cover",
+    "items": [
+      "Coevolution — reciprocal evolutionary change between two or more interacting species (predator/prey, host/parasite, plant/pollinator)",
+      "Evolutionary arms races and the Red Queen dynamic — why lineages must keep evolving just to maintain the same relative fitness against evolving partners/antagonists",
+      "Mutualism vs. antagonism — how the same coevolutionary logic can produce cooperation (pollination, gut symbionts) or conflict (host-parasite escalation)",
+      "Coevolution reintroduces population-level, generation-by-generation selection (the Evolution I toolkit) but now embedded in a macroevolutionary web of interacting lineages — a natural bridge from Chapter 14's single-lineage focus",
+      "Come prepared having skimmed Chapter 15, sections 1–2, on the biology of the acacia ant/acacia tree mutualism"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 20</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

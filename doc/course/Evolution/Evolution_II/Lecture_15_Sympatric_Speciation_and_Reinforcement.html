@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 15: Sympatric Speciation and Reinforcement</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 15",
+    "title": "Sympatric Speciation and Reinforcement",
+    "sub": "Speciation without geographic isolation, and how reproductive isolation is strengthened on secondary contact",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 13, \"The Origin of Species\" (lecture 3 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "RECAP",
+    "title": "Where We Left Off",
+    "sub": "Lecture 14: allopatric, peripatric, and parapatric speciation — all require some form of spatial separation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AGENDA",
+    "title": "What We'll Cover Today",
+    "items": [
+      "Quick recap: the geographic modes of speciation and why sympatric speciation seemed impossible to early evolutionary biologists",
+      "Defining sympatric speciation and the strict criteria required to demonstrate it",
+      "Why sympatric speciation was — and to some extent still is — the most controversial mode of speciation",
+      "The theoretical requirements: disruptive selection, a genetic link between habitat/resource use and mate choice, and assortative mating",
+      "Case studies: apple maggot fly host races, African crater lake cichlids, and Lord Howe Island palms",
+      "Reinforcement: how selection against hybrids can complete the speciation process at secondary contact",
+      "Reproductive character displacement as the key empirical signature of reinforcement",
+      "Comparing allopatric and sympatric speciation side by side",
+      "Preview of Lecture 16: hybrid zones, ring species, and pulling Chapter 13 together"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP — LECTURE 14",
+    "title": "The Geographic Modes, Briefly",
+    "items": [
+      "Allopatric speciation: populations split by an extrinsic geographic barrier (river, mountain range, ocean) that blocks gene flow entirely",
+      "Peripatric speciation: a special case of allopatric speciation involving a small peripheral population, strong genetic drift, and founder effects",
+      "Parapatric speciation: populations remain in adjacent, continuous ranges with limited gene flow across a contact zone, often tracking an environmental gradient",
+      "Common thread: in all three modes, some degree of spatial separation reduces gene flow enough for divergence to accumulate",
+      "The open question for today: can new species arise with NO spatial separation at all, when populations remain fully intermixed?"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL ARC",
+    "title": "The Sympatric Speciation Debate Over Time",
+    "items": [
+      {
+        "y": "1859",
+        "t": "Darwin discusses 'sympatric' varieties forming without isolation in On the Origin of Species, though he does not use the modern term"
+      },
+      {
+        "y": "1930s-40s",
+        "t": "Dobzhansky and Mayr build the Modern Synthesis around geographic isolation as the primary route to speciation, casting doubt on sympatric models"
+      },
+      {
+        "y": "1963-1966",
+        "t": "Mayr's Animal Species and Evolution and Maynard Smith's early models frame sympatric speciation as theoretically fragile"
+      },
+      {
+        "y": "1969-1980s",
+        "t": "Guy Bush proposes host-race formation in Rhagoletis flies as a plausible sympatric mechanism, reviving the debate"
+      },
+      {
+        "y": "1999",
+        "t": "Dieckmann & Doebeli and Kondrashov & Kondrashov publish influential models showing sympatric speciation is mathematically feasible"
+      },
+      {
+        "y": "2006",
+        "t": "Savolainen et al. publish the Lord Howe Island Howea palm study, widely cited as strong evidence in plants"
+      },
+      {
+        "y": "2000s-present",
+        "t": "Genomic tools allow rigorous testing of historical gene flow, refining (and in some cases challenging) earlier sympatric claims"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Sympatric Speciation",
+    "term": "Sympatric Speciation",
+    "def": "The evolution of a new species from an ancestral population while both populations continue to occupy the same geographic area, with no extrinsic physical barrier to gene flow.",
+    "bullets": [
+      "\"Sym-\" (together) + \"-patric\" (homeland) — literally speciation \"in the same place\"",
+      "Reproductive isolation must arise despite individuals having continuous opportunity to interbreed",
+      "Requires that isolation be generated by biological, not geographic, forces — disruptive selection and non-random mating",
+      "Contrasts directly with allopatric speciation, where isolation is a side effect of physical separation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Why Sympatric Speciation Was So Controversial",
+    "items": [
+      "Ernst Mayr, the architect of the Biological Species Concept, argued for decades that sympatric speciation was essentially impossible in sexually reproducing animals",
+      "Mayr's logic: with individuals freely encountering and mating with one another, gene flow should homogenize any incipient divergence before it could become permanent",
+      "Recombination each generation was thought to break apart the gene combinations needed to link habitat preference with mate choice",
+      "Early 20th-century theory (Mayr, Dobzhansky) treated geographic isolation as a near-prerequisite for speciation, making sympatric models seem like special pleading",
+      "Many early \"sympatric\" examples turned out, on closer inspection, to have a hidden microgeographic or allopatric phase — this bred deep skepticism",
+      "It took decades of mathematical modeling (Maynard Smith 1966 onward) and, later, genomic data to show that sympatric speciation is theoretically plausible and empirically real, though probably rarer than allopatric speciation",
+      "Even today, biologists debate how strict the criteria for demonstrating sympatric speciation should be"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BURDEN OF PROOF",
+    "title": "Criteria for Demonstrating True Sympatric Speciation",
+    "items": [
+      "The two species' current ranges must overlap extensively, with no plausible period of past geographic isolation",
+      "The species must be one another's closest relatives (sister taxa), ruling out that they diverged elsewhere and both dispersed into the same area later (a false positive called 'secondary sympatry')",
+      "The species must be reproductively isolated by biological mechanisms operating despite co-occurrence",
+      "A biologically plausible mechanism for how divergence and isolation could evolve in sympatry must be identifiable and, ideally, ongoing or observable",
+      "These criteria (formalized by Sergey Gavrilets, Dolph Schluter, and others) are demanding — this is precisely why confirmed sympatric speciation cases remain limited in number"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY MECHANISM",
+    "title": "Magic Traits",
+    "term": "Magic Trait",
+    "def": "A single trait (or tightly linked set of genes) that simultaneously influences both ecological adaptation and mate choice, so that divergence in the trait automatically produces assortative mating without requiring a separate preference gene to evolve.",
+    "bullets": [
+      "Coined and popularized in the sympatric speciation literature (e.g., by Sergey Gavrilets) to describe the theoretically 'easiest' route to sympatric speciation",
+      "Because ecology and mating are the same trait, there is no recombination problem — the two functions cannot be separated by crossing over",
+      "Host-plant choice in phytophagous insects (as in Rhagoletis) is the textbook magic trait: where you feed is also where and with whom you mate",
+      "Body size or timing traits can also act as magic traits when they simultaneously affect resource use and mating opportunity (e.g., breeding phenology)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK — EVOLUTION I, LECTURE 20",
+    "title": "Disruptive Selection",
+    "term": "Disruptive Selection",
+    "def": "A mode of natural selection that favors individuals at both phenotypic extremes of a trait distribution while selecting against intermediate phenotypes, tending to produce or maintain a bimodal distribution.",
+    "bullets": [
+      "Recall from Evolution I: disruptive selection is one of three classic modes of selection on a quantitative trait, alongside directional and stabilizing selection",
+      "In a single panmictic population, disruptive selection alone tends to just maintain variance — it does not by itself create new species",
+      "For sympatric speciation, disruptive selection is necessary but not sufficient: it must be coupled to assortative mating so that the two favored phenotypes stop interbreeding",
+      "Classic driver: resource competition, where intermediate phenotypes are outcompeted by specialists at each extreme (e.g., seed size specialists in Darwin's finches)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE ENGINE OF SYMPATRIC SPECIATION",
+    "title": "Why Disruptive Selection Is the Starting Point",
+    "items": [
+      "A resource or habitat axis (e.g., host plant, prey size, depth in the water column) offers a fitness landscape with two adaptive peaks and a fitness valley in between",
+      "Individuals with intermediate phenotypes fall in the valley — they are competitively inferior at exploiting either resource optimally",
+      "This creates persistent selection pushing the population toward the two peaks, generating a bimodal phenotype distribution",
+      "Bimodality alone is not speciation — without a mechanism preventing interbreeding between the two peaks, gene flow will pull the population back toward the intermediate, less-fit phenotype each generation",
+      "The critical next step is a mechanism that links which peak an individual sits on to who it mates with — this is where assortative mating enters"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE MISSING LINK",
+    "title": "Mechanisms of Assortative Mating",
+    "left": {
+      "h": "Habitat/Resource-Based Assortment",
+      "body": "<p>Mating occurs where feeding or development happens, so individuals that specialize on the same resource automatically encounter each other more often than they encounter individuals on the other resource.</p><ul><li>Mate choice is an indirect byproduct of habitat/host choice, not a separate trait under direct selection</li><li>Example: apple maggot flies court and mate on the fruit they feed on, so host shift alone generates partial assortative mating</li><li>Requires no new mutation for a mating preference — pleiotropy or simple behavioral coupling suffices</li></ul>"
+    },
+    "right": {
+      "h": "Direct Mate-Choice Preferences",
+      "body": "<p>A genetically based preference evolves for mates with a particular phenotype (e.g., body size, color, song), often the same trait under disruptive selection or one genetically linked to it.</p><ul><li>Requires \"magic traits\" or tight linkage disequilibrium between the ecological trait and the mating-preference trait so recombination does not decouple them</li><li>Example: cichlid mate choice based on male coloration that correlates with visual environment/depth</li><li>More vulnerable to being broken down by recombination unless genetically linked</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE THEORETICAL CHALLENGE",
+    "title": "Why Recombination Is the Central Obstacle",
+    "items": [
+      "For sympatric speciation to succeed, alleles for ecological specialization and alleles for mate preference must stay statistically associated (in linkage disequilibrium) across generations",
+      "In a sympatric population with random mating and free recombination, this association breaks down quickly, erasing incipient divergence",
+      "Solutions favored by theory: physical linkage of the relevant genes on a chromosome, pleiotropy (one gene affecting both traits), or \"magic traits\" where the same trait mediates both ecology and mating",
+      "Host-use traits that double as mating cues (as in phytophagous insects) are a particularly powerful magic-trait scenario because a single switch changes both niche and mate encounter rate",
+      "Modeling by Dieckmann and Doebeli (1999) and Kondrashov and Kondrashov (1999) showed sympatric speciation is mathematically feasible under realistic conditions, reviving serious interest in the topic"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A FOURTH ROUTE",
+    "title": "Polyploidy: The Clearest Case of Instantaneous Sympatric Speciation",
+    "items": [
+      "Polyploidy arises when an individual inherits extra complete chromosome sets, often through errors in meiosis or fertilization, producing offspring with, e.g., four (tetraploid) instead of two (diploid) chromosome sets",
+      "A polyploid individual is frequently unable to produce fertile offspring when crossed back to its diploid parents because chromosome pairing during meiosis fails — this creates instant, complete postzygotic isolation in a single generation",
+      "If the polyploid can self-fertilize or find another polyploid mate, a new, reproductively isolated lineage is established immediately, entirely within the parental population's range",
+      "Polyploidy is common in plants (estimated in the ancestry of a large fraction of flowering plant species) but rare in animals, partly because it disrupts chromosomal sex-determination systems",
+      "This mechanism is intentionally set apart from the ecological/behavioral sympatric speciation discussed today (Rhagoletis, cichlids, Howea) because it requires no disruptive selection or assortative mating — the isolation is a direct, immediate genetic consequence"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES",
+    "title": "Three Classic (and Debated) Examples",
+    "cards": [
+      {
+        "h": "Apple Maggot Fly",
+        "p": "Rhagoletis pomonella host races on hawthorn versus introduced apple trees, tracked since the 1850s — an ongoing, real-time test case for sympatric speciation via host shift."
+      },
+      {
+        "h": "African Crater Lake Cichlids",
+        "p": "Small, isolated volcanic crater lakes in Cameroon (e.g., Lake Barombi Mbo, Lake Bermin) host cichlid species flocks that appear to have diversified in sympatry via disruptive selection on diet and depth."
+      },
+      {
+        "h": "Lord Howe Island Palms",
+        "p": "Two Howea palm species on a single small island appear to have speciated in sympatry, driven by divergence in flowering time and soil-type preference (limestone vs. volcanic soils)."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY 1",
+    "title": "Apple Maggot Fly Host Races",
+    "term": "Rhagoletis pomonella",
+    "def": "A tephritid fruit fly native to North America whose larvae historically fed exclusively on hawthorn fruit, but which formed a genetically distinguishable 'apple race' after apple trees were introduced from Europe in the 1800s.",
+    "bullets": [
+      "Adult flies mate on or near the fruit they emerged from, making host-fruit choice and mate choice the same behavioral act — a textbook 'magic trait' scenario",
+      "Apple fruit ripens earlier than hawthorn fruit, so a shift in emergence timing accompanied the host shift, further reducing encounter rates between the two races",
+      "Genetic differentiation has been detected at loci linked to diapause timing (emergence timing) and host-plant chemical recognition",
+      "The two races remain sympatric, geographically overlapping, and only partially reproductively isolated — making this one of the best-documented examples of sympatric speciation in progress rather than completed"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RHAGOLETIS IN DETAIL",
+    "title": "Why Rhagoletis Convinced Many Skeptics",
+    "items": [
+      "Historical record is unusually precise: the apple race was first documented in the Hudson Valley, New York, in 1864, giving researchers a known 'start date' for divergence — under 200 years, evolutionarily very recent",
+      "Guy Bush's pioneering work in the 1960s–1980s proposed host-race formation via habitat isolation as a sympatric speciation mechanism, based on this system",
+      "Later molecular work (Feder, Filchak, and colleagues) confirmed measurable allele-frequency differences between apple-race and hawthorn-race flies at genes tied to diapause and host cues",
+      "Some residual gene flow between the races still occurs, which is exactly why this system is treated as 'speciation in action' rather than a fully closed case — it shows the process, not just the endpoint",
+      "A key caveat: because divergence is incomplete, this case demonstrates the plausibility of the mechanism rather than proving a fully sympatric origin with certainty — critics note some geographic structure in fly distribution could contribute"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY 2",
+    "title": "African Crater Lake Cichlids",
+    "term": "Crater Lake Cichlid Flocks",
+    "def": "Small, young volcanic crater lakes in Cameroon, isolated with no inlet or outlet streams, that nonetheless contain multiple endemic cichlid species derived from a single common ancestor.",
+    "bullets": [
+      "Because these lakes are geologically simple (small, round, uniform, no sub-basins), there is no obvious opportunity for allopatric divergence within the lake — making them a strong test case for sympatric speciation",
+      "Species within a lake diverge along ecological axes: body depth, jaw morphology, and diet (algae scraping vs. zooplankton feeding vs. insect predation)",
+      "Disruptive selection on diet/foraging morphology is thought to be linked, via female mate-choice preferences for male coloration, to reproductive isolation",
+      "Lake Barombi Mbo (11 endemic cichlid species) and Lake Bermin (9 endemic species) are the flagship examples analyzed by Schliewen, Tautz, and Paabo, among others"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CICHLIDS CONTINUED",
+    "title": "Evaluating the Cichlid Evidence",
+    "items": [
+      "Molecular phylogenies show each lake's cichlid species form a monophyletic group (all descended from one common ancestor), consistent with in-lake diversification rather than multiple colonizations",
+      "Lake age (often under 1 million years, some much younger) constrains how much time was available — divergence had to happen fast, favoring strong disruptive selection over gradual allopatric drift",
+      "Assortative mating is linked to visual cues (male nuptial coloration) that differ with water depth and light environment, coupling habitat use to mate preference much like the 'magic trait' concept",
+      "Critics point out that even a small crater lake could have had transient microhabitat isolation (e.g., shoreline vs. open water) during early colonization, so some residual allopatric or micro-allopatric contribution cannot be fully excluded",
+      "Despite this caveat, crater lake cichlids remain among the strongest documented cases of sympatric speciation in vertebrates, alongside the broader (but geographically more complex) East African great lakes cichlid radiations"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY 3",
+    "title": "Lord Howe Island Palms",
+    "term": "Howea Palm Speciation",
+    "def": "Two palm species, Howea forsteriana and Howea belmoreana, both endemic to the tiny (about 15 km2) Lord Howe Island off eastern Australia, that appear to have speciated sympatrically within the last few million years.",
+    "bullets": [
+      "Because the island is so small and has no obvious internal geographic barrier, allopatric divergence within it is implausible — the two species' ranges broadly overlap",
+      "Divergence tracks soil type: H. belmoreana favors volcanic-derived soils while H. forsteriana favors calcarenite (limestone-derived) soils, though both grow across a range of the island",
+      "Flowering time differs by several weeks between the species, reducing opportunities for cross-pollination even where their ranges overlap — a form of temporal, not spatial, isolation",
+      "Savolainen and colleagues (2006) used molecular dating and genetic data to argue this represents a compelling sympatric speciation case in a flowering plant"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY PLANTS ARE A DIFFERENT CASE",
+    "title": "Sympatric Speciation Is Often Easier to Envision in Plants",
+    "items": [
+      "Plants are sessile, so pollinator behavior, flowering phenology, and soil/microhabitat preference can generate strong assortative mating without any animal-like 'mate choice' cognition",
+      "Polyploidy (whole-genome duplication) offers plants an especially fast, well-documented route to instantaneous sympatric speciation — a polyploid individual is often immediately reproductively isolated from its diploid parents (covered in more depth conceptually here; detailed genetics is in Chapter 13's broader treatment)",
+      "The Lord Howe palms illustrate a non-polyploid, purely ecological/phenological route to sympatric speciation, complementing the polyploidy route",
+      "Together, plant systems have historically provided some of the least disputed sympatric speciation evidence, partly because polyploid speciation can be verified using chromosome counts alone"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS SO FAR",
+    "title": "What the Three Case Studies Have in Common",
+    "items": [
+      "In each case, a resource or habitat axis (host fruit, lake diet/depth, soil type) creates disruptive selection",
+      "In each case, the trait under ecological selection is directly or indirectly coupled to mating — via shared mating site, visual mate cues tied to habitat, or flowering-time shifts",
+      "In each case, some degree of debate persists about whether a hidden microgeographic component contributed to isolation — reflecting how demanding the criteria for 'true' sympatric speciation are",
+      "None of the three is a case of instantaneous speciation; all represent processes unfolding over generations to a few million years, distinguishing them from mechanisms like polyploidy",
+      "Collectively, they shift the scientific consensus from Mayr's near-categorical rejection to a view that sympatric speciation is real, but likely less common than allopatric speciation and typically requires strong ecological selection"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "GENETICS OF THE FLY",
+    "title": "Rhagoletis: What the Genome Shows",
+    "left": {
+      "h": "Chromosomal Inversions",
+      "body": "<p>Genetic differentiation between apple and hawthorn races is concentrated in a small number of chromosomal regions rather than spread evenly across the genome.</p><ul><li>Several of these regions correspond to chromosomal inversions, which suppress recombination between race-specific alleles even with ongoing gene flow</li><li>Inversions protect co-adapted gene combinations (diapause timing + host recognition) from being broken up — functionally solving the recombination problem theory predicts</li></ul>"
+    },
+    "right": {
+      "h": "Diapause Timing Genes",
+      "body": "<p>Apple fruit ripens roughly three to four weeks earlier than hawthorn fruit in most of the flies' range.</p><ul><li>Genes controlling the timing of pupal diapause (dormancy) differ between races, shifting adult emergence to match each host's fruiting time</li><li>This produces allochronic (time-based) isolation layered on top of the habitat-based isolation from mate-finding on the host fruit itself</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "SECOND HALF",
+    "title": "Reinforcement",
+    "sub": "What happens when two incipient species meet again after partial divergence"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Reinforcement",
+    "term": "Reinforcement",
+    "def": "The process by which natural selection strengthens prezygotic reproductive isolation between two incompletely diverged populations when they come into secondary contact, because hybrid offspring have reduced fitness.",
+    "bullets": [
+      "Reinforcement operates on populations that have already diverged somewhat — typically in allopatry — and then re-establish contact, making it distinct from (but sometimes complementary to) sympatric speciation",
+      "The driving force is selection against hybrids: if hybrids are less fit than either parental type, then any heritable variation in mate discrimination that reduces hybridization will be favored",
+      "Over time, this increases prezygotic isolation (mate choice, courtship signals, breeding timing) specifically in the zone of contact",
+      "Named and popularized by Dobzhansky (1937, 1940) as part of the modern synthesis view of speciation completion"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A NOTE ON TERMINOLOGY",
+    "title": "Reinforcement's Earlier Name: The Wallace Effect",
+    "items": [
+      "Alfred Russel Wallace first suggested in the 1880s that natural selection could favor traits reducing hybridization between related forms — the underlying idea behind reinforcement predates Dobzhansky by half a century",
+      "For this reason, reinforcement is sometimes called the 'Wallace effect' in the older literature, honoring Wallace's early intuition",
+      "Dobzhansky formalized and named the process 'reinforcement' in 1937 and 1940, embedding it within the Modern Synthesis framework of gradual, selection-driven speciation",
+      "Both terms describe the same underlying process: selection strengthening prezygotic isolation because of the fitness cost of hybridization"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE LOGIC OF REINFORCEMENT",
+    "title": "Selection Against Hybrids, Step by Step",
+    "left": {
+      "h": "The Setup",
+      "body": "<p>Two populations diverge in allopatry (e.g., after a period of geographic separation), accumulating genetic differences.</p><ul><li>Divergence is not yet complete — postzygotic isolation exists but is partial</li><li>Hybrids, if produced, are less fit than either 'pure' parental type — they may be sterile, weak, or poorly adapted to either parental niche (see hybrid unfitness and Dobzhansky-Muller incompatibilities, covered in earlier lectures)</li><li>Geographic barrier breaks down (climate change, range expansion, dispersal) and the two populations meet again — secondary contact</li></ul>"
+    },
+    "right": {
+      "h": "The Selective Response",
+      "body": "<p>Because mating across the boundary wastes reproductive effort on unfit hybrid offspring, any individual with a stronger preference for same-type mates leaves more surviving, fertile descendants.</p><ul><li>Selection therefore favors alleles that sharpen mate discrimination — divergent courtship songs, pheromones, breeding times, or color patterns</li><li>This selection is strongest exactly at the zone of contact/overlap, where hybridization risk is highest</li><li>Result: prezygotic isolating mechanisms become stronger in sympatry than they are among populations that remain purely allopatric</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A SUBTLETY",
+    "title": "Reinforcement and 'Speciation by Reinforcement' vs. Reinforcement Completing Other Modes",
+    "items": [
+      "Some authors distinguish 'speciation by reinforcement' (where the process directly generates a new species from a hybrid zone) from reinforcement as a general strengthening process acting on already largely-formed species",
+      "In many textbook treatments, reinforcement is discussed as the final stage that pushes populations across the threshold from 'good biological species with occasional hybridization' to 'fully isolated species with negligible hybridization'",
+      "This means reinforcement can operate on a continuum — from populations barely differentiated to populations that are already nearly complete species — and its evolutionary importance differs across that range",
+      "The concept is central to understanding why some closely related species show strong isolation exactly where they co-occur, and weaker isolation (or continued low-level hybridization) elsewhere in their ranges"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONDITIONS FOR REINFORCEMENT",
+    "title": "When Does Reinforcement Succeed vs. Fail?",
+    "items": [
+      "Hybrid fitness must be sufficiently low; if hybrids are nearly as fit as parental types, there is little selective cost to interbreeding and reinforcement stalls",
+      "There must be heritable variation in mate discrimination ability for selection to act on",
+      "Gene flow must not be so high that it swamps the local buildup of stronger discrimination before selection can act",
+      "If hybrid fitness is very low and gene flow at the contact zone is intense, an alternative outcome is that one species is driven locally extinct or displaced rather than reinforcement succeeding — reinforcement is not guaranteed",
+      "The two populations must not be so diverged already that they are already fully isolated — reinforcement finishes speciation, it does not start it from scratch"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A COMMON MISCONCEPTION",
+    "title": "Reinforcement Is Not a Speciation Mode by Itself",
+    "items": [
+      "Reinforcement does not create new species from a single panmictic population — it requires populations that are already partially diverged, typically via a prior allopatric (or sometimes parapatric) phase",
+      "Because of this, reinforcement is best understood as a mechanism that completes speciation, not one of the four primary geographic categories (allopatric, peripatric, parapatric, sympatric) covered in this unit",
+      "Reinforcement can, however, act during the final stages of what looks like sympatric contact — this has led to some historical confusion between 'sympatric speciation' and 'reinforcement at secondary contact,' which are conceptually distinct",
+      "The key distinguishing question: did divergence begin because of a geographic split (then reinforcement finishes it), or did it begin entirely without any spatial separation (true sympatric speciation)?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE EVIDENCE FOR REINFORCEMENT",
+    "title": "Reproductive Character Displacement",
+    "term": "Reproductive Character Displacement",
+    "def": "A pattern in which mating signals or preferences (e.g., mating calls, coloration, flowering time, pheromones) differ more strongly between two species where their ranges overlap (sympatry) than where the species occur alone (allopatry).",
+    "bullets": [
+      "This is the empirical 'signature' biologists look for to infer that reinforcement has occurred historically",
+      "Analogous in logic to ecological character displacement (covered in the community ecology unit), but the displaced traits here mediate mate recognition rather than resource use",
+      "A rigorous test compares trait divergence in sympatric populations against trait divergence in allopatric populations of the same two species pairs",
+      "Classic examples include divergent mating calls in Australian field crickets and Gastrophryne narrow-mouthed toads, and divergent flower morphology/timing in some plant species pairs"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE PATTERN",
+    "title": "How Biologists Test for Reproductive Character Displacement",
+    "items": [
+      "Step 1: Identify a mating trait that differs between two closely related species (e.g., call frequency, color pattern, flowering date)",
+      "Step 2: Compare that trait's divergence in populations from zones of sympatry versus zones where only one species is present (allopatry)",
+      "Step 3: If the trait is more divergent in sympatry than in allopatry, this is consistent with reinforcement having acted specifically where hybridization risk was present",
+      "Step 4: Rule out alternative explanations — for instance, ecological character displacement or an unrelated environmental gradient could also produce a similar geographic pattern, so careful controls are needed",
+      "A frequently cited example: in spadefoot toads and in Drosophila species pairs, females from sympatric populations discriminate against heterospecific males more strongly than females from allopatric populations of the same species"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "REINFORCEMENT IN NATURE",
+    "title": "Well-Studied Examples of Reproductive Character Displacement",
+    "cards": [
+      {
+        "h": "Gastrophryne Toads",
+        "p": "Narrow-mouthed toads (G. carolinensis and G. olivacea) show greater divergence in male mating calls where their ranges overlap than where each species occurs alone, reducing costly hybridization."
+      },
+      {
+        "h": "Australian Field Crickets",
+        "p": "Teleogryllus species show call-frequency divergence that is amplified in sympatric populations, consistent with selection against hybrid matings."
+      },
+      {
+        "h": "Drosophila pseudoobscura / D. persimilis",
+        "p": "Female mating discrimination against heterospecific males is markedly stronger in sympatric populations than in allopatric populations of D. pseudoobscura — a classic textbook case Dobzhansky himself studied."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAUTION",
+    "title": "Alternative Explanations for the Same Pattern",
+    "items": [
+      "Not every case of greater divergence in sympatry reflects reinforcement — researchers must rule out competing hypotheses before concluding reinforcement occurred",
+      "Ecological character displacement (divergence in resource use to reduce competition) can produce a correlated shift in body size or morphology that indirectly affects mating signals",
+      "Sampling artifacts: if allopatric populations are systematically drawn from different environments than sympatric ones, environmental variation alone could explain trait differences",
+      "Reproductive character displacement is best supported when the displaced trait has a demonstrated direct role in mate choice and species discrimination, not merely a correlation with location"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RELATED CONCEPT",
+    "title": "Reproductive Isolation as a Byproduct vs. a Target of Selection",
+    "term": "Prezygotic vs. Postzygotic Reinforcement Targets",
+    "def": "Reinforcement specifically strengthens prezygotic isolating mechanisms (behaviors and traits that prevent mating or fertilization) because postzygotic incompatibilities (hybrid sterility/inviability) cannot themselves be favored by selection acting on the parents in the same direct way.",
+    "bullets": [
+      "Selection cannot act to increase postzygotic isolation directly, because by definition postzygotic problems only appear after a hybrid has already been formed — there is no way to 'select for more hybrid sterility' in the parents themselves",
+      "Selection CAN act on prezygotic traits (mate choice, courtship, timing) in the parents, because parents that avoid producing unfit hybrids in the first place have higher fitness",
+      "This asymmetry is why reinforcement is defined specifically in terms of increasing prezygotic isolation, even though the underlying cost driving it (low hybrid fitness) is often a postzygotic phenomenon",
+      "This connects back to the distinction between prezygotic and postzygotic isolating mechanisms introduced earlier in the speciation unit"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS",
+    "title": "Allopatric vs. Sympatric Speciation",
+    "headers": [
+      "Feature",
+      "Allopatric Speciation",
+      "Sympatric Speciation"
+    ],
+    "rows": [
+      [
+        "Geographic requirement",
+        "Physical barrier separates populations; no ongoing gene flow",
+        "Populations remain in contact; potential gene flow throughout divergence"
+      ],
+      [
+        "Primary driver",
+        "Genetic drift and/or divergent selection accumulating independently",
+        "Strong disruptive selection tightly linked to assortative mating"
+      ],
+      [
+        "Role of gene flow",
+        "Absent or negligible during divergence",
+        "Present and must be actively overcome by selection"
+      ],
+      [
+        "Typical timescale",
+        "Variable; often gradual, can be rapid in peripatric cases",
+        "Can be rapid if selection and linkage are strong, but requires strict conditions"
+      ],
+      [
+        "Key theoretical obstacle",
+        "Relatively minor — isolation is a given once the barrier exists",
+        "Recombination breaking down linkage between ecological and mating traits"
+      ],
+      [
+        "Controversy level historically",
+        "Long accepted as the default/most common mode since the Modern Synthesis",
+        "Highly controversial for decades; still requires strict criteria to confirm a given case"
+      ],
+      [
+        "Representative example",
+        "Kaibab squirrel populations split by the Grand Canyon",
+        "Rhagoletis apple maggot fly host races; Howea palms of Lord Howe Island"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PUTTING IT TOGETHER",
+    "title": "Sympatric Speciation and Reinforcement Compared",
+    "left": {
+      "h": "Sympatric Speciation",
+      "body": "<p>Begins with a single, spatially unified population.</p><ul><li>Isolation must be generated de novo, entirely by biological mechanisms</li><li>Disruptive selection plus assortative mating does the whole job</li><li>Occurs without any prior geographic split</li></ul>"
+    },
+    "right": {
+      "h": "Reinforcement",
+      "body": "<p>Begins with two populations that are already partially diverged, usually via a prior geographic split.</p><ul><li>Isolation is strengthened, not created from scratch</li><li>Selection against hybrid fitness is the driving force</li><li>Occurs specifically at secondary contact zones</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS DISTINCTION MATTERS",
+    "title": "Common Exam Pitfall: Conflating the Two Processes",
+    "items": [
+      "A very frequent error is to describe reinforcement as if it were a fifth 'geographic mode' of speciation alongside allopatric, peripatric, parapatric, and sympatric — it is not; it is a completion mechanism that can act at the end of any of these processes",
+      "Reinforcement is most often discussed in the context of secondary contact after allopatric divergence, but the same logic (selection against hybrids strengthens prezygotic isolation) could in principle apply wherever two incompletely isolated lineages meet",
+      "Sympatric speciation, in contrast, describes the entire process from a single starting population to two reproductively isolated ones, occurring without ever leaving sympatry",
+      "When answering exam questions, always ask: 'Were these populations ever geographically separated before contact?' If yes and isolation increased upon contact, think reinforcement. If no geographic separation ever occurred, think sympatric speciation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TYING BACK TO METHODS",
+    "title": "How Do Biologists Distinguish Sympatric Speciation From Secondary Contact After Cryptic Allopatry?",
+    "items": [
+      "Molecular clock and coalescent methods can estimate whether gene flow between two lineages was continuous throughout divergence (consistent with sympatric origin) or interrupted and then resumed (consistent with allopatric divergence followed by secondary contact)",
+      "Programs implementing isolation-with-migration (IM) models test explicitly for a period of zero gene flow in a lineage's history, which would falsify a purely sympatric scenario",
+      "Geological and paleoclimatic reconstruction (e.g., past lake levels, past sea levels, historical vegetation) helps rule out whether a currently sympatric pair could have been separated in the recent past",
+      "These quantitative approaches are precisely what elevated cases like the crater lake cichlids and Rhagoletis flies from suggestive natural history to rigorously supported science"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A DEEPER LOOK",
+    "title": "Why Small, Simple Habitats Make the Best Sympatric Speciation Test Cases",
+    "items": [
+      "Small volcanic crater lakes and small oceanic islands (like Lord Howe) are favored study systems precisely because their geography is simple enough to rule out cryptic allopatry with reasonable confidence",
+      "A large, structurally complex habitat (a big lake with bays and depth gradients, or a large continent) offers many opportunities for populations to become spatially separated temporarily, muddying the sympatric interpretation",
+      "This is also why the apple maggot fly system is compelling despite occurring across a broad geographic range — the key isolating step (mating on the natal fruit) operates at the scale of an individual tree, not the landscape, keeping the ecological mechanism genuinely sympatric even though the flies as a whole are spread over a large area",
+      "Study system choice is therefore not incidental — it directly determines how convincingly a sympatric speciation claim can be defended"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL STRUCTURE",
+    "title": "Requirements for Sympatric Speciation to Succeed",
+    "levels": [
+      {
+        "label": "Disruptive selection on an ecological trait",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Genetic/behavioral link to mate choice",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Strengthening assortative mating",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Reduced gene flow between morphs",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Complete reproductive isolation",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "HISTORICAL PERSPECTIVE",
+    "quote": "Sympatric speciation... has been one of the most controversial issues in evolutionary biology, largely because of the difficulty of ruling out a role for geography.",
+    "attrib": "Paraphrased from the debate synthesized by Coyne & Orr, Speciation (2004)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CURRENT CONSENSUS",
+    "title": "Where the Field Stands Today",
+    "items": [
+      "Sympatric speciation is now accepted as a real, demonstrated phenomenon, particularly well-supported in plants (via polyploidy) and in some phytophagous insects and lake fish",
+      "It is generally considered less common than allopatric speciation, because the conditions (strong disruptive selection + tight linkage to mate choice) are restrictive",
+      "Host-specific insects, crater lake fish, and small-island endemics remain the best-studied systems because they naturally minimize opportunities for a hidden geographic component",
+      "Reinforcement is broadly accepted as an important process completing speciation at secondary contact, supported by numerous documented cases of reproductive character displacement across many taxa",
+      "Modern genomic tools (whole-genome sequencing, demographic modeling of historical gene flow) are now the primary means of testing old case studies with much greater rigor than was possible in Mayr's era"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BIG PICTURE",
+    "title": "How Today Fits Into the Chapter 13 Arc",
+    "left": {
+      "h": "Lecture 14 — Geography-Driven Isolation",
+      "body": "<p>Allopatric, peripatric, and parapatric speciation all rely on some degree of spatial separation to initiate and maintain divergence.</p><ul><li>Geography does the heavy lifting of restricting gene flow</li><li>Biological mechanisms (selection, drift) act on top of that spatial structure</li></ul>"
+    },
+    "right": {
+      "h": "Lecture 15 — Biology-Driven Isolation",
+      "body": "<p>Sympatric speciation and reinforcement show that reproductive isolation can also be generated or strengthened by biological processes acting with little or no help from geography.</p><ul><li>Disruptive selection plus assortative mating substitutes for a geographic barrier</li><li>Reinforcement shows selection actively sculpting isolation once lineages meet again</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Unresolved Questions Heading Into Lecture 16",
+    "items": [
+      "If two diverging lineages come back into contact but reinforcement does NOT fully succeed, what is the resulting outcome? This is where hybrid zones come in",
+      "Can a chain of populations around a geographic ring show us divergence accumulating gradually enough that the endpoints behave as separate species even though every neighboring population can interbreed? This is the ring species problem",
+      "How do biologists integrate all four speciation modes (allopatric, peripatric, parapatric, sympatric) plus reinforcement into a single coherent framework for 'the origin of species' as a chapter-level concept?",
+      "These threads will be pulled together in Lecture 16 to close out Chapter 13 before the course moves on to macroevolutionary patterns"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "QUICK REVIEW",
+    "title": "Key Terms From Today",
+    "cards": [
+      {
+        "h": "Sympatric Speciation",
+        "p": "New species arise within a single geographic area with no physical barrier to gene flow."
+      },
+      {
+        "h": "Disruptive Selection",
+        "p": "Selection favoring both phenotypic extremes and disfavoring intermediates, creating a bimodal distribution."
+      },
+      {
+        "h": "Reinforcement",
+        "p": "Selection against hybrids strengthens prezygotic isolation at secondary contact between partially diverged populations."
+      },
+      {
+        "h": "Reproductive Character Displacement",
+        "p": "Mating traits diverge more in sympatry than allopatry — the empirical signature of reinforcement."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY CHECK",
+    "title": "Questions You Should Be Able to Answer",
+    "items": [
+      "Why did Ernst Mayr consider sympatric speciation implausible, and what theoretical development changed that view?",
+      "What two conditions must jointly be met for disruptive selection to produce sympatric speciation, rather than just maintaining a bimodal population?",
+      "Explain how the apple maggot fly's biology makes host choice and mate choice the same behavioral event — why does this matter for overcoming recombination?",
+      "Distinguish reinforcement from sympatric speciation using the criterion of prior geographic history",
+      "Describe how you would test for reproductive character displacement in a pair of closely related species, and what alternative explanation you would need to rule out",
+      "Why do the crater lake cichlid and Lord Howe palm cases remain subject to some ongoing debate despite being widely cited as strong examples?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "End-of-Lecture Recap",
+    "items": [
+      "Sympatric speciation produces new species within a single interbreeding population with no geographic barrier, and it requires disruptive selection tightly coupled to assortative mating to overcome the homogenizing force of recombination and gene flow",
+      "It was historically dismissed by Mayr and others but is now supported by strong case studies: Rhagoletis apple maggot fly host races, African crater lake cichlid flocks, and Lord Howe Island Howea palms",
+      "Each case remains subject to some scrutiny over whether a hidden microgeographic component contributed, reflecting the strict criteria needed to confirm true sympatric origin",
+      "Reinforcement is a distinct process: it strengthens prezygotic isolation between already-diverged populations when they meet again in secondary contact, driven by selection against unfit hybrids",
+      "Reproductive character displacement — greater divergence of mating traits in sympatry than allopatry — is the primary evidence used to detect reinforcement in nature",
+      "Together with Lecture 14's allopatric, peripatric, and parapatric modes, today completes our survey of how reproductive isolation can originate and be strengthened across the geographic spectrum"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT TIME — LECTURE 16",
+    "title": "Hybrid Zones, Ring Species, and Chapter 13 Synthesis",
+    "sub": "What happens where diverging lineages meet: stable hybrid zones, the puzzle of ring species, and pulling together everything from this chapter on the origin of species"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 15</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

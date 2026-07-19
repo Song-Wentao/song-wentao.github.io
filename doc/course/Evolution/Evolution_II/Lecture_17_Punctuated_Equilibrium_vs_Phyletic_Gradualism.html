@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 17: Punctuated Equilibrium vs Phyletic Gradualism</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 17",
+    "title": "Punctuated Equilibrium vs. Phyletic Gradualism",
+    "sub": "How fast does evolution happen, and in what pattern? Reading the tempo and mode of change in the fossil record.",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 14, \"Macroevolution: The Long Run\" (lecture 1 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 14 · MACROEVOLUTION",
+    "title": "Zooming Out: From Species to Deep Time",
+    "sub": "Chapter 13 (Lectures 13–16) asked how new species form. Chapter 14 asks what happens next: how do the patterns we see over millions of years — stasis, bursts of change, whole radiations and extinctions — emerge from those speciation events? We return to the fossil record first introduced in Evolution I, Chapter 3, but now as a record of pattern and tempo rather than just a record of common descent."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We'll Cover",
+    "items": [
+      "Define macroevolution and distinguish it from microevolution",
+      "Phyletic gradualism: the traditional Darwinian expectation for the fossil record",
+      "Punctuated equilibrium: Eldredge and Gould's 1972 alternative model",
+      "Stasis as a phenomenon in its own right — what the fossil evidence actually shows",
+      "The debate: evidence, criticisms, and common misunderstandings of punctuated equilibrium",
+      "Reconciliation: Simpson's tempo-and-mode framework and the modern consensus"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BRIDGE FROM CHAPTER 13",
+    "title": "Recall: What Speciation Established",
+    "items": [
+      "Speciation is the process by which one lineage splits into two or more reproductively isolated lineages",
+      "We covered allopatric, peripatric, parapatric, and sympatric modes of speciation, and the genetics of reproductive isolation",
+      "Speciation events are, in principle, observable on human timescales — they are a microevolutionary-to-macroevolutionary bridge",
+      "Chapter 14's question: when we look at long sequences of fossils spanning millions of years, do we see the cumulative product of many small, gradual speciation-linked changes, or something else?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Macroevolution",
+    "term": "Macroevolution",
+    "def": "Evolutionary patterns and processes occurring at or above the species level, typically studied over geological timescales (thousands to hundreds of millions of years) — including speciation rates, extinction, adaptive radiation, long-term trends in morphology, and the origin of major new body plans.",
+    "bullets": [
+      "Contrasts with microevolution: generation-to-generation change in allele frequencies within a population",
+      "Macroevolution is not a distinct genetic mechanism — it is what accumulated microevolutionary processes look like when viewed at large temporal and taxonomic scale (the mainstream view), though the relationship between the two scales is itself part of what this chapter examines",
+      "Chapter 14 opens a four-lecture unit: tempo/mode (today), adaptive radiation, mass extinction and diversity dynamics, and long-term evolutionary trends"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SCALE MATTERS",
+    "title": "Microevolution vs. Macroevolution",
+    "left": {
+      "h": "Microevolution",
+      "body": "<p>Change within populations and species, tracked across generations.</p><ul><li>Allele frequency change via selection, drift, mutation, migration</li><li>Timescale: generations to centuries</li><li>Directly observable — Darwin's finches, peppered moths, guppy studies</li><li>The domain of Evolution I (Ch. 1–9)</li></ul>"
+    },
+    "right": {
+      "h": "Macroevolution",
+      "body": "<p>Patterns above the species level, tracked across geological time.</p><ul><li>Origination and extinction of species and higher taxa</li><li>Timescale: thousands to hundreds of millions of years</li><li>Inferred from the fossil record, phylogenetics, and comparative biology</li><li>The domain of Chapter 14 and this unit</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE EVIDENTIARY BASIS",
+    "title": "Why the Fossil Record Matters Here",
+    "items": [
+      "Evolution I, Chapter 3 established the fossil record as evidence for the fact of evolution and for the antiquity of life",
+      "In Chapter 14, we use that same record differently — not just asking whether change occurred, but reading its pattern: was change gradual and continuous, or concentrated in short bursts?",
+      "This requires dense, well-sampled sedimentary sequences: many fossil-bearing layers stacked in continuous time order, ideally with fine enough resolution to track a single lineage through hundreds of thousands of years",
+      "Such sequences are rare, which is part of why the gradualism/punctuated-equilibrium debate has been so contentious — good test cases are hard to find"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Phyletic Gradualism",
+    "term": "Phyletic Gradualism",
+    "def": "The hypothesis that morphological evolution within a lineage proceeds by the slow, steady, more-or-less continuous accumulation of small changes over long spans of time, with no sharp discontinuities — the traditional reading of Darwin's own expectations for the fossil record.",
+    "bullets": [
+      "Predicts that, given a sufficiently complete fossil sequence, one species should grade imperceptibly into its descendant",
+      "Species boundaries under this view are somewhat arbitrary points along a continuum, not sharply bounded units",
+      "Darwin himself worried that the fossil record's apparent jumps were an artifact of its incompleteness, not evidence against gradualism"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE TRADITIONAL VIEW",
+    "title": "Gradualism and \"The Imperfection of the Geological Record\"",
+    "left": {
+      "h": "Darwin's Expectation",
+      "body": "<p>In <em>On the Origin of Species</em>, Darwin predicted that natural selection, acting on small heritable variations generation after generation, should produce a fine, insensibly graded series of forms connecting ancestor to descendant.</p><ul><li>No natural breaks between species in an ideal, complete record</li><li>Rate of change roughly constant over time</li><li>Change occurs throughout a species' existence, not concentrated at any one point</li></ul>"
+    },
+    "right": {
+      "h": "The Problem He Recognized",
+      "body": "<p>The fossil record Darwin actually had access to showed abrupt appearances and long gaps, not smooth transitions.</p><ul><li>Darwin attributed this to an incomplete, poorly sampled rock record — most organisms never fossilize, and most fossil-bearing rock is never found or exposed</li><li>This became known as \"the imperfection of the geological record\" — a working assumption that better sampling would eventually fill the gaps with gradual sequences</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FROM THE SOURCE",
+    "quote": "Why then is not every geological formation and every stratum full of such intermediate links? Geology assuredly does not reveal any such finely graduated organic chain; and this, perhaps, is the most obvious and gravest objection which can be urged against my theory. The explanation lies, as I believe, in the extreme imperfection of the geological record.",
+    "attrib": "Charles Darwin, On the Origin of Species (1859)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TESTABLE PREDICTIONS",
+    "title": "What Gradualism Predicts in the Rocks",
+    "items": [
+      "A continuous morphological series linking ancestral and descendant forms, with no sharp break at the species boundary",
+      "Change distributed roughly evenly across the lineage's stratigraphic (time) range, not concentrated near its origin",
+      "The rate of morphological change should be comparable whether or not a speciation event is occurring nearby in time",
+      "Given enough fossiliferous section, intermediate forms should be recoverable — their apparent absence is a sampling problem, not a biological one"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SCALES OF ANALYSIS",
+    "title": "Levels at Which Macroevolutionary Pattern Is Studied",
+    "levels": [
+      {
+        "label": "Population / within-species variation",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Lineage change through time (this lecture)",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Clade diversification & radiation",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Biota-wide trends & mass extinction",
+        "color": "#a85a68",
+        "width": "320px"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "REVIEW FROM CHAPTER 13",
+    "title": "Allopatric & Peripatric Speciation",
+    "term": "Allopatric / Peripatric Speciation",
+    "def": "Allopatric speciation is the formation of new species in geographically separated populations; peripatric speciation is a special case in which a small population at the periphery of the ancestral range becomes isolated and diverges rapidly.",
+    "bullets": [
+      "Reviewed in detail in Lectures 13–14; here we need only the core prediction — small, isolated peripheral populations diverge fastest",
+      "This is the population-genetic engine that punctuated equilibrium proposes drives the \"punctuation\" step in the fossil record",
+      "Recall that sympatric and parapatric speciation, also covered in Chapter 13, do not carry the same strong prediction of small population size, and so are less central to the punctuated equilibrium argument"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEFORE 1972",
+    "title": "The Prevailing Assumption in Paleontology",
+    "items": [
+      "For over a century after Darwin, most paleontologists worked within an unstated uniformitarian assumption: given long enough time series, gradual change should eventually be recovered",
+      "Apparent morphological \"jumps\" between successive fossil samples were routinely treated as sampling gaps to be filled by future collecting, not as data points in their own right",
+      "This assumption shaped what counted as a publishable result — smoothed, apparently gradual trends were seen as confirming expectation, while abrupt transitions were often set aside as artifacts",
+      "Eldredge and Gould's contribution was as much methodological as empirical: they asked paleontologists to treat the pattern actually observed as the default hypothesis, rather than editing it toward gradualism"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE 1972 CHALLENGE",
+    "title": "A New Reading of an Old Record",
+    "sub": "In 1972, two young paleontologists — Niles Eldredge and Stephen Jay Gould — argued that the fossil record's gaps were not merely an artifact of poor preservation. They proposed that stasis and sudden appearance were often real biological signals, not sampling failures."
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Punctuated Equilibrium",
+    "term": "Punctuated Equilibrium",
+    "def": "The hypothesis, proposed by Niles Eldredge and Stephen Jay Gould (1972), that the typical tempo of morphological evolution consists of long periods of little to no net change (stasis) punctuated by comparatively rapid bursts of morphological change concentrated around speciation events.",
+    "bullets": [
+      "\"Rapid\" here is geologically rapid — on the order of thousands to tens of thousands of years, still gradual generation-to-generation, but a geological instant compared to the millions of years of subsequent stasis",
+      "The model predicts that most morphological change in a lineage's history is packed into a small fraction of its total duration",
+      "Explicitly framed as an application of allopatric/peripatric speciation theory (Mayr) to the fossil record, not a rejection of Darwinian mechanisms"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE ORIGINAL MODEL",
+    "title": "Eldredge & Gould (1972): \"Punctuated Equilibria: An Alternative to Phyletic Gradualism\"",
+    "left": {
+      "h": "The Core Argument",
+      "body": "<p>Eldredge and Gould reanalyzed classic fossil sequences (including Eldredge's own work on Devonian trilobites) and argued that:</p><ul><li>Species typically appear abruptly in the record and persist with little morphological change for long spans — <strong>stasis</strong></li><li>New species arise rapidly, typically via allopatric/peripatric speciation in small, peripheral populations that leave little fossil trace</li><li>The abrupt transitions long blamed on an \"imperfect record\" are, at least sometimes, a real signal of how evolution actually proceeds</li></ul>"
+    },
+    "right": {
+      "h": "Why Speciation Drives the Burst",
+      "body": "<p>The model borrows directly from Ernst Mayr's allopatric speciation theory:</p><ul><li>Rapid divergence is expected in small, peripherally isolated populations (peripatric speciation), where drift and strong selection act quickly on limited gene pools</li><li>Such populations are geographically restricted and short-lived in geological terms — exactly the conditions under which fossilization is least likely</li><li>By the time the new form is common and widespread enough to fossilize regularly, its rapid-change phase is already over — explaining why intermediates are rarely found</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Why 1972 Was a Turning Point",
+    "items": [
+      "The paper appeared in the influential volume Models in Paleobiology, edited by Thomas Schopf, part of a broader push to make paleontology more rigorously theoretical and quantitative",
+      "It directly challenged an assumption so entrenched that many paleontologists had stopped treating it as a hypothesis at all — that gaps in fossil sequences simply reflect missing data",
+      "Eldredge and Gould argued paleontologists had been unconsciously editing their own data: smoothing observed jumps into implied gradual series to match theoretical expectation",
+      "The paper ignited one of the most prominent and public debates in twentieth-century evolutionary biology, drawing in geneticists, systematists, and philosophers of science alongside paleontologists"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HOW THE DEBATE UNFOLDED",
+    "title": "Punctuated Equilibrium: A Timeline",
+    "items": [
+      {
+        "y": "1859",
+        "t": "Darwin, On the Origin of Species: predicts gradual change; attributes fossil gaps to an imperfect geological record"
+      },
+      {
+        "y": "1944",
+        "t": "George Gaylord Simpson, Tempo and Mode in Evolution: distinguishes rate (tempo) from pattern (mode) of evolutionary change"
+      },
+      {
+        "y": "1954",
+        "t": "Ernst Mayr formalizes allopatric and peripatric speciation theory, emphasizing rapid divergence in small peripheral populations"
+      },
+      {
+        "y": "1972",
+        "t": "Eldredge & Gould publish \"Punctuated Equilibria: An Alternative to Phyletic Gradualism\""
+      },
+      {
+        "y": "1977",
+        "t": "Gould & Eldredge follow-up paper responds to criticism and clarifies the model's claims and limits"
+      },
+      {
+        "y": "1980s–90s",
+        "t": "Wave of empirical tests: bryozoans (Cheetham), snails (Williamson), trilobites, foraminifera; mixed results fuel continued debate"
+      },
+      {
+        "y": "2007",
+        "t": "Hunt's meta-analysis of fossil time series finds stasis, gradualism, and random-walk patterns all occur — with no single mode dominant"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Stasis",
+    "term": "Stasis",
+    "def": "The persistence of a species' morphology with little or no net directional change over a substantial span of geological time, despite the species existing across many generations and often across varying environmental conditions.",
+    "bullets": [
+      "Stasis is not the same as \"no evolution\" — populations may still show generation-to-generation variation, local adaptation, and fluctuation; the point is the absence of sustained, cumulative, directional change at the lineage level",
+      "Eldredge and Gould argued stasis is itself a data pattern requiring explanation, not simply an absence of data",
+      "Some lineages persist in recognizable morphological stasis for millions to tens of millions of years — famous examples include Lingula-like brachiopods and horseshoe crabs, often loosely called \"living fossils\""
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE FOR STASIS",
+    "title": "What Well-Sampled Sequences Show",
+    "items": [
+      "Devonian trilobites (Phacops rana group), studied by Eldredge in New York State: morphology remains stable for long intervals, then shifts abruptly in eye structure, coinciding with inferred speciation",
+      "Pleistocene freshwater bryozoans (Metrarabdotos and related genera), studied by Alan Cheetham in Caribbean sediments: species remain statistically indistinguishable in shape for millions of years before new morphotypes appear abruptly",
+      "Ordovician trilobites and other well-sampled marine invertebrate lineages show similar patterns of long morphological stability punctuated by comparatively rapid shifts",
+      "Critically, these are cases with unusually dense, continuous stratigraphic sampling — exactly the conditions needed to distinguish real stasis from a sampling artifact"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CLASSIC CASE STUDIES",
+    "title": "Fossil Sequences Central to the Debate",
+    "cards": [
+      {
+        "h": "Phacops rana Trilobites",
+        "p": "Eldredge's own doctoral work on Devonian trilobites in New York showed eye-lens number stable for long intervals, then shifting rapidly — the empirical seed of the 1972 model."
+      },
+      {
+        "h": "Caribbean Bryozoans",
+        "p": "Cheetham's statistically rigorous, high-resolution study of Metrarabdotos found ~90% of species showed stasis, with new species appearing abruptly rather than budding off gradually."
+      },
+      {
+        "h": "Turritella and Gastropod Lineages",
+        "p": "Some marine snail lineages instead show clearer evidence of gradual, directional shell-shape change over time — used as counter-examples supporting gradualism in particular clades."
+      },
+      {
+        "h": "Bahamian Land Snails (Cerion)",
+        "p": "Studied extensively by Gould himself; showed complex mosaic patterns of both stasis and rapid shifts, illustrating that real fossil sequences rarely fit either model perfectly."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "IN THEIR OWN WORDS",
+    "quote": "Stasis is our most secure and useful piece of paleontological information for macroevolutionary theory... we had actively suppressed stasis as no data, or trivial non-information, simply because our theory had never sanctioned its serious consideration.",
+    "attrib": "Niles Eldredge & Stephen Jay Gould, on why the 1972 model treated stasis as evidence rather than an absence of evidence"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM LINK",
+    "title": "Why Tie Rapid Change to Speciation?",
+    "left": {
+      "h": "Population Genetics of Small, Isolated Populations",
+      "body": "<p>Peripatric speciation (a special case of allopatric speciation) involves small populations isolated at the edge of a species' range.</p><ul><li>Smaller populations respond faster to selection and drift — less genetic inertia to overcome</li><li>Founder effects can rapidly shift allele frequencies away from the ancestral state</li><li>Novel local selective pressures at range margins can drive rapid divergence</li></ul>"
+    },
+    "right": {
+      "h": "Consequences for the Fossil Record",
+      "body": "<p>These same features make the transitional population nearly invisible to fossilization.</p><ul><li>Small population size → low probability of individuals being preserved</li><li>Restricted geographic range → low probability the right rock outcrops were ever sampled</li><li>Short duration of the rapid-change interval → thin or absent stratigraphic representation</li><li>Result: the new species appears to \"pop in\" fully formed once it becomes large and widespread enough to fossilize reliably</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE LOGIC, RESTATED",
+    "title": "Punctuated Equilibrium Is Speciation Theory Applied to Time Series",
+    "items": [
+      "Eldredge and Gould's key move was not proposing a new mechanism of change — it was predicting what allopatric/peripatric speciation, already established from living organisms, should look like when preserved in rock",
+      "If most speciation is peripatric and rapid, and if most standing diversity consists of large, stable, central populations, then most of a lineage's fossil-recorded history should be stasis, with rare punctuation marks at speciation",
+      "This reframes the fossil record's gappiness: gaps at species boundaries may be a predictable consequence of speciation biology, not (only) an artifact of poor preservation",
+      "The model therefore ties macroevolutionary pattern directly back to microevolutionary process — an important point often missed in later popular debate"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "HEAD TO HEAD",
+    "title": "Phyletic Gradualism vs. Punctuated Equilibrium",
+    "headers": [
+      "Feature",
+      "Phyletic Gradualism",
+      "Punctuated Equilibrium"
+    ],
+    "rows": [
+      [
+        "Predicted fossil pattern",
+        "Smooth, continuous morphological series linking ancestor to descendant",
+        "Long intervals of stasis separated by abrupt morphological transitions"
+      ],
+      [
+        "Where change is concentrated",
+        "Spread evenly across a lineage's entire duration",
+        "Concentrated near speciation events, at the start of a new lineage's history"
+      ],
+      [
+        "Rate of change",
+        "Roughly constant, slow, incremental",
+        "Highly variable — near zero during stasis, geologically rapid during speciation"
+      ],
+      [
+        "Relationship to speciation",
+        "Change and speciation are largely decoupled; change continues within a lineage regardless of splitting",
+        "Change is tightly coupled to speciation; most net change occurs when new species originate"
+      ],
+      [
+        "Explanation for fossil gaps",
+        "Incompleteness of the geological/fossil record",
+        "Partly a real biological signal — rapid, geographically localized speciation leaves little trace"
+      ],
+      [
+        "View of species boundaries",
+        "Somewhat arbitrary points on a continuum",
+        "Real, discrete units bounded by bursts of change at origin and stasis thereafter"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE ROCKS",
+    "title": "Distinguishing the Two Patterns in Practice",
+    "items": [
+      "Requires a stratigraphic sequence sampled finely and continuously enough to resolve change on the scale of tens of thousands of years, across a lineage's full range",
+      "Statistical tests compare observed morphological time series against models of directional change, stasis (with only sampling/measurement noise), and random walks",
+      "A single ambiguous case is rarely decisive — both camps have historically contested the interpretation of the same datasets",
+      "Modern studies increasingly quantify morphology with geometric morphometrics and apply explicit statistical model-selection rather than relying on visual inspection of trends"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MODERN TOOLKIT",
+    "title": "How Paleontologists Test Tempo and Mode Today",
+    "cards": [
+      {
+        "h": "Geometric Morphometrics",
+        "p": "Digitizes shape as coordinate landmarks, allowing precise, repeatable quantification of morphological change between fossil samples rather than qualitative description."
+      },
+      {
+        "h": "Model-Selection Statistics",
+        "p": "Fits alternative statistical models — stasis, directional trend, random walk — to a time series and uses formal criteria (e.g., AIC) to identify the best-supported mode, rather than relying on visual judgment."
+      },
+      {
+        "h": "High-Resolution Stratigraphy",
+        "p": "Combines radiometric dating, magnetostratigraphy, and fine bed-by-bed sampling to build tightly time-constrained sequences capable of resolving change on scales of thousands of years."
+      },
+      {
+        "h": "Large Comparative Databases",
+        "p": "Compiling many independent fossil time series (as in Hunt's 2007 study) allows testing whether a pattern is a general feature of evolution or an idiosyncrasy of a few famous case studies."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SETTING THE RECORD STRAIGHT",
+    "title": "Common Misunderstandings of Punctuated Equilibrium",
+    "cards": [
+      {
+        "h": "Not Saltation",
+        "p": "Punctuated equilibrium does not propose single-generation \"hopeful monster\" leaps. \"Rapid\" means thousands of generations — still gradual change in the ordinary Darwinian sense, just fast on a geological clock."
+      },
+      {
+        "h": "Not Anti-Darwinian",
+        "p": "Eldredge and Gould explicitly built the model on standard population genetics and Mayr's allopatric speciation theory. It is a claim about tempo and pattern, not a rejection of natural selection as the driving mechanism."
+      },
+      {
+        "h": "Not a Universal Law",
+        "p": "The model was proposed as the more common pattern in the fossil record, not as an exceptionless rule. Gradual, directional change does occur in some lineages — the two patterns coexist."
+      },
+      {
+        "h": "Not Proof of Macromutation",
+        "p": "Popular press sometimes conflated punctuated equilibrium with genetic saltationism (e.g., Goldschmidt's \"hopeful monsters\"). Eldredge and Gould rejected that association explicitly and repeatedly."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CRITICISMS AND LIMITATIONS",
+    "title": "Challenges to the Punctuated Equilibrium Model",
+    "items": [
+      "Taphonomic bias: sedimentation and preservation are themselves episodic, so apparent bursts of change could track pulses in sediment accumulation rather than biology",
+      "Subjectivity in defining stasis: how much fluctuation is still \"no net change\"? Early studies sometimes lacked rigorous statistical criteria",
+      "Selection bias in case studies: the invertebrate lineages most amenable to this kind of analysis (abundant, hard-shelled, well-preserved) may not represent the broader tree of life",
+      "Some critics argued the model's claims were, at the time, difficult to falsify, prompting the push toward more quantitative, statistically explicit tests in later decades"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW THE FIELD RESPONDED",
+    "title": "Addressing the Criticisms",
+    "items": [
+      "Taphonomic bias concerns spurred explicit taphonomic control studies — comparing fossil abundance and preservation quality across an interval to rule out preservation artifacts as the cause of apparent bursts",
+      "Subjectivity concerns drove adoption of formal statistical tests for stasis (e.g., comparing observed variance to a null model of pure sampling noise) rather than eyeballing plotted trends",
+      "Concerns about a narrow taxonomic base motivated extending tests to a much broader range of organisms — planktonic microfossils, land plants, vertebrates — beyond the original marine invertebrate case studies",
+      "Gould and Eldredge's own 1977 follow-up paper explicitly narrowed and clarified the model's claims in response to early critiques, distinguishing what the theory did and did not assert"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A NOTE ON SCIENTIFIC PROCESS",
+    "title": "Why This Became a Model Debate in Evolutionary Biology",
+    "items": [
+      "The punctuated equilibrium controversy is often used as a case study in how science handles a challenge to an entrenched, largely unstated assumption",
+      "It sharpened standards for what counts as adequate stratigraphic sampling and what statistical evidence is needed to distinguish real biological pattern from noise",
+      "It also illustrates how a genuinely productive scientific debate can be miscast in the popular press as a controversy over Darwinian evolution itself, when the actual disagreement was narrower — about tempo and mode within an evolutionary framework both sides accepted",
+      "Gould in particular was careful, in later writings, to distinguish the legitimate scientific debate from creationist misappropriations of the controversy as evidence against evolution generally"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "STASIS OVER THE VERY LONG TERM",
+    "title": "\"Living Fossils\" and Extended Stasis",
+    "left": {
+      "h": "Extreme Cases",
+      "body": "<p>Some lineages show morphological stability over remarkably long intervals.</p><ul><li>Horseshoe crabs (Limulus and relatives): body plan essentially recognizable for over 400 million years</li><li>Lingula-type brachiopods: shell form little changed since the early Paleozoic</li><li>Ginkgo: leaf morphology similar to fossils well over 100 million years old</li></ul>"
+    },
+    "right": {
+      "h": "Why These Cases Matter — and Their Limits",
+      "body": "<p>Extended stasis raises the question of what stabilizes morphology for tens or hundreds of millions of years.</p><ul><li>Candidate explanations: stabilizing selection in a persistently similar niche, developmental constraint, habitat tracking (moving to stay in the same environment rather than adapting in place)</li><li>Caution: \"living fossil\" does not mean unevolving — genomes and physiology can change substantially even while gross morphology stays similar</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON WHY STASIS MATTERS",
+    "quote": "Stasis is data.",
+    "attrib": "Stephen Jay Gould, summarizing the central claim of punctuated equilibrium theory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE OTHER SIDE OF THE EVIDENCE",
+    "title": "Cases Supporting Gradual Change",
+    "items": [
+      "Some planktonic foraminifera lineages (e.g., studied in continuous deep-sea cores) show smooth, statistically gradual shifts in shell shape over hundreds of thousands of years",
+      "Certain Cenozoic mammal lineages, including some horse and rodent tooth-size series, show directional trends consistent with gradual selection rather than punctuation",
+      "Some gastropod (snail) shell-shape series show continuous change correlated with environmental gradients, without an obvious link to discrete speciation events",
+      "These cases matter because they show punctuated equilibrium is not universal — the empirical picture is genuinely mixed across taxa and environments"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE MIX MATTERS",
+    "title": "Taking the Empirical Diversity Seriously",
+    "items": [
+      "If only stasis-and-punctuation existed, gradualism would simply be wrong; if only gradual series existed, punctuated equilibrium would be superfluous — neither is the case",
+      "The real empirical distribution includes stasis, gradual directional change, and undirected random-walk-like fluctuation, in varying proportions across lineages and traits",
+      "This mixed pattern is itself the phenomenon a general theory of macroevolutionary tempo needs to explain, rather than a nuisance to be explained away",
+      "It points toward a framework that treats gradualism and punctuation as two ends of a continuum of possible tempos and modes, not as mutually exclusive worldviews"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "RECONCILIATION",
+    "title": "Two Patterns, One Framework",
+    "sub": "Long before 1972, George Gaylord Simpson had already argued that the rate (tempo) and pattern (mode) of evolutionary change should be treated as separate, independently varying axes. That framework lets gradualism and punctuated equilibrium coexist as different regions of the same space rather than as rival, mutually exclusive theories."
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Tempo and Mode",
+    "term": "Tempo and Mode",
+    "def": "A conceptual framework, introduced by George Gaylord Simpson (1944) and central to the modern reconciliation of gradualism and punctuated equilibrium, distinguishing the rate of evolutionary change (tempo) from the pattern by which it is achieved (mode).",
+    "bullets": [
+      "Tempo: how fast change occurs — slow and steady, rapid and episodic, or some combination, measured in units of change per unit time",
+      "Mode: the manner in which change accumulates — continuously, in discrete bursts, or through some other trajectory (e.g., a random walk)",
+      "Treating tempo and mode as independent axes means a lineage can be described by where it falls on each dimension, rather than being forced into a single \"gradualist\" or \"punctuationist\" category"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SIMPSON'S FRAMEWORK REVISITED",
+    "title": "Reconciling Gradualism and Punctuated Equilibrium",
+    "left": {
+      "h": "Simpson's Original Insight (1944)",
+      "body": "<p>Simpson recognized, decades before the 1972 debate, that evolutionary rate is not a single universal constant.</p><ul><li>He described \"bradytelic\" (slow), \"horotelic\" (average), and \"tachytelic\" (fast) rates of change across different lineages and time intervals</li><li>Rate of change and pattern of change were treated as separable properties that could vary independently across the tree of life</li></ul>"
+    },
+    "right": {
+      "h": "How This Resolves the Debate",
+      "body": "<p>Gradualism and punctuated equilibrium can be seen as describing different combinations of tempo and mode.</p><ul><li>Gradualism: continuous mode, roughly constant (often slower) tempo</li><li>Punctuated equilibrium: episodic mode, tempo alternating between near-zero (stasis) and very high (during speciation)</li><li>Both fit within Simpson's more general space — the question becomes empirical: which combination best fits a given lineage, not which theory is universally correct</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE FOUR-WAY SPACE",
+    "title": "Tempo × Mode: Possible Combinations",
+    "cards": [
+      {
+        "h": "Slow + Continuous",
+        "p": "Classic phyletic gradualism: steady, incremental change spread across a lineage's whole duration, at a modest rate."
+      },
+      {
+        "h": "Fast + Continuous",
+        "p": "Rapid but still gradual, generation-by-generation directional change — seen in some environmentally driven trends without a clear tie to speciation."
+      },
+      {
+        "h": "Near-Zero + Episodic Bursts",
+        "p": "Classic punctuated equilibrium: long stasis, with change concentrated in comparatively short, rapid intervals tied to speciation."
+      },
+      {
+        "h": "Variable / Random Walk",
+        "p": "Change with no consistent direction or strong tie to speciation — morphology fluctuates over time without accumulating a clear trend; found in a substantial share of real fossil time series."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MODERN SYNTHESIS ON THIS QUESTION",
+    "title": "Where the Field Has Landed",
+    "items": [
+      "Gene Hunt's 2007 meta-analysis of the empirical paleontological literature applied consistent statistical model-selection to many fossil time series and found stasis, gradual directional change, and random walks all represented, in roughly comparable proportions across taxa",
+      "No single mode dominates across the tree of life — the appropriate description depends on the lineage, the trait measured, and the environmental context",
+      "Punctuated equilibrium is best understood today as identifying a real, common, and previously underappreciated pattern — not as replacing gradualism outright",
+      "The productive question shifted from \"which theory is right?\" to \"what determines where a given lineage falls in tempo-mode space, and why?\""
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Species Selection",
+    "term": "Species Selection",
+    "def": "A proposed macroevolutionary process in which differential rates of speciation and extinction among species — analogous to differential survival and reproduction among individuals in natural selection — shape large-scale evolutionary trends, potentially independent of what is favored by selection within populations.",
+    "bullets": [
+      "One of the most significant implications drawn from punctuated equilibrium: if speciation is a discrete, punctuational event, then species themselves can function as quasi-individual units subject to differential success at the species level",
+      "This idea will resurface in later Chapter 14 lectures on long-term evolutionary trends — for now, note that it depends on species being real, bounded units, which is exactly what punctuated equilibrium argues the fossil record shows"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT DETERMINES THE MIX",
+    "title": "Factors Influencing Tempo and Mode",
+    "items": [
+      "Strength and constancy of selection: stable environments favor stabilizing selection and stasis; changing environments can drive sustained directional selection",
+      "Population structure: large, well-connected populations tend to resist rapid divergence; small, peripheral, isolated populations are prone to rapid change",
+      "Developmental and genetic constraints: some traits may be more evolvable, or more canalized against change, than others within the same organism",
+      "Habitat tracking: a lineage can appear to show morphological stasis simply because it moves to stay within a preferred environment as conditions shift, rather than adapting in place"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONNECTING FORWARD",
+    "title": "Why This Debate Still Matters for Macroevolution",
+    "left": {
+      "h": "For Interpreting the Fossil Record",
+      "body": "<p>Recognizing both patterns changes how paleontologists read incomplete sequences.</p><ul><li>An apparent gap is no longer automatically dismissed as \"just\" bad sampling — it may be telling us something real</li><li>Conversely, a smooth-looking series should be tested statistically, not simply assumed to reflect gradual change</li></ul>"
+    },
+    "right": {
+      "h": "For the Rest of Chapter 14",
+      "body": "<p>Tempo and mode set up the questions the rest of this unit will address.</p><ul><li>Lecture 18: adaptive radiation — bursts of speciation and diversification following ecological opportunity</li><li>Lecture 19: mass extinction and diversity dynamics over deep time</li><li>Lecture 20: long-term evolutionary trends and whether macroevolution has a direction</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "Summary: Tempo and Mode in Macroevolution",
+    "items": [
+      "Macroevolution studies evolutionary pattern and process above the species level, over geological time, drawing centrally on the fossil record introduced in Evolution I",
+      "Phyletic gradualism predicts slow, continuous, evenly distributed morphological change, with fossil gaps explained by an incomplete rock record",
+      "Punctuated equilibrium (Eldredge & Gould, 1972) predicts long stasis punctuated by rapid change concentrated at speciation, grounded in allopatric/peripatric speciation theory",
+      "Stasis is a real, well-documented pattern in many high-resolution fossil sequences (trilobites, bryozoans, and others) — not simply an absence of evidence",
+      "Empirical surveys show both patterns, plus random-walk dynamics, occur across the tree of life; no single mode is universal",
+      "Simpson's tempo-and-mode framework reconciles the two views as points within a shared continuum, shifting the debate from \"which is correct\" to \"what determines the mix\""
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A NOTE ON TERMINOLOGY",
+    "title": "\"Punctuated\" Does Not Mean \"Instantaneous\"",
+    "left": {
+      "h": "The Common Misreading",
+      "body": "<p>Popular accounts sometimes picture punctuated equilibrium as species appearing in a single generation, fully formed.</p><ul><li>This picture is closer to saltationism, a genetic hypothesis Eldredge and Gould explicitly rejected</li><li>It also confuses the geological time axis (where a burst may look instantaneous when compressed into a rock layer) with the generational time axis (where change is still cumulative, generation by generation)</li></ul>"
+    },
+    "right": {
+      "h": "The Accurate Picture",
+      "body": "<p>A \"rapid\" punctuation event in geological terms can still span 5,000–50,000 years — many thousands of generations for most organisms.</p><ul><li>Ordinary microevolutionary processes (selection, drift, founder effects) operate throughout; nothing about the mechanism is discontinuous at the level of individual reproduction</li><li>What is discontinuous is only the rate, when measured against the very long stasis intervals on either side</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Questions to Carry Forward",
+    "items": [
+      "Why does peripatric speciation, in particular, predict that transitional forms will be rarely fossilized?",
+      "How would you statistically distinguish true stasis from a lineage that is simply undersampled?",
+      "Is it possible for a single lineage to show punctuated equilibrium in one trait and gradualism in another? What would that imply about the underlying causes of tempo and mode?",
+      "How does treating tempo and mode as independent axes change what counts as evidence \"for\" or \"against\" either gradualism or punctuated equilibrium?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — CHAPTER 14, LECTURE 2",
+    "title": "Adaptive Radiation and Evolutionary Diversification",
+    "sub": "If speciation and morphological change can happen this fast under the right conditions, what happens when a lineage encounters abundant, unexploited ecological opportunity? Lecture 18 turns to adaptive radiation — the rapid proliferation of species and ecological forms from a single ancestor, from Darwin's finches to the Hawaiian silverswords."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 17</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

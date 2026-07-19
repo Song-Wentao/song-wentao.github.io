@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 43: Student Presentations II: Peer Feedback and Common Pitfalls</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 43",
+    "title": "Student Presentations II: Peer Feedback and Common Pitfalls",
+    "sub": "Structured feedback methods and a working guide to the mistakes evolutionary presenters make most often",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 9 of 11)"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Peer Feedback in Practice",
+    "sub": "Turning your classmates' presentations into a shared learning tool, not just an audience exercise"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FEEDBACK METHOD",
+    "title": "Structured Peer-Feedback Methods",
+    "left": {
+      "h": "Why unstructured feedback fails",
+      "body": "<p>Left to their own devices, audiences default to vague praise or silence:</p><ul><li>\"Good job, I learned a lot\" — not actionable</li><li>Comments cluster on delivery (nerves, pace) and ignore content accuracy</li><li>Harsh or vague criticism discourages engagement with a genuinely hard topic</li><li>No shared standard means feedback varies wildly presenter to presenter</li></ul>"
+    },
+    "right": {
+      "h": "What structure fixes",
+      "body": "<p>A structured protocol anchors feedback to the rubric from Lecture 42 and forces specificity:</p><ul><li>Reviewers write against fixed prompts, not open impressions</li><li>Content-accuracy questions are separated from delivery questions</li><li>Every comment cites a specific claim, slide, or timestamp</li><li>Feedback is collected in writing before open discussion, so first-mover bias doesn't dominate</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FEEDBACK PROTOCOLS",
+    "title": "Three Protocols You Will Use This Week",
+    "items": [
+      "Rubric-anchored review: for each rubric category (accuracy, evidence, clarity, synthesis), write one sentence of evidence and a 1-5 score — no unscored impressions allowed",
+      "\"Two stars and a wish\": identify two specific strengths and one specific, fixable weakness; vague stars (\"nice slides\") don't count — cite what worked and why",
+      "Claim-audit pass: for every empirical claim the presenter made, note whether it was supported, overstated, or unsupported by the evidence shown — this is the pass most relevant to today's pitfalls",
+      "All three protocols are used together: rubric score, stars-and-wish, and claim audit, submitted as one written sheet per presentation",
+      "Written feedback is due within 24 hours; presenters get a synthesis of their claim-audit sheet before their revision deadline"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AUDIENCE ETIQUETTE",
+    "title": "Giving Feedback That Is Rigorous and Kind",
+    "items": [
+      "Separate the claim from the presenter: \"this mechanism is misapplied\" is a critique of an idea, not a person",
+      "Always name the evidentiary standard you're applying — 'this needs a phylogenetically controlled comparison, not a single pair of species' is actionable; 'this seems weak' is not",
+      "Lead with what the evidence in the talk actually supports before saying what it doesn't",
+      "When you flag a pitfall, name which one — using the shared vocabulary from today's lecture makes feedback fast to give and easy to act on",
+      "Ask calibrating questions rather than issuing verdicts: \"what would distinguish this from group selection?\" teaches more than \"this is group selection, fix it\""
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "FEEDBACK QUALITY",
+    "title": "Is Your Feedback Actually Useful? A Checklist",
+    "cards": [
+      {
+        "h": "Specific",
+        "p": "Points to an exact slide, claim, or sentence — not a general impression of the whole talk."
+      },
+      {
+        "h": "Evidence-linked",
+        "p": "Explains what evidence would confirm or overturn the claim, not just that you're unconvinced."
+      },
+      {
+        "h": "Actionable",
+        "p": "The presenter can do something with it before the revision deadline — a rewrite, a citation, a caveat."
+      },
+      {
+        "h": "Balanced",
+        "p": "Names something that worked before naming what didn't; harsh-only feedback gets tuned out."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON SCIENTIFIC COMMUNICATION",
+    "quote": "The role of the peer reviewer is not to be impressed. It is to ask: what would it take for this claim to be wrong, and did the presenter show us that they checked?",
+    "attrib": "Adapted from norms of scientific peer review, applied to undergraduate presentation feedback"
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Common Pitfalls in Evolutionary Presentations",
+    "sub": "Five recurring errors when students present macroevolution, behavior, and species interactions — and how to fix each one"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OVERVIEW",
+    "title": "Why These Five Pitfalls Keep Recurring",
+    "items": [
+      "Evolution I's Lecture 43 covered pitfalls in presenting mechanisms (misdefining fitness, confusing selection with drift, Lamarckian slips). This lecture covers pitfalls specific to macroevolution, behavior, and species interactions — the content of Units 5-8",
+      "All five share a root cause: reaching for an intuitive, narrative-friendly explanation instead of the technically correct one",
+      "Today's five: (1) equating 'more evolved' with 'more complex,' (2) invoking group selection where kin or individual selection applies, (3) treating stasis in punctuated equilibrium as evolution stopping, (4) overstating adaptationist explanations for behavior, and (5) mistaking correlated change for coevolution",
+      "Each pitfall gets a working definition, then a side-by-side bad-example / good-example fix drawn from typical undergraduate presentation slides",
+      "Use this vocabulary in your own peer feedback this week — naming the pitfall is faster and more precise than describing the error from scratch"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "PITFALL 1",
+    "title": "\"More Evolved\" as \"More Complex\"",
+    "term": "The Progress Fallacy",
+    "def": "The mistaken assumption that evolution has a direction toward greater complexity, and that lineages which look more complex, more familiar, or more like humans are therefore 'more evolved' than lineages that look simple.",
+    "bullets": [
+      "Every extant lineage has been evolving for the same span of time since the last common ancestor — a bacterium alive today is not 'less evolved' than a mammal alive today",
+      "Complexity can decrease as readily as it increases: parasites, cave organisms, and many endosymbionts show dramatic loss of structures and genes under selection",
+      "The image of a 'ladder' or 'march of progress' from simple to complex is a 19th-century holdover that the tree-of-life model explicitly replaced"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PITFALL 1 — WORKED EXAMPLE",
+    "title": "Fixing the Progress Fallacy",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"Over millions of years, life evolved from simple single-celled organisms into more advanced multicellular animals, eventually reaching its most evolved form in mammals like us.\"</p><ul><li>Implies a single ladder with humans at the top</li><li>Treats 'advanced' as a synonym for 'more evolved'</li><li>Ignores that bacteria are still evolving today, just as much as mammals</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"Multicellularity evolved independently multiple times from single-celled ancestors. Increased complexity was favored in some lineages under specific selective conditions — it is not a universal trend, and many lineages have evolved toward simplification instead.\"</p><ul><li>Describes a branching pattern, not a ladder</li><li>Ties complexity change to specific selective conditions, not inevitability</li><li>Explicitly notes counterexamples (simplification)</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "PITFALL 2",
+    "title": "Group Selection Where Kin or Individual Selection Applies",
+    "term": "Naive Group Selectionism",
+    "def": "Explaining a cooperative or self-sacrificing behavior as evolving 'for the good of the species' or 'for the good of the group,' without checking whether kin selection, reciprocal altruism, or individual-level benefits already account for it.",
+    "bullets": [
+      "Group selection is not impossible in principle, but it requires strong conditions (small groups, low migration, differential group extinction) that students rarely check for before invoking it",
+      "The default null hypothesis for any apparent altruism is individual or kin-selected benefit — check relatedness and direct fitness payoffs first",
+      "'For the good of the species' explanations were the default in pre-1960s textbooks; Williams (1966) and Hamilton's kin selection work replaced this as the standard framework"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PITFALL 2 — WORKED EXAMPLE",
+    "title": "Fixing Naive Group Selectionism",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"Ground squirrels give alarm calls to warn the group, because this behavior benefits the survival of the species as a whole, even though it puts the caller at risk.\"</p><ul><li>Jumps straight to 'benefits the species'</li><li>Never asks who specifically benefits from the call</li><li>Ignores relatedness of nearby individuals</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"Alarm calls are directed disproportionately toward nearby kin. Under Hamilton's rule, the cost to the caller is offset by the increase in relatives' survival weighted by relatedness — kin selection, not group-level benefit, explains the behavior.\"</p><ul><li>Names the specific mechanism (kin selection, Hamilton's rule)</li><li>Cites the actual data pattern (calls directed toward kin)</li><li>Does not invoke species-level benefit</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "PITFALL 3",
+    "title": "Punctuated Equilibrium as \"Evolution Stops\"",
+    "term": "The Stasis-as-Stopped-Evolution Misreading",
+    "def": "The mistaken belief that punctuated equilibrium claims evolution halts entirely during periods of morphological stasis in the fossil record — rather than the actual claim, which is that visible morphological change is concentrated near speciation events while stasis periods can still involve ongoing genetic, physiological, or stabilizing-selection-driven change.",
+    "bullets": [
+      "Eldredge and Gould (1972) proposed that most morphological change is concentrated at speciation, with long intervals of morphological stability in between — not evolutionary stasis in every sense",
+      "Stasis can itself be an active evolutionary outcome: stabilizing selection actively maintains a phenotype against a constant stream of new mutation and environmental perturbation",
+      "Punctuated equilibrium is a claim about tempo and mode of *morphological* change in the fossil record, not a claim that molecular evolution, gene flow, or selection pause"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PITFALL 3 — WORKED EXAMPLE",
+    "title": "Fixing the Stasis Misreading",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"During periods of stasis, evolution essentially stops — the species stays the same until a rapid burst of change produces a new species.\"</p><ul><li>Treats stasis as a total absence of evolutionary process</li><li>Confuses 'no visible morphological change' with 'no evolution'</li><li>Implies bursts appear from nothing rather than from population-level processes</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"Punctuated equilibrium describes a pattern in which visible morphological change clusters near speciation events, while long intervals show morphological stasis maintained by stabilizing selection — genetic and physiological evolution can continue throughout.\"</p><ul><li>Distinguishes morphological stasis from evolutionary inactivity</li><li>Names the process (stabilizing selection) that can produce stasis</li><li>Correctly scopes the claim to tempo/mode of visible change</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "PITFALL 4 — CALLBACK TO LECTURE 40",
+    "title": "Overstating Adaptationism for Behavior",
+    "term": "Behavioral Overadaptationism",
+    "def": "Presenting every behavioral or psychological trait as a direct, well-supported adaptation shaped by past selection, without considering non-adaptive explanations (byproduct, drift, developmental constraint, plasticity) or without providing evidence beyond plausibility.",
+    "bullets": [
+      "This is the same critique Lecture 40 raised for evolutionary psychology: a plausible adaptive story is not evidence of an adaptation — it is a hypothesis that needs independent support",
+      "Gould and Lewontin's (1979) 'spandrels' critique remains the standard citation: some traits are architectural byproducts of other adaptations, not adaptations themselves",
+      "A rigorous adaptationist claim specifies the selective pressure, a mechanism linking trait to fitness, and ideally comparative or experimental evidence — not just a story about why the trait 'would have helped'"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PITFALL 4 — WORKED EXAMPLE",
+    "title": "Fixing Behavioral Overadaptationism",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"Humans evolved a preference for symmetric faces because symmetry signaled genetic quality in ancestral environments, which is why we find symmetric faces attractive today.\"</p><ul><li>States the adaptive story as settled fact</li><li>No mention of alternative explanations (perceptual byproduct, cultural learning)</li><li>No evidence cited beyond plausibility</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"One hypothesis is that symmetry preference tracked genetic quality signals; an alternative is that it's a byproduct of general perceptual processing fluency. Current evidence is mixed — cross-cultural consistency supports some biological basis, but the specific fitness-signaling mechanism remains contested.\"</p><ul><li>Presents competing hypotheses, not one default story</li><li>States what evidence exists and its limits</li><li>Avoids declaring the adaptive story proven</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "PITFALL 5",
+    "title": "Correlation Mistaken for Coevolution",
+    "term": "Spurious Coevolution",
+    "def": "Assuming that because two species' traits changed together over time, or because two species interact closely today, they must have coevolved — without demonstrating the reciprocal, trait-for-trait selective feedback that defines true coevolution.",
+    "bullets": [
+      "Coevolution requires reciprocity: species A's trait imposes selection on species B, and B's response in turn imposes selection back on A — a documented feedback loop, not a single-direction adaptation or a coincidence of timing",
+      "Two species can show matched traits without coevolution: shared response to a common environmental driver, one-sided adaptation to a non-evolving partner, or simple co-occurrence without any selective interaction",
+      "Demonstrating coevolution typically requires geographic mosaic comparisons, experimental manipulation, or phylogenetic evidence of reciprocal trait tracking — not just a single well-matched pair"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PITFALL 5 — WORKED EXAMPLE",
+    "title": "Fixing Spurious Coevolution",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"The hummingbird's long bill and the flower's long corolla are a perfect example of coevolution — as one got longer, the other did too.\"</p><ul><li>Infers coevolution from a single matched pair</li><li>No evidence of reciprocal selective pressure in each direction</li><li>Ignores that the flower could be evolving in response to the bird without the reverse being true</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"Geographic mosaic studies show corolla length tracks local hummingbird bill length across populations, and experimental bill-length manipulation shifts pollination success — evidence of reciprocal selection in both directions, which is what distinguishes this from simple trait matching.\"</p><ul><li>Cites evidence of reciprocity specifically</li><li>References the geographic mosaic / experimental design used to test it</li><li>Distinguishes coevolution from mere correlated change</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BONUS PITFALL",
+    "title": "Anthropomorphizing Selection (\"Evolution Wants...\")",
+    "items": [
+      "Language like 'evolution wants,' 'the organism tries to,' or 'in order to survive, the species developed...' smuggles in goal-directed intent that natural selection does not have",
+      "Selection has no foresight: it acts on existing variation in the present, favoring what currently increases relative fitness, not what will be useful later",
+      "This is a rhetorical pitfall as much as a conceptual one — it often signals to a careful listener that the presenter hasn't fully internalized the population-level, retrospective nature of selection",
+      "The fix is mechanical: replace 'in order to' with 'as a result of,' and replace 'the species developed X' with 'individuals with X had higher relative fitness and increased in frequency'"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BONUS PITFALL — WORKED EXAMPLE",
+    "title": "Fixing Anthropomorphized Selection",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"To survive the cold winters, the arctic fox evolved a white coat so it could hide from predators.\"</p><ul><li>'To survive' implies purpose and foresight</li><li>Treats the trait as intentionally acquired rather than selected</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"In populations with snow cover for much of the year, individuals with lighter coat color had higher survival due to reduced predation, increasing the frequency of alleles for lighter coloration over generations.\"</p><ul><li>States the mechanism as a frequency change driven by differential survival</li><li>No implied intention or foresight</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BONUS PITFALL",
+    "title": "Cherry-Picking Confirmatory Examples",
+    "items": [
+      "Presenting only the textbook cases that fit a claim cleanly (peppered moths, Darwin's finches, hummingbird-flower pairs) while ignoring documented counterexamples or contested cases",
+      "This inflates confidence in a pattern that may be far less general than a single striking example suggests",
+      "Rigorous presentations should note at least one case where the pattern breaks down, is contested, or requires qualification — this is often where the most interesting discussion happens",
+      "Ask presenters directly: 'is this the only example you found, or the best one?' — a claim-audit question worth using in this week's peer feedback"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BONUS PITFALL — WORKED EXAMPLE",
+    "title": "Fixing Cherry-Picked Evidence",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"Coevolutionary arms races always produce escalating specialization, as shown by the hummingbird-flower system.\"</p><ul><li>Generalizes from a single example to 'always'</li><li>No acknowledgment of documented cases with diffuse or asymmetric coevolution</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"Some coevolutionary interactions show escalating specialization, as in hummingbird-flower systems, but others are diffuse — involving many loosely coevolving partners — or asymmetric, where one partner evolves in response to the other without reciprocation.\"</p><ul><li>Presents a range of outcomes, not a universal rule</li><li>Names the specific alternative patterns (diffuse, asymmetric)</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "QUICK REFERENCE",
+    "title": "Pitfall Checklist, By Category",
+    "cards": [
+      {
+        "h": "Progress narratives",
+        "p": "Watch for 'more evolved,' 'more advanced,' or ladder/march-of-progress imagery implying a single direction toward complexity."
+      },
+      {
+        "h": "Selection-level errors",
+        "p": "Watch for 'for the good of the species/group' explanations that skip checking kin or individual-level benefit first."
+      },
+      {
+        "h": "Stasis misreadings",
+        "p": "Watch for 'evolution stopped' language applied to punctuated equilibrium's periods of morphological stability."
+      },
+      {
+        "h": "Adaptationism & spurious coevolution",
+        "p": "Watch for behavioral 'just-so stories' stated as fact, and matched-trait pairs called coevolution without reciprocity evidence."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS TABLE",
+    "title": "Misconception vs. Accurate Framing vs. Why It Matters",
+    "headers": [
+      "Misconception",
+      "Accurate Framing",
+      "Why It Matters"
+    ],
+    "rows": [
+      [
+        "\"More evolved\" = more complex",
+        "All extant lineages have equal evolutionary time depth; complexity rises and falls under selection, no universal trend",
+        "Progress narratives misrepresent the tree of life as a ladder and undervalue simplified/parasitic lineages"
+      ],
+      [
+        "Behavior evolved \"for the good of the group/species\"",
+        "Check kin selection (Hamilton's rule) and individual-level benefit before invoking group selection",
+        "Group selection requires special demographic conditions rarely met; the default explanation is usually simpler"
+      ],
+      [
+        "Stasis means evolution stopped",
+        "Stasis is often maintained by active stabilizing selection; punctuated equilibrium concerns tempo of morphological change only",
+        "Conflating stasis with inactivity misrepresents what the fossil record can and cannot tell us"
+      ],
+      [
+        "A plausible adaptive story proves adaptation",
+        "Adaptationist claims need a mechanism and evidence beyond plausibility; consider byproduct/drift alternatives",
+        "Untested 'just-so stories' were the core critique of evolutionary psychology in Lecture 40"
+      ],
+      [
+        "Correlated trait change = coevolution",
+        "Coevolution requires demonstrated reciprocal selection in both directions, not just matched traits",
+        "Many matched-trait pairs reflect one-sided adaptation or shared environmental drivers, not coevolution"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VOCABULARY CHECK",
+    "title": "The \"Just-So Story\"",
+    "term": "Just-So Story",
+    "def": "A colloquial term (from Kipling, popularized as a critique by Gould) for a plausible-sounding adaptive narrative that is asserted without independent test — the explanation could be invented after the fact for almost any trait, which is exactly the problem.",
+    "bullets": [
+      "The diagnostic test: could you tell an equally plausible story if the trait were the opposite? If yes, the story alone carries no evidential weight",
+      "This is the same standard Lecture 40 applied to evolutionary psychology claims about human behavior",
+      "A just-so story becomes a real hypothesis only once it generates a testable, falsifiable prediction distinct from competing explanations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FULL-SLIDE CRITIQUE",
+    "title": "Worked Critique: A Macroevolutionary Trend Slide",
+    "left": {
+      "h": "As submitted by a student presenter",
+      "body": "<p>Slide title: \"The March of the Horse: From Small Forest Dweller to Modern Advanced Grazer\"</p><ul><li>Linear image: Hyracotherium to Equus in a straight line</li><li>Caption: \"Horses evolved larger size and fewer toes as they became more advanced\"</li><li>No branching, no extinct side lineages shown</li></ul>"
+    },
+    "right": {
+      "h": "Peer-review notes applied",
+      "body": "<p>Claim-audit flags: progress fallacy (Pitfall 1) in both the image and the caption.</p><ul><li>Fix the image: show the actual branching phylogeny with multiple extinct side branches, not a single line</li><li>Fix the caption: \"Body size and toe number changed multiple times across horse lineages, with the modern one-toed grazing form being one outcome among many, not a predetermined endpoint\"</li><li>Cite that many horse lineages went extinct without ever reaching 'advanced' status</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FULL-SLIDE CRITIQUE",
+    "title": "Worked Critique: A Behavior Slide",
+    "left": {
+      "h": "As submitted by a student presenter",
+      "body": "<p>Slide title: \"Why Do Vervet Monkeys Give Alarm Calls? For the Good of the Troop\"</p><ul><li>Claim: calling evolved because it helps the group survive predators</li><li>No mention of relatedness among troop members</li><li>No mention of alternative explanations</li></ul>"
+    },
+    "right": {
+      "h": "Peer-review notes applied",
+      "body": "<p>Claim-audit flags: naive group selectionism (Pitfall 2).</p><ul><li>Ask: is the caller more related to nearby individuals than to the troop at large?</li><li>Fix the claim: reframe around kin selection and/or reciprocal benefit if callers are not preferentially near kin</li><li>Add the missing mechanism: Hamilton's rule, with actual relatedness data if available from the source study</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LANGUAGE DISCIPLINE",
+    "title": "Hedge Correctly: Phrasing That Matches Your Evidence",
+    "items": [
+      "\"Proves\" and \"shows conclusively\" should almost never appear in an undergraduate presentation — evolutionary claims are supported by convergent evidence, rarely proven by a single study",
+      "Use graded hedging language deliberately: \"is consistent with,\" \"suggests,\" \"provides evidence for,\" \"strongly supports,\" reserving stronger language for well-replicated, multi-method findings",
+      "If a claim rests on one study or one example, say so explicitly — don't let confident phrasing imply a broader consensus than exists",
+      "Precision in hedging is itself evidence of understanding: it shows the presenter has thought about the strength, not just the direction, of the evidence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PRESENTER SKILLS",
+    "title": "Handling Tough Evolutionary Questions in Q&A",
+    "items": [
+      "If asked about a mechanism you're unsure of, say so and describe what evidence would resolve it — this is stronger than guessing confidently and being wrong",
+      "If a questioner names one of today's pitfalls in your talk, don't get defensive — restate the corrected claim in your own words to show you've absorbed the fix",
+      "Distinguish 'I don't know' from 'the field doesn't know' — many genuine unknowns in macroevolution and behavior are legitimate answers, not gaps in your preparation",
+      "Anticipate the most likely pitfall-related question for your topic before you present, and have your corrected framing ready"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AUDIENCE SKILLS",
+    "title": "Asking Good Critical Questions",
+    "items": [
+      "Ask for the mechanism: \"what is the specific selective pressure/process you're proposing?\" is more useful than \"are you sure about that?\"",
+      "Ask for the alternative: \"what would this look like if it were drift/byproduct/individual selection instead — how would you tell the difference?\"",
+      "Ask for the counterexample: \"is there a documented case where this pattern doesn't hold?\"",
+      "Frame questions to help the presenter strengthen the argument, not to score a rhetorical point — the goal is a better shared understanding of the material"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "EVIDENCE STANDARDS",
+    "title": "Evidence Quality Hierarchy for Evolutionary Claims",
+    "levels": [
+      {
+        "label": "Single anecdote or analogy",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "One matched example, uncontrolled",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Multiple comparative cases",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Phylogenetically controlled comparison",
+        "color": "#a85a68",
+        "width": "380px"
+      },
+      {
+        "label": "Experimental manipulation + replication",
+        "color": "#c47b87",
+        "width": "300px"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "GRADING CONNECTION",
+    "title": "Linking Feedback to the Rubric",
+    "left": {
+      "h": "Rubric categories from Lecture 42",
+      "body": "<p>Recall the four graded categories:</p><ul><li>Content accuracy</li><li>Evidence quality</li><li>Clarity of communication</li><li>Synthesis / broader connections</li></ul>"
+    },
+    "right": {
+      "h": "Where today's pitfalls hit the rubric",
+      "body": "<p>Every pitfall above is primarily a <strong>content-accuracy</strong> or <strong>evidence-quality</strong> deduction, not a delivery issue:</p><ul><li>Progress fallacy, group selectionism, stasis misreading → content accuracy</li><li>Overadaptationism, spurious coevolution → evidence quality</li><li>Use the claim-audit sheet to generate specific, defensible rubric scores in these two categories</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "REINFORCEMENT",
+    "title": "What Real Coevolution Requires",
+    "term": "Reciprocal Selection",
+    "def": "A documented pattern in which each interacting species imposes selective pressure on the other, and each species' evolutionary response in turn changes the selective pressure experienced by the other — a closed feedback loop, tested across populations or experimentally, not inferred from a single matched pair.",
+    "bullets": [
+      "Geographic mosaic theory (Thompson) predicts reciprocal selection strength should vary across populations depending on local partner presence and other selective pressures",
+      "The strongest coevolution evidence combines trait-matching data across many populations with either experimental manipulation or phylogenetic evidence of correlated diversification"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "REINFORCEMENT",
+    "title": "Kin Selection Recap",
+    "term": "Inclusive Fitness",
+    "def": "An individual's total fitness effect, counting both its own direct reproduction and the reproduction of relatives that its actions help enable, weighted by the coefficient of relatedness — the correct default framework for apparently altruistic behavior, ahead of group selection.",
+    "bullets": [
+      "Hamilton's rule: a costly behavior is favored when relatedness × benefit to recipient > cost to actor (rB > C)",
+      "Before reaching for group selection in a presentation, check: who benefits, how related are they to the actor, and does Hamilton's rule already explain the pattern?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMPARATIVE METHOD PITFALLS",
+    "title": "A Related Statistical Pitfall: Phylogenetic Non-Independence",
+    "items": [
+      "Comparing trait values across species as if each species were an independent data point ignores that closely related species share traits by common descent, not by independent evolution",
+      "This inflates apparent sample size and can manufacture spurious correlations between unrelated traits that both happen to track phylogeny",
+      "The fix is a phylogenetically controlled comparative method (e.g., independent contrasts, phylogenetic generalized least squares) that accounts for shared ancestry",
+      "This pitfall often compounds Pitfall 5: a 'coevolution' claim based on a handful of species pairs is especially fragile if those species are not phylogenetically independent"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COMPARATIVE METHOD — WORKED EXAMPLE",
+    "title": "Fixing Phylogenetic Non-Independence",
+    "left": {
+      "h": "Bad example (typical slide text)",
+      "body": "<p>\"Across 20 bird species, bill length and body size are strongly correlated, proving these traits evolved together.\"</p><ul><li>Treats 20 species as 20 independent data points</li><li>Ignores that many of the 20 are closely related and inherited both traits from shared ancestors</li></ul>"
+    },
+    "right": {
+      "h": "Good example (corrected)",
+      "body": "<p>\"After controlling for phylogenetic relatedness using independent contrasts, bill length and body size remain significantly correlated, suggesting the relationship reflects repeated independent evolution rather than shared ancestry alone.\"</p><ul><li>Explicitly controls for non-independence</li><li>States the correlation survives the correction, strengthening the claim</li></ul>"
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Punctuated Equilibrium: From Proposal to Present Understanding",
+    "items": [
+      {
+        "y": "1859",
+        "t": "Darwin expects gradual, continuous change; notes the fossil record's gaps as a puzzle to be explained by incompleteness"
+      },
+      {
+        "y": "1972",
+        "t": "Eldredge and Gould propose punctuated equilibrium: morphological change concentrated near speciation, long intervals of stasis between"
+      },
+      {
+        "y": "1980s",
+        "t": "Debate sharpens; critics note gradualism and punctuation are not mutually exclusive and both occur across different lineages and timescales"
+      },
+      {
+        "y": "Today",
+        "t": "Understood as a pattern of tempo and mode in the fossil record, compatible with ongoing molecular/physiological evolution during morphological stasis"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "VISUAL RHETORIC",
+    "title": "Watch Your Images, Not Just Your Words",
+    "items": [
+      "The 'march of progress' silhouette (ape to stooped hominid to upright human) is scientifically outdated and reinforces the progress fallacy visually, even if your text is careful",
+      "Straight-line diagrams for any lineage (horses, whales, hominins) misrepresent branching history — use an actual phylogeny",
+      "Arrows drawn 'toward' a modern species imply that species was the goal; redraw with arrows pointing in the actual direction of time, not toward an endpoint",
+      "A slide's image often does more of the persuasive work than its bullet points — audit images with the same rigor as claims in your peer review"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "VISUAL RHETORIC — WORKED EXAMPLE",
+    "title": "Fixing a Misleading Image Choice",
+    "left": {
+      "h": "Bad example",
+      "body": "<p>A single-file \"march of progress\" silhouette used to illustrate human evolution, captioned \"the path to modern humans.\"</p><ul><li>Implies one linear path with a fixed endpoint</li><li>Omits every extinct side branch (other Homo and Australopithecus species)</li></ul>"
+    },
+    "right": {
+      "h": "Good example",
+      "body": "<p>A branching hominin phylogeny showing multiple co-existing species, several extinct side branches, and modern humans as one surviving tip among many.</p><ul><li>Accurately represents the actual bushy phylogeny</li><li>Caption: \"Modern humans are one surviving branch of a once-diverse hominin radiation\"</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "PRESENTER SELF-CHECK",
+    "title": "Run This Checklist Before You Present",
+    "cards": [
+      {
+        "h": "Language audit",
+        "p": "Search your script for 'more evolved,' 'in order to,' 'for the good of the species' — replace with mechanism-based phrasing."
+      },
+      {
+        "h": "Image audit",
+        "p": "Check every diagram for ladder imagery, straight-line lineages, or goal-directed arrows; replace with branching phylogenies."
+      },
+      {
+        "h": "Evidence audit",
+        "p": "For each major claim, note the evidence tier it sits at on the hierarchy — is a stronger tier available and simply not shown?"
+      },
+      {
+        "h": "Counterexample audit",
+        "p": "Have you shown at least one case, limitation, or contested finding, or only the cleanest supporting example?"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECEIVING FEEDBACK",
+    "title": "Peer Review Etiquette: Receiving Feedback Gracefully",
+    "items": [
+      "A pitfall flagged in your talk is not a judgment of your understanding of the whole course — it's a specific, fixable claim-level issue",
+      "Ask clarifying questions if a comment is unclear: 'do you mean the mechanism was wrong, or just the phrasing?' before revising",
+      "Track which comments you addressed and how in your revision notes — this is often part of the resubmission requirement",
+      "The most common defensive reaction is to argue the pitfall doesn't apply to your specific case — check the definition slide again before pushing back; usually it does apply"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "ON HUMILITY IN SCIENCE COMMUNICATION",
+    "quote": "Being correctable in public is not a weakness in scientific communication — it is the entire mechanism by which shared knowledge gets more accurate over time.",
+    "attrib": "Course framing, drawing on the norms of scientific peer review"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "What to Take Away From Today",
+    "items": [
+      "Structured peer feedback — rubric-anchored, stars-and-wish, and claim-audit — produces more useful, more actionable comments than open impressions",
+      "Five recurring content pitfalls in macroevolution/behavior presentations: progress fallacy, naive group selectionism, stasis-as-stopped-evolution, behavioral overadaptationism, and spurious coevolution",
+      "Two bonus pitfalls worth flagging in peer review: anthropomorphizing selection, and cherry-picking confirmatory examples",
+      "Each pitfall has a specific, learnable fix — usually naming the correct mechanism, adding a caveat, or citing the reciprocity/relatedness/replication evidence that was missing",
+      "Use this shared vocabulary in your written feedback this week; it makes review faster for you and more useful for your classmates"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "BRIDGE TO LECTURE 44",
+    "title": "Toward Course Synthesis I",
+    "sub": "The patterns and processes toolkit: pulling mechanisms, macroevolution, and applied evolution into one coherent framework"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "What Lecture 44 Will Cover",
+    "items": [
+      "Lecture 44 is the first of two course-synthesis lectures, revisiting the full arc from Evolution I's mechanisms unit through this semester's macroevolution, behavior, and applied units",
+      "It builds a 'patterns and processes toolkit': a structured way of asking, for any evolutionary claim, which process (selection, drift, migration, mutation, kin selection, coevolution) and which pattern (tree, trend, stasis, correlation) are actually in play",
+      "Today's pitfall vocabulary becomes part of that toolkit — each pitfall marks a place where a pattern was named without pinning down the underlying process",
+      "Lecture 45 will close the course by connecting this toolkit to open questions and current research directions in evolutionary biology"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONNECTING THE THREADS",
+    "title": "From Today's Pitfalls to the Synthesis Toolkit",
+    "left": {
+      "h": "What today built",
+      "body": "<p>A checklist for auditing evolutionary claims in presentations:</p><ul><li>Is the pattern (complexity, stasis, correlation) correctly described?</li><li>Is the process (selection level, adaptation, coevolution) correctly identified?</li><li>Is the evidence tier strong enough for the claim's strength of language?</li></ul>"
+    },
+    "right": {
+      "h": "Where it leads next",
+      "body": "<p>Lecture 44 generalizes this same audit into a course-wide framework:</p><ul><li>Apply the pattern/process distinction across all units, not just macroevolution and behavior</li><li>Use the evidence-tier hierarchy as a general standard for any evolutionary claim, not only presentation content</li><li>Revisit Evolution I's mechanism-focused pitfalls alongside this semester's pitfalls as one connected map</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEFORE NEXT CLASS",
+    "title": "Preparation for Lecture 44",
+    "items": [
+      "Finish and submit written peer-feedback sheets (rubric-anchored, stars-and-wish, claim-audit) for the presentations you were assigned",
+      "Revise your own presentation slides using the feedback you received, focusing especially on any of today's five pitfalls flagged by reviewers",
+      "Skim your notes from Units 1-8 with one question in mind: for each major topic, what was the pattern being explained, and what process explained it?",
+      "Bring one open question from the semester so far — Lecture 45 will use audience questions to shape the course's closing discussion"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 43</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

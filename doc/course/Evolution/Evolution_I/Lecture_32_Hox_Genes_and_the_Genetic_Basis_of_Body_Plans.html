@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 32: Hox Genes and the Genetic Basis of Body Plans</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 32",
+    "title": "Hox Genes and the Genetic Basis of Body Plans",
+    "sub": "How a small toolkit of master-regulatory genes builds the animal body — and how tweaking that toolkit rebuilds it",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 9, \"From Genes to Traits\" (lecture 2 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "RECAP",
+    "title": "Where We Left Off",
+    "sub": "Lecture 31: the evo-devo revolution and deep homology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "From Lecture 31: Deep Homology",
+    "items": [
+      "Evo-devo asks how changes in development produce evolutionary change in form",
+      "Deep homology: distantly related animals share ancient genetic 'toolkit' genes that build strikingly different structures (e.g., Pax6 and eyes across phyla)",
+      "The genetic toolkit is far more conserved than the anatomical outcomes it produces",
+      "This sets up today's question: how is the basic body plan itself — head-to-tail organization — specified, and how conserved is that specification?",
+      "Answer: a family of toolkit genes called Hox genes"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Agenda",
+    "title": "What We'll Cover",
+    "items": [
+      "The discovery of Hox genes: homeotic mutations in Drosophila",
+      "Antennapedia and bithorax — legs where antennae should be, extra wings where halteres should be",
+      "What Hox genes are and how they function as master regulators",
+      "Colinearity: gene order on the chromosome mirrors expression order along the body",
+      "Conservation of the Hox cluster across bilaterian animals — flies to mice to humans",
+      "Case studies: arthropod segments, vertebrate axial skeletons, snake limb loss",
+      "The big lesson: regulatory change, not new genes, drives much of macroevolution",
+      "Preview of Lecture 33: cis-regulatory evolution in more depth"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Discovering the Master Switches",
+    "sub": "Homeotic mutants in the fruit fly"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Historical Background",
+    "title": "Homeotic Mutations: A Strange Class of Mutants",
+    "items": [
+      "Early 20th-century Drosophila geneticists noticed a peculiar category of mutant: not a missing structure, but a structure in the wrong place",
+      "William Bateson (1894) coined 'homeosis' for the transformation of one body part into the likeness of another",
+      "These mutants showed that development uses genetic 'address labels' telling each segment what to become",
+      "If you scramble the address label, the segment builds the wrong structure — but builds it perfectly, just misplaced",
+      "This hinted at genes that specify segment IDENTITY, not segment structure itself"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Homeotic Genes",
+    "term": "Homeotic gene",
+    "def": "A gene that controls the identity of a body segment or structure during development; mutations in these genes cause one body part to develop as if it were another.",
+    "bullets": [
+      "First identified through dramatic Drosophila mutants",
+      "Later shown to encode transcription factors that switch entire developmental programs on or off",
+      "The Hox genes are the best-known and most extensively studied class of homeotic genes"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Discovery Story",
+    "title": "Antennapedia and Bithorax",
+    "term": "Antennapedia mutation",
+    "def": "A dominant homeotic mutation in Drosophila melanogaster in which legs grow from the head in place of antennae, discovered and characterized by Edward Lewis and colleagues in the mid-20th century.",
+    "bullets": [
+      "The antenna-bearing segment is developmentally reprogrammed to behave like a leg-bearing thoracic segment",
+      "The leg structure itself is normal and complete — it is simply built in the wrong location",
+      "This showed that a single genetic switch can redirect an entire developmental program for a whole appendage"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Discovery Story, continued",
+    "title": "The Bithorax Complex",
+    "term": "Bithorax mutation",
+    "def": "A homeotic mutation that transforms the fly's third thoracic segment (which normally bears small balancing organs called halteres) into a copy of the second thoracic segment, producing a four-winged fly.",
+    "bullets": [
+      "Edward B. Lewis spent decades (1940s–1970s) mapping the bithorax complex in painstaking genetic detail",
+      "He showed the complex contains a cluster of genes arranged in a precise order along the chromosome",
+      "Lewis proposed that these genes act combinatorially to specify segment identity along the body axis — a radical idea at the time",
+      "This body of work earned Lewis a share of the 1995 Nobel Prize in Physiology or Medicine"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "In Their Own Words",
+    "quote": "A four-winged fly is a beautiful thing precisely because it should not exist — and because it exists, it tells you exactly which gene stopped a normal fly from having it.",
+    "attrib": "paraphrasing the logic underlying Edward B. Lewis's bithorax studies"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Mattered",
+    "title": "From Bizarre Mutant to General Principle",
+    "items": [
+      "Lewis's genetic mapping showed the bithorax genes sit in the same order on the chromosome as the segments they control along the body",
+      "This was the first hint of what we now call colinearity (covered in detail shortly)",
+      "In the 1980s, molecular cloning revealed that these homeotic genes share a conserved 180-base-pair DNA sequence: the homeobox",
+      "The homeobox encodes a 60-amino-acid protein domain — the homeodomain — that binds DNA",
+      "This was the molecular bridge connecting classical fly genetics to a universal developmental toolkit"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Molecular Foundation",
+    "title": "The Homeobox and Homeodomain",
+    "term": "Homeobox",
+    "def": "A ~180-base-pair DNA sequence found within Hox genes (and other homeotic genes) that encodes the homeodomain, a DNA-binding protein motif; its discovery in the 1980s revealed that homeotic genes encode transcription factors.",
+    "bullets": [
+      "The homeodomain folds into a helix-turn-helix structure that binds specific DNA sequences",
+      "Hox proteins are transcription factors: they turn other genes on or off in a sequence- and context-specific way",
+      "Because Hox proteins regulate many downstream genes, they function as master switches controlling entire developmental programs"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Definition",
+    "title": "Hox Genes",
+    "term": "Hox genes",
+    "def": "A subset of homeobox-containing genes, organized in one or more clusters on the chromosome, that specify positional identity along the anterior-posterior (head-to-tail) axis of bilaterian animals.",
+    "bullets": [
+      "Hox genes are a specific, well-defined family within the broader homeobox superfamily",
+      "They act early in development to tell each region of the embryo 'where it is' along the body axis",
+      "Downstream target genes then execute the appropriate developmental program (build a leg, an antenna, a wing, a vertebra, etc.)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Concept Check",
+    "title": "Structural Genes vs. Master Regulatory Genes",
+    "left": {
+      "h": "Ordinary structural genes",
+      "body": "<p>Encode the proteins that directly build a tissue (collagen, keratin, hemoglobin, cuticle proteins).</p><ul><li>Mutating them changes the material a structure is made of</li><li>Effects are usually local and proportional</li><li>Thousands of such genes exist in any genome</li></ul>"
+    },
+    "right": {
+      "h": "Hox (master regulatory) genes",
+      "body": "<p>Encode transcription factors that switch on/off entire batteries of downstream genes.</p><ul><li>Mutating them changes what a whole segment or region becomes</li><li>Effects can be large, discrete, and body-plan-scale</li><li>Only a handful of Hox genes exist per cluster, yet they control thousands of targets</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Colinearity",
+    "sub": "Order on the chromosome mirrors order in the body"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Colinearity",
+    "term": "Colinearity",
+    "def": "The remarkable correspondence between the physical order of Hox genes along the chromosome and the spatial order of their expression domains along the anterior-posterior body axis.",
+    "bullets": [
+      "Genes positioned at the 3' end of the Hox cluster are expressed earliest and most anteriorly (toward the head)",
+      "Genes positioned at the 5' end of the cluster are expressed later and most posteriorly (toward the tail)",
+      "This spatial colinearity is often accompanied by temporal colinearity — 3' genes also switch on earlier in development",
+      "The pattern is so consistent that a Hox gene's position in the cluster reliably predicts where it will be expressed in the embryo"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Visualizing Colinearity",
+    "title": "Reading a Hox Cluster Like a Body Map",
+    "items": [
+      "Picture the Hox genes lined up on the chromosome, left to right, in a fixed order — call them genes 1 through 8",
+      "Picture the fly embryo, head to tail, as a strip divided into regions",
+      "Gene 1 (leftmost/3') switches on in the head region; gene 8 (rightmost/5') switches on in the tail region",
+      "Every gene in between switches on in the corresponding position along the axis, in the same left-to-right sequence",
+      "Slide the gene order along the chromosome and you are, in effect, sliding a map of the body — genome order IS body order",
+      "No other gene family shows this property so cleanly; it was one of the most startling findings in developmental genetics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Colinearity Matters",
+    "title": "What Colinearity Tells Us",
+    "items": [
+      "It reveals that the physical arrangement of genes in the genome is not arbitrary — it has been evolutionarily constrained",
+      "It suggests a shared regulatory mechanism (such as sequential chromatin opening) reads through the cluster in order, activating genes in sequence",
+      "It provides overwhelming evidence that Hox genes arose by serial duplication of a single ancestral gene, followed by divergence of each copy's expression domain",
+      "Because disrupting gene order can disrupt the readout mechanism, colinearity itself may explain why Hox clusters have stayed so tightly organized over hundreds of millions of years"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Mechanistic Detail",
+    "title": "How Might Colinearity Work?",
+    "cards": [
+      {
+        "h": "Sequential chromatin opening",
+        "p": "Progressive relaxation of compacted chromatin along the cluster, moving from the 3' to 5' end, allows genes to become transcriptionally accessible in that same physical order."
+      },
+      {
+        "h": "Shared enhancers",
+        "p": "Regulatory elements at one end of the cluster may act over long distances, with genes closer to the enhancer responding earliest and most strongly."
+      },
+      {
+        "h": "Signaling gradients",
+        "p": "Diffusible signals (like retinoic acid in vertebrates) form gradients along the embryo axis that the cluster's genes are differentially sensitive to, reinforcing positional order."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "One Ancient Toolkit",
+    "sub": "Conservation of Hox clusters across bilaterian animals"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Big Surprise",
+    "title": "Hox Genes Are Not Just a Fly Thing",
+    "items": [
+      "In the late 1980s, researchers used the fly homeobox sequence as a molecular probe to search other genomes",
+      "To general astonishment, homeobox-containing Hox genes turned up in mice, humans, frogs, fish, and virtually every animal examined",
+      "The genes were similar enough in DNA sequence that fly probes could 'fish out' the mouse versions directly",
+      "This was one of the strongest pieces of evidence that all bilaterian animals share a common ancestor with an already-functioning Hox system",
+      "The finding helped launch the entire field of evolutionary developmental biology (evo-devo)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Comparative Genomics",
+    "title": "Hox Clusters: Fly vs. Mouse",
+    "left": {
+      "h": "Drosophila melanogaster",
+      "body": "<p>A single Hox cluster containing 8 genes, split across two complexes (Antennapedia and bithorax complexes).</p><ul><li>Genes expressed in colinear order along the head-to-tail axis</li><li>Specifies identity of head, thoracic, and abdominal segments</li><li>One copy of the ancestral cluster</li></ul>"
+    },
+    "right": {
+      "h": "Mus musculus (mouse)",
+      "body": "<p>Four paralogous Hox clusters (HoxA, HoxB, HoxC, HoxD), each with up to 13 gene positions, from a genome-wide duplication of the ancestral cluster.</p><ul><li>Same colinear logic: 3' genes anterior, 5' genes posterior</li><li>Specifies identity of vertebrae, limbs, and other axial structures</li><li>Four copies of the ancestral cluster, allowing more genes and finer patterning</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting the Comparison",
+    "title": "Same Logic, Different Scale",
+    "items": [
+      "Both flies and mice trace their Hox systems back to a single ancestral Hox cluster present in the last common bilaterian ancestor, over 550 million years ago",
+      "Whole-genome duplications in the vertebrate lineage produced four copies of the cluster, giving vertebrates a larger Hox toolkit than most invertebrates",
+      "Despite ~550+ million years of separate evolution, the anterior-to-posterior colinear logic has been preserved in both lineages",
+      "Individual Hox genes are similar enough that a mouse Hox gene can partially substitute for its fly counterpart in genetic rescue experiments",
+      "This is deep homology in action: the same regulatory toolkit, redeployed to build utterly different body plans (segmented insect vs. vertebrate spine)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Cross-Taxon Snapshot",
+    "title": "Hox Cluster Organization Across Bilaterians",
+    "headers": [
+      "Lineage",
+      "Number of clusters",
+      "Approx. genes per cluster",
+      "Body regions patterned"
+    ],
+    "rows": [
+      [
+        "Drosophila (fly)",
+        "1 (split in two complexes)",
+        "8",
+        "Head, thorax, abdomen segments"
+      ],
+      [
+        "Mouse / human",
+        "4 (HoxA–D)",
+        "up to 13 positions each",
+        "Vertebrae, limbs, axial skeleton"
+      ],
+      [
+        "Amphioxus (cephalochordate)",
+        "1",
+        "~14–15",
+        "Simple body axis, prototype of vertebrate cluster"
+      ],
+      [
+        "Zebrafish",
+        "7 (from extra genome duplication)",
+        "up to 13 positions each",
+        "Vertebrae, fins, pharyngeal skeleton"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Key Distinction",
+    "title": "Orthologs and Paralogs Within the Hox System",
+    "items": [
+      "Orthologous Hox genes (e.g., Hox6 in fly vs. Hox6-equivalent in mouse) arose from a single ancestral gene, retained across lineages by descent — they usually retain similar functions",
+      "Paralogous Hox genes (e.g., HoxA6, HoxB6, HoxC6 in mouse) arose from duplication of the cluster itself within a lineage — they often show partial redundancy but also functional specialization",
+      "Redundancy among paralogs is one reason mice tolerate the loss of a single Hox gene copy better than flies tolerate the loss of a single-cluster gene",
+      "This redundancy likely also allowed vertebrate Hox genes greater evolutionary flexibility to take on new, specialized roles over time"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Big Picture",
+    "title": "Levels of Body-Plan Conservation",
+    "levels": [
+      {
+        "label": "Homeobox DNA motif",
+        "color": "#4a1620",
+        "width": "560px"
+      },
+      {
+        "label": "Hox gene identity & order",
+        "color": "#6b2c39",
+        "width": "480px"
+      },
+      {
+        "label": "Colinear expression logic",
+        "color": "#8a3f4d",
+        "width": "400px"
+      },
+      {
+        "label": "Segment/region number & type",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Final adult anatomy",
+        "color": "#c47b87",
+        "width": "240px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Pyramid",
+    "title": "Deep Conservation, Shallow Variation",
+    "items": [
+      "The base of the pyramid — the homeobox DNA sequence and the identity/order of Hox genes — is extraordinarily conserved across all bilaterians",
+      "The middle layer — the colinear logic of expression — is also highly conserved, though cluster number varies (1 in fly, 4 in mouse)",
+      "The upper layers — how many segments exist, what type each segment becomes, and the final adult anatomy — are where the dramatic diversity of animal body plans is generated",
+      "This is the central paradox evo-devo resolves: deep genetic conservation coexists with, and in fact enables, tremendous anatomical diversity",
+      "The explanation lies in HOW Hox genes are deployed — their regulation — rather than in the genes' own protein sequence"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Rewiring the Toolkit",
+    "sub": "How regulatory change in Hox expression reshapes body plans"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Central Insight",
+    "title": "Regulatory Evolution vs. Coding Evolution",
+    "term": "Regulatory (cis-regulatory) change",
+    "def": "An evolutionary change in when, where, or how strongly a gene is expressed — typically due to mutations in non-coding DNA elements (enhancers, promoters) that control transcription — as opposed to a change in the amino-acid sequence of the protein itself.",
+    "bullets": [
+      "Because Hox proteins themselves are so conserved, most evolutionarily important Hox changes are regulatory, not structural",
+      "A regulatory change can shift a Hox gene's expression domain forward, backward, or into a new tissue entirely",
+      "Because Hox genes sit atop large regulatory networks, even a small shift in their expression boundary can cascade into a large anatomical difference",
+      "This is the molecular explanation for how so much morphological diversity arises from such a conserved genetic toolkit"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Studies",
+    "title": "Regulatory Change in Action",
+    "cards": [
+      {
+        "h": "Arthropod segment diversification",
+        "p": "Shifts in the anterior expression boundaries of Hox genes such as Ultrabithorax and abdominal-A explain why different crustaceans and insects convert different numbers of trunk segments into feeding appendages (maxillipeds) versus swimming/walking legs."
+      },
+      {
+        "h": "Vertebrate axial skeleton",
+        "p": "The boundaries between vertebral types (cervical, thoracic, lumbar, sacral) align tightly with the anterior expression limits of specific Hox paralog groups; shifting these boundaries in different mammals changes rib number, neck length, and vertebral counts (e.g., long-necked vs. short-necked mammals)."
+      },
+      {
+        "h": "Snake limb loss",
+        "p": "In snakes, an expanded, more posteriorly shifted domain of Hox genes (notably Hox10/Hox11 paralogs) suppresses limb-forming gene networks along nearly the entire trunk, contributing to the snake's limbless, elongated body plan, alongside changes at the Sonic hedgehog limb enhancer (ZRS)."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Detail",
+    "title": "Arthropod Segments: Same Genes, Different Boundaries",
+    "items": [
+      "All arthropods share the same core Hox gene set inherited from a common ancestor",
+      "What differs between a centipede, a lobster, and a fly is where along the body each Hox gene's expression domain starts and stops",
+      "In crustaceans, shifting the anterior boundary of Hox gene Ubx/abd-A determines how many thoracic segments develop as feeding maxillipeds versus walking legs",
+      "In insects, similar Hox boundary shifts distinguish the fixed six-legged, three-segment thoracic body plan from the more variable trunks of their myriapod and crustacean relatives",
+      "The lesson: segment number and identity are a readout of Hox expression boundaries, and those boundaries are evolutionarily labile even when the genes are not"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Detail",
+    "title": "Vertebrate Axial Skeleton: Counting Vertebrae with Hox Code",
+    "items": [
+      "Each vertebra type (cervical, thoracic, lumbar, sacral, caudal) is specified by a combinatorial 'Hox code' — the overlapping set of Hox genes expressed at that axial position",
+      "Nearly all mammals have exactly 7 cervical vertebrae — this number is remarkably stable and corresponds to a conserved Hox expression boundary",
+      "Even the giraffe's long neck is built from 7 elongated cervical vertebrae rather than additional ones — illustrating how conserved the underlying Hox boundary is even when gross anatomy changes dramatically",
+      "In contrast, the position of the thoracic-to-lumbar transition (and hence rib number) is more evolutionarily flexible and tracks shifts in Hox10 paralog expression boundaries across mammal species",
+      "Birds and other reptiles, with more variable cervical counts, show correspondingly different Hox expression boundaries"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Case Study Detail",
+    "title": "Snake Limb Loss: Turning Off Limb Identity, Not Deleting Limb Genes",
+    "items": [
+      "Snakes still possess the genes required to build limbs — Sonic hedgehog, Tbx, Fgf pathway genes are all present and functional in the snake genome",
+      "What differs is the Hox expression pattern along the trunk: posterior Hox genes (Hox10/Hox13 paralog groups) are expressed across almost the entire body length in snakes, rather than being confined to defined anterior and posterior zones",
+      "This expanded posterior-type Hox expression suppresses the limb-forming program along nearly the whole trunk",
+      "A separate but related change — mutation of a long-range limb enhancer (ZRS, which regulates Sonic hedgehog in the limb bud) — further compromises hindlimb development in snakes",
+      "Together these regulatory changes, not loss of the underlying genes, explain snake limblessness — a powerful illustration of evolution by regulatory loss-of-function rather than gene loss"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Synthesis Table",
+    "title": "Two Routes to Hox-Driven Evolutionary Change",
+    "headers": [
+      "Feature",
+      "Change in Hox coding sequence",
+      "Change in Hox regulation"
+    ],
+    "rows": [
+      [
+        "What mutates",
+        "The protein-coding exons of the Hox gene itself",
+        "Non-coding regulatory DNA (enhancers, promoters, boundary elements) or upstream signaling"
+      ],
+      [
+        "Typical effect on protein",
+        "Alters DNA-binding specificity or protein function",
+        "Protein is unchanged; only its expression pattern changes"
+      ],
+      [
+        "Typical phenotypic effect",
+        "Often severe, pleiotropic, frequently deleterious across every tissue where the gene is used",
+        "Localized shift in when/where a body region forms; can be modular and less deleterious"
+      ],
+      [
+        "Evolutionary frequency in body-plan change",
+        "Rare — highly conserved due to widespread pleiotropic constraint",
+        "Common — the dominant mode inferred for most documented body-plan transitions"
+      ],
+      [
+        "Example",
+        "Loss-of-function coding mutations are usually lethal or severely deforming",
+        "Snake trunk Hox10/13 expansion; giraffe/mammal vertebral Hox boundaries; arthropod segment identity shifts"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Regulatory Change Dominates",
+    "title": "The Pleiotropy Problem",
+    "items": [
+      "A single Hox gene's protein product is typically reused in many different tissues and developmental stages",
+      "A coding mutation that alters the protein changes its function everywhere it is used — a recipe for widespread, often harmful, pleiotropic effects",
+      "A regulatory (enhancer) mutation, by contrast, can be tissue-specific or context-specific — it can change expression in ONE place without touching the gene's role anywhere else",
+      "This modularity of regulatory elements allows evolution to fine-tune one structure at a time without breaking everything else the gene does",
+      "This is a core reason evo-devo researchers argue that regulatory evolution, not protein evolution, is the primary engine of morphological diversification"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Conceptual Framework",
+    "title": "The Toolkit Metaphor",
+    "left": {
+      "h": "The toolkit (conserved)",
+      "body": "<p>A shared set of ancient regulatory genes — including Hox genes — inherited from deep bilaterian ancestors.</p><ul><li>Hox proteins themselves change slowly</li><li>Cluster organization and colinearity are deeply conserved</li><li>Present across nearly all animal phyla</li></ul>"
+    },
+    "right": {
+      "h": "The blueprint readout (variable)",
+      "body": "<p>Where, when, and how strongly each toolkit gene is deployed during development.</p><ul><li>Regulatory sequences evolve relatively rapidly</li><li>Small shifts in expression boundaries yield large anatomical differences</li><li>Explains the diversity of segments, limbs, and vertebral columns across animals</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Framing the Big Idea",
+    "quote": "Evolution did not need to invent new genes to invent new bodies — it needed only to change when and where the old genes were switched on.",
+    "attrib": "core thesis of evo-devo, as developed in Zimmer & Emlen Ch. 9"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Misconceptions",
+    "title": "What Hox Genes Do NOT Do",
+    "items": [
+      "Hox genes do not single-handedly build structures — they regulate the downstream genes that do",
+      "A Hox gene does not specify a structure's fine detail (e.g., exact wing shape); it specifies regional identity, which then triggers appropriate downstream developmental programs",
+      "Hox mutations do not create entirely novel structures from nothing — Antennapedia legs are built using the normal leg-building program, just triggered in the wrong location",
+      "Hox gene conservation does not mean animal body plans are static — regulatory flexibility built on top of a conserved toolkit is precisely what permits body-plan change",
+      "Colinearity is a strong general pattern, but not an absolute rule — some lineages show partial breakdown of strict colinearity, itself an area of active research"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Historical Milestones",
+    "title": "The Hox Story: A Timeline",
+    "items": [
+      {
+        "y": "1894",
+        "t": "Bateson coins 'homeosis' to describe body-part transformation mutants"
+      },
+      {
+        "y": "1940s–70s",
+        "t": "Edward Lewis maps the bithorax complex in Drosophila, revealing colinear gene order"
+      },
+      {
+        "y": "1983–84",
+        "t": "The homeobox DNA motif is discovered and cloned in Drosophila homeotic genes"
+      },
+      {
+        "y": "1984–86",
+        "t": "Homeobox sequences are found in frogs, mice, and humans — Hox genes proven to be ancient and widely shared"
+      },
+      {
+        "y": "1990s",
+        "t": "Functional studies (Hox knockouts, ectopic expression) establish Hox genes as master regulators of axial identity across bilaterians"
+      },
+      {
+        "y": "1995",
+        "t": "Lewis, Nüsslein-Volhard, and Wieschaus share the Nobel Prize for work on genetic control of early development"
+      },
+      {
+        "y": "2000s–present",
+        "t": "Comparative and regulatory studies (snake limbs, vertebral Hox codes, arthropod segment evolution) reveal regulatory change as the dominant driver of body-plan evolution"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Connecting the Dots",
+    "title": "Hox Genes and the Logic of Macroevolution",
+    "items": [
+      "Macroevolutionary transitions (new segment types, new limb arrangements, limb loss) can occur without inventing new genes",
+      "A conserved developmental toolkit, combined with evolvable regulatory switches, provides a mechanism for rapid, modular anatomical change",
+      "This resolves an old puzzle: how can body plans differ so radically while the genome's core machinery stays so similar?",
+      "It also explains why homologous genes so often turn up controlling analogous structures in very different lineages — deep homology and Hox conservation are two faces of the same underlying phenomenon",
+      "This regulatory framework generalizes beyond Hox genes to essentially all developmental gene networks — a theme we will develop further next lecture"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Check Your Understanding",
+    "title": "Quick Self-Test",
+    "cards": [
+      {
+        "h": "Q: Why does a fly with an Antennapedia mutation grow a leg instead of an antenna?",
+        "p": "A: The Hox gene controlling thoracic (leg-segment) identity is misexpressed in the head segment, redirecting the entire local developmental program to build a leg using the normal leg-building genes."
+      },
+      {
+        "h": "Q: What does colinearity predict about a Hox gene's chromosomal position?",
+        "p": "A: A gene located toward the 3' end of the cluster will be expressed earlier and more anteriorly; a gene toward the 5' end will be expressed later and more posteriorly."
+      },
+      {
+        "h": "Q: Why is snake limblessness attributed to regulation rather than gene loss?",
+        "p": "A: Snakes retain the core limb-building genes (Shh, Fgf, Tbx); what changed is Hox gene expression pattern and a limb-specific enhancer, which together suppress the limb program along the trunk."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Broader Context",
+    "title": "Why This Matters Beyond Hox Genes",
+    "left": {
+      "h": "For evolutionary theory",
+      "body": "<p>Hox biology provided the first clear molecular demonstration that macroevolutionary change can occur through regulatory tinkering rather than wholesale genetic innovation.</p><ul><li>Reconciles genetic conservatism with anatomical diversity</li><li>Supports a modular view of development and evolution</li></ul>"
+    },
+    "right": {
+      "h": "For the rest of Chapter 9",
+      "body": "<p>The Hox story is the flagship example of a much broader phenomenon: cis-regulatory evolution.</p><ul><li>Many other traits (pigmentation, bristle patterns, beak shape) evolve the same way</li><li>Sets up next lecture's deep dive into how enhancers themselves evolve</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Summary",
+    "title": "Key Takeaways from Today",
+    "items": [
+      "Hox genes were discovered through dramatic homeotic mutants — Antennapedia (legs for antennae) and bithorax (four-winged flies) — that revealed genes controlling segment identity",
+      "Hox genes encode homeodomain transcription factors that act as master regulators of anterior-posterior positional identity",
+      "Colinearity — chromosomal gene order mirroring body-axis expression order — is a defining, near-universal feature of Hox clusters",
+      "The Hox cluster and its colinear logic are deeply conserved across bilaterians, from a single cluster in flies to four duplicated clusters in mammals",
+      "Body-plan diversity (arthropod segments, vertebrate axial skeletons, snake limblessness) arises overwhelmingly from changes in Hox gene regulation, not changes in the Hox proteins themselves",
+      "The general lesson: macroevolution can proceed by rewiring a conserved genetic toolkit rather than by inventing new genes from scratch"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "The animal kingdom's dazzling variety of body plans is written largely in regulatory switches, not in new letters of genetic code.",
+    "attrib": "synthesis of Hox gene evo-devo findings, Zimmer & Emlen Ch. 9"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Extending the Concept",
+    "term": "Hox code",
+    "title": "Hox Code",
+    "def": "The unique combination of Hox genes expressed at a given position along the body axis, which together specify the developmental identity of that region.",
+    "bullets": [
+      "No single Hox gene acts alone; identity is determined combinatorially by which genes overlap at a given position",
+      "This combinatorial logic allows a small number of Hox genes to specify a much larger number of distinct positional identities",
+      "The Hox code concept explains how relatively few genes (8 in flies, up to ~39 in mammals across four clusters) can pattern dozens of distinct body regions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Experimental Evidence",
+    "title": "Testing Hox Function: Gain- and Loss-of-Function Experiments",
+    "items": [
+      "Loss-of-function (knockout) experiments in mice: deleting a single Hox gene often causes subtle vertebral transformations because paralogous genes partially compensate",
+      "Deleting multiple paralogs simultaneously (e.g., all Hox10 paralogs) causes larger transformations, such as extra ribs forming on lumbar vertebrae that normally lack them",
+      "Gain-of-function (ectopic expression) experiments: forcing a posterior Hox gene to be expressed anteriorly shifts anterior structures toward a more posterior identity, and vice versa",
+      "These experiments causally confirm what comparative and mutant studies suggested: Hox genes are necessary and sufficient to specify regional identity, not merely correlated with it"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Looking Ahead",
+    "title": "Questions for Next Time",
+    "cards": [
+      {
+        "h": "What exactly is a cis-regulatory element?",
+        "p": "We will formally define enhancers, promoters, and other non-coding control sequences, and see how they integrate multiple regulatory inputs."
+      },
+      {
+        "h": "How do enhancers evolve?",
+        "p": "We will examine point mutations, enhancer gain/loss, and enhancer shuffling as concrete molecular mechanisms of regulatory evolution."
+      },
+      {
+        "h": "Can we watch regulatory evolution happen?",
+        "p": "We will look at case studies — including stickleback pelvic spine loss and Drosophila pigmentation — where the exact regulatory mutations responsible for a trait change have been identified."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — L33",
+    "title": "Cis-Regulatory Evolution",
+    "sub": "How enhancers themselves mutate, gain, and lose function to drive morphological change"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 32</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

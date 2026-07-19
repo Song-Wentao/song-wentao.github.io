@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 10: Time Series and State-Space Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 10",
+    "title": "Time Series and State-Space Models",
+    "sub": "The Hudson's Bay Company lynx cycle -- autocorrelation, ARIMA, and separating the true population from noisy observation",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Picking Up the Thread",
+    "title": "Every Model So Far Assumed Independent Observations",
+    "sub": "What happens when this year's count depends on last year's count?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Problem",
+    "title": "Independence Was Always Quietly Assumed",
+    "items": [
+      "Lectures 5-9 all rested on some version of the same assumption: residuals are independent and identically distributed (iid), or independent given the random effects/group structure",
+      "For a spatial snapshot of 70 mite sites or 100 experimental plots, that is a defensible working assumption",
+      "For a population counted at the same location year after year, it usually is not -- this year's abundance is built directly out of last year's abundance via births, deaths, and movement",
+      "That built-in dependence is called autocorrelation, and every ordinary least-squares standard error, every GLM p-value, and every GAM confidence band from this course assumes it is absent",
+      "Ignoring autocorrelation does not just add noise -- it makes models systematically overconfident, because consecutive correlated points are treated as if they were independent pieces of evidence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ecological Motivation",
+    "title": "Population Time Series Are Everywhere in Ecology",
+    "items": [
+      "Long-term monitoring programs -- fisheries stock assessments, breeding bird surveys, fur-trapping records, camera-trap indices -- exist precisely to track abundance through time",
+      "Many populations cycle: predator-prey pairs, boom-bust rodents, insect outbreaks, and periodical cicadas all show regular multi-year rhythms that a single-snapshot model cannot even represent",
+      "The scientific questions are inherently temporal: is the population declining, cycling, or stable? How fast does a perturbation decay? Is a current low the start of a new cycle phase or a random dip?",
+      "Answering any of these requires methods built for dependence through time, not for iid data -- which is exactly what this lecture introduces"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Data",
+    "title": "The Canadian Lynx: One of the Most Famous Time Series in Science",
+    "items": [
+      "114 consecutive annual counts (1821-1934) of Canadian lynx (Lynx canadensis) pelts trapped and traded by the Hudson's Bay Company",
+      "Fur-trading ledgers are an unusually long, regularly-sampled, non-destructively-collected proxy for lynx abundance -- rare for any wild population over a century before modern monitoring existed",
+      "Pelts track the classic ~10-year snowshoe hare / lynx predator-prey cycle described across the boreal forest of North America",
+      "The series is a benchmark in both statistics and ecology: it appears in Moran's (1953) foundational autoregressive analysis and, more recently, in the density-dependence and nonlinear-dynamics reanalyses by Stenseth et al. (1997, Science; 1998, PNAS) that motivate much of this lecture",
+      "We will treat trappings as a proxy for lynx abundance and work on the log scale, standard practice for count-like series spanning more than an order of magnitude"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Provenance",
+    "title": "Where This Data Actually Comes From",
+    "term": "Hudson's Bay Company Fur Returns",
+    "def": "Annual counts of lynx pelts purchased by the Hudson's Bay Company from trappers across Canada, 1821-1934 -- originally compiled for MacLulich (1937) and popularized as a statistics teaching dataset by Campbell & Walker (1977); it is the same 'lynx' series built into R.",
+    "bullets": [
+      "Reanalyzed for density dependence and nonlinear population regulation by Stenseth, Falck, Bjornstad & Krebs (1997) 'Population regulation in snowshoe hare and Canadian lynx: Asymmetric food web configurations between hare and lynx', PNAS",
+      "Reanalyzed again with an explicit predator-prey and climate framing by Stenseth et al. (1999), and in the widely-cited Stenseth (1998) Science piece on density dependence -- together establishing the lynx cycle as a testbed for time-series methods in population ecology",
+      "A trapping record is an imperfect, effort-dependent proxy for true abundance -- exactly the observation-error problem that motivates the state-space section of this lecture"
+    ]
+  },
+  {
+    "type": "quote",
+    "quote": "The fur-trade records represent one of the longest continuous indices of a wild vertebrate population anywhere in the world, and their cyclic dynamics have shaped a century of theory about what regulates populations in nature.",
+    "attrib": "paraphrased from Stenseth, Falck, Bjornstad & Krebs (1997), PNAS 94:5147-5152"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "A Century of Reanalysis",
+    "title": "The Lynx Series as a Recurring Statistical Testbed",
+    "items": [
+      {
+        "y": "1821-1934",
+        "t": "Hudson's Bay Company fur-trading ledgers record annual lynx pelts across Canada"
+      },
+      {
+        "y": "1937",
+        "t": "MacLulich compiles and first analyzes the ~10-year hare-lynx cycle"
+      },
+      {
+        "y": "1953",
+        "t": "Moran fits an AR(2) model by hand, showing two lagged terms reproduce the cyclic pattern"
+      },
+      {
+        "y": "1977",
+        "t": "Campbell & Walker popularize the series as a statistics teaching dataset (base R's built-in 'lynx')"
+      },
+      {
+        "y": "1997-1999",
+        "t": "Stenseth et al. (Science, PNAS) reanalyze the series for density dependence and predator-prey structure using nonlinear and state-space methods"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "First Look",
+    "title": "Plotting the Series Reveals the Cycle Immediately",
+    "left": {
+      "h": "R -- load and plot",
+      "body": "<pre><code>lynx &lt;- read.csv(&quot;data/lynx.csv&quot;)\nlynx_ts &lt;- ts(lynx$trappings, start = 1821)\n\nplot(lynx_ts, type = &quot;o&quot;, pch = 16, cex = 0.5,\n     xlab = &quot;Year&quot;, ylab = &quot;Pelts trapped&quot;,\n     main = &quot;Canadian lynx, Hudson's Bay Co.&quot;)</code></pre>"
+    },
+    "right": {
+      "h": "What Jumps Out",
+      "body": "<p>A striking, remarkably regular boom-and-bust cycle roughly every 10 years, with peaks that can exceed 60,000-80,000 pelts and troughs that fall below a few hundred.</p><p>The amplitude of the swings grows and shrinks across the century -- the raw series is far from a constant-variance, stationary process, and the swings span almost two orders of magnitude.</p><p>That last point is exactly why we move to the log scale next -- it stabilizes the variance and turns multiplicative swings into additive ones."
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Autocorrelation",
+    "term": "Autocorrelation",
+    "def": "The correlation of a time series with a lagged copy of itself: how similar is the value at time t to the value at time t - k, for lag k = 1, 2, 3, ... A series with strong autocorrelation carries memory of its own past, violating the iid assumption behind ordinary regression inference.",
+    "bullets": [
+      "Positive autocorrelation at short lags: consecutive years resemble each other (population momentum, generation overlap)",
+      "Oscillating autocorrelation that swings positive then negative and back: a signature of cyclical dynamics, like the lynx's ~10-year rhythm",
+      "The autocorrelation function (ACF) plots this correlation against lag k; the partial autocorrelation function (PACF) plots the correlation at lag k after removing the effect of lags 1..k-1",
+      "ACF and PACF together are the standard diagnostic pair for identifying what kind of time-series model (and what order) is appropriate"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Diagnostics",
+    "title": "ACF and PACF on log(trappings)",
+    "left": {
+      "h": "R -- acf() and pacf()",
+      "body": "<pre><code>log_lynx &lt;- log(lynx_ts)\n\nacf(log_lynx,  lag.max = 20, main = &quot;ACF&quot;)\npacf(log_lynx, lag.max = 20, main = &quot;PACF&quot;)</code></pre>"
+    },
+    "right": {
+      "h": "Reading the Plots",
+      "body": "<p>The ACF oscillates with a period of about 9-10 lags: it is strongly positive near lag 0, crosses zero around lag 4-5, dips negative around lag 5-6 (trough-to-peak mismatch), and rises back toward positive around lag 9-10 -- a textbook cyclical signature.</p><p>The PACF cuts off sharply after about lag 2, with the largest partial spikes at lags 1 and 2 (one positive, one negative) -- suggesting the process is well approximated by a low-order autoregressive (AR) model, consistent with the classical AR(2) description of this exact series going back to Moran (1953).</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Foundations",
+    "title": "Stationarity: Why It Matters Before You Model",
+    "items": [
+      "A stationary series has a mean, variance, and autocorrelation structure that do not change over time -- most time-series models (including ARIMA and the state-space model here) assume this",
+      "Trends (a systematically rising or falling mean) and changing variance are the two most common violations in ecological series",
+      "Differencing -- replacing x_t with x_t - x_{t-1} -- removes a linear trend and is the standard first fix; log-transforming first (as we did) stabilizes variance that grows with the level",
+      "The lynx cycle itself is (roughly) stationary around a constant mean on the log scale once you accept the oscillation as the process itself, not a trend to be removed -- differencing is a diagnostic tool here, not something the final model necessarily needs"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Differencing",
+    "term": "Differencing",
+    "def": "Replacing each value x_t with the change since the previous time point, x_t - x_{t-1}. Differencing removes a linear trend from a series and is the standard tool for turning a non-stationary series into a (roughly) stationary one before modeling.",
+    "bullets": [
+      "First-order differencing (d = 1) removes a straight-line trend; a series occasionally needs a second difference (d = 2) if the trend itself is curved",
+      "The lynx series (on the log scale) has no strong long-run trend -- its mean is roughly constant across the century, only its phase within the cycle changes -- so ARIMA selects d = 0 here",
+      "Over-differencing (differencing a series that was already stationary) introduces artificial negative autocorrelation and should be avoided; auto.arima()'s search checks this automatically via a unit-root test"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R and Python Code",
+    "title": "Checking Stationarity: Differencing in Practice",
+    "left": {
+      "h": "R -- diff() and a unit-root check",
+      "body": "<pre><code>d1 &lt;- diff(log_lynx)\nplot(d1, main = &quot;First difference of log(trappings)&quot;)\n\nlibrary(tseries)\nadf.test(log_lynx)\n#&gt; Dickey-Fuller = -4.83, p-value &lt; 0.01\n#&gt; (stationary -- consistent with auto.arima's d = 0)</code></pre>"
+    },
+    "right": {
+      "h": "Python -- np.diff() and adfuller",
+      "body": "<pre><code>from statsmodels.tsa.stattools import adfuller\n\nd1 = np.diff(log_lynx)\nstat, p, *_ = adfuller(log_lynx)\nprint(stat, p)\n# ADF statistic strongly negative, p &lt; 0.01\n# -- rejects a unit root; series is stationary</code></pre>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "ARIMA (AR, I, MA)",
+    "term": "ARIMA(p, d, q)",
+    "def": "AutoRegressive Integrated Moving Average -- a model that writes the current value as a combination of p past values of the series (AR), after differencing d times to remove trend (I, 'Integrated'), plus q past forecast errors (MA).",
+    "bullets": [
+      "AR(p): x_t depends on x_{t-1}, ..., x_{t-p} -- the series has memory of its own recent levels",
+      "I(d): the series is differenced d times before fitting, to make it stationary (d = 0 here -- the log series does not need differencing)",
+      "MA(q): x_t also depends on the last q forecast errors -- the model corrects itself using how wrong its recent predictions were",
+      "Order (p, d, q) is normally chosen automatically by minimizing an information criterion (AIC/AICc) over a search of candidate orders -- R's auto.arima() and Python's pmdarima/statsmodels equivalents do exactly this"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code",
+    "title": "Fitting ARIMA to log(trappings) with auto.arima()",
+    "left": {
+      "h": "R -- forecast::auto.arima",
+      "body": "<pre><code>library(forecast)\n\nfit_arima &lt;- auto.arima(log_lynx,\n                         seasonal = FALSE,\n                         stepwise = FALSE,\n                         approximation = FALSE)\nsummary(fit_arima)\n#&gt; ARIMA(2,0,3) with non-zero mean\n#&gt; ar1 = 1.555, ar2 = -0.953\n#&gt; ma1 = -0.454, ma2 = -0.149, ma3 = 0.563</code></pre>"
+    },
+    "right": {
+      "h": "What the Fit Says",
+      "body": "<p>auto.arima() selects ARIMA(2,0,3) on the log scale (d = 0): the current log-abundance depends on the previous two log-abundances (AR) and the previous three forecast errors (MA).</p><p>The two AR coefficients (ar1 &gt; 1, ar2 &lt; 0, with complex roots) are the part that generates the oscillatory dynamics, at a period near 9-10 years -- the same AR(2)-driven cycle Moran identified by hand in 1953; the added MA(3) terms refine the fit's short-term error correction on top of that core cycle.</p><p>A residual Ljung-Box test on this fit is non-significant (p &approx; 0.10), confirming little autocorrelation is left unexplained.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Forecasting",
+    "title": "What ARIMA Buys You: Forecasts With Honest Uncertainty",
+    "items": [
+      "Once fitted, an ARIMA model can project forward: forecast(fit_arima, h = 10) produces point forecasts for 1934-1943 together with 80% and 95% prediction intervals",
+      "Because the AR(2) structure encodes the ~10-year oscillation, short-horizon forecasts from a trough correctly predict a rise, and forecasts from a peak correctly predict a fall -- the model has learned the cycle, not just the recent level",
+      "Prediction intervals widen quickly with horizon: an oscillating AR(2) process is only weakly predictable more than one full cycle ahead, and the model's own uncertainty reflects that honestly",
+      "This forecasting use case is where ARIMA is usually the right tool of the two introduced in this lecture -- state-space local-level models are built for smoothing/estimating the past state, not principally for long-range forecasting"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python Code",
+    "title": "The Same ARIMA Fit in statsmodels",
+    "left": {
+      "h": "Python -- statsmodels.tsa.arima.model.ARIMA",
+      "body": "<pre><code>import pandas as pd, numpy as np\nfrom statsmodels.tsa.arima.model import ARIMA\n\nlynx = pd.read_csv(&quot;data/lynx.csv&quot;)\nlog_lynx = np.log(lynx[&quot;trappings&quot;].values)\n\nfit = ARIMA(log_lynx, order=(2, 0, 0)).fit()\nprint(fit.summary())\n#&gt; ar.L1     1.372\n#&gt; ar.L2    -0.734\n#&gt; AIC      191.9</code></pre>"
+    },
+    "right": {
+      "h": "Order Selection in Python",
+      "body": "<p>statsmodels does not auto-search orders the way auto.arima() does; the standard workflow is to read (p, q) off the ACF/PACF (as we did) or loop over candidate orders and compare AIC directly, then fit that order with ARIMA().</p><p>A plain AR(2) -- the order the ACF/PACF diagnosis points to directly -- recovers AR coefficients essentially identical to R's AR(2) component (ar1 &approx; 1.37-1.56, ar2 &approx; -0.73 to -0.95 depending on whether MA terms are also included) and the same oscillatory dynamics.</p><p>The pmdarima package (not used here) provides an auto_arima() function that mirrors R's automatic search if a one-line automatic selector is wanted.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Model Checking",
+    "title": "Confirming the Fit: Residual Diagnostics",
+    "items": [
+      "A well-fitted ARIMA model should leave residuals that look like white noise -- no remaining autocorrelation at any lag",
+      "The Ljung-Box test formally checks this: a large p-value (no significant autocorrelation left) supports the fitted order; a small p-value says the model is still missing structure and a higher order (or a different model class) is needed",
+      "For the AR(2) fit to log(lynx trappings), the Ljung-Box test on the residuals is non-significant -- the model has captured essentially all of the linear autocorrelation structure in the series",
+      "Diagnostic plots (residuals over time, residual ACF, and a Q-Q plot) are the standard three-panel check in R (checkresiduals()) and Python (plot_diagnostics()) before trusting an ARIMA fit for forecasting or inference"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia Code",
+    "title": "ARIMA in Julia: a Thinner Ecosystem, an Honest Substitute",
+    "left": {
+      "h": "Julia -- AR(2) via lagged regression (GLM.jl)",
+      "body": "<pre><code>using GLM, DataFrames\n\ny  = log_lynx\ndf = DataFrame(y  = y[3:end],\n               y1 = y[2:end-1],\n               y2 = y[1:end-2])\n\nar2_fit = lm(@formula(y ~ y1 + y2), df)\ncoef(ar2_fit)\n# Intercept, y1, y2 coefficients closely\n# match R's ar1, ar2 from auto.arima()</code></pre>"
+    },
+    "right": {
+      "h": "Being Honest About the Ecosystem",
+      "body": "<p>Julia has no single dominant, well-maintained package that matches R's forecast::auto.arima() or Python's statsmodels ARIMA class with automatic order search and full likelihood-based estimation.</p><p>An AR(2) model is just a linear regression of y_t on y_{t-1} and y_{t-2} -- so GLM.jl's ordinary lm() recovers essentially the same coefficients as full ARIMA maximum likelihood for a pure-AR model with no MA terms, which is exactly what auto.arima() selected here.</p><p>For genuine MA terms or automatic order search, R or Python remains the more turnkey choice -- worth knowing honestly rather than forcing an unstable Julia package into the course.</p>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "The Course So Far",
+    "title": "Where Time Series Fits in the Modelling Toolkit",
+    "levels": [
+      {
+        "label": "Independent-error models (Lectures 5-8: LM, GLM, mixed models, GAM)",
+        "color": "#4C6EF5",
+        "width": 60
+      },
+      {
+        "label": "Bayesian hierarchical models (Lecture 9): explicit uncertainty, still cross-sectional",
+        "color": "#7048E8",
+        "width": 75
+      },
+      {
+        "label": "Time series and state-space models (Lecture 10): explicit dependence through time",
+        "color": "#E8590C",
+        "width": 90
+      },
+      {
+        "label": "Occupancy, population, and spatial models (Lectures 11-16): state-space ideas applied to detection, dynamics, and space",
+        "color": "#C92A2A",
+        "width": 100
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Conceptual Leap",
+    "title": "What If the Series We Observe Is Not the Whole Story?",
+    "sub": "Separating the true population process from the noise of measuring it"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "ARIMA Models the Data. It Does Not Model the Population.",
+    "items": [
+      "ARIMA treats log(trappings) as if every wiggle in the series is real signal to be predicted from its own past -- there is no separate concept of 'measurement error'",
+      "But a trapping record is not the population itself: it depends on trapper effort, fur prices, weather, and how many traps were actually checked that year, on top of the true number of lynx",
+      "Ecologists usually care about the true underlying abundance and its dynamics -- not about predicting next year's pelt count as an end in itself",
+      "What is needed is a model with two explicit layers: an unobserved true state that evolves through time, and a separate observation layer that describes how the noisy data relate to that state"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "State-Space Model",
+    "term": "State-Space Model",
+    "def": "A model with two coupled equations: a STATE equation describing how the true, unobserved quantity (e.g. true log-abundance) evolves from one time step to the next, and an OBSERVATION equation describing how the noisy data we actually collected relate to that hidden state.",
+    "bullets": [
+      "State equation: x_t = x_{t-1} + process noise -- the true state this year is close to last year's true state, plus real biological change (a 'random walk' is the simplest version)",
+      "Observation equation: y_t = x_t + observation noise -- what we measured is the true state plus measurement error, not the true state itself",
+      "Two separate noise sources, two separate variances: process variance (how much the real population actually moves) and observation variance (how noisy our measuring/trapping is) -- ARIMA conflates these into one",
+      "The Kalman filter is the algorithm that, given the two equations and the data, recursively estimates the hidden state at every time point, together with its uncertainty",
+      "This state/observation split is exactly the framework ecological population models need -- it returns in Lecture 14 (Population Modeling) with real growth models (Gompertz, Ricker) in the state equation"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "ARIMA vs. State-Space",
+    "title": "Two Ways to Model the Same Series",
+    "headers": [
+      "",
+      "ARIMA",
+      "State-Space (local level)"
+    ],
+    "rows": [
+      [
+        "What is estimated",
+        "Coefficients relating x_t to its own past values and past errors",
+        "A hidden state trajectory x_t (one value per time point) plus process and observation variances"
+      ],
+      [
+        "Core assumption",
+        "The observed series itself is the process of interest -- no explicit separation of signal from measurement noise",
+        "The observed series is a noisy proxy for an unobserved true state; noise sources are modeled explicitly and separately"
+      ],
+      [
+        "What you get out",
+        "Point forecasts and confidence intervals for future observed values",
+        "A smoothed estimate of the true underlying trajectory, denoised of observation error, at every historical time point"
+      ],
+      [
+        "Typical ecological use",
+        "Forecasting an index series forward; describing autocorrelation structure for hypothesis tests",
+        "Estimating true abundance/dynamics from an imperfect monitoring series; the natural base for population models (Lecture 14)"
+      ],
+      [
+        "Fitting engine",
+        "Maximum likelihood over AR/MA coefficients (auto.arima, ARIMA())",
+        "Kalman filter (forward pass) + Kalman smoother (backward pass) over the state equation"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Simplest Case",
+    "title": "The Local-Level Model: Random Walk + Noise",
+    "items": [
+      "State equation: x_t = x_{t-1} + w_t, where w_t ~ Normal(0, sigma_process^2) -- the true log-abundance drifts as a random walk from year to year",
+      "Observation equation: y_t = x_t + v_t, where v_t ~ Normal(0, sigma_obs^2) -- log(trappings) is the true state plus independent measurement noise",
+      "Two variances to estimate: sigma_process^2 (how much the real state moves) and sigma_obs^2 (how noisy the trapping record is) -- both are estimated from the data by maximum likelihood",
+      "This is the simplest possible state-space model -- no trend, no seasonality, no explicit population-growth mechanism -- but it already demonstrates the key output: a smoothed state series that differs from, and is less noisy than, the raw observed series"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code",
+    "title": "A Local-Level State-Space Model via Base-R StructTS",
+    "left": {
+      "h": "R -- stats::StructTS",
+      "body": "<pre><code>fit_ss &lt;- StructTS(log_lynx, type = &quot;level&quot;)\nfit_ss$coef\n#&gt;   level  epsilon\n#&gt;  0.6815   0.0000   &lt;- MLE hits 0 (see note)\n\n# fix a modest observation variance instead\nfit_fix &lt;- StructTS(log_lynx, type = &quot;level&quot;,\n                     fixed = c(NA, 0.05))\nsmoothed &lt;- tsSmooth(fit_fix)\nstate_est &lt;- smoothed[, &quot;level&quot;]</code></pre>"
+    },
+    "right": {
+      "h": "Reading the Output",
+      "body": "<p>StructTS(type=&quot;level&quot;) fits exactly the local-level model. Fit freely by maximum likelihood here, it pushes the observation variance (epsilon) to the zero boundary -- an honest, real result: given a pure random-walk state, the model decides essentially none of the year-to-year wiggle is measurement noise.</p><p>To make the state/observation split visible for teaching, we also fit a second version with epsilon fixed at a modest 0.05 rather than freely estimated -- exactly the sensitivity check in Exercise 2 -- and run tsSmooth() on that fit.</p><p>The resulting smoothed line tracks the cycle but damps isolated single-year spikes -- the denoising a state-space model is built to do.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python Code",
+    "title": "The Same Local-Level Model in statsmodels",
+    "left": {
+      "h": "Python -- UnobservedComponents",
+      "body": "<pre><code>from statsmodels.tsa.statespace.structural \\\n    import UnobservedComponents\n\nmod = UnobservedComponents(log_lynx,\n                            level=&quot;local level&quot;)\nres = mod.fit(disp=False)\nprint(res.summary())\n#&gt; sigma2.irregular   0.083\n#&gt; sigma2.level       0.171\n\nstate_est = res.smoothed_state[0]</code></pre>"
+    },
+    "right": {
+      "h": "Kalman Filter Under the Hood",
+      "body": "<p>UnobservedComponents(level='local level') builds precisely the two-equation model from the previous slide and fits sigma2.level (process variance) and sigma2.irregular (observation variance) by maximum likelihood.</p><p>res.smoothed_state[0] is the Kalman-smoothed estimate of the hidden state x_t -- directly comparable to R's tsSmooth() output, and the two implementations recover very similar variance splits and smoothed trajectories.</p><p>The smoothed series is exactly what gets plotted against the raw log series in figures/lecture_10_lynx_state_space.png.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia Code",
+    "title": "A Hand-Rolled Kalman Filter/Smoother in Julia",
+    "left": {
+      "h": "Julia -- explicit predict/update equations",
+      "body": "<pre><code>function kalman_local_level(y, sigma_proc2, sigma_obs2)\n    n = length(y)\n    a  = zeros(n); P = zeros(n)   # filtered state, variance\n    a_pred = y[1]; P_pred = 1e6   # diffuse start\n    for t in 1:n\n        # update (incorporate y[t])\n        K = P_pred / (P_pred + sigma_obs2)\n        a[t] = a_pred + K * (y[t] - a_pred)\n        P[t] = (1 - K) * P_pred\n        # predict next state\n        a_pred = a[t]\n        P_pred = P[t] + sigma_proc2\n    end\n    return a, P\nend</code></pre>"
+    },
+    "right": {
+      "h": "Why Hand-Rolled Here",
+      "body": "<p>StateSpaceModels.jl provides a LocalLevel model type that does this automatically, but its exact current API is not something to bet a reproducible course script on without being able to test it here.</p><p>A ~15-line Kalman filter is the honest, transparent alternative: the update step is a weighted average between the prediction and the new observation, weighted by the Kalman gain K -- exactly the same recursion StructTS and UnobservedComponents run internally.</p><p>The script fits sigma_process^2 and sigma_obs^2 by a small grid/optimizer search over the filter's log-likelihood, then reruns the filter (plus a backward smoothing pass) at the best-fit variances.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Under the Hood",
+    "title": "What the Kalman Filter Actually Does, One Step at a Time",
+    "left": {
+      "h": "Predict step",
+      "body": "<pre><code>a_pred[t] = a[t-1]              # state stays put\nP_pred[t] = P[t-1] + sigma_proc2  # but uncertainty grows\n</code></pre><p>Before seeing y[t], project the previous state estimate forward using the state equation, and inflate its variance by the process noise -- the state could have moved.</p>"
+    },
+    "right": {
+      "h": "Update step",
+      "body": "<pre><code>K     = P_pred[t] / (P_pred[t] + sigma_obs2)\na[t]  = a_pred[t] + K * (y[t] - a_pred[t])\nP[t]  = (1 - K) * P_pred[t]\n</code></pre><p>K (the Kalman gain) weighs the prediction against the new observation: a noisy observation (large sigma_obs2) gets little weight; a noisy prior state gets a lot of weight from the new data. The smoother later revisits every a[t] using information from both directions in time.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking at the Figure",
+    "title": "Raw Log-Series vs. Kalman-Smoothed State",
+    "items": [
+      "figures/lecture_10_lynx_state_space.png overlays log(trappings) (grey, jagged) with the Kalman-smoothed state estimate (colored, smoother line)",
+      "The smoothed line preserves the ~10-year cycle -- the real signal -- while damping the year-to-year jitter attributable to observation noise",
+      "Where the raw series has an unusually sharp single-year spike or dip, the smoothed state pulls back toward its neighbors -- the model's judgment that an isolated extreme value is more likely partly measurement noise than a true one-year population swing",
+      "This is the practical payoff of the state/observation split: a principled, likelihood-based way to separate 'real population change' from 'noise in how we counted it', rather than an ad hoc moving average"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Common Pitfalls",
+    "title": "Where Time-Series Analyses Go Wrong",
+    "cards": [
+      {
+        "h": "Fitting iid models to autocorrelated data",
+        "p": "Running lm() or a GLM on a time series without ever checking the ACF of the residuals silently inflates apparent statistical significance."
+      },
+      {
+        "h": "Confusing ARIMA fitted values with 'the true population'",
+        "p": "ARIMA's fitted/forecast values are best guesses for the next observed value, not a denoised estimate of an unobserved true state -- that is what state-space smoothing is for."
+      },
+      {
+        "h": "Ignoring changing variance",
+        "p": "Fitting any of these models to raw counts with variance that grows with the mean (as in the raw lynx series) violates constant-variance assumptions; log or another variance-stabilizing transform usually fixes it."
+      },
+      {
+        "h": "Over-trusting a short series",
+        "p": "Cycle-length and order estimates from a time series that spans only a few cycles (the lynx series has about 11 cycles across 114 years) carry real uncertainty -- treat point estimates like 'exactly 9.6 years' with appropriate caution."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the Local Level",
+    "title": "State-Space Models Scale Up to Real Population Models",
+    "items": [
+      "The local-level model's state equation (x_t = x_{t-1} + noise) is deliberately the simplest possible choice -- a pure random walk with no biological mechanism",
+      "Replace that state equation with a Gompertz model (x_t = a + b*x_{t-1} + noise, density dependence via b) or a Ricker model (x_t = x_{t-1} + r*(1 - exp(x_{t-1})/K) + noise) and the exact same Kalman filtering/smoothing machinery estimates real population-dynamics parameters -- intrinsic growth rate, carrying capacity, density-dependence strength -- while still correctly separating process noise from observation noise",
+      "This state-space Gompertz/Ricker approach is precisely what Stenseth, Dennis, and colleagues used to estimate density dependence in the lynx-hare system from noisy trapping records, rather than assuming the raw counts were error-free",
+      "Lecture 14 (Population Modeling) picks this up directly: the same two-equation structure introduced here becomes the estimation framework for fitting real growth models to real, imperfectly-observed abundance data"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Software Landscape",
+    "title": "State-Space Software Across the Three Languages",
+    "items": [
+      "R: stats::StructTS() (base R, local-level/trend/seasonal only) for a quick fit; the dlm and KFAS packages for fully general, custom-specified state-space models (arbitrary state equations, multivariate states)",
+      "Python: statsmodels.tsa.statespace.structural.UnobservedComponents() for local level/trend/seasonal components; statsmodels.tsa.statespace.mlemodel.MLEModel as a base class for fully custom state-space models",
+      "Julia: StateSpaceModels.jl provides a LocalLevel model type and a general Kalman filter/smoother interface; for full control (or when in doubt about a package API) a hand-rolled filter, as shown here, is a legitimate and transparent alternative",
+      "All three ultimately run the same underlying algorithm -- the Kalman filter for the forward pass, a Kalman smoother for the backward pass -- the packages differ in how much of the state-equation structure they let you customize"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Check Your Understanding",
+    "title": "Before You Move On",
+    "cards": [
+      {
+        "h": "Why does ARIMA get fit on log(trappings), not raw trappings?",
+        "p": "The raw series has variance that grows with the level (swings of tens of thousands of pelts at peaks, hundreds at troughs); the log scale stabilizes that variance so a single model works across the whole range."
+      },
+      {
+        "h": "What does an oscillating ACF tell you that a monotonically-decaying ACF would not?",
+        "p": "An oscillating ACF (positive, then negative, then positive again as lag increases) is the signature of cyclical dynamics; a smoothly decaying ACF instead points to simple short-memory persistence with no regular cycle."
+      },
+      {
+        "h": "In the state-space model, what is sigma_obs^2 actually estimating?",
+        "p": "How much of the year-to-year jitter in log(trappings) is attributable to measurement/trapping-effort noise rather than to real change in the true lynx population."
+      },
+      {
+        "h": "Why can't ARIMA give you 'the true population trajectory'?",
+        "p": "ARIMA has no separate concept of observation error -- it models the observed series itself as the process, so it cannot distinguish real population change from noise in how the data were collected."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exercises",
+    "title": "This Week's Practice",
+    "items": [
+      "Exercise 1: Fit auto.arima() (or ARIMA()) to the raw (non-log) trappings series and compare the selected order and residual diagnostics to the log-scale fit from lecture",
+      "Exercise 2: Refit the local-level state-space model after fixing the observation-noise variance at a much larger and a much smaller value than the maximum-likelihood estimate, and compare how much the smoothed state changes",
+      "Exercise 3: Compute and plot the ACF and PACF of log(trappings) yourself, and use the locations of the ACF's zero-crossings to estimate the cycle length directly from the plot",
+      "Exercise 4: Compare the ARIMA(2,0,0) fitted values to the Kalman-smoothed state on the same plot, and describe in your own words what each line is actually estimating"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Look Ahead",
+    "title": "From One Time Series to Repeated Imperfect Surveys",
+    "items": [
+      "This lecture handled a single, long, evenly-spaced time series of counts and separated true state from observation noise -- but many ecological monitoring programs instead visit many sites a few times each, and the species is sometimes simply missed even when present",
+      "Lecture 11 turns to occupancy and N-mixture models: the same core idea of an imperfect observation process layered over a true underlying state (occupied/not occupied, or true abundance), but now handling imperfect detection across repeated site visits rather than through time",
+      "The state/observation separation you just learned for time series is the same logical structure that makes occupancy modeling work -- you are about to see it applied to a different kind of missing information"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Lecture 11: Occupancy and N-Mixture Models",
+    "sub": "From noisy counts through time to imperfect detection across repeated site visits, in R, Python, and Julia"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 10</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

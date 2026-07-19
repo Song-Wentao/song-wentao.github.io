@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 16: Recombination, Gene Flow, and the Shuffling of Variation</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 16",
+    "title": "Recombination, Gene Flow, and the Shuffling of Variation",
+    "sub": "How existing genetic variation gets reshuffled, exchanged, and redistributed across genomes and populations",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 5, \"Raw Material\" (lecture 3 of 4)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Recap: Lectures 14–15",
+    "items": [
+      "Lecture 14: mutation is the ultimate source of all new genetic variation — point mutations, indels, chromosomal rearrangements, duplications.",
+      "Lecture 15: Mendelian inheritance — segregation and independent assortment explain how alleles at single and multiple loci are transmitted across generations.",
+      "Both lectures treated genes largely as independent, discrete units.",
+      "Today's question: what happens when genes are physically linked on the same chromosome, and when individuals or alleles move between populations?",
+      "Key idea: mutation creates new alleles one at a time, but recombination and gene flow generate new *combinations* of already-existing alleles — often far faster than mutation alone."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S ROADMAP",
+    "title": "Agenda",
+    "items": [
+      "Meiotic recombination: crossing over and its consequences",
+      "Linkage and linkage disequilibrium",
+      "Sexual reproduction as a variation-generating machine",
+      "Gene flow and migration between populations",
+      "Hybridization and introgression",
+      "Standing genetic variation vs. new mutation as fuel for adaptation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Meiotic Recombination",
+    "sub": "Breaking up the deck and reshuffling the cards"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Recombination",
+    "term": "Recombination",
+    "def": "The process by which offspring end up with combinations of alleles different from either parent, primarily through crossing over between homologous chromosomes during meiosis I.",
+    "bullets": [
+      "Occurs during prophase I, when homologous chromosomes pair up (synapsis) and exchange segments at sites called chiasmata.",
+      "Distinct from independent assortment: assortment shuffles whole chromosomes, recombination shuffles alleles *within* a chromosome.",
+      "Produces gametes with novel combinations of alleles that were never together in either parent's genome."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANISM",
+    "title": "How Crossing Over Works",
+    "items": [
+      "Homologous chromosomes (one maternal, one paternal copy) align gene-for-gene during synapsis, forming a structure called a bivalent or tetrad.",
+      "The synaptonemal complex holds homologs together while double-strand breaks are introduced and repaired using the homolog as a template.",
+      "Repair via homologous recombination physically swaps segments of DNA between the maternal and paternal chromatids.",
+      "The physical crossover point is visible cytologically as a chiasma (plural: chiasmata).",
+      "Nearly every human chromosome pair experiences at least one crossover per meiosis — crossovers are not optional extras but a required part of normal meiosis (they also help hold homologs together for correct segregation)."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONSEQUENCES",
+    "title": "Why Crossing Over Matters",
+    "left": {
+      "h": "For the genome",
+      "body": "<ul><li>Breaks up combinations of alleles inherited together on a chromosome</li><li>Creates new haplotypes — new linear arrangements of alleles along a chromosome</li><li>Prevents deleterious mutations from being permanently locked to beneficial ones (or vice versa)</li><li>Essential for proper chromosome segregation in meiosis I</li></ul>"
+    },
+    "right": {
+      "h": "For evolution",
+      "body": "<p>Recombination lets natural selection act on genes somewhat independently:</p><ul><li>A beneficial allele can be freed from a linked harmful allele</li><li>Two beneficial mutations at different loci can be combined into a single gamete without waiting for both to arise in the same lineage</li><li>Reduces genetic hitchhiking of neutral or harmful variants</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Linkage",
+    "term": "Genetic Linkage",
+    "def": "The tendency of alleles at loci located close together on the same chromosome to be inherited together, because recombination is less likely to occur between them.",
+    "bullets": [
+      "Recombination frequency between two loci is roughly proportional to the physical distance separating them (measured in centimorgans, cM).",
+      "Loci far apart on the same chromosome — or on different chromosomes — assort nearly independently (recombination frequency ≈ 50%).",
+      "Loci very close together are tightly linked and rarely separated by crossovers (recombination frequency near 0%)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MAPPING",
+    "title": "Recombination Frequency as a Genetic Ruler",
+    "items": [
+      "Thomas Hunt Morgan and colleagues used recombination frequencies in Drosophila to build the first genetic linkage maps in the early 1900s.",
+      "1 centimorgan (cM) ≈ 1% recombination frequency between two loci in a given cross.",
+      "Genetic maps built this way let biologists order genes along a chromosome decades before DNA sequencing existed.",
+      "Recombination rate is not uniform: it varies by region (recombination hotspots), by sex (often higher in female meiosis in many species), and by chromosome position (often suppressed near centromeres)."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Linkage Disequilibrium",
+    "term": "Linkage Disequilibrium (LD)",
+    "def": "The nonrandom association of alleles at two or more loci in a population — i.e., particular combinations of alleles occur together more or less often than expected by chance given their individual frequencies.",
+    "bullets": [
+      "LD decays over generations as recombination shuffles alleles toward random (equilibrium) association.",
+      "The rate of decay depends on the recombination frequency between the loci — tightly linked loci stay in LD much longer.",
+      "LD is the raw signal geneticists use to map disease genes and selection signatures across genomes today."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CAUSES OF LD",
+    "title": "What Generates Linkage Disequilibrium?",
+    "left": {
+      "h": "Non-selective causes",
+      "body": "<ul><li>Physical proximity (limited time for recombination to break up new combinations)</li><li>Population admixture — mixing two populations with different allele frequencies creates LD genome-wide</li><li>Genetic drift, especially in small populations or after a bottleneck</li><li>Non-random mating (e.g., assortative mating)</li></ul>"
+    },
+    "right": {
+      "h": "Selective causes",
+      "body": "<ul><li>Selection favoring particular allele combinations (co-adapted gene complexes)</li><li>A selective sweep, where a beneficial allele rises in frequency and drags along nearby linked variants ('genetic hitchhiking')</li><li>Epistatic selection maintaining favorable multi-locus genotypes</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NUANCE",
+    "title": "Recombination Rate Is Itself Variable — and Evolvable",
+    "items": [
+      "Recombination rate differs among species, among chromosomes, and even between sexes of the same species (heterochiasmy).",
+      "Recombination 'hotspots' are short genomic regions where crossovers cluster; in many mammals these are directed by the protein PRDM9.",
+      "Some organisms (e.g., male Drosophila) have essentially no meiotic recombination at all, relying entirely on independent assortment plus mutation for variation.",
+      "Because recombination rate affects how efficiently selection can act, recombination rate itself is subject to natural selection — a modifier of evolvability."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Sex, Recombination, and the Combinatorics of Variation",
+    "sub": "Why sexual reproduction is such a powerful variation generator"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PUTTING IT TOGETHER",
+    "title": "Two Shuffling Mechanisms in One Meiosis",
+    "items": [
+      "Independent assortment (Lecture 15): each of the ~23 pairs of human chromosomes segregates into gametes independently, giving 2^23 (over 8 million) possible chromosome combinations per individual.",
+      "Recombination (today): crossing over reshuffles alleles *within* each chromosome before that assortment even happens.",
+      "Fertilization then combines gametes from two parents, each already carrying a unique reshuffled genome.",
+      "Together, these mechanisms mean that (aside from identical twins) essentially every sexually produced offspring carries a genetically unique genome — despite contributing no new mutations of its own."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COMPARISON",
+    "title": "Sexual vs. Asexual Reproduction and Variation",
+    "left": {
+      "h": "Asexual reproduction",
+      "body": "<ul><li>Offspring are (mutation aside) genetic clones of the parent</li><li>Variation among offspring arises only from new mutations</li><li>Beneficial mutations that arise in different lineages cannot be combined without independent re-occurrence</li><li>Advantageous: passes on 100% of your genome; no need to find a mate</li></ul>"
+    },
+    "right": {
+      "h": "Sexual reproduction",
+      "body": "<ul><li>Offspring receive a novel shuffle of both parents' existing variation</li><li>Recombination + assortment can combine beneficial alleles from separate lineages into one genome</li><li>Also can bring together deleterious alleles, or break up favorable combinations</li><li>Costly: only passes on 50% of your genome per offspring; requires finding a mate</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE NUMBERS",
+    "title": "The Combinatorial Power of Shuffling",
+    "cards": [
+      {
+        "h": "Independent assortment",
+        "p": "23 human chromosome pairs → 2^23 ≈ 8.4 million possible gamete genotypes from assortment alone, before any recombination."
+      },
+      {
+        "h": "Recombination",
+        "p": "With an average of ~1–3 crossovers per chromosome per meiosis, the number of distinct possible gametes becomes effectively astronomical."
+      },
+      {
+        "h": "Fertilization",
+        "p": "Combining two parents' gametes (each already ~1 in millions) makes the probability of two full siblings being genetically identical vanishingly small."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PARADOX OF SEX",
+    "title": "The Twofold Cost of Sexual Reproduction",
+    "items": [
+      "Sex has a major fitness cost relative to asexual reproduction, first formalized by John Maynard Smith.",
+      "An asexual female passes 100% of her genes to every offspring; a sexual female passes only 50% (the other 50% comes from her mate).",
+      "A population of asexual females can therefore grow roughly twice as fast, generation for generation, as a sexual population producing equal numbers of male and female offspring.",
+      "Given this steep cost, why is sexual reproduction so common among eukaryotes? This is one of the enduring puzzles in evolutionary biology."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY SEX PERSISTS",
+    "title": "Leading Hypotheses for the Maintenance of Sex",
+    "items": [
+      "Red Queen hypothesis: sex generates novel genotypes each generation, helping hosts stay ahead of rapidly coevolving parasites and pathogens that specialize on common host genotypes.",
+      "Muller's ratchet avoidance: in asexual lineages, deleterious mutations accumulate irreversibly (the 'ratchet') because no recombination can reconstruct a mutation-free genome; sex allows purging via recombination.",
+      "Fisher–Muller hypothesis: recombination lets beneficial mutations that arise independently in different individuals combine into a single lineage, speeding adaptation, especially in large populations.",
+      "Deleterious mutation clearance: recombination allows selection to eliminate harmful mutations more efficiently by separating them from linked beneficial alleles.",
+      "No single hypothesis fully explains the ubiquity of sex; most likely several mechanisms act together in different taxa and contexts."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A CLASSIC FRAMING",
+    "quote": "Sex is the queen of evolutionary problems — a phenomenon common to nearly all eukaryotes, yet one that theory struggles to explain on cost grounds alone.",
+    "attrib": "paraphrased from evolutionary biology literature on the 'paradox of sex'"
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Gene Flow and Migration",
+    "sub": "Redistributing variation between populations"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Gene Flow",
+    "term": "Gene Flow (Migration)",
+    "def": "The movement of alleles between populations, occurring when individuals (or their gametes, e.g., pollen) move from one population to another and interbreed, transferring genetic variation across population boundaries.",
+    "bullets": [
+      "One of the four major evolutionary forces, alongside mutation, genetic drift, and natural selection.",
+      "Unlike mutation, gene flow does not create new alleles — it redistributes alleles that already exist somewhere in the species.",
+      "Gene flow's evolutionary effect depends heavily on the migration rate (m), the proportion of a population's genes derived from migrants each generation."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANISMS",
+    "title": "How Gene Flow Happens in Nature",
+    "items": [
+      "Active dispersal of individuals or gametes: animals migrating and breeding in a new population; birds and mammals dispersing from natal ranges.",
+      "Passive transport: wind- or water-borne pollen and seeds in plants; ocean currents carrying larvae between marine populations.",
+      "Human-mediated movement: intentional or accidental introduction of species and translocation of individuals (increasingly important in the Anthropocene).",
+      "Gene flow requires not just movement but successful interbreeding and reproduction in the recipient population — dispersal alone is not gene flow unless genes are actually transmitted."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CLASSIC MODEL",
+    "title": "The Island–Mainland Model",
+    "left": {
+      "h": "Setup",
+      "body": "<p>A small 'island' population receives migrants each generation from a large 'mainland' population with a fixed allele frequency.</p><ul><li>Mainland allele frequency: p_mainland (assumed constant, since the mainland is large)</li><li>Island allele frequency before migration: p_island</li><li>Migration rate m = fraction of island's genes replaced by mainland migrants each generation</li></ul>"
+    },
+    "right": {
+      "h": "Outcome",
+      "body": "<p>Island allele frequency shifts toward the mainland value each generation:</p><p>Δp = m(p_mainland − p_island)</p><ul><li>Even a small m can prevent local divergence, since gene flow's homogenizing effect compounds over generations</li><li>At equilibrium, the island frequency converges toward the mainland frequency unless opposed by strong local selection or drift</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVOLUTIONARY EFFECTS",
+    "title": "What Gene Flow Does to Allele Frequencies",
+    "items": [
+      "Homogenizes allele frequencies among populations — the more gene flow, the more genetically similar connected populations become.",
+      "Counteracts the differentiating effects of genetic drift and local natural selection.",
+      "Can introduce genetic variation into a population that was previously fixed for one allele — effectively a 'new' source of variation for the recipient population, even though it's not a new mutation.",
+      "Reduces the effects of small population size by supplementing local genetic variation ('genetic rescue') — increasing heterozygosity and reducing inbreeding depression.",
+      "High gene flow (large Nm, the number of migrants per generation) can prevent local adaptation from proceeding — a constant influx of locally maladapted alleles ('migration load' or 'swamping')."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "CONTRASTING FORCES",
+    "title": "Gene Flow vs. Genetic Drift: Opposite Effects on Population Structure",
+    "headers": [
+      "Feature",
+      "Gene Flow",
+      "Genetic Drift"
+    ],
+    "rows": [
+      [
+        "Effect on differentiation between populations",
+        "Decreases (homogenizes)",
+        "Increases (diversifies)"
+      ],
+      [
+        "Effect on within-population diversity",
+        "Can increase (introduces new variants)",
+        "Decreases over time (loses variants)"
+      ],
+      [
+        "Sensitivity to population size",
+        "Effect depends on number of migrants (Nm), less on size directly",
+        "Stronger in small populations"
+      ],
+      [
+        "Directionality",
+        "Systematic, predictable pull toward source allele frequency",
+        "Random, unpredictable fluctuation"
+      ],
+      [
+        "Interaction with selection",
+        "Can prevent or slow local adaptation (swamping)",
+        "Can fix mildly deleterious alleles by chance"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TENSION",
+    "title": "Gene Flow vs. Local Adaptation",
+    "items": [
+      "When selection favors different alleles in different environments (local adaptation), gene flow between those environments introduces a constant supply of locally disfavored alleles — 'migration-selection balance.'",
+      "If migration is strong relative to selection, it can swamp local adaptation entirely, preventing populations from diverging even under different selective pressures.",
+      "If selection is strong relative to migration, local adaptation persists despite ongoing gene flow, sometimes producing striking small-scale adaptive differentiation (e.g., in metal-tolerant plants growing near mine tailings, gene flow from surrounding non-tolerant populations is opposed by strong local selection).",
+      "The balance between gene flow and selection is a central determinant of how much geographic genetic structure a species shows."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "F-statistics",
+    "term": "F_ST (Fixation Index)",
+    "def": "A measure of population genetic differentiation, ranging from 0 (populations have identical allele frequencies) to 1 (populations are fixed for different alleles), calculated from the proportion of total genetic variance that is due to differences between populations.",
+    "bullets": [
+      "Low F_ST indicates substantial gene flow (or recent common ancestry) homogenizing populations.",
+      "High F_ST indicates limited gene flow, strong local selection, or long periods of isolation and drift.",
+      "F_ST is widely used to scan genomes for regions under local selection: most of the genome may show low F_ST due to gene flow, while a few loci under strong divergent selection show elevated F_ST ('islands of divergence')."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MEASURING MIGRATION",
+    "title": "Estimating Gene Flow in Practice",
+    "items": [
+      "Direct methods: mark-recapture studies, radio/GPS tracking, and observed dispersal distances.",
+      "Indirect (genetic) methods: F_ST-based estimates of Nm (number of migrants per generation) from the relationship F_ST ≈ 1 / (4Nm + 1) under an idealized island model.",
+      "Parentage and assignment tests using molecular markers can identify first-generation migrants and their offspring directly.",
+      "Modern genomic approaches (e.g., admixture mapping, coalescent-based methods) can reconstruct historical migration rates and timing from patterns of shared ancestry across the genome."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Hybridization and Introgression",
+    "sub": "Gene flow across species boundaries"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Hybridization",
+    "term": "Hybridization",
+    "def": "Interbreeding between individuals from genetically distinct populations or species, producing offspring (hybrids) with mixed ancestry.",
+    "bullets": [
+      "Long considered rare and unimportant, but genomic studies have shown hybridization is common across the tree of life, especially among closely related, recently diverged species.",
+      "Hybrid offspring may have reduced fitness (hybrid breakdown), equal fitness, or in some cases increased fitness (hybrid vigor / heterosis) relative to parental species.",
+      "Whether hybridization contributes to long-term evolutionary change depends on whether it is followed by introgression."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Introgression",
+    "term": "Introgression",
+    "def": "The permanent incorporation of alleles from one species (or population) into the gene pool of another, occurring through hybridization followed by repeated backcrossing of hybrids into a parental population.",
+    "bullets": [
+      "Distinguishes 'gene flow' between species from a single sterile hybrid event: introgression requires that hybrid-derived alleles actually spread and persist in the recipient gene pool.",
+      "Can introduce entirely new adaptive variation into a species far faster than waiting for the equivalent mutation to arise independently.",
+      "Detectable in genomes as blocks of DNA with an ancestry pattern distinct from the rest of the genome — the signature exploited in ancient-DNA studies of human evolution."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE HYBRIDIZATION HAPPENS",
+    "title": "Hybrid Zones",
+    "items": [
+      "A hybrid zone is a geographic region where two genetically distinct populations or species meet, mate, and produce hybrid offspring.",
+      "Tension zone model: hybrid zones can be maintained by a balance between ongoing dispersal into the zone and selection against hybrids (if hybrids have reduced fitness) — the zone persists as a stable, narrow band.",
+      "Bounded superiority / ecological model: hybrid zones can instead track an ecological gradient or transition, with hybrids favored in intermediate habitats.",
+      "Hybrid zones are natural laboratories for studying speciation in action — they reveal how much gene flow can occur between diverging lineages before reproductive isolation is complete."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES",
+    "title": "Hybridization and Introgression in Nature",
+    "cards": [
+      {
+        "h": "Darwin's finches (Galápagos)",
+        "p": "Peter and Rosemary Grant's long-term studies documented occasional hybridization between finch species, introducing novel beak-shape variation into recipient populations and fueling rapid adaptive change."
+      },
+      {
+        "h": "Heliconius butterflies",
+        "p": "Wing-pattern mimicry alleles have introgressed between Heliconius species via hybridization, allowing one species to rapidly acquire an adaptive warning-color pattern already 'tested' by natural selection in another."
+      },
+      {
+        "h": "Wolves and coyotes (North America)",
+        "p": "Eastern wolf and coyote populations show extensive historical hybridization; introgressed variation has been linked to coat color and other traits in North American canids, including gray wolves."
+      },
+      {
+        "h": "Domestic dogs and gray wolves",
+        "p": "Ongoing low-level hybridization and introgression continues to move genetic variation between wild wolf and domestic dog populations in some regions, complicating conservation genetics."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COSTS AND BENEFITS",
+    "title": "Adaptive Introgression: Benefits and Risks",
+    "left": {
+      "h": "Potential benefits",
+      "body": "<ul><li>Rapid acquisition of alleles already tested by selection in another lineage, faster than waiting for new mutation</li><li>Can provide pre-adapted variation for novel or changing environments (e.g., disease resistance, climate tolerance)</li><li>Increases genetic diversity, potentially buffering against inbreeding depression</li></ul>"
+    },
+    "right": {
+      "h": "Potential risks",
+      "body": "<ul><li>Outbreeding depression: hybrid offspring can have reduced fitness if parental genomes are poorly co-adapted</li><li>Genetic swamping: a rare species or population can lose its distinct genetic identity through extensive introgression from a more abundant relative</li><li>Introgression of maladaptive alleles alongside beneficial ones</li><li>Conservation concern for endangered species hybridizing with common relatives</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A LANDMARK CASE",
+    "title": "Introgression in Human Evolution",
+    "items": [
+      "Ancient DNA sequencing (Svante Pääbo and colleagues, Nobel Prize 2022) revealed that anatomically modern humans interbred with Neanderthals and Denisovans as they expanded out of Africa.",
+      "Most present-day non-African human populations carry roughly 1–2% Neanderthal-derived DNA; some Oceanic populations carry several percent Denisovan-derived DNA.",
+      "Introgressed alleles are not randomly distributed: some regions of the genome are nearly devoid of archaic ancestry (suggesting selection against archaic variants there), while others show clear signatures of adaptive introgression.",
+      "Documented cases of adaptive introgression include Denisovan-derived EPAS1 alleles conferring high-altitude hypoxia tolerance in Tibetan populations, and Neanderthal-derived alleles affecting immune function and skin/hair traits.",
+      "This is a striking real-world demonstration that interspecies gene flow can be a meaningful, ongoing source of adaptive variation in a species' evolutionary history — including our own."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Milestones in Understanding Shuffled Variation",
+    "items": [
+      {
+        "y": "1911",
+        "t": "Thomas Hunt Morgan's group demonstrates crossing over in Drosophila, linking recombination to chromosome behavior."
+      },
+      {
+        "y": "1913",
+        "t": "Alfred Sturtevant constructs the first genetic linkage map, using recombination frequency to order genes on a chromosome."
+      },
+      {
+        "y": "1930s–40s",
+        "t": "Sewall Wright and others formalize models of migration, drift, and population structure (F-statistics, island models)."
+      },
+      {
+        "y": "1978",
+        "t": "John Maynard Smith formalizes the 'twofold cost of sex,' sharpening the evolutionary puzzle of why sexual reproduction persists."
+      },
+      {
+        "y": "1990s–2000s",
+        "t": "Molecular markers (allozymes, microsatellites) allow direct genetic estimates of gene flow and hybridization in wild populations."
+      },
+      {
+        "y": "2010",
+        "t": "The Neanderthal genome is published, providing the first direct genomic evidence of ancient human–archaic hominin interbreeding."
+      },
+      {
+        "y": "2020s",
+        "t": "Genome-wide scans routinely detect adaptive introgression across many taxa, reshaping views of hybridization as an important evolutionary process rather than a rare curiosity."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Comparing the Sources of Variation",
+    "sub": "Mutation, recombination, and gene flow side by side"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS",
+    "title": "Mutation vs. Recombination vs. Gene Flow",
+    "headers": [
+      "Feature",
+      "Mutation",
+      "Recombination",
+      "Gene Flow"
+    ],
+    "rows": [
+      [
+        "Creates entirely new alleles?",
+        "Yes — the only source of new alleles",
+        "No — reshuffles existing alleles",
+        "No — introduces alleles already present elsewhere"
+      ],
+      [
+        "Typical rate",
+        "Very low per locus per generation (~10⁻⁸–10⁻⁹ per bp)",
+        "High — occurs every meiosis, multiple times per chromosome",
+        "Highly variable — depends on species mobility and connectivity"
+      ],
+      [
+        "Scope of effect",
+        "Single locus / single individual initially",
+        "Within-genome combinations of existing alleles",
+        "Between-population allele frequency changes"
+      ],
+      [
+        "Immediate evolutionary role",
+        "Ultimate source of variation",
+        "Redistributes standing variation into new combinations",
+        "Homogenizes populations; can import pre-tested adaptive alleles"
+      ],
+      [
+        "Speed of generating adaptive combinations",
+        "Slow — must wait for the right new mutation",
+        "Fast — combines existing variants each generation",
+        "Fast — can import a whole co-adapted allele in one migration event"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SCALE OF IMPACT",
+    "title": "Sources of Variation, from Narrowest to Broadest Scope",
+    "levels": [
+      {
+        "label": "Mutation: single new allele",
+        "color": "#4a1620",
+        "width": "260px"
+      },
+      {
+        "label": "Recombination: new allele combos within a genome",
+        "color": "#6b2c39",
+        "width": "360px"
+      },
+      {
+        "label": "Sexual reproduction: unique offspring genomes",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Gene flow: shared variation across populations",
+        "color": "#a85a68",
+        "width": "560px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BIG PICTURE",
+    "title": "How the Sources Interact",
+    "items": [
+      "Mutation is the ultimate wellspring of variation, but it acts slowly on any single lineage.",
+      "Recombination does not create variation — it recombines what mutation has already produced, dramatically multiplying the number of distinct genotypes available to selection each generation.",
+      "Gene flow (including hybridization) can act like a shortcut, importing alleles — and combinations of alleles — that took another population's mutation and selection history to produce.",
+      "All three interact continuously: a mutation arising in one population can spread to others via gene flow, then be recombined into new genomic backgrounds in the recipient population.",
+      "This means the total variation available to selection in any one population depends not just on its own mutation rate, but on its connectivity to other populations and its recombination landscape."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Standing Genetic Variation",
+    "sub": "The variation already present before selection begins"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Standing Genetic Variation",
+    "term": "Standing Genetic Variation",
+    "def": "Genetic variation that is already segregating within a population at the onset of a new selective pressure, as opposed to variation arising from new mutations after the selective pressure appears.",
+    "bullets": [
+      "Includes alleles that were neutral or even mildly deleterious under previous conditions but become advantageous under new conditions.",
+      "Typically present at low-to-moderate frequency, maintained by mutation-selection-drift balance, recombination, or historical gene flow.",
+      "Often the primary source of alleles underlying rapid adaptation to new or changing environments."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO ROUTES TO ADAPTATION",
+    "title": "Standing Variation vs. New Mutation as Fuel for Adaptation",
+    "left": {
+      "h": "Adaptation from standing variation",
+      "body": "<ul><li>Allele is already present at appreciable frequency when selection pressure shifts</li><li>Response to selection can be nearly immediate — no waiting for a new mutation</li><li>Often associated with 'soft sweeps' — multiple haplotypes carrying the adaptive allele rise in frequency together</li><li>Especially important for adaptation to rapid environmental change (e.g., pesticide/antibiotic resistance, climate shifts)</li></ul>"
+    },
+    "right": {
+      "h": "Adaptation from new mutation",
+      "body": "<ul><li>Beneficial allele does not yet exist in the population when selection begins</li><li>Response to selection is delayed until the right mutation arises</li><li>Associated with 'hard sweeps' — a single new haplotype rises to high frequency, dragging along all linked variation</li><li>More likely to dominate in small populations with low pre-existing diversity, or for truly novel challenges</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE",
+    "title": "Rapid Adaptation from Standing Variation: Examples",
+    "items": [
+      "Three-spine stickleback fish: marine populations carry standing variation (including an ancient regulatory allele at the Eda locus) affecting bony armor plating; when marine fish colonize freshwater, this pre-existing low-armor allele is rapidly selected for, producing repeated, parallel freshwater adaptation across many independent lake populations.",
+      "Pesticide and herbicide resistance in insects and weeds frequently arises from resistance alleles already segregating at low frequency before the pesticide was ever applied, allowing resistance to evolve within just a few generations of exposure.",
+      "Antibiotic resistance in bacteria can spread rapidly via standing resistance alleles already present in a population (sometimes acquired earlier by horizontal gene transfer), not only via brand-new mutations arising after antibiotic exposure.",
+      "Human high-altitude adaptation alleles (e.g., in Andean, Tibetan, and Ethiopian highland populations) likely draw on both standing variation and, in the Tibetan EPAS1 case, introgressed variation from Denisovans — illustrating how these sources can combine."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHY IT MATTERS",
+    "title": "Standing Variation, Evolvability, and Conservation",
+    "cards": [
+      {
+        "h": "Speed of response",
+        "p": "Populations with abundant standing variation can respond to environmental change within a handful of generations, rather than the many generations needed to wait for a new adaptive mutation."
+      },
+      {
+        "h": "Predictability of outcomes",
+        "p": "Because standing variants are often shared across related populations, adaptation from standing variation can produce repeatable, parallel evolutionary outcomes (as in stickleback armor loss)."
+      },
+      {
+        "h": "Conservation implications",
+        "p": "Small, isolated, or bottlenecked populations have less standing variation and are more vulnerable to environmental change — a key argument for maintaining gene flow/connectivity and genetic diversity in conservation management."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MISCONCEPTIONS TO AVOID",
+    "title": "Common Misconceptions",
+    "items": [
+      "Misconception: 'Recombination creates new alleles.' Correction — recombination creates new combinations of existing alleles; it does not alter the DNA sequence of any individual allele (aside from rare gene conversion effects).",
+      "Misconception: 'Gene flow always increases variation within a population.' Correction — gene flow increases within-population diversity when it introduces new alleles, but it decreases diversity *between* populations by homogenizing them; net effects depend on context.",
+      "Misconception: 'Hybrids are always less fit.' Correction — hybrid fitness ranges from severely reduced (hybrid breakdown/sterility) to equal to enhanced (heterosis, adaptive introgression), depending on the species pair and traits involved.",
+      "Misconception: 'Sex evolved because it is 'better for the species.'' Correction — group-level benefits ('reduces long-term extinction risk') do not by themselves explain the maintenance of an individually costly trait; multiple individual-level selective mechanisms (Red Queen, Muller's ratchet, Fisher–Muller) are more widely accepted explanations."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Meiotic recombination (crossing over) reshuffles alleles within chromosomes, breaking linkage and generating novel haplotypes each generation.",
+      "Linkage disequilibrium — the nonrandom association of alleles at different loci — arises from physical linkage, admixture, drift, and selection, and decays via recombination over time.",
+      "Sexual reproduction combines independent assortment and recombination to generate enormous combinatorial diversity among offspring, despite its steep 'twofold cost.'",
+      "Gene flow moves alleles between populations, generally homogenizing allele frequencies and countering the differentiating effects of drift and local selection.",
+      "Hybridization and introgression can transfer whole co-adapted, pre-tested allele combinations across species boundaries — a documented and important source of adaptive variation, including in human evolutionary history.",
+      "Adaptation frequently draws on standing genetic variation already present in a population, allowing much faster evolutionary responses to environmental change than waiting for new mutations."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CLOSING THOUGHT",
+    "quote": "Mutation writes new letters into the genetic text; recombination and gene flow decide how those letters get sorted, shared, and read together.",
+    "attrib": "course synthesis, Chapter 5"
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — L17",
+    "title": "Measuring Variation",
+    "sub": "Heritability, norms of reaction, and the synthesis of Chapter 5"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP",
+    "title": "Preview: Lecture 17",
+    "items": [
+      "How do we actually quantify how much variation in a trait is genetic versus environmental?",
+      "Heritability (broad-sense and narrow-sense): what it means, how it's estimated, and its most common misinterpretations.",
+      "Norms of reaction: how a single genotype can produce different phenotypes across environments, and why this matters for interpreting heritability.",
+      "Gene-by-environment interaction as a further complication for measuring 'genetic' variation.",
+      "Synthesis of Chapter 5: pulling together mutation, recombination, gene flow, and standing variation into a unified picture of evolution's raw material, before moving to Chapter 6 on natural selection acting on that variation."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 16</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

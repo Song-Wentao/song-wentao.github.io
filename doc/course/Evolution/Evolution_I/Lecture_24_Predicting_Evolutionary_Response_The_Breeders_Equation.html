@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 24: Predicting Evolutionary Response: The Breeder's Equation</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 24",
+    "title": "Predicting Evolutionary Response: The Breeder's Equation",
+    "sub": "Narrow-sense heritability, R = h²S, and artificial selection as a proof of concept for evolution by natural selection",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 7, \"Beyond Alleles\" (lecture 2 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "Part I",
+    "title": "From Variance to Prediction",
+    "sub": "Why we need to split genetic variance before we can forecast evolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Roadmap",
+    "title": "Today's Agenda",
+    "items": [
+      "Recap: quantitative traits, phenotypic variance, and the multifactorial model (Lecture 23)",
+      "Broad-sense vs. narrow-sense heritability — why the distinction matters",
+      "The breeder's equation: R = h²S",
+      "Worked numerical examples in livestock and crops",
+      "A natural-selection case study: the Grants' Galápagos finches",
+      "Comparing artificial and natural selection",
+      "Limits of the breeder's equation",
+      "Domestication as a controlled analog: corn, dogs, silver foxes",
+      "Preview of Lecture 25: finding the genes (QTL mapping and GWAS)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap — Lecture 23",
+    "title": "Quantitative Traits, Briefly Revisited",
+    "items": [
+      "Quantitative traits (body size, beak depth, milk yield) are shaped by many genes of small, additive effect plus environmental influence — the multifactorial model",
+      "Total phenotypic variance can be partitioned: V_P = V_G + V_E",
+      "Genetic variance itself is not a single quantity — it can be decomposed further into additive, dominance, and interaction components",
+      "That decomposition is the key that unlocks today's topic: not all genetic variance is equally useful for predicting evolutionary change",
+      "Only the portion of genetic variance that breeds true — that passes reliably from parent to offspring — matters for predicting a response to selection"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Foundational Term",
+    "title": "Broad-Sense Heritability (H²)",
+    "term": "Broad-sense heritability (H²)",
+    "def": "The proportion of total phenotypic variance in a population that is attributable to genetic variance of any kind: H² = V_G / V_P.",
+    "bullets": [
+      "Includes additive effects (V_A), dominance effects (V_D), and gene-gene interaction effects (V_I): V_G = V_A + V_D + V_I",
+      "Tells you how much of the variation you see is 'genetic' in origin — useful for twin studies and estimating overall genetic contribution",
+      "Does NOT tell you how a population will respond to selection, because dominance and interaction effects are not reliably passed from parent to offspring"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Critical Distinction",
+    "title": "Narrow-Sense (h²) vs. Broad-Sense (H²) Heritability",
+    "left": {
+      "h": "Broad-sense heritability, H²",
+      "body": "<p>H² = V_G / V_P</p><ul><li>Captures ALL genetic variance: additive + dominance + epistatic (interaction) effects</li><li>Answers: 'How much of the phenotypic variation is genetic?'</li><li>Relevant to questions like twin studies of human traits</li><li>Dominance and epistatic effects depend on specific allele <em>combinations</em>, which are broken up and reshuffled every generation by meiosis and recombination</li></ul>"
+    },
+    "right": {
+      "h": "Narrow-sense heritability, h²",
+      "body": "<p>h² = V_A / V_P</p><ul><li>Captures ONLY additive genetic variance, V_A</li><li>Answers: 'How much of the phenotypic variation is reliably transmitted, allele by allele, to offspring?'</li><li>Because additive effects sum independently of which other alleles they are paired with, they survive the reshuffling of meiosis</li><li>This is the heritability that predicts evolutionary response to selection</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Additive Variance Is Special",
+    "title": "Why h², Not H², Predicts Response to Selection",
+    "items": [
+      "A parent transmits single alleles to offspring, not whole genotypes — heterozygous combinations are broken apart by meiosis every generation",
+      "Additive effects act independently of genetic background: an allele that adds +1 mm to beak depth adds roughly +1 mm whether paired with any other allele — this effect is what actually gets inherited",
+      "Dominance effects (interactions between the two alleles at a locus) and epistatic effects (interactions between alleles at different loci) depend on specific combinations that do not survive intact across generations",
+      "Selection changes allele frequencies by favoring certain phenotypes, but only the additive component of those phenotypic differences reliably reappears in the next generation",
+      "Consequence: a trait can have high broad-sense heritability (largely genetic) yet respond weakly to selection if most of that genetic variance is non-additive"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Decomposing Genetic Variance",
+    "title": "Three Components of V_G",
+    "cards": [
+      {
+        "h": "Additive (V_A)",
+        "p": "Effects of individual alleles that sum up across loci, independent of pairing. The 'breeding value' component — transmitted faithfully to offspring."
+      },
+      {
+        "h": "Dominance (V_D)",
+        "p": "Interaction between the two alleles at a single locus (e.g., one allele masking another). Depends on a specific heterozygous combination that is not itself inherited as a unit."
+      },
+      {
+        "h": "Epistatic / Interaction (V_I)",
+        "p": "Interaction between alleles at different loci (gene-gene interactions). Like dominance, these combinations are broken up by independent assortment and recombination each generation."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Variance Components",
+    "title": "Additive vs. Dominance vs. Interaction Variance",
+    "headers": [
+      "Component",
+      "Source",
+      "Transmitted to Offspring?",
+      "Contributes to h²?"
+    ],
+    "rows": [
+      [
+        "Additive (V_A)",
+        "Cumulative effect of individual alleles",
+        "Yes — passed allele by allele",
+        "Yes"
+      ],
+      [
+        "Dominance (V_D)",
+        "Interaction between two alleles at same locus",
+        "No — specific pairing is broken up by meiosis",
+        "No"
+      ],
+      [
+        "Interaction (V_I)",
+        "Interaction between alleles at different loci",
+        "No — specific combinations are broken up by recombination",
+        "No"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part II",
+    "title": "The Breeder's Equation",
+    "sub": "Turning heritability into a quantitative prediction"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Central Equation",
+    "title": "The Breeder's Equation",
+    "term": "R = h²S",
+    "def": "The predicted response to selection (R) equals narrow-sense heritability (h²) multiplied by the selection differential (S).",
+    "bullets": [
+      "R (response) — the difference between the mean phenotype of the offspring generation and the mean phenotype of the parental generation before selection",
+      "S (selection differential) — the difference between the mean phenotype of the selected parents (the breeders, or the survivors of natural selection) and the mean phenotype of the whole parental population before selection",
+      "h² (narrow-sense heritability) — the fraction of that selection differential that is actually transmitted to the next generation via additive genetic effects"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Logic Behind R = h²S",
+    "title": "Where the Equation Comes From",
+    "items": [
+      "Start with a population showing phenotypic variance for a trait, most of which reflects a mix of additive genetic effects and environmental effects",
+      "Selection (artificial or natural) picks a non-random subset of individuals as the 'parents' of the next generation — those parents differ from the population mean by S",
+      "If the trait were 100% additively heritable (h² = 1), offspring would show the full parental selection differential: R = S",
+      "If the trait were entirely environmental (h² = 0), the offspring generation would revert entirely to the population mean: R = 0",
+      "For any real trait between these extremes, only a fraction h² of S is passed on — hence R = h²S",
+      "Rearranged, this also gives a way to ESTIMATE heritability empirically from a selection experiment: h² = R / S, the 'realized heritability'"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example 1",
+    "title": "Artificial Selection on Milk Yield in Dairy Cattle",
+    "left": {
+      "h": "Setup",
+      "body": "<p>A dairy herd has a mean milk yield of 8,000 kg/lactation, with narrow-sense heritability h² = 0.30 for milk yield.</p><p>A breeder selects the top-producing cows, averaging 9,000 kg, to be the dams of the next generation.</p><ul><li>Population mean = 8,000 kg</li><li>Selected parents' mean = 9,000 kg</li><li>Selection differential: S = 9,000 − 8,000 = 1,000 kg</li></ul>"
+    },
+    "right": {
+      "h": "Prediction",
+      "body": "<p>Apply the breeder's equation:</p><p>R = h²S = 0.30 × 1,000 kg = 300 kg</p><ul><li>Predicted offspring generation mean = 8,000 + 300 = 8,300 kg</li><li>Note that R (300 kg) is much smaller than S (1,000 kg) — most of the parents' superiority does not carry over, because 70% of the phenotypic variance is non-additive or environmental</li><li>This is why livestock breeding requires many generations of repeated selection to achieve large gains</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Working Through the Math",
+    "title": "Step-by-Step: Applying R = h²S",
+    "items": [
+      "Step 1 — Measure the trait in the whole population and calculate the population mean phenotype",
+      "Step 2 — Identify the individuals chosen as parents (top performers, or survivors of a selective event) and calculate their mean phenotype",
+      "Step 3 — Calculate the selection differential: S = (mean of selected parents) − (mean of whole population)",
+      "Step 4 — Obtain or estimate h² for the trait, typically from parent-offspring regression, sibling comparisons, or a prior selection experiment",
+      "Step 5 — Multiply: R = h² × S to get the predicted shift in the population mean in the next generation",
+      "Step 6 — Add R to the original population mean to predict the new population mean after one generation of selection"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example 2",
+    "title": "Artificial Selection for Bristle Number in Drosophila",
+    "left": {
+      "h": "Classic selection experiment",
+      "body": "<p>Abdominal bristle number in fruit flies is a textbook quantitative trait with h² ≈ 0.50 in laboratory populations.</p><p>A population has a mean of 20 bristles. A researcher selects breeding flies averaging 24 bristles (S = 4).</p><ul><li>h² = 0.50</li><li>S = 24 − 20 = 4 bristles</li></ul>"
+    },
+    "right": {
+      "h": "Predicted vs. observed",
+      "body": "<p>R = h²S = 0.50 × 4 = 2 bristles</p><ul><li>Predicted next-generation mean = 20 + 2 = 22 bristles</li><li>Classic Drosophila bristle-selection lines (Mather, Clayton & Robertson) show the predicted response closely for the first several generations</li><li>Over many generations, response typically slows as additive variance is depleted — a preview of the 'selection limits' problem discussed later in this lecture</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Interpreting h² Values",
+    "title": "What Counts as 'High' or 'Low' Heritability?",
+    "cards": [
+      {
+        "h": "Low h² (~0.05–0.15)",
+        "p": "Traits closely tied to fitness (e.g., clutch size, survival) — natural selection has already eroded much of the additive variance over evolutionary time."
+      },
+      {
+        "h": "Moderate h² (~0.20–0.40)",
+        "p": "Common for many morphological and production traits — milk yield, growth rate, beak dimensions. Substantial but incomplete response expected."
+      },
+      {
+        "h": "High h² (~0.50–0.80+)",
+        "p": "Traits with weaker historical links to fitness — bristle number, some morphological measurements — retain more additive variance and respond strongly to selection."
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Visualizing the Partition",
+    "title": "From Total Phenotypic Variance to Additive Variance",
+    "levels": [
+      {
+        "label": "Total phenotypic variance (V_P)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Genetic variance (V_G)",
+        "color": "#6b2c39",
+        "width": "500px"
+      },
+      {
+        "label": "Additive variance (V_A)",
+        "color": "#8a3f4d",
+        "width": "380px"
+      },
+      {
+        "label": "This is h² — the piece that predicts response",
+        "color": "#a85a68",
+        "width": "260px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Methods in Quantitative Genetics",
+    "title": "How Is h² Actually Estimated?",
+    "items": [
+      "Parent-offspring regression: plot offspring trait values against the average (midparent) value of their two parents; the slope of the regression line is a direct estimate of h²",
+      "Sibling designs: compare the similarity among full siblings (share ~50% of additive variance on average) versus half siblings (share ~25%) to partition variance components statistically",
+      "Twin studies (in species where applicable): compare trait similarity in genetically identical vs. non-identical individuals raised in similar environments",
+      "Realized heritability from selection experiments: run an actual selection experiment, measure S and R directly over one or more generations, and calculate h² = R / S — this is how h² was verified for Drosophila bristle number and the Grants' finch beak depth",
+      "All of these methods estimate h² for a SPECIFIC population in a SPECIFIC environment — a reminder that heritability is not a universal constant of a trait"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part III",
+    "title": "The Breeder's Equation in the Wild",
+    "sub": "The Grants' Galápagos finches as a natural experiment"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Natural Laboratory",
+    "title": "Peter and Rosemary Grant on Daphne Major",
+    "items": [
+      "Since 1973, Peter and Rosemary Grant have studied medium ground finches (Geospiza fortis) on the small Galápagos island of Daphne Major",
+      "They individually banded, measured, and tracked essentially every finch on the island for decades — an extraordinarily complete dataset on a wild population",
+      "Beak depth (a proxy for the birds' ability to crack seeds of different hardness) is a classic quantitative trait: continuously variable, influenced by many genes, with measurable heritability",
+      "Because food availability shifts with rainfall, natural selection on beak size fluctuates from year to year, giving the Grants repeated natural 'selection events' to study",
+      "Their long-term data let them apply the breeder's equation to a wild population undergoing natural, not artificial, selection"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The 1977 Drought",
+    "title": "A Natural Selection Event and Its Aftermath",
+    "left": {
+      "h": "The event",
+      "body": "<p>A severe drought in 1977 caused small, soft seeds to become scarce, leaving mainly large, hard seeds (of the plant <em>Tribulus</em>) as available food.</p><ul><li>Birds with deeper, stronger beaks could crack these hard seeds; birds with shallow beaks largely could not</li><li>Population crashed by over 80%; survivors were disproportionately large-beaked individuals</li><li>Mean beak depth of survivors was measurably greater than the pre-drought population mean — a clear selection differential, S</li></ul>"
+    },
+    "right": {
+      "h": "Applying the breeder's equation",
+      "body": "<p>Using independently estimated h² for beak depth (from parent-offspring regression, roughly 0.7–0.9 in this population) and the measured S from the drought:</p><ul><li>R = h²S predicted a measurable increase in mean beak depth in the offspring generation</li><li>The observed shift in beak depth in the generation following the drought matched the prediction closely</li><li>This was one of the first clear field demonstrations that the breeder's equation, developed for livestock, accurately predicts evolution by natural selection in a wild population</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Why the Finch Study Matters",
+    "title": "Significance of the Grants' Results",
+    "cards": [
+      {
+        "h": "Selection is measurable, in real time",
+        "p": "Evolution is often thought of as too slow to observe; the finches showed measurable phenotypic evolution within a single generation."
+      },
+      {
+        "h": "Predictive power confirmed in the wild",
+        "p": "The breeder's equation, R = h²S, is not just an agricultural tool — it works for natural selection acting on a wild vertebrate population."
+      },
+      {
+        "h": "Selection can reverse",
+        "p": "Wet years favoring small seeds later drove beak depth back down, showing selection direction (and hence S) can fluctuate, preventing runaway directional change."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Faces of the Same Process",
+    "title": "Artificial Selection vs. Natural Selection",
+    "headers": [
+      "Feature",
+      "Artificial Selection",
+      "Natural Selection"
+    ],
+    "rows": [
+      [
+        "Selective agent",
+        "A human breeder choosing which individuals reproduce",
+        "The environment (predators, climate, competitors, resources)"
+      ],
+      [
+        "Direction of selection",
+        "Deliberately chosen and typically consistent generation to generation",
+        "Set by ecological conditions; can fluctuate or reverse (e.g., drought vs. wet years)"
+      ],
+      [
+        "Intensity / speed",
+        "Often very strong (large S); rapid, dramatic change possible in few generations",
+        "Usually weaker and more variable; can be strong during rare selective events"
+      ],
+      [
+        "Example",
+        "Dairy cattle selected for milk yield; corn selected for kernel size",
+        "Darwin's finches selected for beak depth during droughts"
+      ],
+      [
+        "Underlying mechanism",
+        "R = h²S",
+        "R = h²S"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "In Their Own Words",
+    "quote": "The 1977 drought demonstrated that natural selection could produce evolutionary change so rapid that it could be observed and measured directly — and that the change followed the same quantitative rules breeders had used for centuries.",
+    "attrib": "Summarizing Peter R. Grant & B. Rosemary Grant, long-term Daphne Major finch studies"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Useful Refinement",
+    "title": "Selection Differential vs. Selection Intensity",
+    "items": [
+      "The selection differential S depends on the trait's units and its variance, which makes it hard to compare selection strength across different traits or studies",
+      "Selection intensity, i, standardizes this: i = S / σ_P, where σ_P is the phenotypic standard deviation — i is a unitless measure of how many standard deviations the selected parents differ from the population mean",
+      "The breeder's equation can then be rewritten as R = h² × i × σ_P, which is algebraically identical to R = h²S but makes it easier to compare the strength of selection acting on beak depth in millimeters versus milk yield in kilograms versus bristle number in counts",
+      "Stronger selection (culling all but a small top fraction of a population) produces a larger i and, all else equal, a larger predicted response"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part IV",
+    "title": "Limits of the Breeder's Equation",
+    "sub": "When R = h²S breaks down — and why"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Four Key Assumptions",
+    "title": "The Breeder's Equation Rests on Simplifying Assumptions",
+    "cards": [
+      {
+        "h": "No genetic correlations",
+        "p": "Assumes the selected trait's genetics are independent of other traits. In reality, pleiotropy and linkage often couple traits together."
+      },
+      {
+        "h": "No environmental change",
+        "p": "Assumes V_P (and thus h²) stays constant across generations. A changing environment can alter V_E and shift the phenotype independent of genetics."
+      },
+      {
+        "h": "Additive variance is not exhausted",
+        "p": "Assumes there is enough standing additive variance to keep responding. Selection erodes V_A over time, and alleles can become fixed."
+      },
+      {
+        "h": "Selection differential is representative",
+        "p": "Assumes S accurately reflects the selection pressure and that h² was measured in comparable conditions to when it is applied."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Limit 1: Genetic Correlations",
+    "title": "Correlated Responses and 'Linkage Drag'",
+    "left": {
+      "h": "The problem",
+      "body": "<p>Genes affecting one trait often also affect others, either through pleiotropy (one gene, multiple effects) or physical linkage (genes located near each other on a chromosome).</p><ul><li>Selecting on trait X can inadvertently change trait Y, even if no one is selecting on Y directly</li><li>Example: selecting exclusively for larger body size in livestock can inadvertently reduce fertility if the two traits are negatively genetically correlated</li></ul>"
+    },
+    "right": {
+      "h": "Consequence for prediction",
+      "body": "<p>The simple breeder's equation R = h²S considers only the focal trait in isolation.</p><ul><li>When genetic correlations are strong, the true response deviates from the univariate prediction</li><li>Breeders must track and manage correlated traits (a 'selection index') to avoid unwanted side effects</li><li>'Linkage drag' specifically refers to undesirable traits dragged along with a desirable one because their genes are physically linked and hard to separate by recombination</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limit 2: Selection Limits and Fixation",
+    "title": "Response Slows and Eventually Plateaus",
+    "items": [
+      "Every round of directional selection favors certain alleles at the expense of others, gradually reducing additive genetic variance (V_A) for the trait",
+      "As V_A shrinks, h² shrinks too (since h² = V_A / V_P), so the same selection differential produces a smaller and smaller response — diminishing returns",
+      "Eventually, favorable alleles can become fixed (frequency = 1) at some or all contributing loci — once fixed, that locus can no longer contribute to further response",
+      "This produces the classic selection-response plateau seen in long-term selection experiments (e.g., the Illinois long-term corn oil/protein selection lines, running since 1896, eventually show much slower gains per generation)",
+      "New mutation and occasional recombination can slowly replenish V_A, but on a timescale far slower than the selection process itself"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limit 3: Environmental Change",
+    "title": "A Moving Phenotypic Target",
+    "items": [
+      "The breeder's equation assumes the environment (and hence V_E) is stable between the parental and offspring generations",
+      "If environmental conditions change — better nutrition, a new climate regime, different management practices — the phenotype can shift for reasons that have nothing to do with genetics",
+      "This can make it look like a strong evolutionary response occurred when much of the change was really environmental (or the reverse: genetic gains masked by a worsening environment)",
+      "In wild populations, this is a major complication: the Grants had to control for year-to-year environmental variation (rainfall, seed availability) to correctly attribute changes in beak depth to genetic response rather than simple phenotypic plasticity",
+      "Gene-by-environment interaction can also change which alleles are favorable, further complicating long-term prediction"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Linkage Drag",
+    "term": "Linkage drag",
+    "def": "The phenomenon in which undesirable genetic material is inherited alongside a desirable, selected allele because the two loci are physically close together on a chromosome, making them difficult to separate by recombination.",
+    "bullets": [
+      "Common problem in plant and animal breeding when introducing a single beneficial gene from a wild relative into a cultivated line",
+      "Can slow or complicate selective breeding programs, since improving one trait may inadvertently carry along deleterious neighboring genes",
+      "Illustrates that the genome does not evolve trait-by-trait in isolation — physical genome architecture matters for predicting real-world responses to selection"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part V",
+    "title": "Artificial Selection as Proof of Concept",
+    "sub": "Domestication shows what selection can do — quickly"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Domestication Matters to Evolutionary Biology",
+    "title": "Domestication as Darwin's Own Evidence",
+    "items": [
+      "Darwin opened On the Origin of Species with a chapter on 'Variation Under Domestication' — he used artificial selection as his central analogy for how natural selection could work",
+      "Domesticated species show that selection acting on standing heritable variation can produce dramatic phenotypic change in a small number of generations, entirely without any single new 'macro-mutation'",
+      "Because humans control the selective agent, the selection differential (S), and can measure the response (R), domestication case studies are essentially large uncontrolled breeder's-equation experiments run over centuries or millennia",
+      "Three classic case studies illustrate different aspects of this power: maize (extreme morphological transformation), dog breeds (extreme diversification of form and behavior), and the Russian silver fox experiment (rapid correlated changes from selecting a single behavioral trait)"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Domestication Case Study 1",
+    "title": "From Teosinte to Corn",
+    "items": [
+      {
+        "y": "~9,000 ya",
+        "t": "Early farmers in southern Mexico begin selecting seeds from wild teosinte (Zea mays ssp. parviglumis), a grass with a handful of small, hard-cased kernels on branching stalks"
+      },
+      {
+        "y": "~7,000 ya",
+        "t": "Archaeological maize cobs show intermediate morphology: more kernels, softer casings, beginning fusion into a single ear"
+      },
+      {
+        "y": "~4,000 ya",
+        "t": "Cobs resemble small modern corn, with kernels tightly packed on a single cob and non-shattering, an essential trait for harvesting"
+      },
+      {
+        "y": "Historic to present",
+        "t": "Continued artificial selection (and, since the 20th century, formal breeding programs) produces the large, high-yield, single-stalk corn plants grown today"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Genetics Behind the Transformation",
+    "title": "Teosinte vs. Modern Corn",
+    "left": {
+      "h": "Teosinte (wild ancestor)",
+      "body": "<ul><li>Highly branched plant with multiple small ears</li><li>Kernels (5–12 per ear) encased in a hard fruitcase</li><li>Ears shatter at maturity, dispersing individual seeds</li><li>Well-suited to a wild grass's need for seed dispersal and dormancy</li></ul>"
+    },
+    "right": {
+      "h": "Modern corn (Zea mays)",
+      "body": "<ul><li>Single dominant stalk with one or few large ears</li><li>Hundreds of exposed, soft kernels per ear</li><li>Non-shattering — kernels remain attached, dependent on humans for dispersal</li><li>A small number of major-effect loci (e.g., <em>teosinte branched1</em>, <em>tga1</em>) account for much of this transformation, layered on top of many smaller-effect quantitative loci — illustrating how quantitative and Mendelian perspectives combine in real traits</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Domestication Case Study 2",
+    "title": "Dog Breeds: Diversification Under Strong Human Selection",
+    "cards": [
+      {
+        "h": "From wolf to Chihuahua and Great Dane",
+        "p": "All modern dog breeds descend from gray wolves domesticated roughly 15,000–40,000 years ago, yet show more morphological diversity in body size, skull shape, and coat than nearly any other mammal species."
+      },
+      {
+        "h": "Extremely strong, targeted S",
+        "p": "Breed standards impose intense selection differentials on specific traits (size, leg length, coat color, temperament), producing rapid divergence — many modern breeds were formalized within the last 200 years."
+      },
+      {
+        "h": "High realized heritability for many traits",
+        "p": "Body size in dogs shows high heritability, and a relatively small number of genes (e.g., IGF1) explain a large share of the size variation among breeds, aiding rapid response to selection."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Domestication Case Study 3",
+    "title": "The Belyaev Silver Fox Experiment",
+    "items": [
+      "Beginning in 1959, Soviet geneticist Dmitry Belyaev selected farmed silver foxes (Vulpes vulpes) for a single behavioral trait: tameness toward humans",
+      "In each generation, only the most docile ~5–10% of foxes were allowed to breed — a strong, consistently applied selection differential (S) on a behavioral trait",
+      "Within just 8–10 generations, a genuinely tame fox line emerged, seeking human contact and displaying dog-like affiliative behavior",
+      "The experiment demonstrated realized heritability for tameness: response (R) tracked the applied selection differential much as the breeder's equation predicts",
+      "Selection continues to the present day and remains one of the longest-running controlled selection experiments in vertebrates"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "An Unexpected Bonus",
+    "title": "Correlated Responses in the Fox Experiment",
+    "left": {
+      "h": "What changed besides tameness",
+      "body": "<p>Selecting purely on behavior produced a cascade of unselected physical changes — a real-world illustration of genetic correlations discussed earlier in this lecture.</p><ul><li>Floppy ears and curled tails appeared</li><li>Piebald (patchy) coat coloration became common</li><li>Shortened, more juvenile ('paedomorphic') skull and snout shapes</li><li>Changes in stress-hormone (corticosteroid) physiology</li></ul>"
+    },
+    "right": {
+      "h": "Why this matters for the breeder's equation",
+      "body": "<ul><li>These are the same kinds of correlated responses discussed under 'limits of the breeder's equation' — selection on one trait dragging others along via pleiotropy or shared developmental pathways</li><li>The fox experiment shows that domestication syndrome traits across many species (floppy ears, patchy coats, juvenilized faces) may arise as correlated byproducts of selection for tameness, not as traits directly selected by humans</li><li>Directly supports the idea that R = h²S applies at the level of a whole suite of genetically correlated traits, not just the single trait a breeder consciously targets</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Three Case Studies, One Underlying Process",
+    "title": "Comparing the Domestication Case Studies",
+    "headers": [
+      "Case",
+      "Selected Trait(s)",
+      "Approx. Timeframe",
+      "Key Lesson"
+    ],
+    "rows": [
+      [
+        "Corn (teosinte)",
+        "Ear/kernel structure, non-shattering",
+        "~9,000 years, ongoing",
+        "Both major-effect and many small-effect loci contribute to large morphological transformation"
+      ],
+      [
+        "Dog breeds",
+        "Size, shape, coat, temperament",
+        "15,000+ years; most breeds <200 years",
+        "Strong, targeted S plus high h² for size yields rapid, extreme divergence"
+      ],
+      [
+        "Silver foxes (Belyaev)",
+        "Tameness (behavior)",
+        "~60+ years (8–10 generations for tameness)",
+        "Selection on one trait produces correlated responses in unrelated traits (domestication syndrome)"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Term",
+    "title": "Domestication Syndrome",
+    "term": "Domestication syndrome",
+    "def": "A characteristic suite of traits — including floppy ears, patchy/depigmented coats, reduced brain size, juvenilized skull shape, and shortened reproductive cycles — that recurs across many unrelated domesticated species, likely arising as correlated responses to selection on tameness or reduced stress-reactivity.",
+    "bullets": [
+      "Observed in pigs, cattle, rabbits, and cats in addition to dogs and Belyaev's foxes",
+      "Consistent with a shared underlying developmental mechanism (proposed links to neural crest cell migration during embryonic development)",
+      "A striking illustration of how selection on one trait can shape a whole correlated phenotypic complex, exactly as predicted by the genetic-correlation caveat to the breeder's equation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Tying It Together",
+    "title": "What Domestication Proves About Selection",
+    "items": [
+      "Domestication demonstrates, empirically and repeatedly, that selection acting on standing heritable variation can produce rapid, large, and predictable phenotypic change",
+      "The same quantitative logic (R = h²S) that explains a livestock breeder's next-generation gain also explains the transformation of teosinte into corn and wolves into Chihuahuas",
+      "Because humans impose known, often intense selection differentials, domestication case studies serve as a 'controlled analog' — proof that the mechanism proposed for natural selection is fully capable of producing the magnitude of change observed in nature, just compressed into a shorter timescale",
+      "This is precisely the argument Darwin used in Chapter 1 of On the Origin of Species: if breeders can achieve so much in a few centuries by selecting variation that already exists, natural selection acting over millions of years is more than sufficient to produce the diversity of life"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Modern Applications",
+    "title": "The Breeder's Equation Today",
+    "cards": [
+      {
+        "h": "Agricultural breeding programs",
+        "p": "Formal application of R = h²S (and its multivariate extensions) underlies modern selective breeding of crops and livestock, now often paired with genomic prediction of breeding values."
+      },
+      {
+        "h": "Conservation biology",
+        "p": "Estimating h² for fitness-related traits helps predict whether small, threatened populations retain enough additive variance to adapt to environmental change."
+      },
+      {
+        "h": "Evolutionary forecasting",
+        "p": "The same logic used for the Grants' finches is applied to predict responses of wild populations to climate change, harvesting pressure (e.g., fisheries-induced evolution), and other anthropogenic selective pressures."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Misconceptions",
+    "title": "What Heritability Does NOT Mean",
+    "items": [
+      "h² is a property of a population in a particular environment at a particular time — NOT a fixed, universal property of a trait or an individual",
+      "'h² = 0.5' does not mean half of an individual's trait value is 'from genes' and half 'from environment' — it describes variance across a population, not causation within one individual",
+      "High heritability does not mean a trait is unaffected by environment — it means that, within the specific population and environment measured, genetic differences account for most of the variation observed",
+      "Heritability estimates do not transfer automatically across populations or environments — the same trait can have very different h² in a different population, environment, or gene pool"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A Population-Level Statistic",
+    "title": "Heritability Is About Variance, Not About You",
+    "left": {
+      "h": "Correct interpretation",
+      "body": "<p>h² answers a question about a POPULATION: 'Of the variation among individuals in this trait, what fraction tracks additive genetic variation?'</p><ul><li>Depends on which population, in which environment, at which time</li><li>Can change if the environment becomes more uniform (h² rises, since V_E shrinks) or more variable (h² falls)</li><li>Can change as selection erodes V_A over generations</li></ul>"
+    },
+    "right": {
+      "h": "Common misinterpretation",
+      "body": "<p>It is tempting, but incorrect, to think of h² as telling you how much of a given individual's trait is 'caused by genes.'</p><ul><li>An individual's phenotype results from a specific developmental interaction of their genotype and their environment — this cannot be split into 'genetic' and 'environmental' portions</li><li>h² is only meaningful as a statement about the sources of variance AMONG individuals in a population</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consolidating the Key Ideas",
+    "title": "Summary of Core Concepts",
+    "items": [
+      "Genetic variance splits into additive (V_A), dominance (V_D), and interaction (V_I) components; only V_A reliably transmits to offspring",
+      "Narrow-sense heritability, h² = V_A / V_P, is the heritability that predicts evolutionary response — broad-sense H² = V_G / V_P does not",
+      "The breeder's equation, R = h²S, quantitatively links the strength of selection (S) and the heritability of a trait (h²) to the predicted response (R)",
+      "The equation works for both artificial selection (livestock, crops) and natural selection (Grants' finches), validating it as a general evolutionary tool",
+      "Its predictive power is bounded by assumptions: no genetic correlations, no environmental change, and enough remaining additive variance (no fixation) — real populations can violate all three",
+      "Domestication (corn, dogs, silver foxes) provides dramatic, real-world proof that selection on standing variation can produce rapid and large phenotypic change — exactly the mechanism Darwin proposed for natural selection"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Before You Leave",
+    "title": "Key Takeaways",
+    "cards": [
+      {
+        "h": "h² ≠ H²",
+        "p": "Only additive genetic variance (captured by narrow-sense heritability) predicts response to selection."
+      },
+      {
+        "h": "R = h²S",
+        "p": "Response to selection equals heritability times the selection differential — memorize this and know how to apply it numerically."
+      },
+      {
+        "h": "Nature obeys the same math",
+        "p": "The Grants' finch studies show natural selection follows the same quantitative rules as artificial selection."
+      },
+      {
+        "h": "Limits are real",
+        "p": "Genetic correlations, fixation, and environmental change all cause real populations to deviate from the simple prediction."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Slow though the process of selection may be, if feeble man can do much by his powers of artificial selection, I can see no limit to the amount of change... which may be effected in the long course of time by nature's power of selection.",
+    "attrib": "Charles Darwin, On the Origin of Species (1859), paraphrased summary of the domestication argument"
+  },
+  {
+    "type": "section",
+    "tag": "Next Time — Lecture 25",
+    "title": "Finding the Genes",
+    "sub": "From predicting evolution with the breeder's equation to locating the actual loci: QTL mapping and genome-wide association studies (GWAS)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Looking Ahead",
+    "title": "Preview: Lecture 25",
+    "items": [
+      "Today we treated the genetic basis of quantitative traits as a statistical abstraction (V_A, h², S, R) without asking which specific genes are involved",
+      "Lecture 25 opens the question: can we actually locate the individual genomic regions that contribute to a quantitative trait?",
+      "Quantitative Trait Locus (QTL) mapping: using controlled crosses and genetic markers to identify chromosomal regions associated with trait variation",
+      "Genome-Wide Association Studies (GWAS): scanning natural populations for statistical associations between genetic markers and trait values, without requiring controlled crosses",
+      "We will connect these gene-mapping techniques back to today's concepts — including revisiting the teosinte-to-corn transformation and the specific loci (like tga1) responsible for it"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 24</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

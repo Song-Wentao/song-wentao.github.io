@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 5: Linear Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 5",
+    "title": "Linear Models",
+    "sub": "The linear model as the foundation of regression -- formula notation, least squares, diagnostics, and what happens when the assumptions break",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Why Linear Models",
+    "title": "The Workhorse of Statistical Ecology",
+    "sub": "Almost every model in this course is a linear model, or a generalization of one"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Big Picture",
+    "title": "One Framework, Many Names",
+    "items": [
+      "Regression, ANOVA, ANCOVA, t-test -- all special cases of the same linear model",
+      "GLMs (Lecture 6), mixed models (Lecture 7), and GAMs (Lecture 8) are all generalizations of what you learn today",
+      "If you understand lm() deeply, you understand the backbone of the entire course",
+      "Today's data: 70 peat moss sites from Lac Cromwell (Borcard & Legendre 1994) -- oribatid mite species richness as a function of water content, substrate density, and substrate type"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "The Linear Model",
+    "term": "linear model",
+    "def": "A model in which the expected value of a response variable is a linear combination of predictors: E[y] = beta_0 + beta_1*x_1 + ... + beta_p*x_p, with errors assumed independent, normally distributed, and of constant variance.",
+    "bullets": [
+      "\"Linear\" refers to linearity in the parameters (the betas), not necessarily in the predictors -- x^2 or log(x) as a predictor is still a linear model",
+      "Fit in R with lm(), in Python with statsmodels.OLS / smf.ols, in Julia with GLM.jl's lm()",
+      "The single most common building block in ecological data analysis"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Simple Linear Regression",
+    "title": "One Predictor: richness ~ WatrCont",
+    "sub": "Does peat water content predict oribatid mite species richness?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Setting Up the Model",
+    "title": "Formula Notation",
+    "items": [
+      "richness ~ WatrCont reads as \"richness modeled as a function of WatrCont\"",
+      "Fits the equation richness_i = beta_0 + beta_1 * WatrCont_i + epsilon_i for site i",
+      "beta_0 (intercept): expected richness when WatrCont = 0",
+      "beta_1 (slope): expected change in richness for a one-unit increase in WatrCont",
+      "epsilon_i: residual error, assumed epsilon_i ~ Normal(0, sigma^2), independent across sites"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Simple LM Code",
+    "title": "Fitting richness ~ WatrCont in R",
+    "left": {
+      "h": "R (base)",
+      "body": "<pre><code>species &lt;- read.csv(&quot;data/mite_species.csv&quot;)\nenv &lt;- read.csv(&quot;data/mite_env.csv&quot;)\n\nsp_cols &lt;- setdiff(names(species), &quot;site&quot;)\nrichness &lt;- rowSums(species[, sp_cols] &gt; 0)\n\ndat &lt;- merge(env, data.frame(site = species$site,\n                              richness = richness), by = &quot;site&quot;)\n\nfit_simple &lt;- lm(richness ~ WatrCont, data = dat)\nsummary(fit_simple)\n#&gt; (Intercept)  24.304025   1.249095  19.457  &lt;2e-16 ***\n#&gt; WatrCont     -0.022379   0.002876  -7.781  5.5e-11 ***\n#&gt; Multiple R-squared: 0.471, Adjusted R-squared: 0.463</code></pre>"
+    },
+    "right": {
+      "h": "Reading the Output",
+      "body": "<pre><code># Intercept: at WatrCont = 0, predicted richness\n# is ~24.3 species (extrapolation -- no site\n# actually has WatrCont near 0)\n\n# Slope: each 1-unit increase in water content\n# is associated with 0.0224 FEWER species\n# -- wetter peat, on average, has lower\n# oribatid richness at this site\n\n# t = -7.78, p &lt; 0.001: the slope is very\n# unlikely to be zero by chance\n\n# R-squared = 0.471: WatrCont alone explains\n# about 47% of the site-to-site variation\n# in richness</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Simple LM Code",
+    "title": "The Same Model in Python",
+    "left": {
+      "h": "Python (statsmodels)",
+      "body": "<pre><code>import pandas as pd\nimport statsmodels.formula.api as smf\n\nspecies = pd.read_csv(&quot;data/mite_species.csv&quot;)\nenv = pd.read_csv(&quot;data/mite_env.csv&quot;)\n\nsp_cols = [c for c in species.columns if c != &quot;site&quot;]\nrichness = (species[sp_cols] &gt; 0).sum(axis=1)\nrich_df = pd.DataFrame({&quot;site&quot;: species[&quot;site&quot;],\n                         &quot;richness&quot;: richness})\ndat = env.merge(rich_df, on=&quot;site&quot;)\n\nfit_simple = smf.ols(&quot;richness ~ WatrCont&quot;, data=dat).fit()\nprint(fit_simple.summary())\n#&gt; WatrCont   -0.0224   0.003   -7.781   0.000</code></pre>"
+    },
+    "right": {
+      "h": "smf.ols vs sm.OLS",
+      "body": "<pre><code># smf.ols() takes an R-style formula string and\n# a DataFrame -- closest match to R's lm()\n\n# sm.OLS() is the lower-level interface: you\n# build the design matrix yourself\nimport statsmodels.api as sm\nX = sm.add_constant(dat[&quot;WatrCont&quot;])\nfit_simple2 = sm.OLS(dat[&quot;richness&quot;], X).fit()\n\n# Both give identical coefficients, SEs, R2 --\n# smf.ols is usually more convenient once you\n# have categorical predictors to dummy-code</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Coefficients",
+    "title": "Slope, Significance, and Fit",
+    "items": [
+      "Slope estimate -0.0224: direction and magnitude of the WatrCont effect on richness",
+      "Standard error 0.0029: precision of that estimate -- used to build the t-statistic and confidence interval",
+      "p-value < 0.001: strong evidence against the null hypothesis beta_1 = 0",
+      "R-squared = 0.471: proportion of variance in richness explained by WatrCont alone",
+      "A single predictor already explains nearly half the variation -- water content is an ecologically important driver of this community"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Multiple Linear Regression",
+    "title": "Adding More Predictors",
+    "sub": "richness ~ WatrCont + SubsDens + Substrate"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Add Predictors",
+    "title": "Controlling for Confounders, Explaining More Variance",
+    "items": [
+      "SubsDens (substrate density) may independently affect richness, and may be correlated with WatrCont -- omitting it can bias the WatrCont estimate",
+      "Substrate (a categorical variable: Sphagnum species, Litter, Peat, Interface, ...) captures habitat type not summarized by the two continuous variables",
+      "Each coefficient in a multiple regression is interpreted holding the other predictors constant -- \"the effect of WatrCont, adjusting for SubsDens and Substrate\"",
+      "Multiple regression formula: richness ~ WatrCont + SubsDens + Substrate"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Multiple LM Code",
+    "title": "Fitting and Testing the Full Model in R",
+    "left": {
+      "h": "R (base)",
+      "body": "<pre><code>dat$Substrate &lt;- factor(dat$Substrate)\n\nfit_multi &lt;- lm(richness ~ WatrCont + SubsDens +\n                   Substrate, data = dat)\nsummary(fit_multi)\n#&gt; WatrCont    -0.02299   0.00303  -7.585  &lt;.001\n#&gt; SubsDens     0.12672   0.03703   3.422   0.001\n#&gt; SubstrateLitter  8.054   3.178   2.534   0.014\n#&gt; ...\n#&gt; Multiple R-squared: 0.616, Adjusted R-squared: 0.565\n\nanova(fit_multi)\n#&gt;           Df Sum Sq Mean Sq F value   Pr(&gt;F)\n#&gt; WatrCont   1 700.39  700.39  74.79  3.4e-12\n#&gt; SubsDens   1  76.11   76.11   8.13  0.00594\n#&gt; Substrate  6 139.33   23.22   2.48  0.03271</code></pre>"
+    },
+    "right": {
+      "h": "Categorical Predictors: Dummy Coding",
+      "body": "<pre><code># factor(Substrate) is expanded into indicator\n# (0/1) columns, one per level except a\n# reference level (chosen alphabetically\n# by default, e.g. &quot;Interface&quot; here is\n# actually not the reference -- check\n# levels(dat$Substrate)[1])\n\n# Each SubstrateX coefficient is the difference\n# in mean richness between level X and the\n# reference level, holding WatrCont and\n# SubsDens fixed\n\n# anova() gives a SEQUENTIAL (Type I) table:\n# each row tests a term after the terms\n# above it are already in the model</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Multiple LM Code",
+    "title": "Python and Julia Equivalents",
+    "left": {
+      "h": "Python (statsmodels)",
+      "body": "<pre><code>fit_multi = smf.ols(\n    &quot;richness ~ WatrCont + SubsDens + C(Substrate)&quot;,\n    data=dat).fit()\nprint(fit_multi.summary())\n#&gt; R-squared: 0.616  Adj. R-squared: 0.565\n\nimport statsmodels.api as sm\nanova_tbl = sm.stats.anova_lm(fit_multi, typ=2)\nprint(anova_tbl)\n#&gt;               sum_sq  df      F     PR(&gt;F)\n#&gt; C(Substrate)  139.33   6   2.48   0.0327\n#&gt; WatrCont      538.71   1  57.53   2.3e-10\n#&gt; SubsDens      109.65   1  11.71   0.0011</code></pre>"
+    },
+    "right": {
+      "h": "Julia (GLM.jl)",
+      "body": "<pre><code>using GLM, StatsModels\n\nfit_multi = lm(@formula(richness ~ WatrCont +\n                   SubsDens + Substrate), dat)\nfit_multi\nr2(fit_multi)        # 0.616\nadjr2(fit_multi)      # 0.565\n\n# String columns are auto-detected as\n# categorical by @formula and dummy-coded\n# against a reference level, same as\n# factor() in R\n\nftest(fit_watr_only, fit_watr_subs, fit_multi)\n# nested-model F-test, GLM.jl's analogue\n# of R's anova(fit1, fit2, fit3)</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Type I vs Type II/III ANOVA",
+    "title": "Sum of Squares Depends on Term Order",
+    "items": [
+      "Type I (sequential): R's default anova() -- each term tested after everything listed above it; result depends on the order terms are written in the formula",
+      "Type II: sm.stats.anova_lm(fit, typ=2) in Python -- each term tested after all other terms except its own higher-order interactions; order-independent for main effects",
+      "For this dataset, both approaches agree: WatrCont, SubsDens, and Substrate are all significant predictors of richness (p < 0.05)",
+      "Rule of thumb: use Type II/III when predictors are correlated and term order is arbitrary -- which is the common case in observational ecological data"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Parameter Estimation",
+    "title": "Where Do the Coefficients Come From?",
+    "sub": "Least squares, and its connection to maximum likelihood"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ordinary Least Squares",
+    "title": "Minimizing the Sum of Squared Residuals",
+    "items": [
+      "OLS chooses beta_hat to minimize sum_i (y_i - X_i * beta)^2 -- the sum of squared vertical distances between observed and fitted values",
+      "Has a closed-form solution: beta_hat = (X'X)^-1 X'y, computed directly by lm(), OLS(), and GLM.jl's lm()",
+      "No iteration needed for ordinary linear regression -- unlike the GLMs of Lecture 6, which require iterative optimization",
+      "Residual standard error (sigma_hat) estimates the typical size of the leftover, unexplained variation"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Deeper Connection",
+    "title": "Least Squares Is Maximum Likelihood",
+    "term": "maximum likelihood (under normal errors)",
+    "def": "If epsilon_i ~ Normal(0, sigma^2) independently, the beta that maximizes the likelihood of the observed data is exactly the beta that minimizes the sum of squared residuals -- OLS and ML give the identical point estimate.",
+    "bullets": [
+      "This equivalence is why lm() output includes t-tests and F-tests derived from likelihood theory, not just \"closest fit\" geometry",
+      "It also explains why lm() is a special case of the GLM framework in Lecture 6: GLMs maximize likelihood under other error distributions (Poisson, binomial, ...) where no closed-form least-squares solution exists",
+      "Understanding this link is what makes Lecture 6 feel like a small step rather than a new topic"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Model Diagnostics",
+    "title": "Trust, But Verify",
+    "sub": "A model that fits well on paper can still violate its own assumptions"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The Four Classic Diagnostic Plots",
+    "title": "What Each Plot Reveals",
+    "cards": [
+      {
+        "h": "1. Residuals vs. Fitted",
+        "p": "Checks linearity and homoscedasticity. A random horizontal band of points around zero is good; a curved pattern means a missing nonlinear term, a funnel shape means variance grows with the mean."
+      },
+      {
+        "h": "2. Normal Q-Q",
+        "p": "Checks normality of residuals. Points should fall close to the 45-degree line. Systematic curvature at the tails flags skew or heavy tails -- common with count data like richness."
+      },
+      {
+        "h": "3. Scale-Location",
+        "p": "A zoomed-in view of homoscedasticity: sqrt(|standardized residuals|) vs. fitted values. An upward trend means residual spread increases with predicted richness -- classic for count and abundance responses."
+      },
+      {
+        "h": "4. Residuals vs. Leverage",
+        "p": "Flags influential points using leverage (how unusual a site's predictor values are) and Cook's distance (how much removing that site would change the fit). Points outside the Cook's distance contour deserve a second look."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Diagnostic Code",
+    "title": "Producing the Four-Panel Plot",
+    "left": {
+      "h": "R (base graphics)",
+      "body": "<pre><code>png(&quot;figures/lecture_05_diagnostics.png&quot;,\n    width = 900, height = 900, res = 125)\npar(mfrow = c(2, 2))\nplot(fit_multi)\ndev.off()\n\n# plot() on an lm object automatically\n# produces exactly these four panels,\n# in this order, with influential points\n# labeled by row number</code></pre>"
+    },
+    "right": {
+      "h": "Julia (GLM.jl + Plots.jl)",
+      "body": "<pre><code>fitted_vals = predict(fit_multi)\nresid_vals  = residuals(fit_multi)\nX = modelmatrix(fit_multi)\nhat_diag = diag(X * inv(X&#39;X) * X&#39;)\nsigma_hat = sqrt(deviance(fit_multi) /\n                 dof_residual(fit_multi))\nstudent_resid = resid_vals ./\n    (sigma_hat .* sqrt.(1 .- hat_diag))\n\n# GLM.jl has no built-in plot(model);\n# build all four panels by hand from\n# predict(), residuals(), and the hat\n# matrix, then combine with plot(p1,p2,\n# p3,p4, layout=(2,2))</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Diagnostic Code",
+    "title": "Python: Building the Panels Manually",
+    "left": {
+      "h": "Python (statsmodels + matplotlib)",
+      "body": "<pre><code>influence = fit_multi.get_influence()\nstudent_resid = influence.resid_studentized_internal\nleverage = influence.hat_matrix_diag\ncooks_d  = influence.cooks_distance[0]\n\nfrom statsmodels.graphics.gofplots import ProbPlot\nqq = ProbPlot(student_resid)\nqq.qqplot(line=&quot;45&quot;, ax=axes[0, 1])\n\n# residuals vs fitted, scale-location, and\n# residuals vs leverage are plain\n# matplotlib scatter() calls against\n# fit_multi.fittedvalues / .resid /\n# leverage, with an added lowess smooth</code></pre>"
+    },
+    "right": {
+      "h": "statsmodels Has No plot(model)",
+      "body": "<pre><code># Unlike R, statsmodels does not ship a\n# one-call diagnostic panel for OLS.\n# You assemble it from:\n#   fit.fittedvalues, fit.resid\n#   fit.get_influence() for leverage,\n#     studentized residuals, Cook's D\n#   statsmodels.graphics.gofplots for\n#     the Q-Q plot\n\n# This is more code, but it makes every\n# quantity in the panel explicit --\n# useful the first time you see them</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Four Assumptions",
+    "title": "L.I.N.E.",
+    "items": [
+      "Linearity: the true relationship between predictors and E[y] is linear (or linear in transformed predictors)",
+      "Independence: residuals are uncorrelated -- violated by spatial autocorrelation between nearby sites, repeated measures, or nested sampling designs",
+      "Normality: residuals are approximately normally distributed -- mostly matters for small samples and for the validity of p-values / CIs",
+      "Equal variance (homoscedasticity): residual spread does not change systematically with fitted values or with a predictor"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "When Assumptions Break",
+    "title": "Violation, Symptom, and Fix",
+    "headers": [
+      "Assumption Violated",
+      "Diagnostic Symptom",
+      "Typical Fix"
+    ],
+    "rows": [
+      [
+        "Linearity",
+        "Curved pattern in residuals vs. fitted",
+        "Add a polynomial/spline term, transform a predictor, or move to a GAM (Lecture 8)"
+      ],
+      [
+        "Independence",
+        "Nearby sites have correlated residuals (spatial autocorrelation)",
+        "Mixed-effects models with spatial/grouping structure (Lecture 7), or explicit spatial models (Lecture 16)"
+      ],
+      [
+        "Homoscedasticity",
+        "Funnel shape in residuals vs. fitted or scale-location plot",
+        "Variance-stabilizing transform, weighted least squares, or a GLM with a variance function matching the data (Lecture 6)"
+      ],
+      [
+        "Normality of residuals",
+        "Points curve away from the line in the Q-Q plot, especially in the tails",
+        "Often self-corrects with a large sample (CLT); for bounded/count data, use a GLM instead of transforming"
+      ],
+      [
+        "Response is a bounded count",
+        "Predicted values below 0, or variance visibly tied to the mean",
+        "Poisson or negative binomial GLM (Lecture 6) instead of forcing a Gaussian lm()"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading Our Diagnostics",
+    "title": "What the Mite Model's Panels Show",
+    "items": [
+      "Residuals vs. fitted for richness ~ WatrCont + SubsDens + Substrate: roughly random scatter, no strong curve -- linearity looks reasonable here",
+      "Q-Q plot: residuals track the 45-degree line closely in the middle, with minor tail deviation typical of a moderate sample size (n = 70)",
+      "Scale-location: mild fan shape is visible -- richness is a count, so some variance-mean relationship is expected even before things get severe",
+      "Residuals vs. leverage: no point sits far outside a Cook's distance contour, so no single site is dominating the fit",
+      "Overall: an adequate Gaussian approximation for this dataset, but the mild scale-location trend is exactly the kind of pattern that motivates the Poisson GLM in Lecture 6"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Model Fit",
+    "title": "R-squared and Adjusted R-squared",
+    "sub": "How much variance does the model explain, and at what cost?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two Related Numbers",
+    "title": "R-squared vs. Adjusted R-squared",
+    "items": [
+      "R-squared = 1 - (SS_residual / SS_total): the proportion of variance in the response explained by the model",
+      "R-squared can only go up (or stay flat) as you add predictors, even useless ones -- it rewards complexity for free",
+      "Adjusted R-squared penalizes each additional predictor, only increasing if the new term improves fit more than chance would predict",
+      "Simple model (WatrCont only): R2 = 0.471, adjusted R2 = 0.463",
+      "Multiple model (+ SubsDens + Substrate): R2 = 0.616, adjusted R2 = 0.565 -- a genuine improvement, not just an artifact of adding eight more parameters"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical Guidance",
+    "title": "Using R-squared Responsibly",
+    "items": [
+      "Always report adjusted R2 alongside R2 when comparing models with different numbers of predictors",
+      "A high R2 does not certify a valid model -- always check diagnostics too; a well-fit but assumption-violating model still misleads inference",
+      "For nested models, an F-test (anova(fit1, fit2) in R, sm.stats.anova_lm() with two models in Python, ftest() in Julia) is a more principled comparison than eyeballing R2 differences",
+      "R2 is scale- and dataset-specific -- 0.47 is a strong result for noisy ecological field data, even though it would be unremarkable in a controlled lab experiment"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Interactions",
+    "title": "When One Effect Depends on Another",
+    "sub": "richness ~ WatrCont * Substrate"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Interaction Term",
+    "term": "interaction",
+    "def": "A term of the form x1:x2 (written x1*x2 as shorthand for x1 + x2 + x1:x2) that lets the effect of one predictor on the response depend on the level or value of another predictor.",
+    "bullets": [
+      "WatrCont * Substrate allows the slope of richness on WatrCont to differ across substrate types, instead of forcing one shared slope",
+      "Tested the same way as any other term: a t-test on the coefficient, or an F-test comparing the model with and without the interaction",
+      "Interactions add parameters fast -- with 7 Substrate levels, WatrCont * Substrate adds 6 extra slope parameters on top of the main effects"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ecological Interpretation",
+    "title": "Why Interactions Matter in Field Data",
+    "items": [
+      "Without the interaction, the model assumes water content affects richness identically on Sphagnum, Litter, and Interface substrates -- an assumption worth testing, not assuming",
+      "A significant interaction would mean, for example, that richness drops sharply with water content on one substrate but stays flat on another -- a genuinely different ecological story per habitat type",
+      "Always fit and interpret main effects (WatrCont, Substrate) before adding interactions -- an interaction is only meaningful in the context of the main effects it modifies",
+      "Guard against overfitting: with only 70 sites and 7 substrate levels, some substrate x WatrCont combinations have very few observations, so interaction estimates can be imprecise"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Interaction Code",
+    "title": "Fitting and Testing the Interaction",
+    "left": {
+      "h": "R",
+      "body": "<pre><code>fit_add &lt;- lm(richness ~ WatrCont + Substrate,\n                data = dat)\nfit_int &lt;- lm(richness ~ WatrCont * Substrate,\n                data = dat)\n\nanova(fit_add, fit_int)\n# F-test: does adding the interaction\n# significantly improve the fit over\n# the additive model?</code></pre>"
+    },
+    "right": {
+      "h": "Python",
+      "body": "<pre><code>fit_add = smf.ols(\n    &quot;richness ~ WatrCont + C(Substrate)&quot;,\n    data=dat).fit()\nfit_int = smf.ols(\n    &quot;richness ~ WatrCont * C(Substrate)&quot;,\n    data=dat).fit()\n\nsm.stats.anova_lm(fit_add, fit_int)\n# same nested F-test, statsmodels style</code></pre>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Putting It Together",
+    "title": "A Complete Linear Modeling Workflow",
+    "sub": "From formula to inference, with diagnostics at every step"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Workflow",
+    "title": "From Formula to Trustworthy Inference",
+    "levels": [
+      {
+        "label": "State the question and formula: richness ~ predictors",
+        "color": "#2b6cb0",
+        "width": 60
+      },
+      {
+        "label": "Fit with lm() / smf.ols() / GLM.jl's lm()",
+        "color": "#2c7a7b",
+        "width": 72
+      },
+      {
+        "label": "Check the four diagnostic plots (L.I.N.E.)",
+        "color": "#38a169",
+        "width": 84
+      },
+      {
+        "label": "Revise if needed: transform, add terms, or switch model family",
+        "color": "#d69e2e",
+        "width": 94
+      },
+      {
+        "label": "Interpret coefficients, R2/adjusted R2, and interactions",
+        "color": "#c05621",
+        "width": 100
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Pitfalls",
+    "title": "Mistakes to Avoid",
+    "items": [
+      "Fitting a model and reporting R2 without ever looking at the diagnostic plots",
+      "Interpreting a coefficient causally when the data are observational (e.g. \"water content causes lower richness\" from a field survey, not an experiment)",
+      "Extrapolating predictions to predictor values far outside the observed range (the WatrCont = 0 intercept has no ecological meaning here)",
+      "Forgetting that a factor's reference level changes coefficient meaning -- always check levels() / categories before interpreting Substrate coefficients",
+      "Treating a marginal p-value (like Substrate's p = 0.033 in the ANOVA table) as a sharp yes/no verdict rather than one piece of evidence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Matters for What's Next",
+    "title": "The Cracks Start to Show",
+    "items": [
+      "Species richness is a non-negative integer count, but lm() treats it as continuous and unbounded -- predictions can technically go negative",
+      "The mild fan shape in the scale-location plot hints at exactly this: variance tends to grow with the mean for count data",
+      "For today's dataset the Gaussian approximation was adequate, but many ecological count and presence/absence responses violate it far more severely",
+      "Rather than forcing every response through a Gaussian lm(), Lecture 6 introduces a family of models built for exactly this situation"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Worth Remembering",
+    "quote": "All models are wrong, but some are useful.",
+    "attrib": "George Box"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Self-Check",
+    "title": "What You Should Be Able To Do",
+    "items": [
+      "Write a linear model formula for a given hypothesis, including categorical predictors and interactions",
+      "Fit richness ~ predictors in R, Python, and Julia and read off coefficients, standard errors, p-values, R2, and adjusted R2",
+      "Produce and interpret all four classic diagnostic plots -- residuals vs. fitted, Q-Q, scale-location, residuals vs. leverage",
+      "State the L.I.N.E. assumptions and identify which diagnostic plot checks each one",
+      "Explain, in one sentence, why least-squares estimates equal maximum-likelihood estimates under normal errors"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Before You Move On",
+    "title": "Key Takeaways",
+    "cards": [
+      {
+        "h": "Formula = Hypothesis",
+        "p": "richness ~ WatrCont + SubsDens + Substrate encodes a specific scientific claim about what drives the response -- write it deliberately."
+      },
+      {
+        "h": "Diagnostics Are Not Optional",
+        "p": "A high R2 with a bad Q-Q plot or a funnel-shaped residual plot is not a trustworthy model."
+      },
+      {
+        "h": "Adjusted R2 for Comparison",
+        "p": "Use adjusted R2 (or a nested F-test) whenever comparing models with different numbers of predictors."
+      },
+      {
+        "h": "Gaussian Errors Have Limits",
+        "p": "Bounded, count, or skewed responses often need a GLM -- that's exactly where Lecture 6 picks up."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "This Week's Practice",
+    "title": "Exercises",
+    "items": [
+      "Fit richness ~ SubsDens alone and compare its R2 to the WatrCont simple model",
+      "Fit a Substrate-only model, interpret the coefficients, and test whether adding WatrCont + SubsDens improves the fit",
+      "Fit richness ~ WatrCont * Substrate and interpret the interaction",
+      "Fit richness ~ WatrCont on a restricted subset of sites, inspect the diagnostics, and identify which assumption breaks down"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Lecture 6: Generalized Linear Models",
+    "title": "What If the Response Is a Count, Not Continuous?",
+    "sub": "Poisson and negative binomial regression for species richness and abundance data -- extending everything you learned today"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 5</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

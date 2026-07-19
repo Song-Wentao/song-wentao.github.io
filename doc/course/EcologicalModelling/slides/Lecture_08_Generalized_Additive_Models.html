@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 8: Generalized Additive Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 8",
+    "title": "Generalized Additive Models",
+    "sub": "Letting the data choose the shape of the curve -- smooth terms, splines, and effective degrees of freedom, on the Lac Cromwell oribatid mite data",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Picking Up the Thread",
+    "title": "\"What If the Relationship Isn't Even Linear?\"",
+    "sub": "Lecture 7 closed on that question about a height effect -- this lecture is the answer"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Problem",
+    "title": "A Straight Line Is a Strong Assumption",
+    "items": [
+      "Every model since Lecture 5 has assumed the response changes at a constant rate per unit of x -- that is what a single coefficient beta means",
+      "Many ecological relationships are not like that: growth rates saturate, performance peaks at an optimum, and abundance often rises then falls along a gradient",
+      "A straight line forced through a curved relationship does not just fit poorly -- it can get the sign of the effect wrong in part of the range",
+      "The question is not 'is there a relationship' but 'what shape is it' -- and a fixed linear term cannot answer that question, it can only assume the answer"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Ecological Motivation",
+    "title": "Unimodal Responses Are the Norm, Not the Exception",
+    "items": [
+      "Classical niche theory (Hutchinson 1957) predicts a Gaussian-shaped, humped response of performance or abundance to an environmental gradient -- too little of a resource is limiting, too much is toxic or costly",
+      "Temperature performance curves, nutrient response curves, and moisture tolerance curves are all textbook examples of this humped shape",
+      "A plain linear model cannot represent a hump at all; it can only tilt up or down across the whole range",
+      "Even adding a single quadratic term (x + x^2) only buys one specific parabola shape -- real curves are often more irregular than that"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Not Just Add x-squared?",
+    "title": "The Limits of Polynomial Terms",
+    "items": [
+      "richness ~ WatrCont + WatrCont^2 can bend once, in one direction, over the whole range -- one global parabola shared by every part of the data",
+      "Higher powers (x^3, x^4, ...) can wiggle more, but they become numerically unstable and tend to swing wildly near the edges of the data (Runge's phenomenon)",
+      "A polynomial's shape at one end of the gradient is tied to its shape at the other end -- you cannot let the curve be flat in the middle and steep at the edges independently",
+      "What is needed instead: a flexible function f(x) that can bend locally, controlled by how much bending the data actually support -- that is exactly what a spline gives you"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Smooth Term (Spline)",
+    "term": "Smooth Term",
+    "def": "A flexible function f(x), built from a basis of simple curved building-block functions (splines), that replaces a single linear coefficient beta*x. Instead of assuming one global slope, f(x) can bend differently in different parts of the range of x.",
+    "bullets": [
+      "Written s(x) in R's mgcv, s(0) in Python's pygam -- 's' for 'smooth'",
+      "Built from a basis: a set of simple curved functions (typically cubic splines) added together with fitted weights",
+      "The number of basis functions (k) sets an upper limit on how wiggly the smooth is allowed to get -- the fit itself is controlled by a penalty, covered next"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The GAM Framework",
+    "title": "From beta*x to f(x)",
+    "sub": "Generalized Additive Models: the same GLM machinery, with linear terms replaced by smooth terms"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The GAM Idea",
+    "title": "Additive, Generalized -- and Smooth",
+    "items": [
+      "A GLM: g(E[y]) = beta0 + beta1*x1 + beta2*x2 + ... -- a link function g() applied to a linear predictor",
+      "A GAM: g(E[y]) = beta0 + f1(x1) + f2(x2) + ... -- the exact same structure, but each linear term beta_j*x_j is replaced by a smooth function f_j(x_j)",
+      "'Additive' means the effects of different predictors still add together on the link scale -- no interaction is assumed unless you build one in (e.g. a 2-D smooth)",
+      "'Generalized' carries over everything from Lecture 6: any exponential-family response (Gaussian, Poisson, binomial, ...) and its matching link function",
+      "In short: a GAM is a GLM where you no longer have to decide in advance that each predictor's effect is a straight line"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Basis Dimension (k)",
+    "term": "Basis Dimension k",
+    "def": "The number of basis functions used to build a smooth term s(x). It sets the maximum flexibility the smooth is allowed -- a ceiling on how many bends the curve could have, not how many it will have.",
+    "bullets": [
+      "Larger k = a richer basis = the curve is permitted more independent wiggles if the data support them",
+      "k is a upper bound, not a target -- mgcv's default (k = 10 per smooth) is deliberately generous, and the penalty (next slide) reels in unneeded flexibility",
+      "Set k too small and a genuinely complex shape gets forced flat; set k absurdly large relative to the sample size and fitting becomes slow and unstable -- but rarely overfit, because of the penalty"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Avoiding Overfitting",
+    "title": "The Smoothing Penalty",
+    "items": [
+      "Without a penalty, a flexible enough basis would simply interpolate every data point -- a wiggly curve that fits noise, not signal, and generalizes terribly",
+      "GAM fitting adds a roughness penalty: it penalizes curvature (the wiggliness of f), not just poor fit to the data, trading off fit against smoothness",
+      "The penalty's strength (lambda in mgcv, or the smoothing hyperparameter in pygam) is itself estimated from the data -- by REML, GCV, or a grid search, not chosen by hand",
+      "A large penalty flattens the curve toward a straight line; a small penalty lets it bend freely up to the basis dimension k",
+      "This is the central trick of a GAM: k sets the ceiling on flexibility, the penalty decides how much of that ceiling to actually use"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Effective Degrees of Freedom (EDF)",
+    "term": "Effective Degrees of Freedom",
+    "def": "A single number, reported for every smooth term, summarizing how much curvature the fitted penalty actually kept -- the realized flexibility of s(x), after the roughness penalty has done its shrinking.",
+    "bullets": [
+      "EDF = 1 means the smoothing penalty shrank the curve all the way down to a straight line -- a GAM with EDF = 1 IS, in effect, a linear model",
+      "EDF close to k - 1 means almost no shrinkage happened -- the data support essentially all the flexibility the basis allows",
+      "EDF is not an integer -- it is a continuous measure of 'effective' complexity, unlike the whole-number degrees of freedom of a linear model",
+      "Because EDF can land anywhere from 1 up to k - 1, a linear model is mathematically the special case of a GAM where every smooth's EDF has been penalized down to 1"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Key Concept",
+    "title": "GAM Generalizes GLM Generalizes LM",
+    "levels": [
+      {
+        "label": "LM: y = beta0 + beta1*x -- one global straight line",
+        "color": "#C0562B",
+        "width": 42
+      },
+      {
+        "label": "GLM: g(mu) = beta0 + beta1*x -- link + any exponential-family response",
+        "color": "#2E6E8E",
+        "width": 70
+      },
+      {
+        "label": "GAM: g(mu) = beta0 + f(x) -- link + smooth term, EDF chosen by the data",
+        "color": "#3F8F5C",
+        "width": 100
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Concept",
+    "title": "Reading the Hierarchy",
+    "items": [
+      "Every LM is a GLM (Gaussian family, identity link) -- Lecture 5 was a special case of Lecture 6's framework all along",
+      "Every GLM is a GAM (each smooth term's EDF penalized down to exactly 1) -- Lecture 6 is a special case of today's framework",
+      "This is not just a mathematical curiosity: it means you never lose anything by starting with s(x) instead of beta*x -- if the data really do want a straight line, the penalty will find it and report EDF = 1",
+      "The practical workflow: fit the GAM, look at the EDF. EDF near 1 -> a linear term would have done just as well. EDF well above 1 -> real, useful curvature was hiding under the straight-line assumption"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Data",
+    "title": "Oribatid Mite Richness and Water Content",
+    "sub": "Borcard & Legendre (1994) -- 70 peat-moss sites, Lac Cromwell, Quebec"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Dataset",
+    "title": "Species Richness Across a Water Content Gradient",
+    "items": [
+      "data/mite_species.csv: 70 sites x 35 oribatid mite species (abundance counts); data/mite_env.csv: WatrCont (substrate water content, %), SubsDens (substrate density), Substrate, Shrub, Topo, x, y",
+      "Response for this lecture: richness = the number of species with nonzero abundance at each site (5 to 25 species per site, mean 15.1)",
+      "WatrCont ranges from 134% to 827% across the 70 sites -- from drier hummocks to fully waterlogged pools, a classic peatland moisture gradient",
+      "This is one of the most widely taught real community datasets in numerical ecology, used throughout Borcard, Gillet & Legendre's 'Numerical Ecology with R'"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code",
+    "title": "Building the Response and Fitting a Straight Line",
+    "left": {
+      "h": "R -- richness and the linear model",
+      "body": "<pre><code>mite_sp  &lt;- read.csv(&quot;data/mite_species.csv&quot;)\nmite_env &lt;- read.csv(&quot;data/mite_env.csv&quot;)\n\nsp_mat   &lt;- as.matrix(mite_sp[, -1])\nrichness &lt;- rowSums(sp_mat &gt; 0)\n\nmite &lt;- data.frame(\n  richness = richness,\n  WatrCont = mite_env$WatrCont\n)\n\nlm_fit &lt;- lm(richness ~ WatrCont, data = mite)\nAIC(lm_fit)\n#&gt; 374.01</code></pre>"
+    },
+    "right": {
+      "h": "What the Linear Fit Says",
+      "body": "<p>richness = 24.30 - 0.0224 x WatrCont (p &lt; 0.001, R-squared = 0.47).</p><p>Richness falls by about 2.2 species per 100-unit rise in water content -- a real, strong, and statistically clear negative trend.</p><p>The question a GAM answers next: is that decline really a straight line across the whole 134-827% range, or does a smooth reveal something a single slope misses?</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code -- mgcv",
+    "title": "Fitting the Gaussian GAM",
+    "left": {
+      "h": "R (mgcv::gam)",
+      "body": "<pre><code>library(mgcv)\n\ngam_fit &lt;- gam(richness ~ s(WatrCont),\n               data = mite)\nsummary(gam_fit)\n#&gt; Approximate significance of smooth terms:\n#&gt;               edf Ref.df   F p-value\n#&gt; s(WatrCont) 1.343  1.616  40.0  &lt;2e-16\n\nAIC(lm_fit); AIC(gam_fit)\n#&gt; 374.01        373.85</code></pre>"
+    },
+    "right": {
+      "h": "Reading This Output",
+      "body": "<p>EDF = 1.34 -- barely above 1. The default GCV-chosen penalty has decided this relationship is <em>almost</em> a straight line, with a small, real amount of extra curvature.</p><p>AIC favors the GAM by only 0.15 points -- a negligible improvement, consistent with an EDF so close to 1.</p><p>This is the EDF-near-1 case from two slides ago, playing out on real data: not every relationship hides dramatic curvature.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code -- mgcv",
+    "title": "EDF Collapsing to Exactly 1: LM as a Special Case",
+    "left": {
+      "h": "R -- forcing heavier smoothing (method = \"ML\")",
+      "body": "<pre><code>gam_fit_ml &lt;- gam(richness ~ s(WatrCont),\n                  data = mite, method = &quot;ML&quot;)\nsummary(gam_fit_ml)$edf\n#&gt; 1.00\n\nAIC(gam_fit_ml)\n#&gt; 374.01   -- identical to AIC(lm_fit)</code></pre>"
+    },
+    "right": {
+      "h": "The Pyramid, Made Concrete",
+      "body": "<p>Switching the smoothing-parameter criterion from GCV to ML penalizes wiggliness a bit more here, and the penalty shrinks s(WatrCont) exactly to EDF = 1.</p><p>At EDF = 1, the fitted GAM curve <em>is</em> the linear model -- same AIC to two decimal places. This is the LM-as-a-special-case-of-GAM slide from earlier, reproduced on real data rather than asserted in the abstract.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code -- mgcv",
+    "title": "A Poisson GAM for a Count Response",
+    "left": {
+      "h": "R (family = poisson)",
+      "body": "<pre><code>gam_pois &lt;- gam(richness ~ s(WatrCont),\n                data = mite,\n                family = poisson)\nsummary(gam_pois)\n#&gt; edf Ref.df Chi.sq p-value\n#&gt; s(WatrCont) 2.33   2.96   46.2  &lt;2e-16\n\nAIC(gam_pois)\n#&gt; 375.80</code></pre>"
+    },
+    "right": {
+      "h": "Why Poisson, Not Gaussian",
+      "body": "<p>Richness is a non-negative count -- exactly the case Lecture 6 used to motivate Poisson GLMs over ordinary linear regression.</p><p>Here the Poisson GAM finds more curvature (EDF = 2.33) than the Gaussian GAM did (EDF = 1.34) -- the log link and mean-variance relationship change what shape best fits the data.</p><p>Poisson and Gaussian AICs are not directly comparable (different likelihoods) -- compare each family's GAM to its own family's linear model instead.</p>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Cross-Language",
+    "title": "The Same GAM in Python and Julia",
+    "sub": "mgcv has no single equivalent elsewhere -- here is how each ecosystem gets there"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python Code -- pygam",
+    "title": "Fitting the GAM with pygam",
+    "left": {
+      "h": "Python (pygam.LinearGAM)",
+      "body": "<pre><code>from pygam import LinearGAM, PoissonGAM, s\n\nX = mite[[&quot;WatrCont&quot;]].to_numpy()\ny = mite[&quot;richness&quot;].to_numpy()\n\ngam_fit = LinearGAM(s(0)).gridsearch(X, y)\ngam_fit.summary()\n#&gt; Effective DoF: 2.40\n#&gt; AIC:           373.89</code></pre>"
+    },
+    "right": {
+      "h": "pygam: The Closest Python Equivalent to mgcv",
+      "body": "<p>pygam is a proper penalized-spline GAM library -- s(0) means 'a smooth of column 0', directly analogous to mgcv's s(WatrCont).</p><p>gridsearch() plays the role of mgcv's automatic GCV/REML smoothing selection, searching over candidate penalty strengths (lambda) for the one that best trades off fit and smoothness.</p><p>pygam's grid lands on a somewhat larger EDF (2.40) than mgcv's GCV default (1.34) here -- expected cross-package variation in the smoothing search, not a disagreement about the underlying relationship.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python Code -- pygam",
+    "title": "Poisson GAM and the EDF-to-1 Demonstration",
+    "left": {
+      "h": "Python -- Poisson GAM and a heavy penalty",
+      "body": "<pre><code>gam_pois = PoissonGAM(s(0)).gridsearch(X, y)\ngam_pois.summary()\n#&gt; Effective DoF: 3.66\n#&gt; AIC:           374.73\n\n# Force a very large penalty (lam):\nstiff = LinearGAM(s(0, lam=1e8)).fit(X, y)\nstiff.statistics_[&quot;edof&quot;]\n#&gt; 1.99  (its floor -- fit is visually linear)</code></pre>"
+    },
+    "right": {
+      "h": "Same Conclusion, Different Floor",
+      "body": "<p>pygam's cubic P-spline penalty has a 2-dimensional unpenalized null space (constant + linear trend), so its EDF floor sits near 2 rather than mgcv's 1 -- a library implementation detail, not a conceptual difference.</p><p>Either way, an extremely large penalty produces a visually straight fitted line -- the same 'GAM collapses to LM' story, expressed slightly differently by each package's internal bookkeeping.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Python -- Installing pygam",
+    "title": "If pygam Is Unavailable: statsmodels GLMGam",
+    "items": [
+      "pip install --break-system-packages pygam was used for this lecture and installed cleanly, so pygam is the primary Python tool here",
+      "A real fallback exists if it does not install cleanly: from statsmodels.gam.api import GLMGam, BSplines",
+      "BSplines(x, df=[10], degree=[3]) builds a B-spline design matrix; GLMGam(y, exog=..., smoother=bs, family=...) fits a penalized GLM on that basis -- statsmodels' genuine equivalent of a single-smooth-term GAM",
+      "The lecture script includes this fallback path, clearly commented, so it runs whichever library is available on a given machine"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia Code",
+    "title": "No mgcv Equivalent: Building the Spline Basis by Hand",
+    "left": {
+      "h": "Julia -- hand-built spline basis + GLM.jl",
+      "body": "<pre><code>function spline_basis(x, knots)\n    B = [x max.(x .- k, 0.0).^3 for k in knots]\n    return reduce(hcat, ...)  # x plus one\n                               # cubic term per knot\nend\n\nknots = quantile(mite.WatrCont, [0.5])\nB = spline_basis(mite.WatrCont, knots)\ndf = DataFrame(B, :auto); df.y = mite.richness\n\nmodel = lm(term(:y) ~ sum(term.(\n            Symbol.(names(df)[1:end-1]))), df)\nGLM.aic(model)</code></pre>"
+    },
+    "right": {
+      "h": "Being Honest About Julia's GAM Ecosystem",
+      "body": "<p>Unlike R's mgcv, Julia has no single dominant, actively-maintained package for penalized-spline GAMs with automatic smoothing selection. GAM.jl exists but is not something to build a course on with confidence.</p><p>The idiomatic, transparent alternative used here: build a truncated-power-basis spline by hand (the same mathematical object mgcv's s() builds internally), then regress on it with GLM.jl -- exactly what mgcv does underneath its automation.</p><p>This is more manual, but it makes visible exactly what a spline basis <em>is</em>, which is valuable to see at least once.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Julia Results",
+    "title": "Comparing Basis Sizes Stands in for the Penalty",
+    "items": [
+      "Without an automatic penalty, the Julia script compares two fixed basis sizes directly: 1 interior knot (close to linear) vs. 4 interior knots (more flexible)",
+      "AIC across all three Julia models -- the plain linear model, the 1-knot spline, and the 4-knot spline -- land within a couple of points of each other on this dataset",
+      "That agrees with the R and Python results: the WatrCont-richness relationship is close to linear, with only a modest amount of real extra curvature",
+      "The comparison-by-AIC approach used here is the manual analogue of what mgcv's penalty and pygam's gridsearch() do automatically"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Comparing the Fits",
+    "title": "Linear Model vs. GAM: What Changed?",
+    "sub": "Visual overlay and AIC, side by side"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Model Comparison",
+    "title": "LM vs. Gaussian GAM vs. Poisson GAM (R)",
+    "headers": [
+      "Model",
+      "EDF of WatrCont term",
+      "AIC",
+      "Shape"
+    ],
+    "rows": [
+      [
+        "lm(richness ~ WatrCont)",
+        "1 (fixed)",
+        "374.01",
+        "One global straight line"
+      ],
+      [
+        "gam(richness ~ s(WatrCont))",
+        "1.34",
+        "373.85",
+        "Nearly linear, slight extra bend"
+      ],
+      [
+        "gam(..., method = \"ML\")",
+        "1.00",
+        "374.01",
+        "Collapses exactly onto the LM"
+      ],
+      [
+        "gam(..., family = poisson)",
+        "2.33",
+        "375.80 (Poisson scale)",
+        "More curvature; guarantees richness >= 0"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Figure",
+    "title": "figures/lecture_08_gam_smooth.png",
+    "items": [
+      "The figure overlays the fitted GAM smooth (solid line, with a shaded 95% confidence band) on top of the linear fit (dashed line) across the observed WatrCont range, 134-827%",
+      "Visually the two curves sit almost on top of each other for most of the range -- consistent with an EDF of only 1.34",
+      "The GAM's confidence band is a partial-dependence-style summary: at each value of WatrCont, it shows the predicted richness and its uncertainty, holding nothing else in the model (there is nothing else in this simple model to hold constant)",
+      "Where the GAM and LM diverge slightly is at the wettest sites (WatrCont > 600%) -- the smooth bends a little further downward there than a single slope would predict, hinting at an accelerating decline at the extreme wet end"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting a Smooth Term Plot",
+    "title": "Partial-Dependence-Style Reading",
+    "items": [
+      "A smooth term plot shows the fitted f(x) across the observed range of x, typically centered so the curve averages to zero (mgcv's default) -- read it as 'how far above or below average is richness at this value of x', not as an absolute richness prediction",
+      "The shaded confidence band widens wherever data are sparse -- here, at the very low and very high ends of WatrCont, where there are fewer sites",
+      "A flat stretch of the curve means richness is not changing much across that part of the gradient, even if the overall smooth is significant",
+      "Never extrapolate a smooth term plot beyond the range of the observed x values -- splines can behave unpredictably outside the data they were fit on, more so than a straight line would"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "What the GAM Added Here",
+    "title": "A Modest, Honest Improvement",
+    "cards": [
+      {
+        "h": "The linear model was already good",
+        "p": "R-squared = 0.47, a strong and highly significant negative slope -- WatrCont explains real, substantial variation in richness on its own."
+      },
+      {
+        "h": "The GAM confirmed it, mostly",
+        "p": "EDF = 1.34 and an AIC improvement of well under 1 point say the straight line was capturing almost all of the real signal already."
+      },
+      {
+        "h": "The smooth still earned its keep",
+        "p": "It revealed a small amount of extra downward bend at the wettest sites -- exactly the kind of local detail a fixed linear term cannot represent."
+      },
+      {
+        "h": "Not every dataset needs a hump",
+        "p": "The value of fitting s(x) instead of assuming beta*x is that the data get to decide the shape -- here they mostly chose 'linear,' and the GAM said so honestly via EDF."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On Letting the Data Decide",
+    "quote": "A generalized additive model does not assume the shape of a relationship -- it estimates it, and then tells you, through the effective degrees of freedom, exactly how much shape it actually found.",
+    "attrib": "the practical case for GAMs over fixed linear or polynomial terms"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Caveats",
+    "title": "Common Pitfalls With GAMs",
+    "items": [
+      "Choosing k too small can hide real curvature; choosing k absurdly large relative to sample size slows fitting without much overfitting risk, because the penalty still controls EDF -- when in doubt, start generous and let the penalty decide",
+      "A high EDF is not automatically 'better' -- always check AIC or cross-validated fit, and be suspicious of a wiggly curve that closely tracks individual outlying points",
+      "Smooth term p-values (as flagged by mgcv and pygam alike) are approximate -- treat them as a rough guide to whether curvature is present, not an exact hypothesis test",
+      "Never extrapolate a fitted smooth outside the observed range of the predictor -- unlike a straight line, a spline has no principled behavior beyond the data",
+      "A GAM with many smooth terms is much harder to interpret than a GLM with a few coefficients -- do not reach for s(x) automatically when a simple, well-diagnosed linear or polynomial term already fits well"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "GAM Milestones",
+    "title": "A Short History",
+    "items": [
+      {
+        "y": "1986",
+        "t": "Hastie & Tibshirani introduce generalized additive models, extending GLMs with smooth terms"
+      },
+      {
+        "y": "1990",
+        "t": "Hastie & Tibshirani's 'Generalized Additive Models' monograph establishes the backfitting-based framework"
+      },
+      {
+        "y": "2000s",
+        "t": "Simon Wood develops penalized regression splines with automatic smoothness selection (GCV, then REML) in mgcv"
+      },
+      {
+        "y": "2011",
+        "t": "Wood's 'Fast stable REML and marginal likelihood estimation' establishes REML as mgcv's now-default smoothing criterion"
+      },
+      {
+        "y": "2017",
+        "t": "Wood's second edition of 'Generalized Additive Models: An Introduction with R' becomes the standard reference for the field"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "R Ecosystem",
+    "title": "The mgcv Package",
+    "items": [
+      "mgcv, by Simon Wood, is the field-standard R package for GAMs -- included in base R's recommended package set, actively maintained since the early 2000s",
+      "s(x) -- a smooth term; te(x, y) or s(x, y) -- a two-dimensional smooth surface; by = group -- a smooth that varies by a grouping factor",
+      "method = \"REML\" or \"ML\" for smoothing-parameter selection are generally preferred over the older GCV default for statistical inference",
+      "summary(), plot(gam_model, shade = TRUE), AIC(), and anova() all work on gam objects much as they do on lm and glm objects"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "What You Should Be Able To Do",
+    "items": [
+      "Explain what a smooth term s(x) is, and how it replaces a fixed linear coefficient with a flexible, data-estimated function",
+      "Explain the roles of basis dimension k (a ceiling on flexibility) and the smoothing penalty (what decides how much of that ceiling gets used)",
+      "Read an EDF from a GAM summary table and interpret it -- EDF near 1 means 'essentially linear'; EDF well above 1 means real, useful curvature",
+      "Fit richness ~ s(WatrCont) in R (mgcv), Python (pygam), and understand a hand-built spline-basis approach in Julia",
+      "Compare a linear model and a GAM by AIC and by visual overlay of the fitted curves, and know when the extra flexibility of a GAM is (and is not) worth it"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Check Your Understanding",
+    "title": "Before You Move On",
+    "cards": [
+      {
+        "h": "What does EDF = 1 mean?",
+        "p": "The smoothing penalty has shrunk the smooth term all the way to a straight line -- the GAM is, in effect, the linear model."
+      },
+      {
+        "h": "What is the difference between k and EDF?",
+        "p": "k is the maximum flexibility allowed by the basis; EDF is how much of that flexibility the penalized fit actually used."
+      },
+      {
+        "h": "Why fit a Poisson GAM for richness?",
+        "p": "Richness is a non-negative count -- a Poisson family with a log link respects that, the way Lecture 6 argued Poisson GLMs should for count data."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exercises",
+    "title": "This Week's Practice",
+    "items": [
+      "Exercise 1: Fit richness ~ s(SubsDens) and compare its EDF and curve shape to the s(WatrCont) smooth fit in lecture",
+      "Exercise 2: Fit a 2-D smooth richness ~ s(WatrCont, SubsDens) and visualize the fitted surface",
+      "Exercise 3: Compare the Gaussian and Poisson GAM fits to richness ~ s(WatrCont) and argue for which family you would report",
+      "Exercise 4: Refit the GAM with a small and a large basis dimension k and observe how the EDF (not just k) changes",
+      "Full instructions are in exercises/lecture_08_exercises.md"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Look Ahead",
+    "title": "From Flexible Curves to Full Probability Models",
+    "items": [
+      "GAMs let the shape of a relationship be estimated flexibly, but they still give a single point estimate and an approximate confidence band for each smooth",
+      "Lecture 9 moves to Bayesian hierarchical models: full probability distributions over every parameter, explicit prior information, and principled uncertainty that propagates through every level of a model",
+      "Many of the same ecological questions return -- but now asked in a framework that treats every unknown quantity as a distribution to be estimated, not a single 'best' value",
+      "The tools change (Stan, brms, PyMC, Turing.jl) but the underlying goal is the same: build a model whose structure matches the structure of the ecological question"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Lecture 9: Bayesian Hierarchical Models",
+    "sub": "From penalized smooths to full posterior distributions, in R, Python, and Julia"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 8</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

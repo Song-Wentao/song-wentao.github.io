@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 15: Mendelian Inheritance Revisited: From Genotype to Phenotype</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 15",
+    "title": "Mendelian Inheritance Revisited: From Genotype to Phenotype",
+    "sub": "How genes are transmitted, how they build traits, and why the connection between the two shapes what selection can do",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 5, \"Raw Material\" (lecture 2 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "BRIDGE FROM LECTURE 14",
+    "title": "From Mutation to Inheritance",
+    "sub": "Mutation creates new alleles — but evolution depends on how those alleles are transmitted and expressed"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We'll Cover",
+    "items": [
+      "A rapid, evolution-focused review of core Mendelian genetics: alleles, genotype, phenotype, dominance, segregation, independent assortment",
+      "Extensions beyond simple Mendelian dominance: incomplete dominance, codominance, multiple alleles",
+      "Extensions beyond single-gene traits: epistasis, pleiotropy, and polygenic inheritance",
+      "The genotype-to-phenotype map — and why it is almost never a simple, linear translation",
+      "Why a trait's genetic architecture determines how — and how fast — selection can change it",
+      "Preview: recombination and gene flow (Lecture 16)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY REVISIT MENDEL HERE",
+    "title": "Genetics Is the Machinery of Evolution",
+    "items": [
+      "Lecture 14: mutation is the ultimate source of new genetic variation",
+      "But mutation alone does not explain evolution — we need to know how variants are passed from parent to offspring and how they produce visible differences",
+      "Darwin himself never knew the rules of heredity; Mendel's work (rediscovered in 1900) supplied the missing mechanism",
+      "The Modern Synthesis (1930s–40s) fused Mendelian genetics with Darwinian natural selection into the framework we still use today",
+      "Today's lecture rebuilds that genetic toolkit — but always asking: 'what does this mean for evolution?'"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE VOCABULARY",
+    "title": "Allele",
+    "term": "Allele",
+    "def": "One of two or more alternative versions of a gene that can occupy the same locus (position) on a chromosome, arising originally through mutation.",
+    "bullets": [
+      "A gene is a stretch of DNA encoding information for a trait; an allele is one specific sequence variant of that gene",
+      "Diploid organisms carry two alleles per autosomal locus, one inherited from each parent",
+      "Allelic diversity within a population is the raw material Mendelian inheritance shuffles each generation — but it is mutation (Lecture 14) that ultimately creates new alleles"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CORE VOCABULARY",
+    "title": "Genotype vs. Phenotype",
+    "left": {
+      "h": "Genotype",
+      "body": "<p>The specific combination of alleles an individual carries at one or more loci.</p><ul><li>Written symbolically, e.g., <em>Bb</em>, <em>AA</em>, <em>aa</em></li><li>Fixed at fertilization and (barring somatic mutation) constant throughout life</li><li>Not directly visible — must be inferred from breeding data, phenotype, or molecular assay</li></ul>"
+    },
+    "right": {
+      "h": "Phenotype",
+      "body": "<p>The observable, measurable outcome of genotype — morphology, physiology, biochemistry, or behavior.</p><ul><li>Produced by genotype interacting with development and environment</li><li>What natural selection actually 'sees' and acts upon</li><li>Two individuals with different genotypes can share a phenotype, and vice versa</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS DISTINCTION MATTERS",
+    "title": "Selection Acts on Phenotype, Evolution Requires Genotype",
+    "items": [
+      "Natural selection directly favors or disfavors phenotypes — survival and reproduction depend on what an organism looks like and does, not on its DNA sequence per se",
+      "But evolutionary change (change in allele frequencies across generations) can only occur if phenotypic differences are underlain by genotypic differences",
+      "This is why heritability — the degree to which phenotypic variation is due to genetic variation — is central to predicting evolutionary response (more on this later in the lecture)",
+      "A purely environmentally induced trait, however dramatic, cannot evolve by natural selection unless it has a genetic basis"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MENDEL'S FIRST LAW",
+    "title": "Law of Segregation",
+    "term": "Segregation",
+    "def": "The two alleles at a locus separate (segregate) from one another during gamete formation, so each gamete receives only one allele, with equal probability.",
+    "bullets": [
+      "Physical basis: homologous chromosomes separate during meiosis I",
+      "Explains why a heterozygous parent (Bb) produces gametes in a 1:1 ratio of B and b",
+      "Guarantees that offspring genotype ratios follow predictable probabilities — the foundation of all Mendelian crosses"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MENDEL'S SECOND LAW",
+    "title": "Law of Independent Assortment",
+    "term": "Independent Assortment",
+    "def": "Alleles of genes located on different chromosomes (or far apart on the same chromosome) segregate independently of one another during gamete formation.",
+    "bullets": [
+      "Physical basis: different homologous chromosome pairs orient randomly and independently on the metaphase plate during meiosis I",
+      "Produces the classic 9:3:3:1 phenotypic ratio in a dihybrid F2 cross",
+      "Important caveat previewed for Lecture 16: genes physically close together on the same chromosome are linked and do NOT assort independently — recombination (crossing over) is required to break up linkage"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "QUICK REVIEW",
+    "title": "Dominance and Recessiveness, Refreshed",
+    "items": [
+      "Dominant allele: its phenotypic effect is expressed in the heterozygote, masking the effect of the other allele (e.g., B masks b)",
+      "Recessive allele: its phenotypic effect appears only when present in two copies (homozygous recessive, bb)",
+      "Homozygous: two identical alleles at a locus (BB or bb); Heterozygous: two different alleles (Bb)",
+      "Dominance is a property of how alleles interact within a genotype to produce phenotype — it is NOT a property of how 'strong,' common, or evolutionarily 'winning' an allele is",
+      "A recessive allele can still be common, even the majority allele, in a population — dominance and allele frequency are independent concepts"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "COMMON MISCONCEPTION",
+    "quote": "Dominant does not mean 'better,' 'stronger,' or 'more common' — it only describes a pattern of phenotypic expression in heterozygotes. Recessive alleles can be far more frequent in a population than dominant ones.",
+    "attrib": "A key correction Zimmer & Emlen emphasize when linking classical genetics to population-level evolutionary thinking"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "The Monohybrid Cross, Revisited",
+    "items": [
+      "Cross two heterozygotes, Bb × Bb, for a simple dominant/recessive trait",
+      "Each parent produces gametes B and b in equal proportion (Law of Segregation)",
+      "Combining gametes at random yields the classic genotype ratio 1 BB : 2 Bb : 1 bb",
+      "Because B is dominant, this produces a 3:1 phenotypic ratio — three-quarters showing the dominant phenotype, one-quarter showing the recessive phenotype",
+      "This 3:1 ratio is the diagnostic signature of a simple, single-gene dominant/recessive trait — a useful check when trying to infer a trait's genetic architecture from breeding data"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "The Dihybrid Cross",
+    "term": "Dihybrid Cross",
+    "def": "A genetic cross tracking two different genes at once, each with two alleles, used to test whether the genes assort independently.",
+    "bullets": [
+      "Cross AaBb × AaBb, where A/a and B/b are on different chromosomes",
+      "Independent assortment predicts a 9:3:3:1 phenotypic ratio in the offspring (9 dominant-dominant : 3 dominant-recessive : 3 recessive-dominant : 1 recessive-recessive)",
+      "Deviations from the expected 9:3:3:1 ratio are historically how geneticists first detected linkage — genes that do not assort independently because they lie close together on the same chromosome"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A SPECIAL CASE",
+    "title": "Sex-Linked Inheritance",
+    "term": "Sex Linkage",
+    "def": "Inheritance patterns for genes located on the sex chromosomes (in mammals, primarily the X chromosome), which produce different transmission patterns in males and females.",
+    "bullets": [
+      "Because males (XY) have only one X chromosome, a recessive X-linked allele is expressed in males whenever present — there is no second X copy to mask it",
+      "Classic examples: red-green color blindness and hemophilia in humans, both X-linked recessive",
+      "Sex linkage means the sex ratio of a population can itself influence how quickly an X-linked allele spreads or is eliminated — another way chromosomal location (part of genetic architecture) shapes evolutionary dynamics"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "BEYOND SIMPLE DOMINANCE",
+    "title": "When Mendel's Simple Rules Aren't Enough",
+    "sub": "Most real traits deviate from the clean dominant/recessive pattern of the garden pea"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "ALLELIC INTERACTIONS",
+    "title": "Simple Dominance vs. Incomplete Dominance vs. Codominance",
+    "headers": [
+      "Pattern",
+      "Heterozygote Phenotype",
+      "Classic Example"
+    ],
+    "rows": [
+      [
+        "Simple (complete) dominance",
+        "Identical to one homozygote; the recessive allele's effect is fully masked",
+        "Pea seed shape: Rr looks fully round, like RR"
+      ],
+      [
+        "Incomplete dominance",
+        "An intermediate blend between the two homozygous phenotypes",
+        "Snapdragon flower color: red × white = pink offspring"
+      ],
+      [
+        "Codominance",
+        "Both alleles fully and separately expressed, side by side, in the heterozygote",
+        "Human ABO blood type: allele IA and IB both expressed in type AB blood"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "BEYOND TWO ALLELES",
+    "title": "Multiple Alleles",
+    "term": "Multiple Allelism",
+    "def": "Many genes exist in more than two allelic forms within a population, even though any single diploid individual can carry only two of them at once.",
+    "bullets": [
+      "Human ABO blood type: three alleles (IA, IB, i) generate four phenotypes (A, B, AB, O) through a combination of codominance (IA/IB) and simple recessiveness (i)",
+      "Increases the number of possible genotypes and phenotypes far beyond the two-allele Mendelian case",
+      "Multiple alleles at a locus expand the pool of raw variation available to selection — another way genetic architecture affects evolutionary potential"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "FOUR KEY EXTENSIONS BEYOND MENDEL",
+    "title": "Complicating the Simple One-Gene, Two-Allele Picture",
+    "cards": [
+      {
+        "h": "Epistasis",
+        "p": "One gene's expression masks or modifies the phenotypic effect of another gene at a different locus."
+      },
+      {
+        "h": "Pleiotropy",
+        "p": "A single gene influences multiple, seemingly unrelated phenotypic traits at once."
+      },
+      {
+        "h": "Polygenic Traits",
+        "p": "A single trait is influenced by the additive effects of many genes, each with a small effect."
+      },
+      {
+        "h": "Multiple Alleles",
+        "p": "A single locus exists as more than two allelic variants circulating in the population."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "EXTENSION 1",
+    "title": "Epistasis",
+    "term": "Epistasis",
+    "def": "An interaction between genes at different loci in which the allele(s) at one locus mask, suppress, or otherwise alter the phenotypic expression of alleles at another locus.",
+    "bullets": [
+      "Classic example: Labrador retriever coat color — one gene (B/b) determines black vs. brown pigment, but a second gene (E/e) determines whether ANY pigment is deposited in the coat at all; ee individuals are yellow regardless of genotype at the B locus",
+      "Epistasis means phenotype cannot always be predicted from a single gene in isolation — gene networks, not single genes, build many traits",
+      "Evolutionary implication: selection on one locus can be constrained or redirected by genetic background at another locus"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "EXTENSION 2",
+    "title": "Pleiotropy",
+    "term": "Pleiotropy",
+    "def": "The phenomenon in which a single gene affects multiple, often seemingly unconnected, phenotypic traits.",
+    "bullets": [
+      "Classic example: the human sickle-cell allele affects red blood cell shape, oxygen-carrying capacity, malaria resistance, and circulatory complications, all from one point mutation in the beta-globin gene",
+      "Evolutionary implication: selection on one pleiotropic effect (e.g., malaria resistance) drags along all the other effects of that gene (e.g., sickle-cell anemia risk in homozygotes) — you cannot select for one effect of a pleiotropic gene without the others coming along",
+      "This creates evolutionary trade-offs and helps explain why some 'harmful' alleles persist in populations (balancing selection, covered in a later lecture)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "EXTENSION 3",
+    "title": "Polygenic Traits",
+    "term": "Polygenic Inheritance",
+    "def": "Inheritance patterns in which a phenotypic trait is influenced by many genes simultaneously, each typically contributing a small, additive effect, often further modified by the environment.",
+    "bullets": [
+      "Classic examples: human height, skin pigmentation, birth weight, crop yield, most disease susceptibilities",
+      "Produces continuous, quantitative variation (a bell-shaped distribution) rather than the discrete either/or categories of single-gene Mendelian traits",
+      "Studied using quantitative genetics rather than simple Punnett-square logic — the field that estimates heritability and predicts response to selection"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONTRASTING ARCHITECTURES",
+    "title": "Discrete Traits vs. Continuous Traits",
+    "left": {
+      "h": "Single-Gene (Mendelian) Traits",
+      "body": "<p>Controlled by one or a few loci with large individual effects.</p><ul><li>Phenotype falls into a small number of discrete categories</li><li>Classic examples: pea shape, ABO blood type, many single-gene disorders (cystic fibrosis, Huntington's disease)</li><li>Simple Punnett-square predictions often work well</li></ul>"
+    },
+    "right": {
+      "h": "Polygenic (Quantitative) Traits",
+      "body": "<p>Controlled by many loci, each with a small effect, plus environmental input.</p><ul><li>Phenotype forms a continuous distribution (bell curve)</li><li>Classic examples: height, skin color, body size, most behavioral traits</li><li>Requires statistical, population-level tools (heritability, GWAS) rather than single crosses</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ANOTHER EXTENSION",
+    "title": "Additive vs. Non-Additive Gene Action",
+    "items": [
+      "Additive gene action: each allele contributes a fixed increment to the phenotype, and effects simply sum across loci — the basis of most polygenic trait models",
+      "Non-additive gene action includes dominance (within-locus interaction) and epistasis (between-locus interaction), where the combined effect is not a simple sum of individual allele effects",
+      "The proportion of phenotypic variance due to additive effects specifically (as opposed to dominance or epistatic variance) is called narrow-sense heritability, and it is the component that most directly predicts response to selection",
+      "Distinguishing additive from non-additive variance is a core task of quantitative genetics, and matters enormously for animal and plant breeding as well as for predicting natural selection's effects"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE GENOTYPE-TO-PHENOTYPE MAP",
+    "title": "Why the Map Is Rarely 1:1",
+    "sub": "Genotype does not simply dictate phenotype — development and environment intervene at every step"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE GENOTYPE-PHENOTYPE MAP",
+    "title": "From DNA Sequence to Visible Trait",
+    "left": {
+      "h": "A Naive (Wrong) Model",
+      "body": "<p>Genotype → Phenotype, direct and linear.</p><ul><li>Implies one gene, one trait, fully determined at fertilization</li><li>Works reasonably well only for a minority of simple Mendelian traits</li><li>Ignores gene interactions, development, and environment entirely</li></ul>"
+    },
+    "right": {
+      "h": "A Realistic Model",
+      "body": "<p>Genotype → Gene expression/regulation → Developmental processes → Environmental modulation → Phenotype.</p><ul><li>Many genes and their products interact in networks and pathways</li><li>The same genotype can develop into different phenotypes under different conditions</li><li>The 'map' from genotype to phenotype is many-to-many, not one-to-one</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ENVIRONMENTAL INPUT",
+    "title": "Norm of Reaction",
+    "items": [
+      "Norm of reaction: the range of phenotypes that a single genotype can produce across a range of environments",
+      "Example: water buttercup (Ranunculus) leaves develop broad, flat blades in air but finely divided, thread-like blades underwater — same genotype, different phenotype",
+      "Example: human height and body weight are strongly influenced by genotype but also substantially shaped by nutrition and health during development",
+      "Norms of reaction show that phenotype is a product of genotype-by-environment interaction, not genotype alone",
+      "This is why 'nature vs. nurture' is a false dichotomy for most traits — the honest answer is almost always 'both, interacting'"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "ADDITIONAL COMPLICATIONS",
+    "title": "Penetrance and Expressivity",
+    "term": "Penetrance & Expressivity",
+    "def": "Penetrance is the proportion of individuals with a given genotype who show the expected phenotype at all; expressivity is the degree or intensity to which the phenotype is expressed among those who do show it.",
+    "bullets": [
+      "Incomplete penetrance: some individuals carrying a disease-causing genotype (e.g., certain BRCA1 mutations) never develop the associated phenotype",
+      "Variable expressivity: among individuals who do express a trait, severity can range widely — e.g., neurofibromatosis symptoms vary enormously in severity between carriers of the same mutation",
+      "Both phenomena further loosen the genotype-phenotype link and complicate efforts to predict phenotype — or evolutionary fate — from genotype alone"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE MAP MATTERS FOR EVOLUTION",
+    "title": "Consequences of a Non-Linear Genotype-Phenotype Map",
+    "items": [
+      "Selection acts on phenotype, but the response to selection depends on how reliably genotype predicts phenotype — this reliability is precisely what heritability measures",
+      "Epistasis, pleiotropy, incomplete penetrance, and environmental sensitivity all reduce the tight correspondence between genotype and phenotype",
+      "When the genotype-phenotype map is complex, the evolutionary outcome of selection on a phenotype becomes harder to predict from genetics alone",
+      "Understanding the map is therefore not just descriptive biology — it is a prerequisite for predicting how, and how fast, a population can evolve"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "LEVELS OF GENETIC COMPLEXITY",
+    "title": "From Single-Gene Traits to Complex Polygenic Traits",
+    "levels": [
+      {
+        "label": "Complex polygenic traits (e.g., height, behavior)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Multiple interacting genes (epistasis)",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "One gene, multiple traits (pleiotropy)",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "One gene, multiple alleles (e.g., ABO blood type)",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "One gene, two alleles (classic Mendelian trait)",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GENETIC ARCHITECTURE",
+    "title": "Defining the Term",
+    "items": [
+      "Genetic architecture: the number of genes influencing a trait, the size of each gene's effect, how those genes interact (additive, epistatic), and how much the environment modulates the outcome",
+      "A trait's genetic architecture is essentially its genotype-to-phenotype map, described in evolutionary terms",
+      "Two traits can look equally variable at the phenotype level yet have completely different genetic architectures underneath — and therefore completely different evolutionary behavior",
+      "Knowing the architecture of a trait lets evolutionary biologists predict its evolvability — how readily it can respond to selection"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MOLECULAR TOOLS",
+    "title": "Quantitative Trait Loci (QTL)",
+    "term": "QTL Mapping",
+    "def": "A statistical genetic method that identifies regions of the genome (loci) associated with variation in a continuous, polygenic trait, by correlating genetic markers with phenotypic measurements.",
+    "bullets": [
+      "Allows researchers to move from an abstract 'many genes contribute' statement to actually locating specific genomic regions influencing a quantitative trait",
+      "Modern genome-wide association studies (GWAS) extend this approach across entire genomes and large populations, often identifying hundreds of contributing loci for traits like human height",
+      "QTL and GWAS studies have empirically confirmed that most ecologically and medically important traits are highly polygenic, reinforcing why quantitative, population-level thinking is essential in evolutionary biology"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WHY ARCHITECTURE MATTERS",
+    "title": "Genetic Architecture and Evolutionary Potential",
+    "sub": "How a trait is built genetically constrains how — and how fast — it can evolve"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SINGLE-GENE TRAITS UNDER SELECTION",
+    "title": "Simple Architecture, Fast (and Sometimes Erratic) Response",
+    "items": [
+      "When a trait is controlled by one or a few genes with large effects, selection can shift allele frequencies rapidly because there are few loci to track",
+      "Example: pesticide resistance in insects often arises from a single point mutation at one locus, spreading quickly under strong selection",
+      "Example: industrial melanism in the peppered moth (Biston betularia) tracked largely to variation at a single gene region — allowing dramatic phenotype shifts within a few generations",
+      "Downside: because so few loci are involved, single-gene traits can also be more vulnerable to being fixed, lost, or constrained by pleiotropic side effects at that one locus"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "POLYGENIC TRAITS UNDER SELECTION",
+    "title": "Complex Architecture, Gradual but Flexible Response",
+    "items": [
+      "When many genes each contribute a small effect, selection acting on the phenotype shifts allele frequencies only slightly at each of many loci — response tends to be gradual and continuous rather than abrupt",
+      "This gradualism allows fine-tuned, incremental adaptation — the trait can 'creep' toward new optima across many generations",
+      "Because so much standing genetic variation is distributed across many loci, polygenic traits often retain more evolutionary flexibility (evolvability) over the long term than single-gene traits",
+      "Human height, beak depth in Darwin's finches, and crop yield are all classic examples of polygenic traits that respond measurably, if gradually, to selection pressure"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "COMPARING EVOLUTIONARY DYNAMICS",
+    "title": "Single-Gene vs. Polygenic Response to Selection",
+    "headers": [
+      "Feature",
+      "Single-Gene Trait",
+      "Polygenic Trait"
+    ],
+    "rows": [
+      [
+        "Number of loci involved",
+        "One or very few",
+        "Many (often dozens to hundreds)"
+      ],
+      [
+        "Phenotypic distribution",
+        "Discrete categories",
+        "Continuous, bell-shaped"
+      ],
+      [
+        "Speed of response to strong selection",
+        "Can be very rapid",
+        "Typically gradual, incremental"
+      ],
+      [
+        "Risk of pleiotropic side effects",
+        "Higher per-locus impact",
+        "Diluted across many small-effect loci"
+      ],
+      [
+        "Long-term evolutionary flexibility",
+        "Can be limited (few loci to draw on)",
+        "Often higher (large reservoir of variation)"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MEASURING EVOLVABILITY",
+    "title": "Heritability",
+    "term": "Heritability (h²)",
+    "def": "The proportion of total phenotypic variation in a population that is attributable to genetic variation, as opposed to environmental variation.",
+    "bullets": [
+      "Ranges from 0 (no genetic contribution to observed variation) to 1 (variation entirely genetic)",
+      "High heritability means selection on phenotype will translate efficiently into a genetic, evolutionary response in the next generation",
+      "Heritability is a property of a population in a particular environment at a particular time — not a fixed, universal constant of a trait",
+      "This concept bridges quantitative genetics and evolutionary theory, and underlies the 'breeder's equation' used to predict short-term response to selection"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FROM THE TEXT",
+    "quote": "A trait's evolutionary future is written not just in the strength of selection acting on it, but in the genetic architecture that determines how — and whether — that selection can be translated into change across generations.",
+    "attrib": "Paraphrased framing consistent with Zimmer & Emlen, Chapter 5"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES",
+    "title": "Genetic Architecture in Action",
+    "cards": [
+      {
+        "h": "Peppered Moth Coloration",
+        "p": "Near single-gene control of a discrete light/dark phenotype allowed rapid, dramatic shifts in population coloration during industrialization."
+      },
+      {
+        "h": "Human Height",
+        "p": "Hundreds of loci each contribute tiny additive effects, producing smooth continuous variation and slow, gradual evolutionary shifts."
+      },
+      {
+        "h": "Labrador Coat Color",
+        "p": "Epistasis between the B and E loci shows how one gene can override another, complicating simple predictions from a single locus."
+      },
+      {
+        "h": "Sickle-Cell Allele",
+        "p": "Pleiotropy links malaria resistance to red blood cell disease, producing a classic evolutionary trade-off maintained by balancing selection."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GENE-BY-ENVIRONMENT INTERACTIONS AND SELECTION",
+    "title": "Selection Cannot Act on Phenotype Alone",
+    "items": [
+      "If a trait's expression depends heavily on environment (a wide norm of reaction), a genotype's fitness can itself vary by environment — this is genotype-by-environment (G×E) interaction",
+      "G×E interactions can maintain genetic variation in a population, because no single genotype is best in every environment",
+      "This matters for predicting evolution in changing environments (e.g., climate change): a genotype favored today may not be favored tomorrow if the environment shifts",
+      "Plasticity — the capacity of one genotype to produce different phenotypes — is itself a trait that can evolve, and is a growing focus in modern evolutionary biology"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A KEY DISTINCTION",
+    "title": "Genotype-by-Environment Interaction (G×E)",
+    "term": "G×E Interaction",
+    "def": "A situation in which the phenotypic (or fitness) effect of a given genotype depends on the environment it is expressed in, such that different genotypes are favored in different environments.",
+    "bullets": [
+      "Distinguishes G×E from simple environmental effects (which shift all genotypes similarly) and from simple additive genetic effects (which are environment-independent)",
+      "Detected experimentally by rearing the same genotypes across multiple environments and comparing their relative performance (reaction norm crossing)",
+      "Evolutionarily important because it can preserve genetic diversity that would otherwise be eliminated by directional selection in a single, constant environment"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONSTRAINTS ON EVOLUTION",
+    "title": "Genetic Correlations and Evolutionary Trade-offs",
+    "items": [
+      "Genetic correlation: when two traits are influenced by overlapping sets of genes (often through pleiotropy), so that selection on one trait causes a correlated response in the other, whether or not the second trait is itself under direct selection",
+      "This can accelerate evolution if the correlated traits are both favored together, or constrain it if selection favors one trait but disfavors the genetically correlated trait",
+      "Example: selection for larger body size in an organism may inadvertently increase correlated traits like slower maturation time or lower fecundity, if the underlying genes are shared",
+      "Genetic architecture — specifically the pattern of genetic correlations among traits — is therefore a major determinant of which evolutionary pathways are readily accessible to a population and which are effectively blocked"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "From Mendel's Peas to Modern Quantitative Genetics",
+    "items": [
+      {
+        "y": "1866",
+        "t": "Gregor Mendel publishes his pea-plant experiments describing segregation and independent assortment; largely ignored for decades"
+      },
+      {
+        "y": "1900",
+        "t": "Mendel's work is rediscovered by de Vries, Correns, and Tschermak, launching the field of genetics"
+      },
+      {
+        "y": "1910s",
+        "t": "Thomas Hunt Morgan's Drosophila work links Mendelian factors physically to chromosomes and reveals linkage"
+      },
+      {
+        "y": "1918",
+        "t": "R. A. Fisher shows mathematically that many small-effect Mendelian loci can jointly produce continuous, polygenic variation, reconciling Mendel with Darwin"
+      },
+      {
+        "y": "1930s–40s",
+        "t": "The Modern Synthesis unites Mendelian genetics, population genetics, and natural selection into a single coherent theory of evolution"
+      },
+      {
+        "y": "2000s–present",
+        "t": "Genome-wide association studies (GWAS) and genomic tools reveal the polygenic architecture of hundreds of real-world traits directly, at the DNA sequence level"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BRIDGING TO POPULATION GENETICS",
+    "title": "From Individual Crosses to Population-Level Change",
+    "items": [
+      "A single Punnett square describes one cross between two individuals — evolution is about tracking allele and genotype frequencies across an entire population, generation after generation",
+      "The Hardy-Weinberg framework (covered in an upcoming population genetics lecture) extends Mendelian segregation and independent assortment to whole populations at equilibrium",
+      "Genetic architecture — how many genes, how they interact, how heritable the trait is — determines how population-level allele frequencies will respond once selection, drift, migration, or mutation act on them",
+      "This is the conceptual bridge from 'genetics of individuals' (this lecture) to 'genetics of populations' (upcoming lectures)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS, REVISITED",
+    "title": "Pitfalls to Avoid",
+    "items": [
+      "Misconception: 'dominant' alleles always increase in frequency over time — false; dominance describes expression in heterozygotes, not fitness or evolutionary trajectory",
+      "Misconception: one gene, one trait — false for the majority of real traits, which involve epistasis, pleiotropy, or polygenic control",
+      "Misconception: genotype fully determines phenotype — false; development, environment, penetrance, and expressivity all intervene",
+      "Misconception: complex (polygenic) traits cannot evolve quickly — not strictly true; strong, sustained selection can shift polygenic traits substantially, just typically more gradually than single-gene traits",
+      "Misconception: heritability tells you what fraction of an individual's trait is 'due to genes' — false; heritability is a population-level statistic about variation, not a statement about individuals"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SYNTHESIS",
+    "title": "Two Complementary Lenses on Inheritance",
+    "left": {
+      "h": "Mendelian Lens",
+      "body": "<p>Best suited to discrete traits with simple, well-defined genetic control.</p><ul><li>Predicts exact ratios from known crosses</li><li>Powerful for single-gene disorders, blood types, some coat colors</li><li>Limited when many genes or environment are involved</li></ul>"
+    },
+    "right": {
+      "h": "Quantitative/Polygenic Lens",
+      "body": "<p>Best suited to continuous, complex traits shaped by many genes and environment.</p><ul><li>Uses heritability and statistical population methods, not single crosses</li><li>Powerful for height, behavior, disease risk, most agriculturally and medically important traits</li><li>Essential for predicting realistic evolutionary responses in nature</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Mendel's laws of segregation and independent assortment remain the foundation of inheritance, but most real traits extend well beyond simple dominant/recessive, single-gene patterns",
+      "Incomplete dominance, codominance, and multiple alleles complicate allelic interactions at a single locus; epistasis, pleiotropy, and polygenic inheritance complicate interactions across multiple loci",
+      "The genotype-to-phenotype map is rarely linear — gene interactions, development, and environment (norm of reaction, penetrance, expressivity, G×E) all intervene between DNA sequence and observable trait",
+      "A trait's genetic architecture — how many genes, what effect sizes, how much heritability — determines its evolvability: how readily, and how fast, it can respond to natural selection",
+      "Understanding inheritance patterns is therefore not a side topic in evolutionary biology — it is the mechanistic link between mutation (Lecture 14) and the response to selection we will study in coming weeks"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CLOSING THOUGHT",
+    "quote": "Genetics tells us the rules by which variation is inherited; evolution tells us which of that inherited variation survives and spreads. Neither story is complete without the other.",
+    "attrib": "Framing synthesis for Chapter 5, Zimmer & Emlen"
+  },
+  {
+    "type": "section",
+    "tag": "COMING UP — LECTURE 16",
+    "title": "Recombination and Gene Flow",
+    "sub": "How crossing over reshuffles linked alleles within a genome, and how migration reshuffles allele frequencies between populations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW OF LECTURE 16",
+    "title": "What's Next",
+    "items": [
+      "Linkage: why genes on the same chromosome do not always assort independently, and how genetic distance is measured in map units",
+      "Recombination (crossing over) during meiosis as a second, distinct generator of new allele combinations, distinct from mutation",
+      "Gene flow: the movement of alleles between populations via migration, and its role in homogenizing or diversifying gene pools",
+      "How recombination and gene flow interact with the genetic architecture concepts from today to shape the total genetic variation available to selection",
+      "Setting up the transition from single-population genetics to true population genetics and the Hardy-Weinberg model"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 15</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

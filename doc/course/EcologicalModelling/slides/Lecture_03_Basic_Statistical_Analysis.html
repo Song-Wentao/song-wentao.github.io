@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 3: Basic Statistical Analysis</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 3",
+    "title": "Basic Statistical Analysis",
+    "sub": "Descriptive statistics, distributions, and hypothesis tests for ecological data",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "03.1",
+    "title": "Why start with basic statistics?",
+    "sub": "Every model in this course is built on these foundations"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Roadmap",
+    "title": "What we cover today",
+    "items": [
+      "Descriptive statistics for skewed ecological data: mean, median, sd, CV",
+      "Common distributions in ecology: Poisson, negative binomial, lognormal, binomial",
+      "Two-sample t-test and one-way ANOVA (with Tukey HSD post-hoc)",
+      "Correlation: Pearson vs. Spearman",
+      "Chi-square test of independence for categorical data",
+      "Worked examples throughout in R, Python, and Julia on real datasets"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Motivation",
+    "title": "Before you fit a model, describe your data",
+    "items": [
+      "Every GLM, mixed model, or machine-learning pipeline later in this course assumes you understand your response variable's distribution",
+      "Ecological data rarely looks like a textbook bell curve: counts are discrete and non-negative, cover/biomass are strictly positive and right-skewed, presence/absence is binary",
+      "Getting the descriptive picture right prevents mis-specified models down the road (Lectures 5-9)",
+      "Today's examples use real datasets: oribatid mites (Borcard & Legendre 1994) and lichen pasture soil chemistry (Vare et al. 1995)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Descriptive statistics",
+    "title": "Mean, median, standard deviation, CV",
+    "items": [
+      "Mean: arithmetic average -- sensitive to outliers and skew",
+      "Median: middle value when sorted -- robust to skew and outliers",
+      "Standard deviation (sd): typical spread around the mean, same units as the data",
+      "Coefficient of variation (CV = sd / mean x 100%): unitless spread, lets you compare variability across variables measured on different scales",
+      "Rule of thumb: mean >> median is a red flag for right skew"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key term",
+    "title": "Coefficient of variation",
+    "term": "Coefficient of Variation (CV)",
+    "def": "CV = (standard deviation / mean) x 100%. A scale-free measure of relative variability that lets you compare dispersion across variables with different units or magnitudes -- e.g. comparing variability in soil pH (units of 1-6) to variability in biomass (grams).",
+    "bullets": [
+      "CV < ~15%: low relative variability",
+      "CV 15-50%: moderate -- typical for many continuous field measurements",
+      "CV > 50-100%: high -- common for counts, cover, and biomass in ecology"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Distributional shape",
+    "title": "Why ecological data is often skewed",
+    "items": [
+      "Counts (e.g. individuals per trap, species per plot): bounded at zero, many low counts, occasional large aggregations -> right-skewed, discrete",
+      "Percent cover / relative abundance: bounded between 0 and 100%, often piles up near 0 or near 100%",
+      "Biomass and other size measures: strictly positive, multiplicative processes (growth) produce log-normal-like skew",
+      "Presence/absence: binary, not continuous at all -- needs its own distribution (binomial)",
+      "Consequence: the normal distribution is often a poor default; choose a distribution that matches how the data were generated"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code: descriptive stats",
+    "title": "Mean / median / sd / CV on WatrCont and SubsDens",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>mite &lt;- read.csv(\"data/mite_env.csv\")\n\ncv &lt;- function(x) sd(x) / mean(x) * 100\n\nfor (v in c(\"WatrCont\", \"SubsDens\")) {\n  x &lt;- mite[[v]]\n  cat(sprintf(\"%s: mean=%.2f median=%.2f sd=%.2f CV=%.1f%%\\n\",\n              v, mean(x), median(x), sd(x), cv(x)))\n}\n# WatrCont: mean=410.64 median=398.47 sd=142.36 CV=34.7%\n# SubsDens: mean=39.28  median=36.38  sd=11.94  CV=30.4%</code></pre>"
+    },
+    "right": {
+      "h": "Python (pandas)",
+      "body": "<pre><code>import pandas as pd\n\nmite = pd.read_csv(\"data/mite_env.csv\")\n\ndef cv(x):\n    return x.std(ddof=1) / x.mean() * 100\n\nfor v in [\"WatrCont\", \"SubsDens\"]:\n    x = mite[v]\n    print(f\"{v}: mean={x.mean():.2f} median={x.median():.2f} \"\n          f\"sd={x.std(ddof=1):.2f} CV={cv(x):.1f}%\")\n# WatrCont: mean=410.64 median=398.47 sd=142.36 CV=34.7%\n# SubsDens: mean=39.28  median=36.38  sd=11.94  CV=30.4%</code></pre>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "03.2",
+    "title": "Common distributions in ecology",
+    "sub": "Matching the response variable to a generating process"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Distribution",
+    "title": "Counts with mean = variance",
+    "term": "Poisson distribution",
+    "def": "Models counts of discrete events (individuals, species, nests) in a fixed unit of effort, assuming events occur independently at a constant rate. Defining feature: variance equals the mean.",
+    "bullets": [
+      "Typical use: species counts per trap, nest counts per plot",
+      "R: rpois(), glm(..., family = poisson)",
+      "Key parameter: lambda (rate = mean = variance)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Distribution",
+    "title": "Counts with extra variability",
+    "term": "Negative binomial distribution",
+    "def": "A generalization of the Poisson that allows variance to exceed the mean (overdispersion) -- extremely common in real count data because of clustering, unmeasured heterogeneity, or patchy habitat.",
+    "bullets": [
+      "Typical use: abundance counts that are more 'clumpy' than Poisson predicts",
+      "R: MASS::glm.nb(), rnbinom()",
+      "Key parameters: mean (mu) and dispersion (size/theta)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Distribution",
+    "title": "Strictly positive, multiplicative variation",
+    "term": "Lognormal distribution",
+    "def": "Arises when log(x) is normally distributed -- typical of quantities produced by multiplicative growth processes. Strictly positive and right-skewed on the raw scale.",
+    "bullets": [
+      "Typical use: biomass, body size, percent cover (transformed)",
+      "R: rlnorm(), or lm(log(y) ~ x) on log-transformed data",
+      "Key parameters: meanlog and sdlog (mean/sd of log(x))"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Distribution",
+    "title": "Binary and proportion data",
+    "term": "Binomial distribution",
+    "def": "Models the number of successes in a fixed number of independent yes/no trials -- the natural distribution for presence/absence data or proportions (e.g. germinated seeds out of seeds sown).",
+    "bullets": [
+      "Typical use: species presence/absence, survival, germination proportions",
+      "R: rbinom(), glm(..., family = binomial)",
+      "Key parameter: p (probability of success)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Compare",
+    "title": "Which distribution fits which ecological data?",
+    "headers": [
+      "Distribution",
+      "Typical use",
+      "R function",
+      "Key parameter(s)"
+    ],
+    "rows": [
+      [
+        "Poisson",
+        "Counts, mean = variance",
+        "glm(family = poisson)",
+        "lambda (rate)"
+      ],
+      [
+        "Negative binomial",
+        "Overdispersed counts",
+        "MASS::glm.nb()",
+        "mu, size (dispersion)"
+      ],
+      [
+        "Lognormal",
+        "Biomass, cover, body size",
+        "lm(log(y) ~ x)",
+        "meanlog, sdlog"
+      ],
+      [
+        "Binomial",
+        "Presence/absence, proportions",
+        "glm(family = binomial)",
+        "p (probability)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "03.3",
+    "title": "Hypothesis testing",
+    "sub": "From a question to a p-value"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framework",
+    "title": "The logic of a hypothesis test",
+    "items": [
+      "Null hypothesis (H0): the 'no effect' or 'no difference' baseline (e.g. mean WatrCont is equal across substrates)",
+      "Alternative hypothesis (H1): what you actually suspect (e.g. WatrCont differs by substrate)",
+      "Test statistic: summarizes how far the data are from H0 (t, F, chi-square, r, ...)",
+      "p-value: probability of a test statistic this extreme or more, IF H0 were true",
+      "Significance level (alpha): pre-chosen threshold, conventionally 0.05, for rejecting H0"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key term -- read carefully",
+    "title": "What a p-value is (and is not)",
+    "term": "p-value",
+    "def": "The probability of observing a test statistic at least as extreme as the one calculated, assuming the null hypothesis is true. It is NOT the probability that H0 is true, NOT the probability the result is due to chance, and NOT a measure of effect size or ecological importance.",
+    "bullets": [
+      "A tiny p-value can come from a trivial effect if sample size is large",
+      "A large p-value does not prove H0 -- it may just reflect low statistical power",
+      "Running many tests and reporting only the significant ones ('p-hacking') inflates false positives -- correct with Bonferroni/Holm or plan comparisons in advance",
+      "Always report effect sizes (e.g. eta-squared, mean differences, r) alongside p-values"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two-sample t-test",
+    "title": "Comparing means between two groups",
+    "items": [
+      "Question: does mean WatrCont differ between two Substrate types, e.g. Sphagn1 vs. Litter?",
+      "Assumptions: independent observations, approximately normal within-group distribution (or large enough n), and (for Student's t) similar variances",
+      "Welch's t-test relaxes the equal-variance assumption -- a safe default for unequal group sizes/variances",
+      "Output: t-statistic, degrees of freedom, p-value, and a confidence interval for the mean difference"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code: two-sample t-test",
+    "title": "WatrCont: Sphagn1 vs. Litter",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>mite &lt;- read.csv(\"data/mite_env.csv\")\n\na &lt;- mite$WatrCont[mite$Substrate == \"Sphagn1\"]\nb &lt;- mite$WatrCont[mite$Substrate == \"Litter\"]\n\nt.test(a, b)\n# t = 0.497, df = 1.6, p-value = 0.6787\n# mean Sphagn1 = 407.51, mean Litter = 372.75</code></pre>"
+    },
+    "right": {
+      "h": "Julia (HypothesisTests.jl)",
+      "body": "<pre><code>using CSV, DataFrames, HypothesisTests\n\nmite = CSV.read(\"data/mite_env.csv\", DataFrame)\n\na = mite.WatrCont[mite.Substrate .== \"Sphagn1\"]\nb = mite.WatrCont[mite.Substrate .== \"Litter\"]\n\nUnequalVarianceTTest(a, b)\n# Welch's t-test: t = 0.497, p-value = 0.6787</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "Interpreting the Sphagn1 vs. Litter t-test",
+    "items": [
+      "t = 0.497, df = 1.6 (Welch correction for unequal variances/n), p = 0.679",
+      "Mean WatrCont: Sphagn1 = 407.5, Litter = 372.8 -- a ~35-unit difference",
+      "p >> 0.05: we fail to reject H0 -- no statistically detectable difference between these two substrates",
+      "Caveat: the Litter group is small in this dataset, so the test has limited power to detect anything but a large difference"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "03.4",
+    "title": "One-way ANOVA",
+    "sub": "Comparing means across more than two groups"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "One-way ANOVA",
+    "title": "Extending the t-test to many groups",
+    "items": [
+      "Question: does mean WatrCont differ across all seven Substrate categories at once?",
+      "ANOVA partitions total variance into between-group and within-group (residual) components",
+      "Test statistic F = (between-group variance) / (within-group variance); large F suggests real group differences",
+      "A significant ANOVA tells you groups differ SOMEWHERE, not which pairs -- that's what post-hoc tests are for",
+      "Effect size: eta-squared = SS_between / SS_total (equivalent to R^2 for a one-way design)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code: one-way ANOVA",
+    "title": "WatrCont ~ Substrate (7 levels)",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>mite &lt;- read.csv(\"data/mite_env.csv\")\n\nfit &lt;- aov(WatrCont ~ Substrate, data = mite)\nsummary(fit)\n#             Df Sum Sq Mean Sq F value Pr(&gt;F)\n# Substrate    6 245863   40977   2.240 0.0506 .\n# Residuals   63 1152589   18295\n\neta_sq &lt;- 245863 / (245863 + 1152589)  # 0.176</code></pre>"
+    },
+    "right": {
+      "h": "Python (statsmodels)",
+      "body": "<pre><code>import pandas as pd, statsmodels.api as sm\nimport statsmodels.formula.api as smf\n\nmite = pd.read_csv(\"data/mite_env.csv\")\nfit = smf.ols(\"WatrCont ~ C(Substrate)\", data=mite).fit()\nanova_table = sm.stats.anova_lm(fit, typ=2)\nprint(anova_table)\n#                    sum_sq  df       F   PR(&gt;F)\n# C(Substrate) 245862.7      6  2.240  0.0506\n# Residual    1152589.0     63\n\nprint(fit.rsquared)  # 0.176 (== eta-squared here)</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "Interpreting the WatrCont ~ Substrate ANOVA",
+    "items": [
+      "F(6, 63) = 2.240, p = 0.0506 -- right at the conventional 0.05 threshold",
+      "eta-squared (= R^2) = 0.176: substrate type explains about 18% of the variance in water content",
+      "Borderline p-values like this are a good reminder not to treat alpha = 0.05 as a hard cliff -- report the F, df, and effect size, not just 'significant' or 'not'",
+      "Next question if we do want to dig in: which specific substrate pairs differ? -> post-hoc tests"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Post-hoc",
+    "title": "Testing all pairs while controlling false positives",
+    "term": "Tukey's Honestly Significant Difference (HSD)",
+    "def": "A post-hoc test run after a significant (or borderline) ANOVA to identify which specific pairs of group means differ, while controlling the family-wise error rate across all pairwise comparisons -- correcting for the fact that testing many pairs inflates the chance of a false positive.",
+    "bullets": [
+      "R: TukeyHSD(aov(y ~ group, data))",
+      "Python: statsmodels.stats.multicomp.pairwise_tukeyhsd()",
+      "Only Barepeat vs. Sphagn3 was significant here (p_adj = 0.035) among 21 pairwise comparisons"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code: Tukey HSD post-hoc",
+    "title": "Which substrate pairs actually differ?",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>fit &lt;- aov(WatrCont ~ Substrate, data = mite)\nTukeyHSD(fit)\n# ...\n# Sphagn3-Barepeat  diff=-526.6  p adj = 0.0352   *\n# (all other 20 pairs: p adj &gt; 0.05)</code></pre>"
+    },
+    "right": {
+      "h": "Python (statsmodels)",
+      "body": "<pre><code>from statsmodels.stats.multicomp import pairwise_tukeyhsd\n\nres = pairwise_tukeyhsd(\n    endog=mite[\"WatrCont\"], groups=mite[\"Substrate\"], alpha=0.05\n)\nprint(res)\n# Barepeat  Sphagn3  meandiff=-526.6  p-adj=0.0352  reject=True\n# (all other pairs: reject=False)</code></pre>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Checkpoint",
+    "title": "Mean-comparison tests so far",
+    "cards": [
+      {
+        "h": "Two-sample t-test",
+        "p": "Sphagn1 vs. Litter WatrCont: t=0.50, p=0.68 -- no detectable difference"
+      },
+      {
+        "h": "One-way ANOVA",
+        "p": "WatrCont across 7 substrates: F=2.24, p=0.051 -- borderline overall effect"
+      },
+      {
+        "h": "Tukey HSD",
+        "p": "Only Barepeat vs. Sphagn3 significant (p_adj=0.035) among 21 pairs"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "03.5",
+    "title": "Correlation",
+    "sub": "Quantifying association between two continuous variables"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Correlation",
+    "title": "Pearson vs. Spearman",
+    "items": [
+      "Pearson's r: measures the strength of a LINEAR relationship; sensitive to outliers, assumes roughly continuous, normally-ish distributed variables",
+      "Spearman's rho: computed on RANKS instead of raw values -- captures any monotonic relationship (not just linear) and is robust to outliers and skew",
+      "Rule of thumb: if your data are skewed (common in ecology!) or you suspect a non-linear-but-monotonic relationship, prefer Spearman or report both",
+      "Both range from -1 (perfect negative) to +1 (perfect positive); 0 means no linear/monotonic association"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Compare",
+    "title": "Pearson vs. Spearman correlation",
+    "headers": [
+      "Feature",
+      "Pearson r",
+      "Spearman rho"
+    ],
+    "rows": [
+      [
+        "Detects",
+        "Linear association",
+        "Any monotonic association"
+      ],
+      [
+        "Input",
+        "Raw values",
+        "Ranks of values"
+      ],
+      [
+        "Sensitive to outliers?",
+        "Yes",
+        "No (much less so)"
+      ],
+      [
+        "Assumes normality?",
+        "Roughly, for inference",
+        "No"
+      ],
+      [
+        "R function",
+        "cor(x, y, method='pearson')",
+        "cor(x, y, method='spearman')"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code: correlation matrix",
+    "title": "Soil chemistry: N, P, K, Ca, Mg, pH",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>varechem &lt;- read.csv(\"data/varechem.csv\")\nvars &lt;- c(\"N\",\"P\",\"K\",\"Ca\",\"Mg\",\"pH\")\n\nround(cor(varechem[, vars], method = \"pearson\"), 3)\n#         N      P      K     Ca     Mg     pH\n# N   1.000 -0.251 -0.147 -0.271 -0.164 -0.042\n# P  -0.251  1.000  0.754  0.737  0.598 -0.029\n# ...\n\ncor.test(varechem$N, varechem$P)\n# r = -0.251, p-value = 0.2365</code></pre>"
+    },
+    "right": {
+      "h": "Python (scipy/pandas)",
+      "body": "<pre><code>import pandas as pd\nfrom scipy import stats\n\nvarechem = pd.read_csv(\"data/varechem.csv\")\nchem = varechem[[\"N\",\"P\",\"K\",\"Ca\",\"Mg\",\"pH\"]]\n\nprint(chem.corr(method=\"pearson\").round(3))\n#         N      P      K     Ca     Mg     pH\n# N   1.000 -0.251 -0.147 -0.271 -0.164 -0.042\n# ...\n\nr, p = stats.pearsonr(varechem[\"N\"], varechem[\"P\"])\n# r = -0.251, p-value = 0.2365</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "Interpreting the varechem correlation matrix",
+    "items": [
+      "Strong positive correlations among cations: Ca-Mg (r=0.80), P-K (r=0.75), P-Ca (r=0.74) -- these elements tend to co-vary in soil, likely from shared parent material or grazing intensity",
+      "N is weakly, mostly negatively correlated with the other elements (r=-0.15 to -0.27) -- a distinct pattern worth flagging for later multivariate work (Lecture 4)",
+      "pH shows weak correlations with everything here (|r|<0.25) -- do not assume pH drives these chemistry gradients from this table alone",
+      "N vs. P: r=-0.251 but p=0.237 -- not statistically significant at this sample size; don't over-interpret modest correlations without checking the p-value and sample size"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "03.6",
+    "title": "Chi-square test of independence",
+    "sub": "Are two categorical variables associated?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chi-square test",
+    "title": "Testing association between categorical variables",
+    "items": [
+      "Question: is shrub cover class (None/Few/Many) independent of microtopography (Hummock/Blanket) at the mite sampling sites?",
+      "Build a contingency table of observed counts for every combination of the two categorical variables",
+      "The test compares observed counts to the counts EXPECTED if the two variables were independent",
+      "Test statistic chi-square = sum[(observed - expected)^2 / expected], compared to a chi-square distribution with (rows-1)x(cols-1) degrees of freedom",
+      "Caution: chi-square is unreliable when expected counts in any cell are small (rule of thumb: expected count < 5)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Code: chi-square test",
+    "title": "Shrub cover x Topography contingency table",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>mite &lt;- read.csv(\"data/mite_env.csv\")\n\ntab &lt;- table(mite$Shrub, mite$Topo)\ntab\n#        Blanket Hummock\n#  Few        14      12\n#  Many       11      14\n#  None       19       0\n\nchisq.test(tab)\n# X-squared = 15.939, df = 2, p-value = 0.0003</code></pre>"
+    },
+    "right": {
+      "h": "Julia (HypothesisTests.jl)",
+      "body": "<pre><code>using CSV, DataFrames, HypothesisTests\n\nmite = CSV.read(\"data/mite_env.csv\", DataFrame)\nshrub_lv = unique(mite.Shrub); topo_lv = unique(mite.Topo)\ntab = [count((mite.Shrub .== s) .&amp; (mite.Topo .== t))\n       for s in shrub_lv, t in topo_lv]\n\nChisqTest(tab)\n# Pearson chi-square: statistic = 15.939, df = 2, p-value = 0.0003</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "Interpreting the Shrub x Topo association",
+    "items": [
+      "chi-square = 15.94, df = 2, p = 0.0003 -- strong evidence against independence",
+      "Every site with 'None' shrub cover sits on Blanket topography (19/19); Hummock sites always have at least Few shrubs",
+      "Ecologically plausible: hummocks (raised, drier microsites) may favor shrub establishment relative to flatter blanket peat",
+      "This is an association, not a causal claim -- both variables could be driven by a third factor like water table depth"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common pitfalls",
+    "title": "Before you trust a test result",
+    "items": [
+      "Check assumptions: normality (roughly) for t-test/ANOVA, expected cell counts >= 5 for chi-square, independence of observations for all of them",
+      "Multiple testing: running many pairwise tests inflates false positives -- use Tukey HSD, Bonferroni, or Holm correction rather than repeated uncorrected t-tests",
+      "Statistical significance is not the same as ecological significance -- a tiny p-value can accompany a trivially small effect size with a large sample",
+      "Borderline p-values (like our ANOVA at p=0.051) deserve a careful, honest report rather than rounding down to 'significant' or dismissing as 'not significant'",
+      "Always visualize your data (boxplots, scatterplots) alongside the test statistics"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key distinction",
+    "title": "Two very different kinds of 'significant'",
+    "term": "Statistical significance vs. ecological significance",
+    "def": "Statistical significance (p < alpha) tells you an effect is unlikely to be pure noise, given your sample size. Ecological significance asks whether the size of that effect actually matters for the organisms, populations, or management decisions in question. A study with thousands of samples can find a 'significant' but ecologically trivial 1% difference in body size.",
+    "bullets": [
+      "Always report and discuss effect sizes (mean differences, eta-squared, r) -- not just p-values",
+      "A large, ecologically important effect can also be statistically non-significant if sample size is small (low power)"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Summary",
+    "title": "Four test families, one workflow",
+    "cards": [
+      {
+        "h": "Compare 2 group means",
+        "p": "Two-sample t-test (Welch's by default)"
+      },
+      {
+        "h": "Compare 3+ group means",
+        "p": "One-way ANOVA, then Tukey HSD post-hoc"
+      },
+      {
+        "h": "Association: 2 continuous vars",
+        "p": "Pearson r (linear) or Spearman rho (monotonic)"
+      },
+      {
+        "h": "Association: 2 categorical vars",
+        "p": "Chi-square test of independence"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key takeaways",
+    "title": "What to remember from Lecture 3",
+    "items": [
+      "Describe your data first -- mean/median/sd/CV and a plot reveal skew before you pick a model",
+      "Match the distribution to the data-generating process: Poisson/negative binomial for counts, lognormal for biomass/cover, binomial for presence/absence",
+      "t-test, ANOVA, correlation, and chi-square cover most simple comparisons -- each has assumptions worth checking",
+      "A p-value answers a narrow question ('how surprising is this under H0?') -- pair it with an effect size and ecological judgement",
+      "All of today's examples (t-test, ANOVA, Tukey HSD, correlation, chi-square) are implemented and runnable in R, Python, and Julia in code/"
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "Coming up: Lecture 4",
+    "title": "Multivariate Analysis and Ordination",
+    "sub": "From single variables to whole communities: PCA, PCoA, NMDS, and RDA on the mite, lichen, and dune datasets",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 3</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

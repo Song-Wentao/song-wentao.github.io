@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 23: Quantitative Traits and the Multifactorial Model</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 23",
+    "title": "Quantitative Traits and the Multifactorial Model",
+    "sub": "Beyond single genes: how many loci plus environment build the continuous variation we see in nature",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 7, \"Beyond Alleles\" (lecture 1 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 7 — BEYOND ALLELES",
+    "title": "From the Forces of Change to the Genetics of Complex Traits",
+    "sub": "Chapter 6 (Lectures 18–22) asked how allele frequencies change — Hardy-Weinberg, drift, selection, sexual selection, balancing selection. Chapter 7 asks a different question: how do genes actually build the traits that selection acts on, when most traits aren't controlled by a single gene at all?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE'VE BEEN",
+    "title": "A Quick Recap of Chapter 6",
+    "items": [
+      "Hardy-Weinberg equilibrium gave us a null model: allele and genotype frequencies stay put in the absence of evolutionary forces.",
+      "Genetic drift showed that chance alone can change allele frequencies, especially in small populations.",
+      "Natural selection — directional, stabilizing, and disruptive — reshapes the distribution of phenotypes across generations.",
+      "Sexual selection and balancing selection (heterozygote advantage, frequency-dependent selection) explained why variation can persist rather than disappear.",
+      "Throughout, our worked examples used single-locus, two-allele systems: A vs a, with clean dominant/recessive or additive genotype classes.",
+      "Real traits are rarely that simple — most are influenced by dozens to thousands of genes plus the environment."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We'll Cover",
+    "items": [
+      "Discrete (Mendelian) traits vs. continuous (quantitative) traits — how to tell them apart and why the distinction matters.",
+      "The polygenic, or multifactorial, model: many genes of small additive effect, plus environmental input.",
+      "Why polygenic traits produce a bell-shaped (normal) distribution — the central limit theorem intuition.",
+      "Decomposing phenotypic variance: Vp = Vg + Ve, and further Vg = Va + Vd + Vi.",
+      "Additive, dominance, and interaction (epistatic) variance — what each one is and why it matters for resemblance between relatives.",
+      "Why quantitative traits, not single-gene traits, are the norm for ecologically and medically important characteristics.",
+      "A preview of Lecture 24: using this framework to predict evolutionary response with the breeder's equation."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO KINDS OF TRAITS",
+    "title": "Discrete (Mendelian) Traits vs. Continuous (Quantitative) Traits",
+    "left": {
+      "h": "Discrete / Mendelian Traits",
+      "body": "<p>Fall into a small number of distinct, non-overlapping categories.</p><ul><li>Controlled by one or a very small number of genes with large individual effects.</li><li>Classic examples: pea seed shape (round/wrinkled), ABO blood type, cystic fibrosis carrier status, Huntington's disease.</li><li>Segregate in clean Mendelian ratios in crosses (3:1, 9:3:3:1, etc.).</li><li>Easy to map to a single genotype-to-phenotype rule.</li></ul>"
+    },
+    "right": {
+      "h": "Continuous / Quantitative Traits",
+      "body": "<p>Vary smoothly across a continuous range with no natural break points.</p><ul><li>Influenced by many genes, each of small effect, plus the environment.</li><li>Classic examples: human height, birth weight, skin pigmentation intensity, crop yield, milk production, blood pressure.</li><li>Do not segregate in simple ratios — offspring values cluster around parental averages.</li><li>Require statistical description (means, variances) rather than genotype counts.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCRETE TRAITS, REVISITED",
+    "title": "Why Intro Genetics Focuses on Discrete Traits",
+    "items": [
+      "Mendel chose pea traits precisely because they were discrete and controlled by single genes — that's what made his ratios interpretable.",
+      "Discrete traits are pedagogically convenient: you can predict exact offspring ratios from a Punnett square.",
+      "But Mendel's traits were the exception he could find, not the rule for most biological variation — he needed clean single-gene traits to see the pattern of segregation at all.",
+      "Other discrete-trait examples: Mendel's pea traits, human ABO and Rh blood groups, many single-gene inherited diseases (Tay-Sachs, sickle-cell anemia), coat color in some experimental crosses.",
+      "These traits remain important — especially in medical genetics — but they represent a minority of the phenotypic variation we actually observe in populations."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONTINUOUS TRAITS, REVISITED",
+    "title": "The Traits That Dominate Real Populations",
+    "items": [
+      "Plot human height in any population and you get a smooth, unimodal, roughly bell-shaped curve — not a few discrete peaks.",
+      "The same is true for beak depth in Darwin's finches, body size in guppies, flowering time in plants, and litter size in mice.",
+      "Quantitative traits typically show continuous variation, a roughly normal (Gaussian) distribution, and strong influence of environment alongside genotype.",
+      "Most traits that matter for survival and reproduction — the raw material of natural selection — are quantitative, not discrete.",
+      "This is why Chapter 7 exists: we need a genetic framework that can explain smooth variation, not just categorical variation."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Quantitative Trait",
+    "term": "Quantitative trait",
+    "def": "A phenotypic characteristic that varies continuously in a population, typically influenced by the combined, small-effect contributions of many genes together with environmental factors, rather than by a single gene with a large, discrete effect.",
+    "bullets": [
+      "Also called a continuous trait or a complex trait.",
+      "Measured on a numeric scale (cm, kg, mmHg) rather than sorted into a handful of categories.",
+      "The field that studies the genetics of such traits is called quantitative genetics."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "EXAMPLES IN THE WILD AND IN AGRICULTURE",
+    "title": "Quantitative Traits You Already Know",
+    "cards": [
+      {
+        "h": "Human Height",
+        "p": "Influenced by hundreds of loci identified through genome-wide association studies, plus nutrition, health, and prenatal environment. Produces the familiar bell curve on any population height chart."
+      },
+      {
+        "h": "Skin Pigmentation",
+        "p": "Melanin production is shaped by variation at many genes (e.g., SLC24A5, MC1R, and dozens more), yielding a continuous gradient of skin tone rather than discrete color classes."
+      },
+      {
+        "h": "Crop Yield",
+        "p": "Grain yield in maize or wheat depends on dozens of loci controlling growth rate, kernel number, and disease resistance, interacting with soil, water, and climate — central to plant breeding."
+      },
+      {
+        "h": "Disease Susceptibility",
+        "p": "Risk for type 2 diabetes, heart disease, and many cancers reflects the additive contribution of hundreds to thousands of risk alleles plus diet, lifestyle, and exposure history."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE CENTRAL IDEA OF CHAPTER 7",
+    "title": "Polygenic (Multifactorial) Model",
+    "term": "Polygenic / multifactorial model",
+    "def": "The model proposing that a quantitative trait is produced by the combined effects of many genes (polygenic component), each contributing a small, roughly additive amount to the phenotype, together with environmental influences (the multifactorial component).",
+    "bullets": [
+      "\"Polygenic\" emphasizes the many-gene basis; \"multifactorial\" emphasizes that genes and environment both contribute.",
+      "First proposed in essence by Ronald Fisher in 1918 to reconcile Mendelian inheritance with Darwin's continuous variation.",
+      "Explains why offspring phenotypes cluster near the parental average rather than resembling one parent exactly."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW THE POLYGENIC MODEL WORKS",
+    "title": "Many Small Additive Effects",
+    "items": [
+      "Imagine a trait influenced by 20 genes, each with two alleles: a 'plus' allele that adds a small amount to the trait value, and a 'minus' allele that adds nothing (or less).",
+      "An individual's genotype at each locus contributes a small, roughly independent increment to the overall phenotype.",
+      "Because effects are additive, the total phenotype is approximately the sum of the small contributions across all loci.",
+      "With many loci, many possible allele combinations produce nearly the same intermediate phenotype — while only a few individuals inherit almost all 'plus' or almost all 'minus' alleles.",
+      "This produces far more individuals near the average than at the extremes — the essence of a bell-shaped distribution.",
+      "Each individual locus, considered alone, might still show simple Mendelian segregation — it's the combination across many loci that yields continuous variation."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE OTHER HALF OF THE MODEL",
+    "title": "Environmental Contributions to Phenotype",
+    "items": [
+      "Genotype sets a range of possible outcomes, but environment determines where within that range an individual actually falls.",
+      "Nutrition, temperature, developmental conditions, disease exposure, and chance events during development all add variation on top of genetic variation.",
+      "Environmental effects are typically continuous and can act additively or interactively with genotype.",
+      "Because environmental influences are numerous and largely independent, they too tend to smooth out any residual discreteness left by genotype alone.",
+      "This is why identical twins (same genotype) are similar but not identical in height, weight, or fingerprint pattern — environment fills in the remaining variation."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WHY THE BELL CURVE?",
+    "title": "From Many Small Causes to One Smooth Distribution",
+    "sub": "The central limit theorem gives us the mathematical intuition for why summing many small, independent effects — genetic or environmental — reliably produces a normal distribution."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A STATISTICAL PRINCIPLE, BIOLOGICALLY APPLIED",
+    "title": "The Central Limit Theorem, Intuitively",
+    "items": [
+      "The central limit theorem (CLT) states that the sum of many independent, small random variables tends toward a normal (bell-shaped) distribution — regardless of the shape of the individual variables.",
+      "Classic demonstration: flip a coin 20 times and count heads. Each flip is binary (heads/tails), but the total count across 20 flips forms a bell curve centered on 10.",
+      "A quantitative trait works the same way: each of many loci contributes a small, discrete increment, but the summed phenotype across all loci looks continuous and bell-shaped.",
+      "The more independent loci (and independent environmental factors) contributing to a trait, the smoother and more normal the resulting distribution.",
+      "This is precisely why a trait like height — shaped by hundreds of loci plus many environmental inputs — is essentially perfectly bell-shaped in large populations."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A CLASSIC TEACHING MODEL",
+    "title": "The Galton Board (Quincunx)",
+    "term": "Galton board",
+    "def": "A physical device invented by Francis Galton in which a ball falls through rows of pegs, bouncing left or right at each row by chance, and lands in one of several bins at the bottom — the resulting distribution of balls approximates a normal curve.",
+    "bullets": [
+      "Each row of pegs is analogous to one gene locus contributing a small random left/right (plus/minus) push to the ball's final position.",
+      "A single row produces only two outcomes; many rows together produce a smooth bell curve — visually demonstrating the CLT.",
+      "Galton originally built this to illustrate the statistical inheritance of traits like height, decades before the chromosomal basis of heredity was understood."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SINGLE GENE VS. MANY GENES",
+    "title": "Comparing Trait Distributions",
+    "left": {
+      "h": "One Gene, Two Alleles",
+      "body": "<p>With a single additive locus (AA, Aa, aa), you get at most three discrete phenotype classes.</p><ul><li>A bar chart of genotype frequencies looks blocky, not smooth.</li><li>Environmental noise can blur the classes, but three underlying peaks remain detectable.</li><li>This is the pattern intro genetics courses emphasize.</li></ul>"
+    },
+    "right": {
+      "h": "Many Genes, Small Effects",
+      "body": "<p>With 10, 20, or hundreds of additive loci, the number of possible phenotype classes explodes.</p><ul><li>With n loci, up to 2n+1 discrete genotypic classes are possible.</li><li>Classes overlap so heavily (and environmental variance adds further smoothing) that the histogram becomes a smooth, continuous curve.</li><li>This is the pattern we actually see for height, weight, and most complex traits.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PUTTING IT TOGETHER",
+    "title": "Why Polygenic Traits Look Bell-Shaped",
+    "items": [
+      "Each locus contributes a small additive push, much like each peg row in the Galton board or each coin flip in the CLT demonstration.",
+      "As the number of contributing loci increases, the number of possible genotypic combinations increases rapidly, while the number of ways to produce an intermediate phenotype vastly outnumbers the ways to produce an extreme phenotype.",
+      "Environmental variation adds further, largely continuous 'noise' on top of the genetic signal.",
+      "The net result, whether from genes alone or genes plus environment, converges on the same shape: a normal distribution centered near the population mean, with extremes becoming progressively rarer.",
+      "This convergence is not a coincidence — it is the direct biological expression of the central limit theorem."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "RECONCILING MENDEL AND DARWIN",
+    "quote": "The presence of dominance is not necessary to explain the continuous variation... a moderate number of Mendelian factors, each with a small effect, would suffice to produce the smooth, normal distributions of quantitative characters observed in nature.",
+    "attrib": "paraphrased from R. A. Fisher, \"The Correlation Between Relatives on the Supposition of Mendelian Inheritance,\" 1918"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A HISTORICAL TURNING POINT",
+    "title": "Fisher's 1918 Synthesis",
+    "items": [
+      "By the early 1900s, biometricians (Galton, Pearson) who studied continuous variation statistically were at odds with Mendelians who studied discrete traits experimentally — each side thought the other's data contradicted its model.",
+      "Ronald Fisher's landmark 1918 paper showed mathematically that ordinary Mendelian inheritance at many loci, each of small effect, naturally produces the continuous, correlated variation the biometricians observed.",
+      "This resolved the apparent conflict and became a founding pillar of what is now called the Modern Synthesis, linking Mendelian genetics to Darwinian evolution.",
+      "Fisher's paper also introduced the statistical framework — partitioning variance into components — that we build on for the rest of today's lecture."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "A BRIEF HISTORY OF QUANTITATIVE GENETICS",
+    "title": "Key Milestones",
+    "items": [
+      {
+        "y": "1859",
+        "t": "Darwin publishes On the Origin of Species, emphasizing small, continuous variation as the raw material for selection."
+      },
+      {
+        "y": "1865",
+        "t": "Mendel describes discrete inheritance in peas — largely overlooked for decades."
+      },
+      {
+        "y": "1889",
+        "t": "Galton develops the Galton board and regression toward the mean, studying continuous traits statistically."
+      },
+      {
+        "y": "1900",
+        "t": "Mendel's work is rediscovered; a rift opens between biometricians and Mendelians."
+      },
+      {
+        "y": "1918",
+        "t": "Fisher reconciles the two camps with the polygenic model and the partitioning of variance."
+      },
+      {
+        "y": "1920s–30s",
+        "t": "Fisher, Haldane, and Wright build the mathematical foundation of population and quantitative genetics — the Modern Synthesis."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PARTITIONING PHENOTYPIC VARIANCE",
+    "title": "Where Does the Variation in a Trait Come From?",
+    "sub": "To predict how a quantitative trait will respond to selection, we first need to break its total variance down into genetic and environmental pieces — and then break the genetic piece down further."
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE STARTING POINT",
+    "title": "Phenotypic Variance (Vp)",
+    "term": "Phenotypic variance (Vp)",
+    "def": "The total observed variance in a quantitative trait across individuals in a population — the full spread of measured phenotypes around the population mean.",
+    "bullets": [
+      "Vp is what you actually measure when you record, say, the height of every individual in a population and calculate the variance.",
+      "Vp is the sum of a genetic component and an environmental component: Vp = Vg + Ve.",
+      "Understanding Vp's internal structure is the key to predicting whether, and how fast, a trait can evolve."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE FIRST SPLIT",
+    "title": "Vp = Vg + Ve",
+    "items": [
+      "Vg (genetic variance): the portion of phenotypic variance attributable to differences in genotype among individuals.",
+      "Ve (environmental variance): the portion attributable to differences in the environments individuals experience (and non-genetic developmental noise).",
+      "This equation assumes, for simplicity, that genotype and environment act independently — no gene-by-environment interaction and no genotype-environment correlation. Real populations often violate this assumption to some degree, a point we'll revisit later in the lecture.",
+      "Only the genetic portion, Vg, can be passed to offspring — and as we'll see next lecture, only part of Vg actually predicts evolutionary response.",
+      "Knowing the relative size of Vg vs. Ve tells us how much of the visible variation in a population is 'available' for natural selection to act on across generations."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE SECOND SPLIT",
+    "title": "Genetic Variance (Vg)",
+    "term": "Genetic variance (Vg)",
+    "def": "The component of phenotypic variance due to genotypic differences among individuals; itself composed of three parts reflecting different ways genes influence phenotype: Vg = Va + Vd + Vi.",
+    "bullets": [
+      "Va — additive genetic variance, from the independent, summable effects of individual alleles.",
+      "Vd — dominance variance, from interactions between alleles at the same locus.",
+      "Vi — interaction (epistatic) variance, from interactions between alleles at different loci."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY SPLIT Vg FURTHER?",
+    "title": "Not All Genetic Variance Is Created Equal",
+    "items": [
+      "Two populations can have identical total Vg yet respond completely differently to selection, depending on how that Vg is distributed among Va, Vd, and Vi.",
+      "Only the additive component, Va, is reliably passed from parent to offspring in a predictable way — dominance and epistatic effects depend on particular allele combinations that get broken up by segregation and recombination each generation.",
+      "This distinction becomes central in Lecture 24, when we define heritability and use the breeder's equation to predict evolutionary change.",
+      "For now, the goal is simply to understand what each component represents biologically."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "COMPONENT 1 OF Vg",
+    "title": "Additive Genetic Variance (Va)",
+    "term": "Additive genetic variance (Va)",
+    "def": "The portion of genetic variance arising from the independent, cumulative effects of individual alleles — the average effect of substituting one allele for another, summed across all loci, regardless of which other alleles happen to be paired with it.",
+    "bullets": [
+      "Produces the predictable resemblance between parents and offspring: each parent transmits a random half of their alleles, so offspring phenotype tends to fall near the midpoint of the two parents.",
+      "Va is the component that responds most reliably and predictably to selection over generations.",
+      "Underlies the 'breeding value' of an individual — its expected contribution to offspring phenotype."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "COMPONENT 2 OF Vg",
+    "title": "Dominance Variance (Vd)",
+    "term": "Dominance variance (Vd)",
+    "def": "The portion of genetic variance arising from interactions between the two alleles at the same locus — where the heterozygote's phenotype is not simply the average of the two homozygotes.",
+    "bullets": [
+      "Arises whenever one allele's effect depends on which other allele it is paired with at that locus (partial, complete, or over-dominance).",
+      "Because a specific allele pairing is broken up during meiosis (each parent only passes on one allele per locus), dominance effects are not transmitted intact to offspring.",
+      "Dominance variance contributes to phenotypic variance in the population but contributes little to predictable parent-offspring resemblance."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "COMPONENT 3 OF Vg",
+    "title": "Interaction / Epistatic Variance (Vi)",
+    "term": "Interaction (epistatic) variance (Vi)",
+    "def": "The portion of genetic variance arising from interactions between alleles at different loci, where the combined effect of two or more genes differs from the simple sum of their individual effects.",
+    "bullets": [
+      "Occurs when a gene's phenotypic effect depends on which alleles are present at other, unlinked loci.",
+      "Like dominance interactions, specific multi-locus allele combinations are broken apart by independent assortment and recombination each generation.",
+      "Epistatic variance therefore also contributes to Vg without contributing much to predictable resemblance between relatives across generations."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "COMPARING THE THREE GENETIC VARIANCE COMPONENTS",
+    "title": "Additive vs. Dominance vs. Epistatic Variance",
+    "headers": [
+      "Component",
+      "Definition",
+      "Effect on Parent–Offspring Resemblance"
+    ],
+    "rows": [
+      [
+        "Additive (Va)",
+        "Independent, summable effect of substituting one allele for another across loci",
+        "Strong and predictable — main driver of resemblance between relatives"
+      ],
+      [
+        "Dominance (Vd)",
+        "Interaction between the two alleles at the same locus (within-locus interaction)",
+        "Weak — specific allele pairings are not transmitted intact via gametes"
+      ],
+      [
+        "Epistatic (Vi)",
+        "Interaction between alleles at two or more different loci (between-locus interaction)",
+        "Weak — specific multi-locus combinations are broken up by recombination"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "BUILDING BLOCKS OF PHENOTYPIC VARIANCE",
+    "title": "From Total Variance Down to Additive Variance",
+    "levels": [
+      {
+        "label": "Total Phenotypic Variance (Vp)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Genetic (Vg) + Environmental (Ve)",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Vg = Additive + Dominance + Epistatic",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Additive Variance (Va)",
+        "color": "#a85a68",
+        "width": "360px"
+      },
+      {
+        "label": "Predictable Selection Response",
+        "color": "#c47b87",
+        "width": "260px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PAYOFF OF THIS FRAMEWORK",
+    "title": "Why Additive Variance Gets Special Attention",
+    "items": [
+      "Evolutionary biologists and breeders care most about Va because it is the component that predicts how a population's mean phenotype will shift in response to selection.",
+      "The ratio of additive genetic variance to total phenotypic variance defines narrow-sense heritability (h² = Va / Vp) — a concept we will formally introduce and apply next lecture.",
+      "Dominance and epistatic variance still matter — they help explain phenomena like hybrid vigor (heterosis) and the loss of variance seen in some inbred lines — but they don't translate directly into predictable long-term evolutionary change.",
+      "This is why quantitative geneticists spend so much effort trying to estimate Va specifically, not just total Vg."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A QUICK PREVIEW",
+    "title": "Broad-Sense vs. Narrow-Sense Heritability",
+    "left": {
+      "h": "Broad-Sense Heritability (H²)",
+      "body": "<p>H² = Vg / Vp</p><ul><li>Includes all genetic variance: additive, dominance, and epistatic.</li><li>Tells you what fraction of phenotypic variation is genetic in origin, of any kind.</li><li>Useful for asking 'how much of this variation is genetic at all?'</li></ul>"
+    },
+    "right": {
+      "h": "Narrow-Sense Heritability (h²)",
+      "body": "<p>h² = Va / Vp</p><ul><li>Includes only additive genetic variance.</li><li>Tells you what fraction of phenotypic variation is reliably transmitted parent to offspring.</li><li>The value actually used in the breeder's equation — our focus for Lecture 24.</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "THE ENVIRONMENTAL SIDE OF THE EQUATION",
+    "title": "Environmental Variance Is Not Just 'Noise'",
+    "sub": "Before we move fully into selection response, it's worth taking environmental variance seriously — it shapes phenotypes just as genes do, and the two do not always act independently."
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SOURCES OF ENVIRONMENTAL VARIANCE (Ve)",
+    "title": "What Counts as 'Environment' in Quantitative Genetics",
+    "cards": [
+      {
+        "h": "Nutrition & Resources",
+        "p": "Food availability and quality shape body size, growth rate, and reproductive output in nearly every organism studied, from plants to mammals."
+      },
+      {
+        "h": "Physical Conditions",
+        "p": "Temperature, moisture, altitude, and light exposure influence development, pigmentation, and physiology, especially in ectotherms and plants."
+      },
+      {
+        "h": "Maternal & Developmental Effects",
+        "p": "Conditions experienced in utero or in the egg/seed (maternal nutrition, incubation temperature) can shape offspring phenotype independent of offspring genotype."
+      },
+      {
+        "h": "Developmental Noise",
+        "p": "Even genetically identical individuals in identical environments show residual variation from stochastic events during development (e.g., fingerprint patterns in identical twins)."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHEN THE SIMPLE MODEL BREAKS DOWN",
+    "title": "Gene-by-Environment (G×E) Interaction",
+    "items": [
+      "Our equation Vp = Vg + Ve assumes genotype and environment contribute independently — but genotypes sometimes respond differently to the same environmental change.",
+      "Gene-by-environment interaction (G×E) occurs when the phenotypic effect of a genotype depends on the environment it develops in — the ranking of genotypes can even reverse across environments.",
+      "When G×E is substantial, a more complete model adds an interaction term: Vp = Vg + Ve + Vg×e.",
+      "G×E is a major reason a single genotype cannot be assumed to have one fixed phenotype — it has a range of possible phenotypes depending on environment."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VISUALIZING G×E",
+    "title": "Norm of Reaction",
+    "term": "Norm of reaction",
+    "def": "The range of phenotypes that a single genotype can produce when exposed to different environmental conditions; typically visualized as a line or curve of phenotype plotted against an environmental gradient.",
+    "bullets": [
+      "A flat reaction norm indicates little environmental sensitivity; a steep or non-linear one indicates strong environmental sensitivity.",
+      "When reaction norms for different genotypes cross, that is a direct visual signature of G×E interaction — the 'best' genotype depends on the environment.",
+      "Reaction norms remind us that genotype does not fully determine phenotype — it determines a range of possible phenotypes."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EXAMPLES OF REACTION NORMS IN NATURE",
+    "title": "Genotype-by-Environment in Action",
+    "items": [
+      "Yarrow plants (Achillea) transplanted to different altitudes show different heights depending on both genotype and elevation, with some genotypes far more sensitive to altitude than others.",
+      "Water fleas (Daphnia) grow protective helmets and spines only when raised in water containing predator cues — a genetically encoded but environmentally triggered response.",
+      "Human phenylketonuria (PKU): individuals homozygous for the PKU allele develop severe intellectual disability if raised on a normal diet, but develop normally on a controlled low-phenylalanine diet — a dramatic case of environment overriding a single-gene genotype's typical outcome.",
+      "Crop varieties bred for high yield in one region often underperform in another — plant breeders explicitly test genotype-by-environment interactions across field trial sites for this reason."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "AVOIDING A COMMON MISCONCEPTION",
+    "title": "\"Genetic\" Does Not Mean \"Fixed\" or \"Unchangeable\"",
+    "left": {
+      "h": "The Misconception",
+      "body": "<p>People often assume that if a trait has a genetic component, environment or intervention cannot change it, and vice versa.</p><ul><li>PKU shows a highly heritable disorder can be fully managed environmentally (diet).</li><li>Height, strongly genetic across populations, still rose substantially over the 20th century due to nutrition.</li></ul>"
+    },
+    "right": {
+      "h": "The Correct Framing",
+      "body": "<p>Heritability describes variance within a specific population and environment — it is not a statement about individual fate or immutability.</p><ul><li>A high heritability estimate says genetic differences explain most of the variation observed under current conditions.</li><li>Change the environment (or the population), and the same trait can show a very different heritability.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HERITABILITY: WHAT IT IS NOT",
+    "title": "Common Misconceptions to Avoid",
+    "items": [
+      "Heritability is not the proportion of an individual trait 'caused by genes' — it is a population-level statistic describing the proportion of variance among individuals attributable to genetic differences.",
+      "A heritability of 0 does not mean a trait is 'not genetic' — it can mean there is no genetic variation left in that particular population (even though genes still build the trait).",
+      "Heritability estimates are specific to a population and an environment; they do not automatically generalize to other populations, environments, or time periods.",
+      "High heritability does not mean a trait cannot respond to environmental intervention (see PKU) or cannot change over time (see height and nutrition).",
+      "We'll return to a precise, quantitative definition of heritability next lecture — for now, hold onto this conceptual caution."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WHY THIS FRAMEWORK MATTERS",
+    "title": "Quantitative Traits Are the Rule, Not the Exception",
+    "sub": "Intro biology courses emphasize single-gene traits because they're pedagogically tidy — but ecologically and medically, the traits that matter most are almost always quantitative."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ECOLOGICAL IMPORTANCE",
+    "title": "Quantitative Traits Drive Ecology and Evolution in the Wild",
+    "items": [
+      "Body size, clutch/litter size, growth rate, timing of migration or flowering, and thermal tolerance are all quantitative traits that directly determine survival and reproductive success.",
+      "Darwin's finch beak depth — a textbook case of natural selection in action (Grant & Grant's long-term Galápagos studies) — is a classic polygenic, continuously varying trait, not a discrete one.",
+      "Because these traits are quantitative, natural selection typically acts gradually, shifting population means slightly generation after generation, rather than flipping a single discrete switch.",
+      "Understanding Va and heritability lets ecologists predict how fast a population's traits can track environmental change, such as shifting climate conditions."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MEDICAL AND AGRICULTURAL IMPORTANCE",
+    "title": "Quantitative Traits Dominate Human Health and Food Production",
+    "items": [
+      "Most common human diseases — type 2 diabetes, hypertension, coronary artery disease, many cancers, and most psychiatric conditions — are polygenic and strongly influenced by environment and lifestyle, unlike textbook single-gene disorders such as cystic fibrosis.",
+      "Genome-wide association studies (GWAS) now routinely identify hundreds to thousands of loci, each contributing a tiny additive effect, associated with a single complex disease or trait.",
+      "Polygenic risk scores, built by summing many small-effect alleles, are increasingly used to estimate individual disease risk — a direct, modern application of the additive polygenic model from this lecture.",
+      "Nearly every trait of agricultural interest — yield, disease resistance, drought tolerance, meat and milk production — is quantitative, which is why modern breeding relies on quantitative genetic methods rather than simple Mendelian crosses."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MEDICALLY IMPORTANT QUANTITATIVE TRAITS",
+    "title": "A Sample of Complex Traits in Human Health",
+    "cards": [
+      {
+        "h": "Blood Pressure",
+        "p": "A continuously distributed trait shaped by dozens of genes affecting vasculature and kidney function, plus diet, stress, and activity level; hypertension is the high tail of this distribution."
+      },
+      {
+        "h": "Body Mass Index (BMI)",
+        "p": "Influenced by hundreds of loci affecting metabolism and appetite regulation, interacting strongly with diet and activity — a textbook polygenic, multifactorial trait."
+      },
+      {
+        "h": "Type 2 Diabetes Risk",
+        "p": "Polygenic risk combines with lifestyle factors (diet, exercise, obesity) to determine disease onset — contrasts sharply with single-gene forms like MODY."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "TWO WAYS TO STUDY HEREDITY",
+    "title": "Mendelian Genetics vs. Quantitative Genetics",
+    "headers": [
+      "Feature",
+      "Mendelian (Transmission) Genetics",
+      "Quantitative Genetics"
+    ],
+    "rows": [
+      [
+        "Typical trait",
+        "Discrete categories (e.g., seed shape)",
+        "Continuous measurement (e.g., height)"
+      ],
+      [
+        "Number of loci",
+        "One, or very few, with large effects",
+        "Many, each with small additive effects"
+      ],
+      [
+        "Analytical tool",
+        "Punnett squares, segregation ratios",
+        "Means, variances, heritability estimates"
+      ],
+      [
+        "Role of environment",
+        "Usually minimal or ignored",
+        "Often substantial (Ve, G×E)"
+      ],
+      [
+        "Best suited to",
+        "Rare single-gene disorders, model crosses",
+        "Most ecological, agricultural, and common disease traits"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW QUANTITATIVE TRAITS ARE ACTUALLY MEASURED",
+    "title": "The Statistical Toolkit",
+    "items": [
+      "Because quantitative traits don't sort into clean categories, researchers describe them using descriptive statistics: the mean (average phenotype) and the variance (spread around the mean).",
+      "Variance components (Vp, Vg, Va, Vd, Vi, Ve) are estimated using designed breeding experiments (e.g., comparing parent-offspring or sibling resemblance) or, increasingly, molecular data from GWAS.",
+      "Twin studies (comparing identical vs. fraternal twins) and common-garden experiments (raising different genotypes in a shared environment) are classic tools for separating genetic from environmental variance.",
+      "None of these methods identify individual causal genes by themselves — they estimate how much of the population's variance is genetic in aggregate, which is exactly what Vg and h² describe."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A QUICK STATISTICAL REFRESHER",
+    "title": "Mean and Variance",
+    "term": "Population mean and variance",
+    "def": "The mean is the average trait value across all individuals in a population; the variance is the average squared deviation of individual values from that mean, quantifying how spread out the distribution is.",
+    "bullets": [
+      "In quantitative genetics, we care less about any single individual's genotype and more about how trait values are distributed across the whole population.",
+      "Selection changes the mean of a distribution across generations; quantitative genetics asks how much of that potential change is governed by additive genetic variance.",
+      "Every variance term introduced today (Vp, Vg, Va, Vd, Vi, Ve) is measured in the same statistical units — squared units of the trait — which is what allows them to be added together."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY EQUATIONS FROM TODAY",
+    "title": "The Core Toolkit to Remember",
+    "items": [
+      "Vp = Vg + Ve — total phenotypic variance splits into genetic and environmental components.",
+      "Vg = Va + Vd + Vi — genetic variance splits into additive, dominance, and epistatic (interaction) components.",
+      "More completely, Vp = Va + Vd + Vi + Ve (+ Vg×e when gene-environment interaction is significant).",
+      "Broad-sense heritability: H² = Vg / Vp.",
+      "Narrow-sense heritability (our focus next lecture): h² = Va / Vp.",
+      "These equations form the mathematical backbone for everything that follows in Chapter 7."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "What to Take Away From Today",
+    "items": [
+      "Most ecologically and medically important traits are quantitative (continuous), not discrete — the single-gene Mendelian model is the exception, not the rule.",
+      "The polygenic/multifactorial model explains continuous variation as the sum of many small-effect genes plus environmental input.",
+      "The central limit theorem explains why summing many small, largely independent effects produces the smooth, normal (bell-shaped) distributions we observe for traits like height.",
+      "Phenotypic variance decomposes as Vp = Vg + Ve, and genetic variance further decomposes as Vg = Va + Vd + Vi.",
+      "Additive variance (Va) is the component that predicts reliable parent-offspring resemblance and, ultimately, the response to natural or artificial selection — while dominance and epistatic variance contribute to Vg without being reliably transmitted.",
+      "Gene-by-environment interaction and reaction norms remind us that genotype sets a range of outcomes, not a fixed phenotype."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "COMING UP — LECTURE 24",
+    "title": "Predicting Evolutionary Response: The Breeder's Equation",
+    "sub": "Now that we can decompose phenotypic variance, we'll define heritability formally and use the breeder's equation, R = h²S, to predict exactly how much a population's mean phenotype should shift after one generation of selection."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 23</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

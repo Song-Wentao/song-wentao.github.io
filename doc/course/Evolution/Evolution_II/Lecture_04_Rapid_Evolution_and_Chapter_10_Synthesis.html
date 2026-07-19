@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 4: Rapid Evolution and Chapter 10 Synthesis</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 4",
+    "title": "Rapid Evolution and Chapter 10 Synthesis",
+    "sub": "Contemporary evolution, eco-evolutionary dynamics, and pulling together the empirical study of natural selection in the wild",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 10, \"Natural Selection: Empirical Studies in the Wild\" (lecture 4 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "OPENING",
+    "title": "Evolution, Caught in the Act",
+    "sub": "Why biologists once assumed evolution was invisibly slow — and what changed their minds"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "From Case Studies to a Unified Picture",
+    "items": [
+      "Recap: what Lectures 1–3 established (case studies, S and β, fitness surfaces)",
+      "The concept of rapid (contemporary) evolution and why it surprised biologists",
+      "Eco-evolutionary dynamics: evolution feeding back onto ecology in real time",
+      "Case study: Daphnia resurrection ecology using resting eggs as a time machine",
+      "Bridging back to Darwin's finches from Evolution I",
+      "Chapter 10 synthesis: tying case studies, methods, and the big lesson together",
+      "Preview: Chapter 11, the evolution of sex"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP",
+    "title": "Where We Left Off",
+    "items": [
+      "Lecture 1: natural selection can be observed and measured directly in wild populations, not just inferred from the fossil record",
+      "Lecture 2: guppies (predation and color/life history), sticklebacks (marine-to-freshwater armor loss), soapberry bugs (beak length tracking host plant shifts)",
+      "Lecture 3: quantifying selection — selection differentials (S), selection gradients (β), and fitness surfaces that reveal the shape of selection",
+      "Common thread across all three lectures: selection is strong, measurable, and often faster than classical theory expected",
+      "Today: name that pattern explicitly, connect it to ecology, and close out the chapter"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "The Old Assumption: Evolution Is Slow",
+    "items": [
+      "Darwin himself emphasized gradualism — change accumulating imperceptibly over vast spans of time",
+      "For most of the 20th century, evolutionary and ecological processes were studied on entirely different timescales by different specialists",
+      "Ecologists studied population dynamics over seasons and years; evolutionary biologists studied divergence over thousands to millions of years",
+      "Textbooks routinely stated that evolutionary change was too slow to matter for ecological questions happening \"here and now\"",
+      "This assumption shaped research design: nobody looked for evolution within an ecologist's study window because nobody expected to find it"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Rapid (Contemporary) Evolution",
+    "term": "Rapid evolution / contemporary evolution",
+    "def": "Genetically based phenotypic change in a population occurring on ecological timescales — within a few generations to a few decades — fast enough to be observed directly rather than inferred from fossils or phylogenies.",
+    "bullets": [
+      "\"Contemporary\" emphasizes that the change happens within the span of ongoing ecological studies",
+      "Does not require new mutations — usually acts on standing genetic variation already present in the population",
+      "Documented via long-term field studies, common-garden experiments, and resurrection approaches (reviving dormant propagules from the past)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY IT SURPRISED BIOLOGISTS",
+    "title": "Breaking the Slow-Evolution Assumption",
+    "items": [
+      "Guppies transplanted to low-predation streams shifted maturation age and coloration within roughly 4–11 generations (a few years)",
+      "Darwin's finch beak depth shifted measurably after a single severe drought year (1977) on Daphne Major",
+      "Soapberry bug beak lengths tracked the switch to introduced host plants within decades of plant introduction",
+      "These findings forced a reconsideration: strong selection acting on abundant standing variation can produce visible change far faster than mutation-limited models predicted",
+      "The realization spread beyond a few charismatic case studies into a general research program by the 1990s–2000s"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "QUICK RECALL",
+    "title": "Rapid Evolution: The Classic Exhibits",
+    "cards": [
+      {
+        "h": "Trinidadian guppies",
+        "p": "Predation regime shifts life history and color pattern within a handful of generations after transplantation."
+      },
+      {
+        "h": "Threespine stickleback",
+        "p": "Marine populations colonizing freshwater lose bony armor plates repeatedly, using the same genetic toolkit, within decades to centuries."
+      },
+      {
+        "h": "Soapberry bugs",
+        "p": "Beak length tracks the geometry of introduced host-plant fruits within roughly 20–50 years of host-plant introduction."
+      },
+      {
+        "h": "Darwin's finches",
+        "p": "Beak depth on Daphne Major shifts detectably after single drought or El Niño events, then can shift back."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONCEPTUAL SHIFT",
+    "title": "Two Timescales, Once Kept Separate",
+    "left": {
+      "h": "The old view",
+      "body": "<p>Ecological time and evolutionary time were treated as different currencies.</p><ul><li>Ecology: population sizes, species interactions, community structure — changes over seasons to years</li><li>Evolution: allele frequency change, speciation, adaptation — changes over thousands to millions of years</li><li>Implication: ecologists could treat the traits of organisms as fixed constants while studying dynamics</li></ul>"
+    },
+    "right": {
+      "h": "The revised view",
+      "body": "<p>Once rapid evolution was documented repeatedly, the two timescales collapsed into one.</p><ul><li>Traits can change fast enough to alter the very ecological dynamics being studied</li><li>Ecologists could no longer safely assume traits are static background variables</li><li>This convergence is what gave rise to eco-evolutionary dynamics as a field</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "NEW FRAMEWORK",
+    "title": "Eco-Evolutionary Dynamics",
+    "sub": "When evolution doesn't just respond to ecology — it drives ecology, in real time"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Eco-Evolutionary Dynamics",
+    "term": "Eco-evolutionary dynamics",
+    "def": "A conceptual framework recognizing that ecological processes (population density, community composition, ecosystem function) and evolutionary processes (allele frequency change, trait evolution) can influence each other reciprocally and simultaneously, on the same timescale.",
+    "bullets": [
+      "Traditional ecology: ecology shapes evolution (selection pressures arise from ecological conditions) — a one-way arrow",
+      "Eco-evolutionary dynamics adds the reverse arrow: evolution reshapes ecology, which then reshapes selection again",
+      "Requires studying evolution and ecology together rather than sequentially or in isolation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE FEEDBACK LOOP",
+    "title": "How Evolution Feeds Back Into Ecology",
+    "left": {
+      "h": "Step 1 — Ecology shapes evolution",
+      "body": "<p>This is the familiar direction from Lectures 1–3.</p><ul><li>Predators, resources, or physical conditions impose selection on a trait</li><li>The trait distribution in the population shifts over generations</li><li>Example: predation intensity selects for guppy coloration and maturation timing</li></ul>"
+    },
+    "right": {
+      "h": "Step 2 — Evolution reshapes ecology",
+      "body": "<p>The new twist: the evolved trait then changes the ecological setting itself.</p><ul><li>Changed guppy life history alters nutrient cycling and algae/invertebrate communities in the stream</li><li>The altered ecosystem can change the selection pressures acting on guppies going forward</li><li>Result: a continuous loop, not a one-time cause-and-effect chain</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE FOR THE LOOP",
+    "title": "Examples of Eco-Evolutionary Feedback",
+    "items": [
+      "Guppies: evolved differences in feeding behavior and excretion rates between high- and low-predation populations measurably alter algae standing crop and invertebrate density in experimental stream mesocosms",
+      "Alewife fish (landlocked vs. anadromous populations): evolved differences in feeding morphology and behavior alter zooplankton community structure in lakes",
+      "Anolis lizards: rapid evolution of limb length after hurricane-driven selection changes their foraging height and thus insect prey communities",
+      "Daphnia (previewed here, detailed next): evolved resistance or life-history shifts change grazing pressure on phytoplankton, altering water clarity and nutrient cycling",
+      "In each case, the timescale of the evolutionary response is short enough to matter for the ecological dynamics unfolding in the same study"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY IT MATTERS",
+    "title": "The Significance of Eco-Evolutionary Dynamics",
+    "items": [
+      "Challenges the assumption that ecological models can treat organismal traits as fixed parameters",
+      "Means predicting ecosystem responses to environmental change may require predicting evolutionary responses too",
+      "Has direct relevance to conservation biology, invasive species management, fisheries, and responses to climate change",
+      "Requires interdisciplinary methods: population genetics, quantitative genetics, and community/ecosystem ecology combined",
+      "Sets up an ideal test case: a system where you can directly compare ancestral and descendant genotypes under controlled conditions — which is exactly what Daphnia resurrection ecology provides"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CASE STUDY",
+    "title": "Daphnia Resurrection Ecology",
+    "sub": "Reviving the past from the bottom of a lake"
+  },
+  {
+    "type": "term",
+    "eyebrow": "STUDY ORGANISM",
+    "title": "Daphnia and Resting Eggs",
+    "term": "Diapausing eggs (resting eggs / ephippia)",
+    "def": "Dormant, drought- and freeze-resistant eggs produced by Daphnia (freshwater zooplankton) during sexual reproduction, which sink to the lake bottom and can remain viable in sediment for years to decades, accumulating in dated sediment layers.",
+    "bullets": [
+      "Daphnia normally reproduce asexually (cyclical parthenogenesis) but switch to sexual reproduction under stress, producing these resting eggs",
+      "Sediment layers accumulate roughly chronologically, so deeper layers are older — a natural archive",
+      "Because the eggs remain viable, researchers can hatch genotypes from different decades and study them side by side"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE METHOD",
+    "title": "Lake Sediment Cores as a Time Capsule",
+    "items": [
+      "Researchers extract sediment cores from lakebeds, which preserve layers deposited over decades to centuries",
+      "Cores can be dated using techniques such as lead-210 or cesium-137 radiometric dating, or by counting annual laminations",
+      "Resting eggs from specific depths (specific decades) are collected and induced to hatch in the laboratory",
+      "This yields living, genetically distinct populations representing different points in the lake's history — effectively a genetic time series",
+      "The approach is called \"resurrection ecology\" because it resurrects historical genotypes for direct experimental comparison"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "EXPERIMENTAL DESIGN",
+    "title": "Resurrection Ecology in Practice",
+    "left": {
+      "h": "Setting up the comparison",
+      "body": "<p>The key strength is a true \"before vs. after\" experiment on the same population.</p><ul><li>Hatch Daphnia clones from pre-disturbance sediment layers (e.g., before a lake became eutrophic or before a toxin was introduced)</li><li>Hatch clones from post-disturbance layers</li><li>Rear both cohorts together, in the same modern conditions, in a common-garden design</li></ul>"
+    },
+    "right": {
+      "h": "Why the common garden matters",
+      "body": "<p>Rearing all genotypes under identical conditions isolates genetic change from environmental plasticity.</p><ul><li>Any trait differences observed between old and new genotypes must be genetically based, not just environmentally induced</li><li>This directly tests whether the population evolved in response to the historical environmental change</li><li>Provides some of the strongest direct evidence of contemporary evolution because ancestors and descendants are compared simultaneously</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FINDINGS",
+    "title": "What Daphnia Resurrection Studies Have Shown",
+    "items": [
+      "Populations evolved increased resistance to cyanobacterial toxins after lakes underwent eutrophication and cyanobacteria blooms became common",
+      "Populations evolved shifts in thermal tolerance correlated with historical warming trends recorded in the same sediment cores",
+      "Populations evolved altered predator-avoidance traits (e.g., changes in vertical migration behavior or morphological defenses) tracking documented changes in fish stocking or invertebrate predator abundance",
+      "Rates of evolutionary change were often fast enough to occur within one to a few decades — squarely within \"contemporary\" timescales",
+      "Because the environmental driver (eutrophication, warming, predator introduction) is independently documented in the same sediment record, researchers can directly link a known selective pressure to a measured evolutionary response"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "METHOD COMPARISON",
+    "title": "Three Ways to Catch Evolution in the Act",
+    "headers": [
+      "Feature",
+      "Guppy transplant experiments",
+      "Darwin's finches (long-term field study)",
+      "Daphnia resurrection ecology"
+    ],
+    "rows": [
+      [
+        "Type of evidence",
+        "Manipulative field experiment",
+        "Observational longitudinal monitoring",
+        "Historical common-garden experiment"
+      ],
+      [
+        "Timescale accessed",
+        "Years (real time, forward)",
+        "Decades (real time, forward)",
+        "Decades (backward, from sediment archive)"
+      ],
+      [
+        "Ancestor vs. descendant comparison",
+        "Indirect (source vs. transplant population)",
+        "Indirect (population measured repeatedly over time)",
+        "Direct (both genotypes reared together, same generation)"
+      ],
+      [
+        "Key strength",
+        "Establishes causation via controlled introduction",
+        "Captures natural selection events (droughts, El Niño) as they happen",
+        "Isolates genetic change from plasticity via common garden"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LIMITATIONS",
+    "title": "Strengths and Limits of Resurrection Ecology",
+    "items": [
+      "Strength: uncommonly direct test of evolutionary change, because ancestral and descendant genotypes are compared under identical modern conditions",
+      "Strength: the sediment record often independently documents the environmental change, strengthening causal inference",
+      "Limitation: only works for organisms that produce a dormant, datable propagule bank (Daphnia, some rotifers, plants with seed banks) — not generalizable to most taxa",
+      "Limitation: hatching success can decline with egg age, potentially biasing which historical genotypes are recoverable",
+      "Limitation: sediment mixing (bioturbation) can blur the dating of specific layers in some lakes",
+      "Despite these caveats, resurrection ecology remains one of the clearest empirical demonstrations that natural selection can produce measurable evolutionary change within a human research career"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "BRIDGE TO EVOLUTION I",
+    "title": "Darwin's Finches, Revisited",
+    "sub": "The most famous long-term selection study, reframed through today's lens"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECALL FROM EVOLUTION I",
+    "title": "The Grants' Long-Term Study",
+    "items": [
+      "Peter and Rosemary Grant have studied Darwin's finches on Daphne Major (Galápagos) continuously since 1973 — over five decades",
+      "They measured beak depth, body size, and survival on essentially every individual bird on the island across many generations",
+      "The 1977 drought eliminated small, soft seeds, favoring large-beaked Geospiza fortis that could crack the remaining large, hard seeds — beak depth increased in the next generation",
+      "A subsequent wet El Niño year reversed conditions, favoring smaller beaks — selection direction flipped",
+      "This dataset remains one of the most complete pedigreed, phenotyped, and genotyped wild population records in evolutionary biology"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "REFRAMED AS RAPID EVOLUTION",
+    "title": "Finches as an Exemplar of Contemporary Evolution",
+    "items": [
+      "The finch study predates the term \"rapid evolution\" but is now recognized as one of its founding demonstrations",
+      "Selection differentials measured on Daphne Major are among the strongest ever recorded for a wild vertebrate population (recall Lecture 3's S and β)",
+      "Beak depth change occurred within a single generation following the 1977 drought — evolution visible on a one-year ecological timescale",
+      "Later work identified the gene ALX1 as a major contributor to beak shape variation, connecting the phenotypic pattern to its molecular basis",
+      "The alternating direction of selection (favoring large beaks in droughts, smaller beaks in wet years) illustrates fluctuating selection, preventing the population from evolving indefinitely in one direction"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "ECO-EVOLUTIONARY LINK",
+    "title": "Finches and the Feedback Loop",
+    "left": {
+      "h": "Ecology shapes evolution",
+      "body": "<p>Rainfall determines seed availability and hardness, which determines which beak morphs survive.</p><ul><li>Drought years: fewer, larger, harder seeds favor deep-beaked birds</li><li>Wet years: abundant small, soft seeds favor shallow-beaked birds</li><li>This is the classic, well-established direction of the arrow</li></ul>"
+    },
+    "right": {
+      "h": "Evolution feeds back on ecology",
+      "body": "<p>Shifts in beak morphology change how finches exploit the seed resource base.</p><ul><li>A population with deeper average beak depth consumes a different subset of the seed community, altering plant reproductive success and seed-bank composition over time</li><li>This can, in turn, alter the selective landscape facing the next generation of finches</li><li>Illustrates that even the textbook case of natural selection has an eco-evolutionary dimension once you look for it</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "IN THEIR OWN WORDS",
+    "quote": "Evolution by natural selection can be studied as it happens, not just inferred after the fact — the finches showed us that a population's traits are a moving target, tracked in real time by the environment they live in.",
+    "attrib": "Paraphrased synthesis of findings from Peter R. Grant and B. Rosemary Grant's multi-decade Daphne Major studies"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS ACROSS SYSTEMS",
+    "title": "What Guppies, Finches, and Daphnia Have in Common",
+    "items": [
+      "All three systems show selection strong enough to produce measurable phenotypic change within years to a few decades",
+      "All three link a specific, identifiable ecological driver (predation, drought/rainfall, eutrophication or toxin exposure) to a specific phenotypic response",
+      "All three benefit from repeated or replicated measurement — multiple streams, multiple decades, multiple sediment depths — which strengthens the inference beyond a single anecdote",
+      "All three illustrate that standing genetic variation, not new mutation, is usually the raw material for rapid adaptive change",
+      "Together they establish rapid evolution not as a curiosity but as a general, expected outcome whenever selection is strong and variation is available"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 10 SYNTHESIS",
+    "title": "Pulling It All Together",
+    "sub": "Case studies, measurement tools, and the central lesson of Chapter 10"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "Three Lessons of Chapter 10",
+    "items": [
+      "Lesson 1 — Natural selection is not just a historical inference: it can be measured directly in living populations using selection differentials, gradients, and fitness surfaces",
+      "Lesson 2 — Evolutionary change can be fast: rapid/contemporary evolution occurs on ecological timescales, overturning the old assumption that evolution is always too slow to observe",
+      "Lesson 3 — Ecology and evolution are intertwined: eco-evolutionary dynamics show that evolutionary change can reshape the very ecological conditions that drive it, forming continuous feedback loops",
+      "Together, these lessons transformed natural selection from a plausible historical mechanism into an actively observable, quantifiable, and ecologically consequential process"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "CHAPTER 10 AT A GLANCE",
+    "title": "Case Studies, Methods, and Key Lessons",
+    "headers": [
+      "Case study",
+      "Primary method",
+      "Key lesson"
+    ],
+    "rows": [
+      [
+        "Trinidadian guppies",
+        "Transplant experiments + common garden",
+        "Predation regime drives rapid, replicable life-history and color evolution"
+      ],
+      [
+        "Threespine stickleback",
+        "Comparative genomics + fossil freshwater lineages",
+        "Repeated evolution can reuse the same genetic toolkit (e.g., Eda locus)"
+      ],
+      [
+        "Soapberry bugs",
+        "Field measurement of beak length vs. host fruit geometry",
+        "Novel resources (introduced host plants) can drive rapid trait tracking"
+      ],
+      [
+        "Darwin's finches",
+        "Multi-decade pedigreed field census",
+        "Selection can reverse direction between years, producing fluctuating selection"
+      ],
+      [
+        "Daphnia resurrection ecology",
+        "Sediment coring + hatching resting eggs + common garden",
+        "Direct ancestor-descendant comparison confirms genetic (not just plastic) change"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SYNTHESIS",
+    "title": "Building the Case for Observable Selection",
+    "levels": [
+      {
+        "label": "Rapid evolution & eco-evo feedback",
+        "color": "#4a1620",
+        "width": "560px"
+      },
+      {
+        "label": "Multiple convergent case studies",
+        "color": "#6b2c39",
+        "width": "480px"
+      },
+      {
+        "label": "Quantified selection: S, β, fitness surfaces",
+        "color": "#8a3f4d",
+        "width": "400px"
+      },
+      {
+        "label": "Documented phenotypic variation",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Natural selection as a testable hypothesis",
+        "color": "#c47b87",
+        "width": "240px"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHODS RECAP",
+    "title": "The Measurement Toolkit, Revisited",
+    "left": {
+      "h": "From Lecture 3",
+      "body": "<p>Quantitative tools let biologists move from \"selection probably happened\" to \"selection of this exact strength happened.\"</p><ul><li>Selection differential (S): change in trait mean before vs. after selection within a generation</li><li>Selection gradient (β): partial regression coefficient isolating direct selection on a trait from indirect selection via correlated traits</li><li>Fitness surfaces: visualize how fitness depends jointly on multiple traits, revealing directional, stabilizing, or disruptive selection</li></ul>"
+    },
+    "right": {
+      "h": "How today's case studies use them",
+      "body": "<p>Every system in this lecture depends on this toolkit to move beyond description into quantification.</p><ul><li>Finches: among the largest S values ever recorded for a wild vertebrate trait, calculated directly from Daphne Major census data</li><li>Daphnia: common-garden comparisons let researchers calculate the realized rate of evolutionary change (in haldanes or darwins) between sediment layers</li><li>Guppies: selection gradients separate the direct effects of predation on coloration from indirect correlated effects on body size</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BROADER IMPLICATIONS",
+    "title": "Rapid Evolution in a Changing World",
+    "items": [
+      "If selection is strong and standing variation is present, populations can evolve fast enough to matter for conservation planning within a human lifetime",
+      "Climate change, habitat fragmentation, and species introductions are creating new, strong selection pressures on wild populations right now",
+      "Understanding rapid evolution allows ecologists to ask not just \"will this population persist?\" but \"will this population adapt fast enough to persist?\"",
+      "Eco-evolutionary dynamics implies that management decisions (harvesting, stocking, habitat restoration) can have evolutionary consequences that feed back into ecosystem function",
+      "This connects Chapter 10 directly to applied fields: fisheries management, invasive species biology, and conservation genetics"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RELATED CONCEPT",
+    "title": "Fluctuating Selection",
+    "term": "Fluctuating selection",
+    "def": "A pattern in which the direction or strength of natural selection on a trait changes across generations or years (e.g., due to alternating environmental conditions), preventing sustained directional change and instead producing oscillation around a long-term mean.",
+    "bullets": [
+      "Directly illustrated by Darwin's finches: drought years favor large beaks, wet years favor small beaks",
+      "Explains why many wild populations show strong measurable selection each generation yet appear relatively stable over the long run",
+      "Distinguishes short-term evolutionary dynamics (visible via contemporary studies) from long-term net evolutionary trends"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "APPLIED EXAMPLES",
+    "title": "Human-Induced Rapid Evolutionary Change (HIREC)",
+    "items": [
+      "Term coined to describe evolutionary responses specifically triggered by human-caused environmental change",
+      "Fisheries: intensive harvesting of large fish selects for earlier maturation at smaller body size in exploited populations",
+      "Pesticide and antibiotic resistance: extremely strong artificial selection produces resistance evolution within a handful of generations — a rapid evolution case study outside of natural predator-prey systems",
+      "Urban environments: urban lizards, birds, and plants show rapid trait shifts (e.g., toe-pad morphology, song frequency, seed dispersal traits) in response to novel urban conditions",
+      "These examples show that the same principles documented in guppies, finches, and Daphnia apply directly to human-dominated systems"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "HIREC EXAMPLES",
+    "title": "Rapid Evolution Driven by Humans",
+    "cards": [
+      {
+        "h": "Fisheries-induced evolution",
+        "p": "Size-selective harvesting shifts populations toward earlier maturity and smaller adult body size within decades."
+      },
+      {
+        "h": "Pesticide/antibiotic resistance",
+        "p": "Extremely strong selection produces resistant genotypes within a handful of generations, sometimes months."
+      },
+      {
+        "h": "Urban adaptation",
+        "p": "City-dwelling lizards, birds, and plants show measurable trait shifts tied to heat, noise, and novel substrates."
+      },
+      {
+        "h": "Invasive species introductions",
+        "p": "Novel biotic and abiotic conditions in the introduced range can drive rapid trait divergence, echoing the soapberry bug pattern."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PREDATOR-PREY DYNAMICS",
+    "title": "Coevolutionary Feedback on Short Timescales",
+    "left": {
+      "h": "Rapid reciprocal adaptation",
+      "body": "<p>Eco-evolutionary dynamics is especially visible in predator-prey and host-parasite systems, where each side imposes strong selection on the other.</p><ul><li>Prey/host evolve defenses, which reduce predator/parasite fitness</li><li>Predators/parasites evolve counter-adaptations, restoring pressure on prey/host</li></ul>"
+    },
+    "right": {
+      "h": "Why this matters for population dynamics",
+      "body": "<p>Because both sides can evolve on ecological timescales, classic predator-prey population cycles can be altered by ongoing coevolution.</p><ul><li>Theoretical and empirical work (e.g., rotifer-algal systems, bacteria-phage systems) shows that rapid prey evolution can dampen, delay, or alter predator-prey cycle dynamics</li><li>This is a direct, testable prediction of the eco-evolutionary dynamics framework introduced earlier in this lecture</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREDICTIVE POWER",
+    "title": "Can We Predict Rapid Evolution?",
+    "items": [
+      "Predictability requires knowing three things: the strength and direction of selection, the amount of heritable variation, and the genetic architecture of the trait",
+      "The breeder's equation (response to selection = heritability × selection differential) links these quantities directly to Lecture 3's tools",
+      "Systems with well-characterized genetics (e.g., stickleback armor loci, finch beak genes such as ALX1 and HMGA2) allow the most precise predictions",
+      "Predictive success is still limited by environmental unpredictability (e.g., unpredictable drought timing) and by genetic constraints such as trait correlations and pleiotropy",
+      "This is an active frontier: combining genomics with long-term ecological monitoring to forecast, not just document, evolutionary responses"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "SYNTHESIS STATEMENT",
+    "quote": "Natural selection in the wild is neither rare nor slow — it is common, strong, and often fast enough to reshape the ecological stage on which it plays out.",
+    "attrib": "Synthesis theme, Zimmer & Emlen, Chapter 10"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "OPEN QUESTIONS",
+    "title": "What Chapter 10 Leaves Unresolved",
+    "items": [
+      "How general is eco-evolutionary feedback — is it the exception or the rule across ecosystems?",
+      "How much of observed rapid phenotypic change is due to genetic evolution versus phenotypic plasticity in less-studied systems (where common-garden or resurrection approaches aren't feasible)?",
+      "Can rapid evolution keep pace with the rate of anthropogenic environmental change, or will most populations face extinction before adapting?",
+      "How do these single-trait, single-population case studies scale up to predict community- and ecosystem-level outcomes?",
+      "These open questions motivate ongoing research and connect Chapter 10's empirical foundation to broader questions in conservation and global change biology"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Chapter 10 Summary",
+    "sub": "Natural selection: empirical studies in the wild"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "What to Remember from Chapter 10",
+    "cards": [
+      {
+        "h": "Selection is measurable",
+        "p": "Selection differentials, gradients, and fitness surfaces let biologists quantify natural selection directly in wild populations."
+      },
+      {
+        "h": "Selection is often strong",
+        "p": "Case studies from guppies to finches to soapberry bugs repeatedly show selection strong enough to matter within a few generations."
+      },
+      {
+        "h": "Evolution can be rapid",
+        "p": "Contemporary evolution occurs on ecological timescales, overturning the assumption that evolutionary change is always imperceptibly slow."
+      },
+      {
+        "h": "Ecology and evolution interact",
+        "p": "Eco-evolutionary dynamics shows evolution can reshape ecology just as ecology shapes evolution, forming ongoing feedback loops."
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "CONCEPTUAL HISTORY",
+    "title": "How the Field's View of Evolutionary Tempo Changed",
+    "items": [
+      {
+        "y": "1859",
+        "t": "Darwin proposes gradual, imperceptibly slow evolutionary change in On the Origin of Species"
+      },
+      {
+        "y": "1940s–1960s",
+        "t": "Modern Synthesis formalizes population genetics; evolutionary and ecological timescales treated as largely separate"
+      },
+      {
+        "y": "1973–",
+        "t": "Grants begin continuous monitoring of Darwin's finches on Daphne Major, later revealing strong, fast, fluctuating selection"
+      },
+      {
+        "y": "1980s–1990s",
+        "t": "Guppy transplant experiments and soapberry bug studies provide additional direct evidence of contemporary evolution"
+      },
+      {
+        "y": "1990s–2000s",
+        "t": "\"Rapid evolution\" and \"contemporary evolution\" become established terms; resurrection ecology matures as a method"
+      },
+      {
+        "y": "2000s–present",
+        "t": "Eco-evolutionary dynamics emerges as a unifying framework linking evolutionary and ecological research programs"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "Clearing Up Frequent Misunderstandings",
+    "items": [
+      "Misconception: rapid evolution requires new mutations. Reality: it typically acts on existing standing genetic variation already segregating in the population",
+      "Misconception: rapid evolution means evolution is always fast. Reality: rate varies enormously; these are documented cases of unusually strong, well-measured selection, not a universal rule",
+      "Misconception: eco-evolutionary dynamics is just another word for coevolution. Reality: it specifically emphasizes reciprocal feedback between evolutionary and ecological processes, including non-species-interaction contexts like nutrient cycling",
+      "Misconception: resurrection ecology proves selection caused the change. Reality: it provides strong correlational evidence tied to an independently dated environmental driver, but experimental transplant studies remain the gold standard for demonstrating causation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY CHECKLIST",
+    "title": "Concepts You Should Be Able to Define and Apply",
+    "items": [
+      "Rapid / contemporary evolution — definition, timescale, and why it challenged prior assumptions",
+      "Eco-evolutionary dynamics — the bidirectional feedback loop between ecology and evolution",
+      "Resurrection ecology and diapausing eggs — how sediment archives enable ancestor-descendant common-garden comparisons",
+      "Fluctuating selection — how alternating environmental conditions prevent sustained directional change (finches)",
+      "How selection differentials (S), selection gradients (β), and fitness surfaces (Lecture 3) are applied within each of today's case studies",
+      "HIREC — human-induced rapid evolutionary change and its applied examples (fisheries, resistance evolution, urban adaptation)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Chapter 10, Lecture 4 in Review",
+    "items": [
+      "Rapid evolution: genetically based trait change fast enough to observe on ecological timescales, overturning the old assumption of universally slow evolutionary change",
+      "Eco-evolutionary dynamics: a framework in which evolutionary change feeds back to alter the ecological conditions that drive further selection",
+      "Daphnia resurrection ecology: sediment-preserved resting eggs allow direct common-garden comparison of ancestral and descendant genotypes, isolating genetic change from plasticity",
+      "Darwin's finches: revisited as a founding case of rapid, fluctuating selection, and as a bridge connecting Evolution I mechanisms to Evolution II's empirical toolkit",
+      "Chapter 10 synthesis: natural selection in the wild is observable, quantifiable, often fast, and ecologically consequential — a foundation for everything that follows in Evolution II"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING AHEAD",
+    "title": "Next: Chapter 11 — Sex",
+    "sub": "Causes and consequences of sexual reproduction"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP IN LECTURE 5",
+    "title": "Preview: Why Does Sex Evolve?",
+    "items": [
+      "Chapter 11 turns to one of evolutionary biology's deepest puzzles: why sexual reproduction persists despite its substantial costs",
+      "We will examine the \"twofold cost of sex\" compared to asexual reproduction and the major hypotheses proposed to explain it",
+      "Topics will include the Red Queen hypothesis (coevolution with parasites), the mutation-purging (Muller's ratchet) hypothesis, and the role of genetic recombination in generating variation",
+      "This connects directly back to today's material: Daphnia's own switch between asexual and sexual reproduction (producing the resting eggs used in resurrection ecology) will resurface as a live example",
+      "Bring your notes on selection gradients and standing genetic variation — both concepts return when we discuss how recombination reshuffles variation for selection to act on"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 4</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

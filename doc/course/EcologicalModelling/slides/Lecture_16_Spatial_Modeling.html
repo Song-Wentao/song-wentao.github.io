@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 16: Spatial Modeling</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 16",
+    "title": "Spatial Modeling",
+    "sub": "The course finale: what happens when 'near things' really are more related, and how to model that directly -- spatial autocorrelation, spatial smooths, and point process models",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Tobler's First Law of Geography",
+    "quote": "Everything is related to everything else, but near things are more related than distant things.",
+    "attrib": "Waldo Tobler (1970)"
+  },
+  {
+    "type": "section",
+    "tag": "Picking Up the Thread",
+    "title": "Lecture 13 Left a Loose End",
+    "sub": "The BEI habitat-suitability map had structure left in its residuals that elev and grad alone did not explain -- that structure was space"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What Lecture 13 Foreshadowed",
+    "title": "SDM Residuals Are Rarely Independent in Space",
+    "items": [
+      "The Lecture 13 logistic-regression and random-forest SDMs for Beilschmiedia pendula predicted suitability from elevation and gradient alone -- but two nearby grid cells with similar covariates also tend to have similar residual error, simply because they are near each other",
+      "That is not a modeling mistake specific to SDMs -- it is a near-universal property of ecological data collected across space: soil, microclimate, dispersal limitation, and disturbance history are all spatially structured",
+      "Every model from Lecture 5 onward -- LM, GLM, GLMM, GAM, Bayesian hierarchical, time series, occupancy, ML, SDM, population, community -- assumes (or at best partially relaxes) independent errors",
+      "This closing lecture makes that violation precise, measurable, and fixable -- and introduces a second, complementary spatial framework built for mapped point data specifically"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two Real Datasets, Two Spatial Questions",
+    "title": "Correlated Residuals vs. Modeling the Points Themselves",
+    "items": [
+      "Question A -- 'Are nearby measurements more similar than distant ones, and does that break my model's assumptions?' We answer this with Borcard & Legendre's (1994) oribatid mite survey at Lac Cromwell: 70 soil cores with real x, y coordinates and a water-content measurement (WatrCont) at each",
+      "Question B -- 'Given only the locations of individuals, what process generated that spatial pattern?' We answer this with Condit, Hubbell & Foster's (2002) Barro Colorado Island 50-ha census: 3,604 mapped Beilschmiedia pendula tree locations, the standard teaching dataset for spatial point-process methods",
+      "These are genuinely different statistical problems -- the first treats space as a nuisance to diagnose and correct for; the second treats the spatial locations as the response variable itself"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Quantifying Spatial Autocorrelation",
+    "title": "Moran's I",
+    "sub": "A single number that asks: are nearby values more similar than chance would predict?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Moran's I",
+    "term": "Moran's I",
+    "def": "A global statistic measuring spatial autocorrelation: whether values at nearby locations are more similar (positive I), more dissimilar (negative I), or no more related than chance (I near its expected value) than a random spatial arrangement of the same values would produce.",
+    "bullets": [
+      "I = (n / S0) * [ sum_ij w_ij (x_i - xbar)(x_j - xbar) ] / [ sum_i (x_i - xbar)^2 ], where w_ij is a spatial weight (how 'connected' sites i and j are) and S0 = sum of all weights",
+      "Ranges roughly from -1 (perfect checkerboard dissimilarity) to +1 (perfect spatial clustering of similar values); its expected value under no autocorrelation is -1/(n-1), not exactly 0",
+      "Requires a spatial weights matrix W as an input choice, not an output -- W encodes your assumption about which locations count as 'neighbours' and how strongly",
+      "Significance is almost always assessed by permutation: shuffle the data values across the fixed locations many times, recompute I each time, and see how extreme the observed I is relative to that null distribution"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before You Can Compute I",
+    "title": "Building a Spatial Weights Matrix",
+    "items": [
+      "A weights matrix W says, for every pair of sites (i, j), how much site j should count as a 'neighbour' of site i -- W is a modeling choice, not a fact about the data",
+      "Distance-band weights: connect all sites within some radius d; simple but brittle when points are irregularly spaced (some sites end up with zero neighbours, others with dozens)",
+      "k-nearest-neighbour (k-NN) weights: connect each site to its k closest sites, regardless of exact distance -- robust to irregular spacing, which is exactly the situation with the 70 mite cores (not on a regular grid)",
+      "We use k = 5 nearest neighbours, row-standardized so each site's weights sum to 1 -- a common, defensible default for irregularly spaced ecological survey points"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Moran's I with spdep::moran.test() and a Permutation Test",
+    "left": {
+      "h": "Build k-NN weights and run the analytic test",
+      "body": "<pre><code>library(spdep)\n\nmite_env &lt;- read.csv(\"data/mite_env.csv\")\ncoords &lt;- as.matrix(mite_env[, c(\"x\",\"y\")])\n\nknn &lt;- knearneigh(coords, k = 5)\nnb  &lt;- knn2nb(knn)\nlw  &lt;- nb2listw(nb, style = \"W\")\n\nmt &lt;- moran.test(mite_env$WatrCont, lw)\nprint(mt)\n# Moran I statistic = 0.543, p &lt; 2.2e-16</code></pre>"
+    },
+    "right": {
+      "h": "Permutation (Monte Carlo) version -- more robust p-value",
+      "body": "<pre><code>mc &lt;- moran.mc(mite_env$WatrCont, lw,\n               nsim = 999)\nprint(mc)\n# statistic = 0.543\n# observed rank = 1000 / 1000\n# p-value = 0.001\n\n# The lecture script hand-rolls the same\n# statistic directly (no spdep dependency)\n# and recovers the identical I = 0.543 --\n# a good cross-check of the formula.</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "Moran's I with esda.Moran (PySAL) and a k-NN Weights Object",
+    "left": {
+      "h": "Build k-NN weights, run esda.Moran",
+      "body": "<pre><code>from libpysal.weights import KNN\nfrom esda.moran import Moran\n\ncoords = mite_env[[\"x\",\"y\"]].values\nw = KNN.from_array(coords, k=5)\nw.transform = \"r\"   # row-standardize\n\nmi = Moran(mite_env[\"WatrCont\"].values,\n           w, permutations=999)\nprint(mi.I, mi.p_sim)\n# I = 0.542, p_sim = 0.001</code></pre>"
+    },
+    "right": {
+      "h": "Hand-rolled cross-check (scipy cKDTree)",
+      "body": "<pre><code>from scipy.spatial import cKDTree\nimport numpy as np\n\ndef morans_i(x, W):\n    n, xbar = len(x), x.mean()\n    dev = x - xbar\n    S0 = W.sum()\n    num = np.sum(W * np.outer(dev, dev))\n    den = np.sum(dev**2)\n    return (n / S0) * (num / den)\n\n# W built from cKDTree k=5 neighbours;\n# matches esda's I to 3 decimal places</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "Hand-Rolled Moran's I with NearestNeighbors.jl",
+    "left": {
+      "h": "k-NN weights matrix from a KD-tree",
+      "body": "<pre><code>using NearestNeighbors, Statistics\n\nfunction knn_weights(coords, k)\n    n = size(coords, 1)\n    tree = KDTree(permutedims(coords))\n    idxs, _ = knn(tree, permutedims(coords),\n                  k + 1)  # +1: self is closest\n    W = zeros(n, n)\n    for i in 1:n\n        nb = filter(!=(i), idxs[i])[1:k]\n        W[i, nb] .= 1.0 / k\n    end\n    return W\nend</code></pre>"
+    },
+    "right": {
+      "h": "Moran's I and a permutation test",
+      "body": "<pre><code>function morans_i(x, W)\n    n, xbar = length(x), mean(x)\n    dev = x .- xbar\n    S0 = sum(W)\n    num = sum(W .* (dev * dev'))\n    den = sum(dev .^ 2)\n    return (n / S0) * (num / den)\nend\n\nI_obs = morans_i(mite_env.WatrCont, W)\n# I_obs = 0.543 -- matches R and Python\n# to 3 decimal places</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Output",
+    "title": "I = 0.54, p = 0.001 -- What That Actually Says",
+    "items": [
+      "All three languages agree closely: I is approximately 0.54, far above the expected value of about -0.014 under no spatial structure, and the permutation p-value is 0.001 (the observed I exceeds every one of 999 shuffled datasets)",
+      "This is strong, statistically clear positive spatial autocorrelation: soil cores that are physically close to each other at Lac Cromwell have much more similar water content than a random arrangement of the same 70 values would produce",
+      "The companion Moran scatterplot (WatrCont vs. its spatially lagged value -- the average of each site's 5 nearest neighbours) makes this visual: the fitted line's slope is approximately equal to Moran's I itself, and here it slopes clearly upward",
+      "This is not a mite-specific quirk -- soil moisture, canopy cover, disturbance history, and most other ecological covariates are spatially patchy for genuinely ecological reasons (drainage, topography, dispersal)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Consequence",
+    "title": "Every Model Since Lecture 5 Assumed This Away",
+    "items": [
+      "Linear models (5), GLMs (6), and even GAMs (8) assume residuals are independent, conditional on the predictors in the model -- their standard errors, p-values, and confidence intervals are built on that assumption",
+      "Mixed models (7) relax independence only within specified random-effects groups (e.g. site, year) -- they do not automatically handle continuous spatial proximity unless you explicitly add a spatial correlation structure",
+      "When residuals are positively spatially autocorrelated (as WatrCont is here), your effective sample size is smaller than n -- nearby points are partially redundant copies of the same information -- and standard errors computed as if n independent observations exist will be too small, inflating apparent significance",
+      "This is exactly the risk flagged at the end of Lecture 13: an SDM fit on spatially autocorrelated presence/background data can look far more confident than it should be, and a naive random train/test split overstates accuracy for the same reason"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Two Complementary Fixes",
+    "title": "Absorbing the Spatial Structure",
+    "sub": "A spatial regression term, or a bivariate smooth you already know how to fit"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two Honest Options",
+    "title": "Model the Correlation, or Model the Surface",
+    "items": [
+      "Option 1 -- spatial regression models: add an explicit autocorrelation term to the model's error structure (e.g. a simultaneous autoregressive [SAR] or conditional autoregressive [CAR] error model, spdep::errorsarlm() in R) so standard errors are corrected for the redundancy nearby points carry",
+      "Option 2 -- a GAM with a 2-D spatial smooth: fit s(x, y) as a covariate (Lecture 8's smooth-term machinery, just with two inputs instead of one) so the model's fitted surface directly absorbs whatever smooth spatial trend was inflating the residual correlation",
+      "Neither one is universally 'better' -- SAR/CAR models are the traditional spatial-statistics tool and give an interpretable autocorrelation parameter; a 2-D smooth is often faster to fit, easier to visualize, and reuses machinery you already know",
+      "Both share the same goal: stop treating a spatially patchy nuisance as noise, and instead give the model an explicit way to account for it"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "A Bivariate Smooth s(x, y) IS a Simple Spatial Model",
+    "left": {
+      "h": "Fit the 2-D smooth (same mgcv as Lecture 8)",
+      "body": "<pre><code>library(mgcv)\n\ngam_spatial &lt;- gam(\n  WatrCont ~ s(x, y),\n  data = mite_env\n)\nsummary(gam_spatial)\n# s(x,y): edf = 8.9, p &lt; 2.2e-16\n# Deviance explained: 62.3%</code></pre>"
+    },
+    "right": {
+      "h": "Check: did it absorb the autocorrelation?",
+      "body": "<pre><code>resid_gam &lt;- residuals(gam_spatial)\nI_resid &lt;- morans_i(resid_gam, W)\n\ncat(I_resid, \"\\n\")\n# I_resid ~ 0.10 -- far below the raw\n# data's I = 0.54: the smooth surface\n# soaked up most of the spatial pattern,\n# leaving residuals close to independent</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Other Route",
+    "title": "Spatial Regression: Modeling the Error Structure Directly",
+    "items": [
+      "A simultaneous autoregressive (SAR) error model writes the residual e_i as e_i = rho * sum_j w_ij * e_j + u_i -- each site's leftover error is partly a weighted average of its neighbours' errors, plus genuinely independent noise u_i",
+      "rho (the spatial autoregressive coefficient) is estimated directly and is itself interpretable: how strongly, and at what weighting, does unexplained residual variation propagate across space?",
+      "In R, spdep::errorsarlm(WatrCont ~ Substrate + Shrub, data = mite_env, listw = lw) fits exactly this on top of any linear predictor -- the fixed-effects coefficients get corrected standard errors that properly reflect the reduced effective sample size",
+      "Rule of thumb: reach for spatial regression when the spatial autocorrelation itself is scientifically interesting (e.g. estimating a dispersal or contagion scale); reach for s(x, y) when space is a nuisance you mainly want to control for while estimating other effects cleanly"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Spatial Error Regression with spdep::errorsarlm()",
+    "left": {
+      "h": "Fit a SAR error model on top of fixed effects",
+      "body": "<pre><code>library(spdep)\n\nsar_fit &lt;- errorsarlm(\n  WatrCont ~ Substrate + Shrub,\n  data = mite_env,\n  listw = lw            # same k-NN weights\n)                        # as the Moran's I test\nsummary(sar_fit)\n# rho (spatial AR coefficient) reported\n# with its own likelihood-ratio test</code></pre>"
+    },
+    "right": {
+      "h": "Compare to the naive (non-spatial) OLS fit",
+      "body": "<pre><code>ols_fit &lt;- lm(\n  WatrCont ~ Substrate + Shrub,\n  data = mite_env\n)\n\n# Coefficients often similar, but SAR's\n# standard errors are typically WIDER --\n# correctly reflecting that nearby cores\n# are partially redundant observations,\n# not n fully independent ones</code></pre>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "A Different Spatial Question Entirely",
+    "title": "Point Process Models",
+    "sub": "Not correcting for spatial structure in residuals -- modeling the locations of the events themselves"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Point Process Model",
+    "term": "point process model",
+    "def": "A statistical model for the LOCATIONS of a set of discrete events in space (or space-time) -- treating the pattern of points itself, not a separately measured response variable, as the outcome to be explained by an intensity function lambda(u) that varies across the study area.",
+    "bullets": [
+      "The response is not a number attached to each location -- it is the set of locations themselves, plus (implicitly) all the empty space where no event occurred",
+      "An inhomogeneous Poisson process is the simplest useful model: lambda(u), the expected density of points per unit area at location u, is allowed to vary as a log-linear function of spatial covariates -- log(lambda(u)) = beta0 + beta1*z1(u) + beta2*z2(u) + ...",
+      "This is structurally identical to Poisson regression (Lecture 6's GLM family) -- just fit over continuous space (or a fine discretization of it) instead of a fixed table of rows",
+      "Complements, rather than replaces, the spatial-autocorrelation tools above: those diagnose and correct correlated residuals in an ordinary regression; a point process model asks a fundamentally different question -- what generated this spatial pattern of events?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The BEI Dataset",
+    "title": "3,604 Mapped Trees, One Covariate Surface",
+    "items": [
+      "Barro Colorado Island 50-ha forest census (Condit, Hubbell & Foster 2002, Science): the exact (x, y) location of every individually mapped Beilschmiedia pendula stem in a 1000 m x 500 m plot",
+      "A fine covariate grid gives elevation and slope-gradient at every point in the plot -- the same elev/grad covariates used for the Lecture 13 SDM",
+      "The question here is not 'is this location suitable, yes or no' (Lecture 13's presence-background framing) but 'what intensity of trees per square meter do we expect as a smooth function of elevation and gradient, everywhere in the plot' -- a genuinely continuous-space density surface",
+      "This is the standard teaching dataset for spatial point-pattern analysis (used throughout Baddeley, Rubak & Turner's textbook on spatstat) precisely because it is large, real, and has genuine environmental covariates driving a non-random spatial pattern"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Closing the Loop on Lecture 13",
+    "title": "From Ad Hoc Presence-Background SDM to a Formal Point Process",
+    "items": [
+      "Lecture 13's SDM was a workaround: with only tree locations and no true absences, we manufactured 'background' points, built a presence-vs-background classification table, and fit a GLM/random forest -- a common but statistically ad hoc trick",
+      "A point process model formalizes exactly the same scientific question -- how does tree intensity vary with elevation and gradient -- without needing to invent artificial absences at all; the likelihood is built directly from the Poisson process itself",
+      "In fact, the presence-background logistic regression trick can be shown to APPROXIMATE the point process likelihood as the number of background points grows large -- Lecture 13 was doing a rough version of what this lecture does properly",
+      "This is a genuinely satisfying place for the course to end: the last statistical trick from Lecture 13 turns out to be a special case of the last, most general framework introduced here"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Inhomogeneous Poisson Process with spatstat::ppm()",
+    "left": {
+      "h": "Build spatstat im/ppp objects, fit the process",
+      "body": "<pre><code>library(spatstat)\n\npp &lt;- ppp(pts$x, pts$y,\n          window = owin(range(xs), range(ys)))\nelev_im &lt;- im(elev_mat, xcol = xs, yrow = ys)\ngrad_im &lt;- im(grad_mat, xcol = xs, yrow = ys)\n\nppm_full &lt;- ppm(\n  pp ~ elev + grad,\n  data = list(elev = elev_im, grad = grad_im)\n)\nprint(ppm_full)</code></pre>"
+    },
+    "right": {
+      "h": "Model comparison by AIC",
+      "body": "<pre><code>ppm_null &lt;- ppm(pp ~ 1)          # CSR\nppm_elev &lt;- ppm(pp ~ elev,\n                data = list(elev = elev_im))\n\nAIC(ppm_null)   # 42871.6\nAIC(ppm_elev)   # 42863.0\nAIC(ppm_full)   # 42418.3  &lt;- best\n\nanova(ppm_elev, ppm_full, test = \"LRT\")\n# grad adds significant explanatory\n# power beyond elev alone (p &lt; 2e-16)</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "The Discretized-Grid Equivalent: a Binned Poisson GLM",
+    "left": {
+      "h": "Bin trees into a 25 x 10 grid, count per cell",
+      "body": "<pre><code>cell_dat = cell_cov.merge(counts,\n    on=[\"bin_x\",\"bin_y\"], how=\"left\")\ncell_dat[\"count\"] = (\n    cell_dat[\"count\"].fillna(0))\ncell_dat[\"log_area\"] = np.log(cell_area)\n# 250 cells, mean 14.4 trees/cell</code></pre>"
+    },
+    "right": {
+      "h": "Poisson GLM with a log(area) offset",
+      "body": "<pre><code>import statsmodels.formula.api as smf\nimport statsmodels.api as sm\n\nglm_full = smf.glm(\n    \"count ~ elev + grad\", data=cell_dat,\n    family=sm.families.Poisson(),\n    offset=cell_dat[\"log_area\"]\n).fit()\n\nprint(glm_full.params)\n# elev: 0.022, grad: 5.77 (both p&lt;0.001)\n# -- matches R's ppm coefficients closely</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "The Same Binned Poisson GLM via GLM.jl",
+    "left": {
+      "h": "Bin, aggregate covariates and counts",
+      "body": "<pre><code>cell_cov = combine(\n    groupby(grid, [:bin_x, :bin_y]),\n    :elev =&gt; mean =&gt; :elev,\n    :grad =&gt; mean =&gt; :grad)\n\ncounts = combine(\n    groupby(pts, [:bin_x, :bin_y]),\n    nrow =&gt; :count)\n\ncell_dat = leftjoin(cell_cov, counts,\n    on = [:bin_x, :bin_y])\ncell_dat.count = coalesce.(\n    cell_dat.count, 0)</code></pre>"
+    },
+    "right": {
+      "h": "Poisson GLM with an offset",
+      "body": "<pre><code>using GLM\n\nglm_full = glm(\n    @formula(count ~ elev + grad),\n    cell_dat, Poisson(), LogLink(),\n    offset = cell_dat.log_area)\n\ncoef(glm_full)\n# [-8.65, 0.022, 5.77]\n# same story as R's ppm and Python's GLM</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Cross-Language Agreement",
+    "title": "Three Languages, One Ecological Story",
+    "items": [
+      "R's full continuous-space spatstat::ppm(), and the discretized-grid Poisson GLMs fit identically in R, Python, and Julia, all agree: tree intensity rises with elevation and rises sharply with slope gradient, and the elevation+gradient model beats elevation-alone by a wide AIC margin in every implementation",
+      "This is the same cross-language reproducibility exercise that has run through the whole course -- when three independent tool ecosystems built by different communities converge on the same coefficients from the same data, that is strong practical evidence the result is a property of the data, not an artifact of one library's defaults",
+      "The discretized-grid approach (bin, count, offset-Poisson-GLM) is a legitimate, teachable approximation to the full point-process likelihood -- coarser than spatstat::ppm's continuous treatment, but simple, transparent, and available in any language with a Poisson GLM"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Intensity Surface",
+    "title": "What the Fitted Model Says About Where Trees Grow",
+    "items": [
+      "The fitted intensity surface (figures/lecture_16_bei_intensity_surface.png) shows predicted trees-per-square-meter as a smooth function of elevation and gradient across the whole 50-ha plot, side by side with the raw observed density in the same 25 x 10 grid",
+      "Cells with steep gradient and moderate-to-high elevation have the highest fitted intensity -- consistent with Beilschmiedia pendula's known association with well-drained slope habitat on Barro Colorado Island",
+      "Where observed and fitted densities disagree noticeably, that is a signal: either genuine ecological structure the model has not captured (dispersal limitation near parent trees, soil type, canopy gap history) or a sparsely populated cell where the count is too small to estimate intensity precisely",
+      "This is exactly the same 'model vs. reality' diagnostic thinking used throughout the course, from GLM residual plots in Lecture 6 to posterior predictive checks in Lecture 9 -- a fitted surface is only useful once you have looked at where it disagrees with the data"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Necessary Caveat",
+    "title": "The Poisson Process Assumption Can Itself Be Too Simple",
+    "items": [
+      "An inhomogeneous Poisson process assumes that, ONCE you condition on the covariates (elevation, gradient), the remaining scatter of points is completely random -- no leftover clustering or repulsion between individuals",
+      "Real tree distributions often violate this: seeds disperse near parent trees, creating extra small-scale clustering beyond anything elevation or gradient can explain -- exactly analogous to overdispersion in a Poisson GLM (Lecture 6)",
+      "spatstat provides diagnostics for this: the K-function / pair correlation function compares observed point-to-point distances to what the fitted model predicts, revealing leftover clustering the covariates did not capture",
+      "When that happens, richer models exist -- Cox processes (a Poisson process whose intensity is itself random) or Neyman-Scott cluster processes explicitly add a clustering mechanism on top of the covariate-driven trend; beyond this course's scope, but the natural next step"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Choosing an Approach",
+    "title": "Spatial Regression vs. GAM s(x,y) vs. Point Process Model",
+    "headers": [
+      "Criterion",
+      "Spatial Regression (SAR/CAR)",
+      "GAM with s(x, y)",
+      "Point Process Model (ppm)"
+    ],
+    "rows": [
+      [
+        "What kind of data",
+        "A response measured at fixed sites, suspected of spatially correlated residuals",
+        "Same -- a response measured at fixed sites, plus x, y coordinates",
+        "Mapped locations of discrete events/individuals (no separate response variable)"
+      ],
+      [
+        "What it actually models",
+        "The correlation structure of the residuals directly, via an explicit autoregressive parameter rho",
+        "A flexible, data-estimated spatial trend surface added to the linear predictor",
+        "The intensity (expected density) of points per unit area, as a function of covariates"
+      ],
+      [
+        "What you get out",
+        "Corrected standard errors for your fixed effects, plus an interpretable spatial-dependence parameter",
+        "A visualizable spatial surface and residuals with much-reduced autocorrelation",
+        "A continuous intensity map and covariate effects on WHERE events occur, not just how many"
+      ],
+      [
+        "R package",
+        "spdep::errorsarlm(), spdep::spautolm()",
+        "mgcv::gam(y ~ s(x, y))",
+        "spatstat::ppm()"
+      ],
+      [
+        "When to reach for it",
+        "Spatial dependence itself is of scientific interest, or you need honest inference on OTHER fixed effects",
+        "Space is a nuisance to control for while keeping the rest of the model simple and visual",
+        "The data ARE locations (trees, nests, disease cases) and the scientific question is about where events happen"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Complementary Spatial Task",
+    "title": "Predicting at Unsampled Locations: Kriging",
+    "sub": "Autocorrelation diagnosis asks 'is my model biased'; point process models ask 'what generated these locations'; kriging asks a third question entirely -- 'what is the value HERE, where I never measured?'"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Kriging",
+    "term": "kriging",
+    "def": "A geostatistical interpolation method that predicts a continuous spatial surface at unsampled locations from a set of sparse point measurements, using the same spatial autocorrelation structure (formalized as a variogram) that Moran's I detects, to produce the statistically optimal (minimum mean-squared-error) linear unbiased prediction at every location.",
+    "bullets": [
+      "Named for Danie Krige, a South African mining engineer who developed the method for estimating ore-grade surfaces from sparse borehole samples -- ecology adopted it for interpolating soil, climate, and abundance surfaces from sparse field samples",
+      "The variogram plays the same conceptual role as Moran's I -- it quantifies how quickly spatial correlation decays with distance -- but is fit as a continuous function of distance rather than a single number at one neighbourhood definition",
+      "Kriging gives not just a predicted value at every unsampled location, but a prediction VARIANCE too -- it tells you how confident to be, and that confidence shrinks near sampled points and grows in gaps between them",
+      "In R: the fields and gstat packages (fields::Krig(), gstat::krige()); conceptually available via scikit-learn's GaussianProcessRegressor in Python, since ordinary kriging is mathematically a Gaussian process regression with a spatial covariance kernel"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Engine Behind Kriging",
+    "title": "The Variogram: Moran's I, Generalized Across Distance",
+    "items": [
+      "A variogram plots semivariance -- half the average squared difference between pairs of measurements -- against the distance separating those pairs, for every pair of sampled points",
+      "At small separation distances, semivariance is typically low (nearby points are similar, exactly what a large positive Moran's I already told us); it rises with distance until leveling off at the 'sill', the distance ('range') beyond which points are no more similar than any two random locations",
+      "The 'nugget' is the semivariance extrapolated back to distance zero -- measurement error or fine-scale variation smaller than your sampling grid can resolve",
+      "Kriging fits a parametric curve (spherical, exponential, Gaussian) to this empirical variogram, then uses that fitted spatial-correlation function to compute the optimal weighted average of nearby samples at every unsampled location"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Kriging with gstat -- Predicting WatrCont Everywhere",
+    "left": {
+      "h": "Fit an empirical variogram, then a model to it",
+      "body": "<pre><code>library(gstat)\nlibrary(sp)\n\ncoordinates(mite_env) &lt;- ~ x + y\nvgm_emp &lt;- variogram(WatrCont ~ 1,\n                      mite_env)\nvgm_fit &lt;- fit.variogram(\n  vgm_emp, model = vgm(\"Sph\")\n)\nplot(vgm_emp, vgm_fit)</code></pre>"
+    },
+    "right": {
+      "h": "Krige onto a fine prediction grid",
+      "body": "<pre><code>pred_grid &lt;- expand.grid(\n  x = seq(0, 2.5, by = 0.05),\n  y = seq(0, 10, by = 0.1)\n)\ncoordinates(pred_grid) &lt;- ~ x + y\n\nkrige_out &lt;- krige(\n  WatrCont ~ 1, mite_env,\n  newdata = pred_grid, model = vgm_fit\n)\n# krige_out$var1.pred, var1.var\n# = predicted surface + uncertainty</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Kriging vs. Everything Else in This Lecture",
+    "title": "A Different Goal: Prediction at New Locations, Not Diagnosis or Generation",
+    "items": [
+      "Moran's I and spatial regression diagnose and correct for spatial structure in a model you have already specified -- their job is honest inference on the coefficients you care about",
+      "Point process models explain WHERE discrete events occurred, given covariates that vary continuously over space -- their job is a map of intensity, tied to a generative process",
+      "Kriging's job is narrower and very practical: you sampled water content, soil nutrients, or species abundance at N locations and you need a best-guess continuous surface (with uncertainty) everywhere else in the study area -- interpolation, not explanation",
+      "The three tasks share the same statistical bedrock (spatial autocorrelation is what makes any of them work at all) but answer genuinely different applied questions -- knowing which one you actually need is the practical skill this lecture is building toward"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Decision Guide",
+    "title": "Which Spatial Tool for Which Ecological Question",
+    "cards": [
+      {
+        "h": "\"Are my model's standard errors trustworthy given spatially clustered sites?\"",
+        "p": "Compute Moran's I on the residuals first -- if significant, add a spatial regression term or an s(x, y) smooth"
+      },
+      {
+        "h": "\"What generated the spatial pattern of nests / trees / disease cases I mapped?\"",
+        "p": "A point process model (ppm) -- model the intensity of events directly as a function of covariates"
+      },
+      {
+        "h": "\"I have soil samples at 40 points -- what's the nutrient value at location (x, y) I never sampled?\"",
+        "p": "Kriging -- geostatistical interpolation with honest, distance-based prediction uncertainty"
+      },
+      {
+        "h": "\"I just want a quick, simple way to keep space from confounding my other effects\"",
+        "p": "A 2-D smooth s(x, y) added to a GAM you already know how to fit and interpret"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Closing the Course",
+    "title": "Sixteen Lectures, One Coherent Toolkit",
+    "sub": "Every model in this course answers a variation of the same question: what generative process, honestly described, could have produced the data I actually collected?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "This Lecture's Place in the Sequence",
+    "title": "Spatial Modeling Completes, Rather Than Replaces, the Toolkit",
+    "items": [
+      "Moran's I and spatial regression are diagnostic and corrective additions to the LM/GLM/GLMM/GAM family from Lectures 5-8 -- you now know how to check whether independence was a safe assumption, and what to do when it wasn't",
+      "Point process models extend the Bayesian and Poisson-GLM machinery from Lectures 6 and 9 to a genuinely new data type -- mapped locations -- and formalize the ad hoc presence-background SDM trick from Lecture 13",
+      "Kriging closes a gap none of the other 15 lectures addressed directly: predicting a continuous surface between sparse point samples, using exactly the spatial-correlation structure Moran's I first made visible",
+      "Nothing here throws away Lectures 1-15 -- it gives you the tools to recognize when their core assumption (independent observations) needs an explicit spatial fix, and two different formal frameworks (regression-style and process-style) for supplying it"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "The Full Course",
+    "title": "Sixteen Lectures, One Model Taxonomy (1/2)",
+    "items": [
+      {
+        "y": "1",
+        "t": "Introduction -- why model ecological data at all, and how R, Python, and Julia each approach it"
+      },
+      {
+        "y": "2",
+        "t": "Data Structures & Management -- tidy data, joins, and getting real datasets analysis-ready"
+      },
+      {
+        "y": "3",
+        "t": "Basic Statistical Analysis -- t-tests, ANOVA, correlation: the classical foundation everything else builds on"
+      },
+      {
+        "y": "4",
+        "t": "Multivariate Methods & Ordination -- PCA, NMDS, community-matrix structure in many dimensions"
+      },
+      {
+        "y": "5",
+        "t": "Linear Models -- the base case: a continuous response, a linear predictor, Gaussian errors"
+      },
+      {
+        "y": "6",
+        "t": "Generalized Linear Models -- counts, proportions, and binary outcomes via link functions"
+      },
+      {
+        "y": "7",
+        "t": "Mixed-Effects Models -- non-independence WITHIN grouping structures (sites, years, individuals)"
+      },
+      {
+        "y": "8",
+        "t": "Generalized Additive Models -- when the relationship isn't linear, let the data estimate its shape"
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "The Full Course",
+    "title": "Sixteen Lectures, One Model Taxonomy (2/2)",
+    "items": [
+      {
+        "y": "9",
+        "t": "Bayesian Hierarchical Models -- explicit priors, full posterior uncertainty, multi-level generative structure"
+      },
+      {
+        "y": "10",
+        "t": "Time Series & State-Space Models -- non-independence THROUGH TIME, observation vs. process error"
+      },
+      {
+        "y": "11",
+        "t": "Occupancy & N-mixture Models -- separating true absence from imperfect detection"
+      },
+      {
+        "y": "12",
+        "t": "Machine Learning -- random forests and boosting when the functional form is unknown or too complex to specify"
+      },
+      {
+        "y": "13",
+        "t": "Species Distribution Models -- presence-background habitat suitability from environmental covariates"
+      },
+      {
+        "y": "14",
+        "t": "Population Modeling -- matrix projection and demographic models of abundance through time"
+      },
+      {
+        "y": "15",
+        "t": "Community Ecology Models -- joint species distributions, diversity, and multi-species interactions"
+      },
+      {
+        "y": "16",
+        "t": "Spatial Modeling -- non-independence THROUGH SPACE: autocorrelation, spatial smooths, point processes, kriging"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Thread That Ran Through All Sixteen",
+    "title": "One Question, Asked Sixteen Different Ways",
+    "items": [
+      "Every lecture asked some version of: 'what is the honest generative story behind this data, and what does that story imply about independence, error structure, and uncertainty?' -- a straight line (5), a link function (6), a random effect (7), a smooth (8), a full posterior (9), an autoregressive process (10), an imperfect-detection process (11), an intensity surface (16)",
+      "The three languages were never about R vs. Python vs. Julia as a competition -- they were a repeated, hands-on demonstration that a correctly specified statistical model gives the same answer regardless of software, and that fluency in more than one ecosystem makes you a more resilient, more employable, and more reproducible scientist",
+      "Real, published, peer-reviewed datasets ran through the whole course -- mite communities, dune meadows, BCI trees, lynx cycles, grouse ticks -- because ecological modeling is not an abstract exercise; it is how real conservation and management decisions get made",
+      "The single biggest lesson, if there is only one: match the model's assumptions to the data's actual structure -- independence, linearity, detection, and now space -- rather than defaulting to whichever model is most familiar"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "What You Can Now Do",
+    "title": "A Portable Statistical Skill Set for Ecology",
+    "cards": [
+      {
+        "h": "Choose the right model family for the data's actual structure",
+        "p": "Continuous, count, binary, spatial, temporal, hierarchical, or detection-imperfect -- you can now recognize which of 16 lecture's tools fits"
+      },
+      {
+        "h": "Diagnose violated assumptions before trusting a p-value",
+        "p": "Overdispersion, pseudoreplication, imperfect detection, and now spatial autocorrelation -- and know the standard fix for each"
+      },
+      {
+        "h": "Work fluently across R, Python, and Julia",
+        "p": "Read documentation, translate a model between ecosystems, and use cross-language agreement as a correctness check on your own analysis"
+      },
+      {
+        "h": "Ground every model in a real, published dataset",
+        "p": "Mite communities, dune meadows, BCI trees, lynx cycles, grouse ticks -- practice connecting statistical output back to an ecological question"
+      }
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "Course Complete",
+    "title": "Congratulations",
+    "sub": "You have built, diagnosed, and compared linear models, GLMs, mixed models, GAMs, Bayesian hierarchical models, time series, occupancy models, machine learning, SDMs, population models, community models, and spatial models -- in three languages, on real published ecological data, sixteen lectures in a row. That is a genuine, portable, professional statistical toolkit for ecology.",
+    "footnote": "Ecological Modelling with R, Python, and Julia -- end of course"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 16</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 36: Evolutionary Genomics Today: Comparative Genomics and Genome Editing Tools</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 36",
+    "title": "Evolutionary Genomics Today",
+    "sub": "Comparative Genomics and Genome Editing Tools",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 2 of 11)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Roadmap for Today",
+    "items": [
+      "Lecture 35 recap: conservation genomics applications — inbreeding, effective population size, assisted gene flow",
+      "Today: two of the most powerful modern tools for studying evolution — comparative genomics and genome editing",
+      "Part 1: Comparative genomics as a window into evolutionary history — whole-genome alignments, conserved vs. fast-evolving regions",
+      "Part 2: What comparative genomics tells us about human uniqueness — human accelerated regions (HARs)",
+      "Part 3: CRISPR and genome editing — a research tool for testing evolutionary hypotheses",
+      "Part 4: CRISPR's own evolutionary origin — a bacterial antiviral immune system (callback to arms-race coevolution, L22)",
+      "Part 5: Promise and limits of using genomics to predict future evolution",
+      "Looking ahead: Lecture 37 begins our case-study integration arc with cichlid radiations"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Comparative Genomics as a Tool for Reconstructing Evolutionary History",
+    "sub": "Reading whole genomes the way we once read morphology and single genes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Comparative Genomics",
+    "term": "Comparative Genomics",
+    "def": "The large-scale analysis and alignment of complete genome sequences from two or more species to identify similarities and differences in DNA sequence, gene content, and genome organization, and to infer the evolutionary processes that produced them.",
+    "bullets": [
+      "Extends classical comparative anatomy and molecular phylogenetics (single genes/proteins) to entire genomes",
+      "Made possible by high-throughput sequencing: thousands of genomes now available across the tree of life",
+      "Core output: multi-species whole-genome alignments that reveal which DNA is shared, which is lineage-specific, and how fast different regions evolve"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK — EVOLUTION I, L27-29",
+    "title": "From Single-Gene Trees to Whole-Genome Alignments",
+    "left": {
+      "h": "Then: Molecular Evolution (L27-29)",
+      "body": "<p>In Evolution I you learned the tools of molecular evolution applied largely gene by gene:</p><ul><li>Substitution rates, dN/dS ratios to detect selection on individual genes</li><li>Molecular clocks calibrated with fossils</li><li>Gene trees vs. species trees, orthologs vs. paralogs</li><li>Neutral theory as the null model for sequence divergence</li></ul>"
+    },
+    "right": {
+      "h": "Now: Genome-Wide Scale",
+      "body": "<p>Comparative genomics applies the same logic across millions of aligned base pairs simultaneously:</p><ul><li>Whole-genome alignments identify orthologous DNA across dozens of species at once</li><li>Sliding-window scans locate regions of unusually low or high substitution rate</li><li>Statistical genome scans (e.g., phyloP, phastCons) replace single-locus dN/dS tests</li><li>Same neutral-theory logic, vastly larger dataset and resolution</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHOD",
+    "title": "How a Whole-Genome Alignment Is Built",
+    "items": [
+      "Sequence and assemble genomes for each species into contiguous chromosome-scale scaffolds",
+      "Identify orthologous blocks of DNA using sequence similarity and conserved gene order (synteny)",
+      "Algorithmically align corresponding bases across species, allowing for insertions, deletions, and rearrangements",
+      "Anchor alignments to a reference genome (often human, mouse, or a well-annotated model species)",
+      "Produce a base-by-base map: for every position in the reference genome, know the corresponding base (or gap) in each other species",
+      "Multi-species alignments (30-100+ species) give statistical power to detect subtle rate differences"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "INTERPRETING THE ALIGNMENT",
+    "title": "Conserved vs. Fast-Evolving Regions",
+    "left": {
+      "h": "Conserved Regions",
+      "body": "<p>Stretches of DNA that show unusually little substitution across species, given the time since common ancestry.</p><ul><li>Signal of purifying (negative) selection removing deleterious mutations</li><li>Include protein-coding exons, but also many noncoding regulatory elements</li><li>Ultraconserved elements: near-identical across mammals or even vertebrates for hundreds of millions of years</li><li>Interpretation: this DNA does something functionally important enough that change is costly</li></ul>"
+    },
+    "right": {
+      "h": "Fast-Evolving Regions",
+      "body": "<p>Stretches showing unusually rapid substitution relative to the neutral background rate.</p><ul><li>Can reflect relaxed constraint (region no longer functional) — the boring explanation</li><li>Or positive selection driving rapid fixation of new variants — the interesting explanation</li><li>Distinguishing these requires additional evidence: excess of fixed differences over polymorphism, functional assays</li><li>Fast-evolving regions are prime candidates for lineage-specific adaptation</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "STATISTICAL METHODS",
+    "title": "Detecting Selection: Genome-Wide Scans vs. Classic dN/dS",
+    "left": {
+      "h": "Classic Single-Gene dN/dS",
+      "body": "<p>The ratio of nonsynonymous to synonymous substitution rates, applied to one protein-coding gene at a time (Evolution I, L27-29).</p><ul><li>dN/dS > 1 suggests positive selection on protein sequence</li><li>dN/dS < 1 suggests purifying selection</li><li>Requires enough substitutions per gene for statistical power — noisy for short or slowly evolving genes</li></ul>"
+    },
+    "right": {
+      "h": "Genome-Wide Conservation Scores",
+      "body": "<p>Tools like phyloP and phastCons use multi-species alignments to score every base in the genome for conservation, independent of whether it is coding.</p><ul><li>Model expected neutral substitution rate from many species/branches, then flag deviations</li><li>Applicable to noncoding regulatory DNA, not just protein-coding exons</li><li>Basis for identifying both ultraconserved elements and human accelerated regions (HARs)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT GENOME SCANS REVEAL",
+    "title": "Kinds of Evolutionary Signal Comparative Genomics Detects",
+    "items": [
+      "Protein-coding sequence evolution — dN/dS extended genome-wide to thousands of genes simultaneously",
+      "Regulatory element turnover — gains and losses of enhancers and promoters between lineages",
+      "Gene family expansion and contraction — duplications, losses, pseudogenization",
+      "Structural variation — inversions, translocations, chromosomal fusions/fissions between species",
+      "Transposable element activity — genome 'invasions' and their co-option into regulatory networks",
+      "Horizontal gene transfer signatures in microbes and some eukaryotes"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "PERSPECTIVE",
+    "quote": "The genome is not just a parts list — it is a historical document, and comparative genomics is how we learn to read it.",
+    "attrib": "paraphrased from evolutionary genomics literature"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "FIELD HISTORY",
+    "title": "Milestones in Comparative Genomics",
+    "items": [
+      {
+        "y": "1995",
+        "t": "First complete bacterial genome sequenced (Haemophilus influenzae), proving whole-genome sequencing was feasible"
+      },
+      {
+        "y": "2001",
+        "t": "Draft human genome sequence published, enabling the first genome-wide comparative analyses"
+      },
+      {
+        "y": "2005",
+        "t": "Chimpanzee genome sequenced and published, enabling direct human-chimp whole-genome comparison"
+      },
+      {
+        "y": "2007",
+        "t": "Systematic scans identify human accelerated regions (HARs) using multi-species alignments"
+      },
+      {
+        "y": "2011-2015",
+        "t": "ENCODE and comparable projects annotate noncoding regulatory elements genome-wide, refining conservation-based function predictions"
+      },
+      {
+        "y": "2020s",
+        "t": "Hundreds of primate and thousands of vertebrate genomes sequenced, enabling fine-grained lineage-specific scans"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND SUBSTITUTIONS",
+    "title": "Genome Rearrangements as Evolutionary Signal",
+    "items": [
+      "Whole-genome alignments reveal not just base substitutions but structural changes: inversions, translocations, duplications, and chromosome fusions",
+      "Human chromosome 2 formed from the fusion of two ancestral ape chromosomes — visible directly in the alignment as a fused telomere-telomere signature",
+      "Synteny (conserved gene order) breaks down at rearrangement breakpoints, which can associate with gene regulatory changes",
+      "Segmental duplications create new gene copies that can neofunctionalize or subfunctionalize over evolutionary time",
+      "Structural variants contribute more total base-pair difference between closely related genomes than single-nucleotide substitutions do"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "What Comparative Genomics Tells Us About Human Uniqueness",
+    "sub": "Comparing human, chimpanzee, and other primate genomes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Human Accelerated Regions (HARs)",
+    "term": "Human Accelerated Regions (HARs)",
+    "def": "Genomic regions that are highly conserved across most vertebrates or mammals (indicating strong functional constraint) but show a significantly elevated substitution rate specifically in the human lineage since divergence from the human-chimp common ancestor.",
+    "bullets": [
+      "First systematically identified in the mid-2000s using human-chimp-other mammal genome comparisons",
+      "Logic: ancient conservation + human-specific acceleration = strong candidate for a functionally important human-specific change",
+      "Most HARs are noncoding — concentrated near genes involved in neurodevelopment and transcriptional regulation",
+      "Best-studied example: HAR1, part of a noncoding RNA gene expressed in developing cerebral cortex"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE COMPARISON",
+    "title": "Human-Chimp-Primate Genome Comparisons",
+    "left": {
+      "h": "The Baseline Similarity",
+      "body": "<p>Human and chimpanzee genomes are approximately 98.8% identical at aligned single-nucleotide sites.</p><ul><li>Divergence time from common ancestor: roughly 6-7 million years</li><li>Differences include single-nucleotide substitutions, but also indels, structural variants, and copy-number changes — these contribute more total sequence difference than SNPs alone</li><li>Gorilla and orangutan genomes added as outgroups to polarize which lineage changed</li></ul>"
+    },
+    "right": {
+      "h": "Finding What Makes Us Different",
+      "body": "<p>Because humans and chimps are so similar overall, the functionally important differences are a tiny fraction of the genome.</p><ul><li>HAR scans, positive-selection scans (elevated dN/dS on human branch), and structural-variant surveys narrow candidates</li><li>Genes/regions implicated: FOXP2 (language-related), ASPM and MCPH1 (brain size regulation), HAR1 (cortical neuron development), SRGAP2 duplications (neuron density)</li><li>Key caution: candidate status is not proof of function — requires experimental follow-up</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "NOTABLE CASE STUDIES",
+    "title": "Candidate Human-Lineage-Specific Changes",
+    "cards": [
+      {
+        "h": "HAR1",
+        "p": "Noncoding RNA gene expressed in Cajal-Retzius neurons during cortical development; among the most dramatically accelerated regions in the human genome relative to chimp."
+      },
+      {
+        "h": "FOXP2",
+        "p": "Transcription factor gene with two human-specific amino acid substitutions; implicated in speech and language motor control, first identified via a human family with a severe speech disorder."
+      },
+      {
+        "h": "SRGAP2 duplications",
+        "p": "Human-specific partial gene duplications associated with increased density and longer maturation of neuronal spines in cortex — a proposed contributor to human cognitive evolution."
+      },
+      {
+        "h": "Loss of a myosin gene (MYH16)",
+        "p": "An inactivating mutation reduced jaw muscle mass in the human lineage; proposed (and debated) link to skull/brain evolution via relaxed constraint on cranial growth."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTERPRETIVE CAUTIONS",
+    "title": "Why 'Human-Specific' Claims Require Care",
+    "items": [
+      "Statistical acceleration identifies candidates, not confirmed causal variants — correlation with a trait is not causation",
+      "Ascertainment bias: early HAR studies were anchored to the human reference genome, which can inflate apparent human-specific signal",
+      "Many HARs lie near genes with pleiotropic effects, making it hard to isolate which phenotype (if any) was under selection",
+      "Some accelerated regions may reflect relaxed constraint (loss of function) rather than positive selection for a new function — same statistical signature, different biology",
+      "This is precisely why functional validation — including genome editing — became essential (Part 3)"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "OTHER PRIMATE GENOMICS",
+    "title": "Beyond Human vs. Chimp: Broader Primate Comparisons",
+    "cards": [
+      {
+        "h": "Bonobo genome",
+        "p": "Sequenced in 2012; nearly as close to humans as chimpanzees, but with distinct social behavior — highlights that genomic similarity alone does not predict behavioral phenotype."
+      },
+      {
+        "h": "Gorilla and orangutan genomes",
+        "p": "Serve as outgroups that help polarize whether a human-chimp difference arose on the human branch or the chimp branch since their common ancestor."
+      },
+      {
+        "h": "Great ape genome diversity panels",
+        "p": "Population-level sequencing within each ape species reveals within-species variation, helping distinguish fixed lineage differences from ordinary polymorphism."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "CRISPR and Genome Editing as a Research Tool",
+    "sub": "From candidate list to causal test"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "CRISPR-Cas9 Genome Editing",
+    "term": "CRISPR-Cas9",
+    "def": "A programmable genome-editing technology in which a guide RNA directs the Cas9 nuclease to a specific DNA sequence, where it creates a targeted double-strand break; the cell's repair machinery is then exploited to disrupt, delete, or precisely rewrite the target sequence.",
+    "bullets": [
+      "Guide RNA sequence can be redesigned for essentially any genomic target, making the system highly flexible and inexpensive relative to earlier editing tools (zinc-finger nucleases, TALENs)",
+      "Repair via non-homologous end joining (NHEJ) typically creates small insertions/deletions that disrupt gene function — useful for knockouts",
+      "Repair via homology-directed repair (HDR), using a supplied DNA template, allows precise, designed sequence changes — useful for testing specific candidate mutations",
+      "Adapted for research use starting in 2012-2013 from a naturally occurring bacterial system (see Part 4)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FROM CANDIDATE TO CAUSE",
+    "title": "Functionally Validating Candidate Adaptive Mutations",
+    "left": {
+      "h": "The Problem Genome Editing Solves",
+      "body": "<p>Comparative genomics generates lists of candidate mutations correlated with a trait or lineage — but correlation across species is not experimental proof.</p><ul><li>Genome scans (HARs, selection scans) are observational and historical</li><li>Multiple candidate variants often sit near the same gene or trait</li><li>Confounding: linked variants, population history, pleiotropy</li></ul>"
+    },
+    "right": {
+      "h": "The Experimental Fix",
+      "body": "<p>CRISPR allows researchers to directly install or reverse candidate mutations in model systems and observe the phenotypic consequence.</p><ul><li>Edit a human-specific variant into a chimp cell line (or mouse) and look for phenotypic shifts</li><li>Edit the ancestral (chimp-like) allele into human cells to test whether the human variant is necessary for a trait</li><li>Use organoids (e.g., cerebral organoids) to test neurodevelopmental candidate genes without an intact organism</li><li>Converts a correlational candidate into a tested causal hypothesis</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "Case Study: Editing FOXP2 Variants",
+    "items": [
+      "Comparative genomics identified two human-specific amino acid substitutions in FOXP2 relative to chimpanzee and other mammals",
+      "Researchers used CRISPR (and earlier, transgenic knock-in methods) to introduce the human FOXP2 variant into mouse models",
+      "'Humanized' FOXP2 mice showed altered vocalization patterns, changes in neuronal plasticity in brain circuits associated with learning, and altered dopamine signaling",
+      "Human cortical organoids edited to carry ancestral (chimp-like) FOXP2 show differences in neuron maturation timing compared to human-variant organoids",
+      "Illustrates the full pipeline: comparative genomics generates the hypothesis, genome editing tests it functionally"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BEYOND HUMAN EVOLUTION",
+    "title": "Genome Editing to Test Adaptive Mutations Across Taxa",
+    "cards": [
+      {
+        "h": "Stickleback pigmentation/armor",
+        "p": "CRISPR knockouts of candidate regulatory alleles (e.g., near Pitx1, Eda) confirm their causal role in the repeated loss of pelvic spines and armor plates across independent lake populations."
+      },
+      {
+        "h": "Peppered moth melanism",
+        "p": "Genome editing helped confirm that a transposable element insertion in the cortex gene is the causal mutation behind industrial melanism, linking genotype directly to the classic phenotype."
+      },
+      {
+        "h": "Deer mouse coat color",
+        "p": "CRISPR-based allele swaps at the Agouti locus tested whether specific coding and regulatory variants are sufficient to produce cryptic light coloration on sandy substrates."
+      },
+      {
+        "h": "Mimic butterfly wing patterning",
+        "p": "Editing of the optix and WntA loci in Heliconius butterflies experimentally confirmed their roles as major-effect 'hotspot' genes underlying mimicry pattern evolution."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RESEARCH TOOL",
+    "title": "Organoids",
+    "term": "Organoid",
+    "def": "A three-dimensional, lab-grown tissue culture derived from stem cells that self-organizes to mimic key structural and functional features of a real organ, used as an experimental proxy when studying the intact organ directly is impractical or unethical.",
+    "bullets": [
+      "Cerebral organoids ('mini-brains') allow study of human-specific neurodevelopmental gene function in human genetic background",
+      "Can be engineered with CRISPR to carry ancestral, human-specific, or disease-associated alleles for side-by-side comparison",
+      "Limitations: organoids lack full 3-D cytoarchitecture, vasculature, and circuit-level connectivity of an intact brain — useful for cellular and short developmental timescales, not for behavior"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "TOOL COMPARISON",
+    "title": "CRISPR-Cas9 vs. Earlier Genome-Editing Technologies",
+    "headers": [
+      "Feature",
+      "Zinc-Finger Nucleases / TALENs",
+      "CRISPR-Cas9"
+    ],
+    "rows": [
+      [
+        "Targeting mechanism",
+        "Custom-engineered protein-DNA binding domains",
+        "Short guide RNA base-pairing with target DNA"
+      ],
+      [
+        "Design effort per new target",
+        "High — requires new protein engineering each time",
+        "Low — redesign guide RNA sequence only"
+      ],
+      [
+        "Relative cost",
+        "High",
+        "Low"
+      ],
+      [
+        "Multiplexing (editing several targets at once)",
+        "Difficult",
+        "Straightforward — multiple guide RNAs simultaneously"
+      ],
+      [
+        "Adoption in evolutionary research",
+        "Limited, mostly specialist labs",
+        "Widespread standard tool since ~2013"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHODOLOGICAL NOTE",
+    "title": "Model Systems and Their Limits",
+    "left": {
+      "h": "Why Model Organisms",
+      "body": "<p>Direct editing of wild-type human embryos for research is both technically fraught and subject to strict ethical and legal prohibition.</p><ul><li>Mice, cell lines, and organoids serve as tractable proxies</li><li>Organoids in particular allow study of human-specific neural genes in a human genetic background without a whole organism</li><li>Non-human primates used sparingly, with heavy ethical oversight, for closer physiological relevance</li></ul>"
+    },
+    "right": {
+      "h": "What Gets Lost in Translation",
+      "body": "<p>Model systems never perfectly replicate the trait's original biological and ecological context.</p><ul><li>A gene's effect can be genetic-background-dependent — same edit, different species, different outcome</li><li>Organoids model developmental snapshots, not full physiology or behavior</li><li>Mouse brains and human brains differ enough that behavioral proxies are imperfect stand-ins for language or cognition</li><li>Editing tests sufficiency/necessity in the model, not proof that the same mutation mattered the same way historically</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "CRISPR's Evolutionary Origin",
+    "sub": "A bacterial antiviral immune system — and a callback to coevolutionary arms races"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "CRISPR as Bacterial Adaptive Immunity",
+    "term": "CRISPR-Cas Immune System",
+    "def": "Clustered Regularly Interspaced Short Palindromic Repeats (CRISPR) together with CRISPR-associated (Cas) proteins form a naturally evolved, heritable adaptive immune system in bacteria and archaea that stores DNA snippets from past viral (bacteriophage) infections and uses them to recognize and destroy matching viral DNA on reinfection.",
+    "bullets": [
+      "CRISPR loci consist of short repeated sequences separated by unique 'spacer' sequences derived from past invading phage or plasmid DNA",
+      "On reinfection, CRISPR RNA transcribed from these spacers guides Cas nucleases to cut matching viral DNA — a sequence-specific, programmable defense",
+      "Unlike vertebrate innate immunity, this system is heritable: spacers are passed to bacterial offspring, and the 'memory' can also spread by horizontal gene transfer",
+      "Discovered as a genomic curiosity in the 1980s-1990s; function as an immune system established around 2007; repurposed as a biotechnology tool in 2012-2013"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK — L22 COEVOLUTION",
+    "title": "CRISPR in the Context of Host-Parasite Arms Races",
+    "left": {
+      "h": "Recall: Coevolutionary Arms Races (L22)",
+      "body": "<p>Reciprocal natural selection between hosts and parasites/pathogens drives escalating, often rapid adaptation on both sides.</p><ul><li>Red Queen dynamics: each side must keep evolving just to maintain relative fitness</li><li>Examples covered: plant-pathogen resistance genes, immune receptor diversification, venom-resistance coevolution</li><li>Selection favors novel recognition/evasion strategies on short timescales</li></ul>"
+    },
+    "right": {
+      "h": "CRISPR as an Arms-Race Product",
+      "body": "<p>CRISPR-Cas is a direct product of the bacteria-phage arms race, and phages evolve countermeasures in turn.</p><ul><li>Bacteria that survive phage infection can acquire new spacers, incorporating rapid, heritable, sequence-specific memory</li><li>Phages evolve anti-CRISPR proteins that inhibit Cas nuclease activity, restarting the cycle</li><li>Diversifying selection maintains huge variety of CRISPR-Cas system types (Class 1/2, multiple Cas effector families) across bacterial lineages</li><li>A textbook case of evolution producing a solution so effective that humans repurposed it as a laboratory tool</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FROM DISCOVERY TO TOOL",
+    "title": "Timeline: Natural System to Biotechnology",
+    "items": [
+      "1987: repetitive CRISPR-like sequences first noted in E. coli, function unknown",
+      "2005: bioinformatic studies note that CRISPR spacers match sequences from bacteriophages and plasmids, suggesting an immune role",
+      "2007: experimental confirmation that CRISPR-Cas confers heritable, sequence-specific resistance to phage infection in Streptococcus thermophilus",
+      "2012: Jennifer Doudna and Emmanuelle Charpentier (with colleagues) show the Cas9-guide RNA complex can be programmed to cut any target DNA sequence in vitro",
+      "2013: multiple labs demonstrate CRISPR-Cas9 genome editing works in eukaryotic (including human) cells",
+      "2020: Doudna and Charpentier awarded the Nobel Prize in Chemistry for development of CRISPR-Cas9 as a genome-editing method"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THEME",
+    "quote": "CRISPR is a reminder that evolution is not only something we study — natural selection has already produced molecular tools more elegant than most we could design from scratch.",
+    "attrib": "common framing in evolutionary genomics courses"
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Applications of Genome Editing",
+    "sub": "Research, agriculture, and beyond"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "APPLIED USES",
+    "title": "Genome Editing Applications Across Domains",
+    "cards": [
+      {
+        "h": "Functional validation",
+        "p": "Testing candidate adaptive mutations identified by comparative genomics or GWAS by directly editing them into model organisms, cell lines, or organoids and observing phenotypic effects."
+      },
+      {
+        "h": "Agricultural breeding",
+        "p": "Precise editing of crop and livestock genomes to introduce or reverse specific alleles (disease resistance, yield, drought tolerance) far faster than traditional selective breeding."
+      },
+      {
+        "h": "Gene drives",
+        "p": "CRISPR-based systems designed to bias inheritance so that an edited allele spreads through a wild population faster than Mendelian expectation — proposed for mosquito-borne disease control."
+      },
+      {
+        "h": "De-extinction discussions",
+        "p": "Proposals to edit close living relatives' genomes to express traits of extinct species (e.g., mammoth-like traits in elephants) — technically partial, ecologically and ethically contested."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE IN DEPTH",
+    "title": "Gene Drives: Evolutionary Mechanics and Risk",
+    "left": {
+      "h": "How a Gene Drive Works",
+      "body": "<p>A CRISPR-based gene drive encodes the Cas9-guide RNA cassette itself, positioned so it copies itself into the homologous chromosome after fertilization.</p><ul><li>Converts heterozygotes into homozygotes for the drive allele each generation ('super-Mendelian' inheritance, far above the normal 50%)</li><li>Can theoretically spread a trait (e.g., infertility, disease-resistance disruption) through an entire wild population within tens of generations</li><li>Proposed application: suppressing Anopheles mosquito populations that transmit malaria</li></ul>"
+    },
+    "right": {
+      "h": "Evolutionary and Ecological Risks",
+      "body": "<p>Because a gene drive overrides normal selection dynamics, it raises distinct evolutionary concerns.</p><ul><li>Resistance alleles that block the drive mechanism can arise and be favored by selection, causing the drive to stall — an artificial arms race</li><li>Population suppression could have unpredictable ecological ripple effects on species that depend on the target</li><li>Gene drives are not easily contained to a target population or geographic region once released</li><li>Field trials proceed cautiously with confinement strategies and extensive ecological risk assessment</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "COMPARING RESEARCH APPROACHES",
+    "title": "Comparative Genomics vs. Experimental Gene Editing",
+    "headers": [
+      "Dimension",
+      "Comparative Genomics",
+      "Experimental Gene Editing"
+    ],
+    "rows": [
+      [
+        "What it reveals",
+        "Historical correlations: which regions changed, when, and how fast across lineages",
+        "Causal function: whether a specific variant is necessary/sufficient for a phenotype"
+      ],
+      [
+        "Type of evidence",
+        "Observational / statistical (substitution rates, selection scans)",
+        "Experimental / interventionist (direct manipulation and phenotype measurement)"
+      ],
+      [
+        "Scale",
+        "Whole genomes, many species simultaneously",
+        "Typically single genes or variants, one model system at a time"
+      ],
+      [
+        "Key strength",
+        "Generates hypotheses efficiently; captures deep evolutionary time",
+        "Tests hypotheses rigorously; establishes causation"
+      ],
+      [
+        "Key limitation",
+        "Cannot distinguish selection from relaxed constraint without other evidence; correlation only",
+        "Model-system artifacts; cannot fully recreate ancestral genetic or ecological context"
+      ],
+      [
+        "Best used",
+        "As a first-pass screen across the genome",
+        "As a follow-up test on a short list of strong candidates"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Predicting Future Evolution",
+    "sub": "What genomics can — and cannot — tell us about what comes next"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE PROMISE",
+    "title": "Using Evolutionary Genomics to Anticipate Change",
+    "items": [
+      "Pathogen genomic surveillance tracks real-time evolution of viruses and bacteria (e.g., influenza, SARS-CoV-2, antibiotic-resistant bacteria) to anticipate which variants may spread or evade immunity/treatment",
+      "Phylodynamic models combine genomic sequence data with epidemiological data to forecast short-term lineage trajectories",
+      "Identifying mutational 'hotspots' under strong, recurrent selection (e.g., viral receptor-binding domains) helps prioritize vaccine and drug design targets",
+      "Comparative genomics of standing variation can flag which alleles are likely to be favored under anticipated environmental change (e.g., climate-linked thermal tolerance alleles)",
+      "Experimental evolution in the lab, combined with genomic tracking, has successfully predicted short-term adaptive trajectories in microbes under controlled conditions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE LIMITS",
+    "title": "Why Long-Term Evolutionary Prediction Remains Hard",
+    "items": [
+      "Mutation is stochastic — which specific new mutations arise, and when, cannot be predicted from genomic data alone",
+      "Epistasis and genetic background effects mean the same mutation can have different fitness consequences in different genomic contexts",
+      "Selection pressures themselves are unpredictable — future climate, host populations, competitors, and human interventions all shift the adaptive landscape",
+      "Contingency: replaying evolution rarely gives identical outcomes (cf. Lenski's long-term E. coli experiment showing historically contingent innovations)",
+      "Multiple genetic paths often exist to the same phenotype, so predicting which path a population will take is far harder than predicting that some adaptation will occur",
+      "Prediction is most reliable over short timescales, in well-characterized systems, with large population sizes and strong selection — and least reliable over long timescales or novel conditions"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY",
+    "title": "Predicting Pathogen Evolution: A Tractable but Bounded Success",
+    "left": {
+      "h": "What Works",
+      "body": "<p>Influenza vaccine strain selection is a leading real-world example of applied evolutionary prediction.</p><ul><li>Global genomic surveillance tracks circulating strains and antigenic drift</li><li>Phylogenetic forecasting models rank currently circulating lineages by predicted future frequency</li><li>WHO uses this analysis to select vaccine strains roughly a year in advance</li></ul>"
+    },
+    "right": {
+      "h": "What Still Fails",
+      "body": "<p>Even this well-funded, data-rich system has a real error rate.</p><ul><li>Vaccine mismatch occurs in some years when an unanticipated lineage rises to dominance</li><li>Novel pandemic strains (major antigenic shift, cross-species jumps) are essentially unpredictable in timing</li><li>Prediction horizon for reliable forecasts is on the order of ~1 year, not multiple years</li><li>Illustrates the general pattern: short-term, well-characterized systems are tractable; novel, long-term, or cross-species events are not</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "SYNTHESIS",
+    "quote": "Genomics gives us a far better map of where evolution has been than a crystal ball for where it is going — the map itself, though, keeps making the crystal ball a little sharper.",
+    "attrib": "course synthesis"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SYNTHESIS FRAMEWORK",
+    "title": "From Data to Prediction: A Hierarchy of Confidence",
+    "levels": [
+      {
+        "label": "Long-range evolutionary forecasts",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Predicting which trait will adapt",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Short-term pathogen/strain forecasting",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Functional validation of known variants",
+        "color": "#a85a68",
+        "width": "380px"
+      },
+      {
+        "label": "Reconstructing past evolutionary history",
+        "color": "#c47b87",
+        "width": "300px"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "DE-EXTINCTION IN DEPTH",
+    "title": "What 'De-Extinction' Actually Means Genomically",
+    "cards": [
+      {
+        "h": "Partial trait restoration, not resurrection",
+        "p": "Proposed mammoth 'de-extinction' edits a small number of cold-adaptation genes (hair, fat, hemoglobin) into an Asian elephant genome — the result is a hybrid, not a true mammoth."
+      },
+      {
+        "h": "Ancient DNA limitations",
+        "p": "Extinct-species DNA is fragmented and damaged, so full genome reconstruction is impossible; edits rely on comparative genomics to pick a limited set of high-confidence candidate differences."
+      },
+      {
+        "h": "Ecological rationale debated",
+        "p": "Proponents cite ecosystem engineering (e.g., permafrost preservation via grazing); critics question feasibility, animal welfare, and opportunity cost versus conserving extant endangered species."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTEGRATION",
+    "title": "How the Two Tools Reinforce Each Other",
+    "items": [
+      "Comparative genomics scans the genome broadly and cheaply, generating candidate loci and hypotheses about what changed and when",
+      "Genome editing follows up narrowly and expensively, testing causation for a short list of strong candidates",
+      "Both tools depend on population genetics and molecular evolution theory from Evolution I (neutral theory, selection tests, molecular clocks) to interpret their results",
+      "Together they closed the loop opened in Evolution I: from documenting that molecular evolution happens, to explaining mechanistically why specific changes mattered",
+      "The same toolkit — genome scans plus experimental editing — now underlies applications from conservation (L35) to medicine to agriculture to biosecurity"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "ETHICAL DIMENSIONS",
+    "title": "Open Questions Raised by These Tools",
+    "cards": [
+      {
+        "h": "Human germline editing",
+        "p": "Editing heritable human DNA raises distinct ethical stakes from somatic editing; most countries currently prohibit or heavily restrict clinical germline editing."
+      },
+      {
+        "h": "Ecological risk of gene drives",
+        "p": "Population-scale interventions carry irreversible and hard-to-predict ecosystem consequences, requiring precautionary governance frameworks."
+      },
+      {
+        "h": "Access and equity",
+        "p": "Advanced genomic and editing technologies are unevenly available across countries and institutions, raising questions about who benefits from applied evolutionary genomics."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Comparative genomics extends molecular evolution methods (Evolution I, L27-29) to whole-genome scale, distinguishing conserved from fast-evolving regions to infer selective history",
+      "Human accelerated regions (HARs) are genomic candidates for human-lineage-specific adaptive change, identified via human-chimp-primate genome comparisons",
+      "CRISPR-Cas9 genome editing lets researchers directly test whether a candidate mutation is causally responsible for a trait — converting correlation into experimental evidence",
+      "CRISPR itself evolved as a bacterial antiviral immune system, a striking product of host-phage coevolutionary arms races (callback to L22)",
+      "Genome editing has broad applications: functional validation, agricultural breeding, gene drives, and contested de-extinction proposals",
+      "Comparative genomics and gene editing are complementary: broad hypothesis generation paired with narrow causal testing",
+      "Evolutionary genomics can meaningfully inform short-term prediction (e.g., pathogen surveillance) but faces fundamental limits — stochasticity, epistasis, and contingency — for long-term forecasting"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION",
+    "title": "Questions to Consider Before Next Class",
+    "items": [
+      "If a genomic region is both ancient-conserved and human-accelerated, what competing hypotheses (adaptive vs. relaxed constraint) could explain the pattern, and how would you distinguish them experimentally?",
+      "Why is functional validation with genome editing necessary even after a strong statistical signal of selection is found?",
+      "How does the CRISPR origin story illustrate that natural selection can produce solutions humans later borrow as technology?",
+      "What are the tradeoffs between broad, cheap comparative genomic screens and narrow, expensive experimental validation?",
+      "Where would you draw the line between acceptable and unacceptable uses of gene drives or human genome editing, and why?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VOCABULARY CHECK",
+    "title": "Key Terms From Today",
+    "term": "Terms to Know",
+    "def": "Review these terms before the next lecture; they will recur throughout the case-study integration unit.",
+    "bullets": [
+      "Comparative genomics, whole-genome alignment, synteny",
+      "Conserved region, fast-evolving region, purifying selection, ultraconserved element",
+      "Human accelerated region (HAR), human-chimp divergence",
+      "CRISPR-Cas9, guide RNA, NHEJ vs. HDR, knock-in/knockout",
+      "Gene drive, super-Mendelian inheritance, anti-CRISPR proteins",
+      "Phylodynamics, genomic surveillance, evolutionary contingency"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — L37",
+    "title": "Case Study Integration I: Cichlid Radiations of the African Great Lakes",
+    "sub": "Applying comparative genomics, speciation theory, and adaptive radiation to one of evolution's great natural experiments"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 36</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

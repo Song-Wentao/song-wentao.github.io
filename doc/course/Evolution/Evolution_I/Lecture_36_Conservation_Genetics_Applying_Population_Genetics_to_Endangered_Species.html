@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 36: Conservation Genetics: Applying Population Genetics to Endangered Species</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 36",
+    "title": "Conservation Genetics",
+    "sub": "Applying Population Genetics to Endangered Species",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 2 of 11)"
+  },
+  {
+    "type": "section",
+    "tag": "UNIT: APPLIED & SYNTHESIS — L35-45",
+    "title": "From Theory to the Field",
+    "sub": "Last time: pesticide and antibiotic resistance as evolution in action. Today: rescuing populations on the brink using the same population-genetic toolkit."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We'll Cover",
+    "items": [
+      "Why population genetics is the backbone of modern conservation biology",
+      "Inbreeding depression: causes, genetic mechanism, and real-world signatures",
+      "Effective population size (Ne) revisited — why small populations are genetically fragile",
+      "Genetic rescue: deliberately restoring gene flow — the Florida panther case study",
+      "Minimum viable population (MVP) and the extinction vortex",
+      "Case studies: cheetahs, Isle Royale wolves, black-footed ferrets, California condors",
+      "Genetic monitoring tools used by wildlife managers today",
+      "Wrap-up: tying it all back to Hardy-Weinberg, drift, and Ne from Lectures 18-19"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BUILDING ON LECTURES 15-19",
+    "title": "The Population Genetics Toolkit, Revisited",
+    "items": [
+      "Hardy-Weinberg equilibrium (L18): the null model — allele and genotype frequencies stay constant absent evolutionary forces",
+      "Genetic drift (L18-19): random allele frequency change, strongest in small populations",
+      "Effective population size, Ne (L19): the 'genetically effective' size of a population, almost always smaller than census size N",
+      "Inbreeding: mating among relatives, increases homozygosity without changing allele frequencies",
+      "Gene flow: movement of alleles between populations via migration and interbreeding",
+      "Conservation genetics takes each of these textbook forces and asks: how do they threaten (or save) real endangered species?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE STAKES",
+    "title": "Why Genetics Matters for Conservation",
+    "items": [
+      "Traditional conservation biology focused on habitat, food, and predation — demography and ecology",
+      "But populations can be demographically stable yet genetically doomed",
+      "Small, isolated populations lose genetic variation through drift, accumulate inbreeding, and lose the raw material for future adaptation",
+      "Genetic problems often show up as reduced fertility, higher juvenile mortality, and lower disease resistance — easy to misattribute to purely ecological causes",
+      "Conservation genetics: applying population genetic theory and molecular tools to prevent extinction and manage biodiversity"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Conservation Genetics",
+    "term": "Conservation Genetics",
+    "def": "The application of genetic concepts and methods — drift, inbreeding, effective population size, gene flow, molecular markers — to the study and management of species at risk of extinction.",
+    "bullets": [
+      "Goal: maintain enough genetic variation for populations to survive, reproduce, and adapt to future environmental change",
+      "Bridges population genetics theory (Lectures 15-19) with wildlife management practice",
+      "Increasingly genomic: whole-genome sequencing now standard for high-profile endangered species"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE CORE PROBLEM",
+    "title": "Why Small Populations Are Genetically Vulnerable",
+    "left": {
+      "h": "Genetic drift dominates",
+      "body": "<p>In small populations, chance sampling of gametes each generation has an outsized effect on allele frequencies.</p><ul><li>Rare alleles are easily lost by chance</li><li>Heterozygosity declines each generation at a rate of roughly 1/(2Ne)</li><li>Deleterious recessive alleles can drift to fixation, even though selection disfavors them</li></ul>"
+    },
+    "right": {
+      "h": "Inbreeding becomes unavoidable",
+      "body": "<p>When a population is small, most available mates are close relatives, whether by choice or necessity.</p><ul><li>Matings between relatives increase the probability that offspring inherit two copies of the same allele (identical by descent)</li><li>This raises homozygosity across the genome, including at loci carrying harmful recessive mutations</li><li>Result: inbreeding depression — reduced survival and reproduction</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Inbreeding Depression",
+    "term": "Inbreeding Depression",
+    "def": "The reduction in fitness (survival, fertility, offspring viability) observed in the offspring of related individuals, relative to offspring of unrelated parents.",
+    "bullets": [
+      "Measured as a decline in traits like litter size, birth weight, disease resistance, or lifespan",
+      "Documented across an enormous range of taxa: plants, insects, birds, mammals — including humans",
+      "Especially severe in small, isolated wildlife populations with no alternative mates"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM",
+    "title": "The Genetic Basis of Inbreeding Depression",
+    "left": {
+      "h": "Homozygosity unmasks recessive alleles",
+      "body": "<p>Most populations carry a 'genetic load' of rare, mildly-to-severely deleterious recessive alleles, kept hidden in heterozygous carriers.</p><ul><li>Unrelated parents rarely share the same rare recessive allele</li><li>Related parents are much more likely to both carry copies of the same allele inherited from a shared ancestor</li><li>Offspring become homozygous for the deleterious allele and express the harmful phenotype</li></ul>"
+    },
+    "right": {
+      "h": "Two (non-exclusive) hypotheses",
+      "body": "<p>Population geneticists debate the relative contribution of two mechanisms:</p><ul><li><b>Partial dominance hypothesis:</b> depression is caused mainly by many rare, unmasked recessive deleterious alleles becoming homozygous</li><li><b>Overdominance hypothesis:</b> heterozygotes are intrinsically superior at some loci, so any increase in homozygosity reduces fitness, independent of allele identity</li><li>Most evidence in conservation contexts favors partial dominance as the dominant mechanism</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "QUANTIFYING RELATEDNESS",
+    "title": "The Inbreeding Coefficient, F",
+    "items": [
+      "F = probability that the two alleles at a given locus in an individual are identical by descent (inherited from a common ancestor)",
+      "F ranges from 0 (no inbreeding, outbred) to 1 (complete inbreeding)",
+      "Full-sibling or parent-offspring mating produces offspring with F = 0.25; first-cousin mating produces F = 0.0625",
+      "In small closed populations, F rises automatically each generation even without deliberate inbreeding, simply because all individuals become related over time",
+      "Conservation programs use pedigree records (studbooks) or genomic data to calculate F and actively avoid high-F matings"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "REAL-WORLD SIGNATURES",
+    "title": "Inbreeding Depression in Practice",
+    "cards": [
+      {
+        "h": "Florida panther",
+        "p": "Kinked tails, cowlick fur patterns, cryptorchidism (undescended testicles), poor sperm quality, and atrial septal heart defects appeared as the population shrank to ~20-25 individuals by the early 1990s."
+      },
+      {
+        "h": "Cheetahs",
+        "p": "Extremely low genetic diversity from an ancient bottleneck; cheetahs will accept skin grafts from unrelated individuals almost as if they were identical twins, and show low sperm quality and high cub mortality."
+      },
+      {
+        "h": "Isle Royale wolves",
+        "p": "A small island wolf population accumulated severe skeletal deformities (extra vertebrae) and a genetic health crisis as inbreeding intensified over decades of isolation."
+      },
+      {
+        "h": "Captive ungulates (zoo studbook species)",
+        "p": "Multiple hoofstock species show clear inverse relationships between inbreeding coefficient and juvenile survival in studbook analyses spanning decades."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "REVISITING LECTURE 19",
+    "title": "Effective Population Size (Ne)",
+    "term": "Effective Population Size (Ne)",
+    "def": "The size of an idealized population that would experience genetic drift, inbreeding, or loss of heterozygosity at the same rate as the real (census) population under study.",
+    "bullets": [
+      "Almost always smaller — often far smaller — than the census population size N",
+      "Ne, not N, determines the rate of drift and loss of genetic diversity",
+      "A central quantity in conservation genetics for predicting extinction risk"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Ne VS. N",
+    "title": "Why Effective Size Is Usually Much Smaller Than Census Size",
+    "left": {
+      "h": "Factors that shrink Ne",
+      "body": "<ul><li>Unequal sex ratio (e.g., one dominant male breeding with many females)</li><li>Variance in reproductive success (some individuals produce far more offspring than others)</li><li>Fluctuating population size over time — Ne is closer to the harmonic mean, so bottleneck years dominate</li><li>Overlapping generations and age structure</li><li>Non-random mating and population subdivision</li></ul>"
+    },
+    "right": {
+      "h": "Conservation consequence",
+      "body": "<p>A population manager who sees N = 500 individuals might feel reassured — but if only 20 males monopolize breeding, Ne could be closer to 50.</p><ul><li>Small Ne means drift and inbreeding accumulate rapidly, even in an apparently 'large' population</li><li>Estimating Ne (via demographic or genetic methods) is now a standard first step in any conservation genetics assessment</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY Ne MATTERS",
+    "title": "Effective Population Size and Extinction Risk",
+    "items": [
+      "Rate of heterozygosity loss per generation ≈ 1/(2Ne) — smaller Ne means faster erosion of genetic variation",
+      "Low Ne accelerates fixation of deleterious recessive alleles by drift, even against the force of purifying selection",
+      "Low Ne reduces a population's 'evolutionary potential' — its capacity to respond to future selection pressures like disease or climate change",
+      "General guideline: Ne below roughly 50 risks short-term inbreeding depression; Ne below roughly 500 risks long-term loss of adaptive potential (the '50/500 rule' — revisited later this lecture)",
+      "Wildlife agencies now routinely estimate Ne for endangered populations using genetic markers, not just headcounts"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "REVISITING LECTURE 18-19",
+    "title": "Genetic Drift",
+    "term": "Genetic Drift",
+    "def": "Random, chance-driven change in allele frequencies from one generation to the next, caused by the random sampling of gametes that occurs in any finite population.",
+    "bullets": [
+      "Strength of drift is inversely proportional to population size — small populations drift fast, large populations drift slowly",
+      "Unlike selection, drift is blind to fitness: it can drive harmful alleles to fixation and beneficial or neutral alleles to loss",
+      "In conservation contexts, drift in small remnant populations is often a bigger short-term threat than any specific selective pressure"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONSEQUENCES OF DRIFT",
+    "title": "What Drift Does to Endangered Populations",
+    "left": {
+      "h": "Loss of heterozygosity",
+      "body": "<p>Each generation in a small population, some alleles are lost purely by chance during reproduction.</p><ul><li>Overall genetic diversity (heterozygosity, allelic richness) declines steadily</li><li>Lost alleles cannot be regained without new mutation or immigration</li><li>Reduced diversity limits future adaptive responses</li></ul>"
+    },
+    "right": {
+      "h": "Fixation of deleterious alleles",
+      "body": "<p>Selection is less effective at removing mildly deleterious alleles when Ne is small — drift can overpower selection.</p><ul><li>Harmful recessive alleles can drift to fixation rather than being purged</li><li>This is sometimes called 'mutational meltdown' when it becomes self-reinforcing across many loci</li><li>Explains why some small, isolated populations show declining fitness generation after generation even without new environmental stress</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "CASE STUDY — REVISITED FROM LECTURE 19",
+    "title": "The Cheetah Bottleneck",
+    "sub": "A classic example of how an ancient population crash left a lasting genetic signature."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP + CONSERVATION LENS",
+    "title": "Cheetahs: From Bottleneck to Conservation Challenge",
+    "items": [
+      "Recall from Lecture 19: cheetahs passed through a severe population bottleneck roughly 10,000-12,000 years ago, likely linked to Pleistocene climate change and prey shifts",
+      "O'Brien and colleagues' classic studies (1980s) showed cheetahs accept skin grafts from unrelated individuals almost as readily as from siblings — evidence of extremely low MHC (immune gene) diversity",
+      "Low genetic diversity today correlates with poor sperm quality, high proportion of morphologically abnormal sperm, and elevated cub mortality (up to 70-90% in the wild)",
+      "Uniform susceptibility to disease is a major concern: with little immune gene variation, a single pathogen could devastate the entire species",
+      "Cheetahs illustrate that a bottleneck's genetic scars can persist for thousands of years and directly shape present-day conservation risk"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Genetic Rescue",
+    "term": "Genetic Rescue",
+    "def": "A conservation intervention in which new individuals (or their gametes) are deliberately introduced into a small, inbred population to increase genetic diversity and reduce inbreeding depression.",
+    "bullets": [
+      "Works by restoring heterozygosity and masking deleterious recessive alleles with new, unrelated alleles",
+      "Distinct from simple demographic supplementation — the goal is specifically genetic (allelic) diversity, not just more bodies",
+      "One of the most direct, evidence-based applications of population genetic theory in wildlife management"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "LANDMARK CASE STUDY",
+    "title": "The Florida Panther: A Genetic Rescue Success Story",
+    "left": {
+      "h": "The crisis (1980s-1990s)",
+      "body": "<p>Florida panthers (<i>Puma concolor coryi</i>) were reduced to roughly 20-25 individuals by the early 1990s due to habitat loss and fragmentation.</p><ul><li>Severe inbreeding depression: kinked tails, cowlicks, cryptorchidism, poor semen quality, atrial septal heart defects</li><li>Population showed low heterozygosity and elevated inbreeding coefficients in genetic surveys</li><li>Extinction within decades seemed likely without intervention</li></ul>"
+    },
+    "right": {
+      "h": "The intervention (1995) and outcome",
+      "body": "<p>In 1995, wildlife managers translocated 8 female pumas from a related Texas subspecies (<i>Puma concolor stanleyana</i>) into the Florida population.</p><ul><li>Introduced individuals interbred with resident panthers, adding new alleles</li><li>Heterozygosity increased; frequency of kinked tails, cowlicks, and heart defects declined sharply within a generation or two</li><li>Population grew from ~20-25 to an estimated 120-230 individuals in subsequent decades</li><li>Widely cited as the clearest field demonstration of genetic rescue in a vertebrate</li></ul>"
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "FLORIDA PANTHER",
+    "title": "Timeline of a Genetic Rescue",
+    "items": [
+      {
+        "y": "Pre-1990s",
+        "t": "Habitat loss and fragmentation isolate the Florida panther population; numbers fall to ~20-25"
+      },
+      {
+        "y": "1990-1994",
+        "t": "Surveys document inbreeding depression: kinked tails, cowlicks, cryptorchidism, cardiac defects, low sperm quality"
+      },
+      {
+        "y": "1995",
+        "t": "Eight female Texas pumas translocated into Florida population as a deliberate genetic rescue"
+      },
+      {
+        "y": "Late 1990s-2000s",
+        "t": "Hybrid offspring show restored heterozygosity; frequency of congenital defects declines markedly"
+      },
+      {
+        "y": "2010s-present",
+        "t": "Population rebounds to an estimated 120-230 individuals; genetic monitoring continues to guide management"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW IT WORKS",
+    "title": "Mechanisms of Genetic Rescue",
+    "items": [
+      "Introduces new alleles at loci where the recipient population had become fixed or nearly fixed for deleterious variants",
+      "Masks harmful recessive alleles: hybrid offspring are more likely to be heterozygous, hiding the deleterious allele's effect",
+      "Increases overall heterozygosity and allelic richness, expanding future adaptive potential",
+      "Can rapidly reverse fitness declines — effects are often visible within just one or two generations",
+      "Requires only a small number of unrelated migrants to produce large fitness benefits, because even modest gene flow greatly slows drift and dilutes inbreeding"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE OTHER SIDE OF THE COIN",
+    "title": "Outbreeding Depression",
+    "term": "Outbreeding Depression",
+    "def": "A reduction in fitness that can occur when individuals from genetically or locally-adapted-differentiated populations interbreed, disrupting co-adapted gene complexes or locally adapted traits.",
+    "bullets": [
+      "Risk that genetic rescue must be weighed against: mixing populations isn't automatically beneficial",
+      "Classic example: Alpine ibex hybridized with Nubian ibex — hybrid offspring were born at the wrong time of year for the Alpine climate and died",
+      "Managers assess taxonomic and ecological similarity of source populations before attempting rescue, to minimize this risk"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "WEIGHING THE INTERVENTION",
+    "title": "Genetic Rescue vs. Outbreeding Depression Risk",
+    "headers": [
+      "Factor",
+      "Favors genetic rescue",
+      "Raises outbreeding-depression concern"
+    ],
+    "rows": [
+      [
+        "Source population relatedness",
+        "Same species/subspecies, historically connected",
+        "Distantly related lineage or long-separated population"
+      ],
+      [
+        "Local adaptation",
+        "Similar environment/climate to recipient population",
+        "Source adapted to very different environment"
+      ],
+      [
+        "Current genetic diversity",
+        "Recipient population shows measurable inbreeding depression",
+        "Recipient still has moderate diversity, low inbreeding"
+      ],
+      [
+        "Evidence needed",
+        "Documented fitness decline linked to inbreeding",
+        "Uncertain whether decline is genetic or purely ecological"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Minimum Viable Population (MVP)",
+    "term": "Minimum Viable Population",
+    "def": "The smallest population size estimated to have a specified probability of persisting for a specified period of time, accounting for demographic, environmental, and genetic threats.",
+    "bullets": [
+      "Concept introduced by Mark Shaffer (1981) in the context of grizzly bear conservation planning",
+      "Not a single universal number — MVP depends heavily on species biology and the risks being modeled",
+      "Used by agencies (e.g., under the U.S. Endangered Species Act, IUCN Red List criteria) to set population recovery targets"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE 50/500 RULE AND BEYOND",
+    "title": "Estimating Minimum Viable Population Size",
+    "items": [
+      "Franklin (1980) and Soulé (1980) proposed the influential '50/500 rule': Ne ≥ 50 to avoid short-term inbreeding depression; Ne ≥ 500 to retain long-term evolutionary/adaptive potential",
+      "Rule of thumb only — later work (Frankham, Traill and colleagues) suggests these numbers are often too low; many analyses now recommend Ne in the thousands for robust long-term viability",
+      "MVP estimates depend on: reproductive rate, generation time, environmental variability, catastrophe frequency (fire, disease outbreak, storms), and genetic load already present",
+      "Population Viability Analysis (PVA) combines demographic and genetic models via simulation to estimate extinction probability over time for a given population size",
+      "MVP targets translate abstract population genetic theory (Ne, drift, F) into concrete numbers wildlife managers can act on"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "A DOWNWARD SPIRAL",
+    "title": "The Extinction Vortex",
+    "levels": [
+      {
+        "label": "Small population size",
+        "color": "#4a1620",
+        "width": "600px"
+      },
+      {
+        "label": "Genetic drift + inbreeding",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Reduced fitness & fertility",
+        "color": "#8a3f4d",
+        "width": "440px"
+      },
+      {
+        "label": "Faster population decline",
+        "color": "#a85a68",
+        "width": "360px"
+      },
+      {
+        "label": "Demographic stochasticity",
+        "color": "#c47b87",
+        "width": "280px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GILPIN & SOULÉ (1986)",
+    "title": "Understanding the Extinction Vortex",
+    "items": [
+      "Small populations enter a self-reinforcing feedback loop: genetic problems reduce fitness, which shrinks the population further, which intensifies drift and inbreeding, and so on",
+      "Demographic stochasticity (random variation in births/deaths) and environmental stochasticity (random environmental fluctuations) compound the genetic effects at very small sizes",
+      "Once a population enters the vortex, recovery without active management (genetic rescue, habitat restoration, captive breeding) becomes increasingly unlikely",
+      "Explains why some critically endangered species continue declining even after the original threat (e.g., hunting, habitat loss) has been controlled",
+      "Central justification for intervening early — before Ne drops to genetically dangerous levels"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES IN CONSERVATION GENETICS",
+    "title": "Beyond the Panther: Four Iconic Recoveries",
+    "cards": [
+      {
+        "h": "Isle Royale wolves",
+        "p": "An isolated island wolf population accumulated severe inbreeding (extra vertebrae, skeletal deformities); after near-extinction, the National Park Service translocated new wolves from the mainland in 2018 as an active genetic and demographic rescue."
+      },
+      {
+        "h": "Black-footed ferrets",
+        "p": "Thought extinct, then rediscovered in Wyoming in 1981; the entire modern population descends from just 7 founders. Cloning from cryopreserved cells has recently been used to reintroduce lost genetic diversity."
+      },
+      {
+        "h": "California condors",
+        "p": "Reduced to 22 individuals by 1982, all brought into captivity. A studbook-managed breeding program minimizing mean kinship rebuilt the population to over 500 today, while screening for a lethal recessive disorder."
+      },
+      {
+        "h": "Florida panthers",
+        "p": "Revisited from this lecture: translocation of Texas pumas in 1995 reversed severe inbreeding depression and helped the population grow roughly five- to tenfold."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY",
+    "title": "Isle Royale Wolves: Isolation, Rescue, and Its Limits",
+    "left": {
+      "h": "A natural experiment in isolation",
+      "body": "<p>Wolves colonized Isle Royale (Lake Superior) around 1949-1950, founding a population isolated by open water from the mainland.</p><ul><li>Population fluctuated between roughly 12-50 individuals for decades, tracking moose (prey) abundance</li><li>A single male migrant ('Old Grey Guy') crossed an ice bridge in 1997 and contributed genes broadly to the population — a natural genetic rescue</li><li>But his genetic contribution also spread a spinal deformity allele he carried, illustrating that gene flow is not risk-free</li></ul>"
+    },
+    "right": {
+      "h": "Collapse and active rescue",
+      "body": "<p>Warming reduced ice-bridge connections to the mainland, cutting off natural gene flow just as inbreeding intensified.</p><ul><li>By 2016-2017 the population crashed to just 2 closely related wolves, both showing skeletal abnormalities</li><li>The National Park Service began actively translocating wolves from the mainland starting in 2018 to restore both numbers and genetic diversity</li><li>Illustrates the difference between passive gene flow (ice bridges) and active, managed genetic rescue</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY",
+    "title": "Black-Footed Ferrets: Rescue From the Brink of Extinction",
+    "left": {
+      "h": "Rediscovery and near loss",
+      "body": "<p>Black-footed ferrets (<i>Mustela nigripes</i>) were believed extinct until a small population was found near Meeteetse, Wyoming in 1981.</p><ul><li>Canine distemper and sylvatic plague nearly eliminated even this remnant population</li><li>The last 18 individuals were captured for captive breeding; only about 7 became genetic founders of all ferrets alive today</li><li>Resulting population shows very low genetic diversity and documented inbreeding depression</li></ul>"
+    },
+    "right": {
+      "h": "A genomic-era intervention",
+      "body": "<p>In 2020-2021, researchers cloned a ferret named 'Elizabeth Ann' from cells of 'Willa,' a ferret that died in 1988 and whose cell line was cryopreserved before the founder bottleneck fully took hold.</p><ul><li>Willa's genome contains alleles not represented in the current living population</li><li>Cloning offers a novel route to reintroduce lost genetic variation — a genomic-era complement to traditional translocation-based genetic rescue</li><li>Represents one of the first uses of cloning explicitly for conservation genetic diversity restoration</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY",
+    "title": "California Condors: Studbook-Driven Recovery",
+    "left": {
+      "h": "Total captive breeding (1980s)",
+      "body": "<p>By 1982 only 22 California condors remained; by 1987 every wild individual had been captured for an emergency captive breeding program.</p><ul><li>Every bird's parentage is tracked in a detailed studbook</li><li>Pairings are chosen to minimize 'mean kinship' — average relatedness to the rest of the population — maximizing retained genetic diversity</li></ul>"
+    },
+    "right": {
+      "h": "A genetic complication: chondrodystrophy",
+      "body": "<p>Genetic screening revealed a recessive lethal allele causing chondrodystrophy (a fatal skeletal disorder) segregating in the founder population.</p><ul><li>Managers now use genetic testing to identify carriers and avoid carrier x carrier pairings</li><li>Population has grown from 22 to over 500 individuals, with more than 300 living in the wild</li><li>A model for combining pedigree management, molecular screening, and reintroduction planning</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THREATS COMPARED",
+    "title": "Three Genetic Threats to Small Populations",
+    "headers": [
+      "Threat",
+      "Underlying cause",
+      "Typical symptom",
+      "Management response"
+    ],
+    "rows": [
+      [
+        "Inbreeding depression",
+        "Mating among relatives increases homozygosity, exposing deleterious recessive alleles",
+        "Reduced fertility, birth defects, higher juvenile mortality",
+        "Genetic rescue via managed gene flow; pedigree-based mate selection to minimize F"
+      ],
+      [
+        "Loss of adaptive potential",
+        "Genetic drift in small Ne erodes heterozygosity and allelic richness over generations",
+        "No visible short-term symptom; reduced ability to respond to future disease, climate, or habitat change",
+        "Maintain large Ne; preserve genetic diversity via captive banks, cryopreservation, connectivity"
+      ],
+      [
+        "Outbreeding depression",
+        "Interbreeding of locally adapted or divergent lineages disrupts co-adapted gene complexes",
+        "Reduced fitness in hybrid offspring; mistimed life-history traits",
+        "Match source populations carefully; test with small-scale trials before large-scale translocation"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MANAGED CONNECTIVITY",
+    "title": "Gene Flow as a Conservation Tool",
+    "items": [
+      "Natural gene flow between subpopulations counteracts drift and inbreeding by continually reintroducing alleles",
+      "Habitat fragmentation (roads, agriculture, development) has eliminated much natural gene flow for many species, isolating populations into small genetic islands",
+      "Conservation corridors and wildlife crossings aim to restore natural gene flow — a landscape-scale genetic intervention",
+      "When natural corridors are impossible, managers can perform 'assisted gene flow': deliberately translocating individuals, as in the Florida panther and Isle Royale cases",
+      "Even low rates of gene flow (as few as one migrant per generation, under simple models) can be enough to prevent extreme differentiation and counteract local drift"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Genetic Monitoring",
+    "term": "Genetic Monitoring",
+    "def": "The repeated, systematic use of genetic data over time to track changes in a population's diversity, effective size, structure, and relatedness, informing management decisions.",
+    "bullets": [
+      "Distinguishes real genetic trends from single-snapshot measurements",
+      "Increasingly integrated into standard wildlife management alongside demographic surveys (population counts, survival rates)",
+      "Allows early detection of problems (declining heterozygosity, rising inbreeding) before they become visible in fitness or population size"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TOOLS OF THE TRADE",
+    "title": "Genetic Monitoring Tools in Wildlife Management",
+    "items": [
+      "Microsatellite genotyping: short, highly variable repeat DNA sequences used for decades to estimate relatedness, parentage, and population structure",
+      "SNP (single nucleotide polymorphism) panels: increasingly replacing microsatellites for genome-wide diversity and relatedness estimates",
+      "Whole-genome and reduced-representation sequencing: reveal fine-scale patterns of inbreeding, deleterious mutation load, and local adaptation",
+      "Mitochondrial DNA sequencing: tracks maternal lineages and can reveal historical population structure and bottlenecks",
+      "Non-invasive sampling: DNA extracted from scat, hair, feathers, or shed skin avoids the need to capture or handle animals",
+      "Environmental DNA (eDNA): detecting species presence and even genetic diversity from DNA shed into water or soil",
+      "Pedigree/studbook software: tracks known relatedness in captive or intensively managed wild populations to guide breeding decisions",
+      "Effective population size estimators: genetic methods (e.g., linkage disequilibrium method) estimate Ne directly from a single sample of genotypes"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MOLECULAR MARKERS COMPARED",
+    "title": "Choosing a Genetic Marker",
+    "cards": [
+      {
+        "h": "Microsatellites",
+        "p": "Highly variable, relatively cheap and fast historically; still widely used for parentage and short-term population structure, though being supplanted by SNPs."
+      },
+      {
+        "h": "SNPs (genome-wide)",
+        "p": "Abundant across the genome, highly reproducible across labs, and scalable to thousands of loci — now the standard for detailed relatedness and inbreeding estimates."
+      },
+      {
+        "h": "Mitochondrial DNA",
+        "p": "Maternally inherited and non-recombining, useful for reconstructing historical bottlenecks, colonization events, and deep population history."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FROM DATA TO DECISIONS",
+    "title": "Applications of Genetic Monitoring",
+    "left": {
+      "h": "Estimating key parameters",
+      "body": "<ul><li>Effective population size (Ne) directly from genetic samples, without needing a full census</li><li>Individual and population-level inbreeding coefficients (F)</li><li>Genetic diversity metrics: heterozygosity, allelic richness, over time</li><li>Connectivity between subpopulations (how much gene flow is actually occurring)</li></ul>"
+    },
+    "right": {
+      "h": "Guiding management action",
+      "body": "<ul><li>Identifying which individuals should be prioritized for captive breeding or translocation</li><li>Detecting early warning signs of a genetic bottleneck before demographic decline is obvious</li><li>Evaluating whether a genetic rescue intervention actually worked (before/after heterozygosity comparison)</li><li>Informing legal/regulatory decisions, e.g., distinguishing genetically distinct populations for Endangered Species Act listing</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAPTIVE MANAGEMENT",
+    "title": "Studbooks and Mean Kinship",
+    "items": [
+      "A studbook is a detailed pedigree record of every individual in a managed captive population, tracking parentage across generations",
+      "Mean kinship: the average relatedness of an individual to every other individual in the population — individuals with low mean kinship carry rarer, underrepresented alleles",
+      "Breeding programs pair individuals to minimize mean kinship in offspring, maximizing retained genetic diversity rather than simply avoiding sibling matings",
+      "Used extensively in California condor, black-footed ferret, and many zoo-based endangered species programs (coordinated by organizations like AZA's Species Survival Plans)",
+      "Genome resource banks (cryopreserved sperm, eggs, embryos, and even somatic cells) extend studbook management across generations, preserving genetic options for the future"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE GENOMIC ERA",
+    "title": "Genomic Tools Transforming Conservation Genetics",
+    "items": [
+      "Whole-genome sequencing is increasingly affordable enough to apply to entire endangered species, not just a handful of marker loci",
+      "Genomic data can directly quantify 'runs of homozygosity' — long stretches of identical paternal and maternal DNA that indicate recent inbreeding, more precisely than pedigree-based F estimates",
+      "Can identify specific deleterious mutations (like the condor's chondrodystrophy allele) for targeted screening",
+      "Comparative genomics across related species/subspecies helps identify genetically appropriate source populations for genetic rescue, reducing outbreeding depression risk",
+      "Ancient DNA and museum specimens allow reconstruction of historical genetic diversity, revealing how much diversity has already been lost"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THEN AND NOW",
+    "title": "Traditional vs. Genomic Conservation Genetics",
+    "headers": [
+      "Aspect",
+      "Traditional approach (1980s-2000s)",
+      "Genomic approach (2010s-present)"
+    ],
+    "rows": [
+      [
+        "Marker type",
+        "A handful of microsatellite loci or mtDNA",
+        "Thousands to millions of SNPs, whole genomes"
+      ],
+      [
+        "Inbreeding estimate",
+        "Pedigree-based F coefficient",
+        "Direct measurement via runs of homozygosity"
+      ],
+      [
+        "Deleterious alleles",
+        "Inferred indirectly from fitness declines",
+        "Directly identified and screened at the DNA level"
+      ],
+      [
+        "Cost and scale",
+        "Feasible for a few flagship species",
+        "Increasingly applied broadly, though still resource-intensive"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MORE EXAMPLES",
+    "title": "Conservation Genetics in Other Iconic Species",
+    "cards": [
+      {
+        "h": "Island foxes (Channel Islands)",
+        "p": "Naturally low genetic diversity from island isolation; a near-extinction event from golden eagle predation in the 1990s-2000s made genetic monitoring central to recovery planning."
+      },
+      {
+        "h": "Tasmanian devils",
+        "p": "Facial tumor disease has caused catastrophic decline; genetic diversity in immune genes is being used to select disease-resistant individuals for captive insurance populations."
+      },
+      {
+        "h": "Iberian lynx",
+        "p": "Once the world's most endangered cat species; intensive captive breeding with mean-kinship management restored numbers from under 100 to over 1,000."
+      },
+      {
+        "h": "Whooping cranes",
+        "p": "Reduced to about 15-21 individuals in the 1940s; all living whooping cranes descend from this remnant, requiring careful genetic management in ongoing recovery efforts."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NOT WITHOUT CONTROVERSY",
+    "title": "Challenges and Criticisms of Genetic Rescue",
+    "items": [
+      "Outbreeding depression risk means genetic rescue must be evaluated case by case, not applied as a universal fix",
+      "Taxonomic uncertainty: is the 'rescue' source population really the same species/subspecies, or does mixing threaten a legally or ecologically distinct lineage?",
+      "Resource intensity: genetic monitoring, translocation, and captive breeding programs are expensive and require sustained long-term funding and political will",
+      "Some argue intervention treats symptoms (low genetic diversity) rather than causes (habitat loss, fragmentation) — genetic rescue works best paired with habitat protection",
+      "Ethical and practical debates about cloning (e.g., black-footed ferret) as a genetic diversity tool are ongoing as the technology becomes more accessible"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WEIGHING INTERVENTION",
+    "title": "When to Intervene: A Decision Framework",
+    "left": {
+      "h": "Evidence favoring active genetic management",
+      "body": "<ul><li>Documented decline in heterozygosity or rising inbreeding coefficient over time</li><li>Fitness measures (fertility, juvenile survival) declining in ways consistent with inbreeding depression</li><li>Ne estimated well below levels needed for short- or long-term viability</li><li>No natural gene flow pathway remains (e.g., habitat fully fragmented)</li></ul>"
+    },
+    "right": {
+      "h": "Reasons for caution",
+      "body": "<ul><li>Uncertain taxonomic status of potential source population</li><li>Local adaptation to a distinctive environment (e.g., altitude, climate, disease regime) that outside genes could disrupt</li><li>Fitness decline may be primarily ecological (habitat quality, food, disease) rather than genetic</li><li>Limited data — genetic monitoring should precede, not follow, a major intervention</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "IN THEIR OWN WORDS",
+    "quote": "Genetic factors are important in the extinction process and... genetic management is an essential component of the effort to prevent extinctions.",
+    "attrib": "Richard Frankham, conservation geneticist, on the integration of genetics into conservation practice"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "POLICY CONTEXT",
+    "title": "Conservation Genetics and Wildlife Policy",
+    "items": [
+      "The U.S. Endangered Species Act (ESA) uses genetic and taxonomic data to define 'distinct population segments' eligible for legal protection",
+      "IUCN Red List assessments increasingly incorporate genetic diversity and effective population size alongside traditional demographic criteria",
+      "International frameworks (e.g., the Convention on Biological Diversity) have begun formally recognizing genetic diversity as a pillar of biodiversity, alongside species and ecosystem diversity",
+      "Genetic monitoring data directly inform recovery plan targets, delisting decisions, and translocation permits",
+      "Conservation genetics sits at the intersection of basic evolutionary theory and applied environmental law and policy"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "Key Takeaways: The Genetics of Extinction Risk",
+    "items": [
+      "Small population size is not just a demographic problem — it is fundamentally a genetic one, driven by the same forces covered in Lectures 18-19",
+      "Genetic drift and inbreeding interact in small populations to erode heterozygosity and expose deleterious recessive alleles, producing inbreeding depression",
+      "Effective population size (Ne), not census size, determines how fast these problems accumulate — and Ne is often far smaller than headcounts suggest",
+      "Genetic rescue — deliberately restoring gene flow — has repeatedly reversed inbreeding depression in real populations, from Florida panthers to Isle Royale wolves",
+      "Minimum viable population thinking and the extinction vortex model integrate genetic, demographic, and environmental risk into unified conservation targets",
+      "Genetic monitoring tools (from microsatellites to whole genomes) let managers detect and respond to genetic problems before they become irreversible"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "Tying It Back: Hardy-Weinberg, Drift, and Ne",
+    "items": [
+      "Lecture 18 introduced Hardy-Weinberg equilibrium as the null expectation — no drift, no selection, no mutation, no migration, no assortative mating",
+      "Every case study today is a story of departure from that null model: small Ne drives drift, isolation prevents gene flow, and relatedness increases inbreeding — all violations of Hardy-Weinberg assumptions with measurable fitness consequences",
+      "Lecture 19's effective population size concept turns out to be the single best predictor of a population's genetic extinction risk, more informative than raw census counts",
+      "Genetic rescue is, mechanistically, nothing more than deliberately reintroducing migration (gene flow) — one of the five Hardy-Weinberg-violating forces — to counteract the damage done by drift and inbreeding",
+      "The conservation genetics toolkit is population genetics theory, applied with urgency: the same equations from Lecture 18 now underpin decisions about which species survive"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — L37",
+    "title": "The Evolution of Human Traits I",
+    "sub": "We turn from saving other species to understanding our own: applying evolutionary principles to the traits that make us human."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 36</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

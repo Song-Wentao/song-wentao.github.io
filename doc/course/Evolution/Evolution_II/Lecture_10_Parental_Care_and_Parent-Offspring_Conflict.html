@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 10: Parental Care and Parent-Offspring Conflict</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 10",
+    "title": "Parental Care and Parent-Offspring Conflict",
+    "sub": "Why parents help, why offspring want more than parents are willing to give",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 12, \"After Conception\" (lecture 2 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "RECAP",
+    "title": "From Life History Trade-offs to Family Conflict",
+    "sub": "Lecture 9 established that reproduction is costly and organisms allocate limited resources among growth, survival, and reproduction. Today we ask: once offspring exist, how much should parents invest in them — and do offspring agree?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AGENDA",
+    "title": "What We'll Cover Today",
+    "items": [
+      "The evolution of parental care: a cost-benefit framework for when care should (and should not) evolve",
+      "Patterns of care across the animal kingdom: no care, uniparental female, uniparental male, and biparental care",
+      "Ecological and mating-system correlates of each care pattern, including the role of paternity certainty",
+      "Trivers' parent-offspring conflict theory: why relatedness asymmetries create disagreement over investment",
+      "Weaning conflict and begging behavior as real-time, observable manifestations of that conflict",
+      "Sibling rivalry and siblicide as the most extreme form of within-family conflict",
+      "A preview of inclusive fitness and kin selection, developed fully in Chapter 16"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Parental Care",
+    "term": "Parental care",
+    "def": "Any behavior or physiological investment by a parent that increases the fitness of existing offspring, typically at some cost to the parent's own future reproduction (survival or ability to produce additional offspring).",
+    "bullets": [
+      "Ranges from minimal (provisioning eggs with yolk) to extensive (years of feeding, defense, and teaching)",
+      "Not a fixed trait of a species — care can be facultative and responsive to condition, brood size, and environment",
+      "Evolved independently many times across insects, fish, amphibians, reptiles, birds, and mammals"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FRAMEWORK",
+    "title": "The Cost-Benefit Logic of Care",
+    "left": {
+      "h": "Benefits of caring",
+      "body": "<p>Care evolves when it sufficiently raises the fitness of current offspring:</p><ul><li>Increased offspring survival to independence</li><li>Improved offspring growth rate and condition</li><li>Protection from predators, desiccation, or starvation</li><li>Transmission of information or skills (e.g., foraging)</li></ul>"
+    },
+    "right": {
+      "h": "Costs of caring",
+      "body": "<p>Care is favored only if benefits exceed costs, measured in currency of future reproduction:</p><ul><li>Reduced parental survival (predation risk, energetic depletion)</li><li>Reduced future fecundity or mating opportunities</li><li>Time and energy diverted from current brood size or additional clutches</li><li>Opportunity cost: forgone matings elsewhere</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHEN CARE EVOLVES",
+    "title": "Ecological Conditions Favoring Parental Care",
+    "items": [
+      "Offspring mortality without care is high, and care substantially reduces it (steep marginal benefit)",
+      "Environment is harsh, unpredictable, or resource-poor, so unaided offspring have low independent survival",
+      "Offspring are relatively few per reproductive bout, making each one worth defending (links to r/K and clutch-size trade-offs from L9)",
+      "The cost of caring to the parent is low relative to the fitness payoff — e.g., low predation risk while guarding, or care that can be combined with other activities",
+      "Care can be delivered efficiently by one or both parents without diminishing returns (no saturation of benefit)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHEN CARE DOES NOT EVOLVE",
+    "title": "Why Many Species Show No Parental Care",
+    "items": [
+      "Marginal benefit of care is low: offspring already have high survival without help (e.g., abundant food, low predation)",
+      "Cost of care to parents is very high relative to benefit — e.g., in broadcast spawners, guarding a single clutch is nearly impossible and costly",
+      "Producing very large numbers of offspring (high fecundity, low investment per offspring) can outcompete a caring strategy when environments are unpredictable — classic r-selected logic",
+      "Physical/ecological constraints: external fertilization in open water makes guarding offspring difficult (e.g., many marine invertebrates and fish release gametes into the plankton)",
+      "Example: most fish and marine invertebrates provide no post-fertilization care; millions of eggs are produced and abandoned"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PATTERNS",
+    "title": "Patterns of Parental Care Across Taxa",
+    "sub": "Once care evolves, who provides it? The answer correlates tightly with fertilization mode, mating system, and ecology."
+  },
+  {
+    "type": "compare",
+    "eyebrow": "COMPARATIVE PATTERNS",
+    "title": "Four Basic Patterns of Parental Care",
+    "headers": [
+      "Pattern",
+      "Example taxa",
+      "Ecological / mating-system correlate"
+    ],
+    "rows": [
+      [
+        "No care",
+        "Most marine invertebrates, most fish (e.g., cod), many insects",
+        "External fertilization in open environments; high fecundity compensates for high offspring mortality"
+      ],
+      [
+        "Uniparental female care",
+        "Mammals, many birds, many insects (e.g., earwigs)",
+        "Internal fertilization gives females certainty of maternity; lactation/live-bearing anatomically ties care to females"
+      ],
+      [
+        "Uniparental male care",
+        "Many fish with external fertilization (e.g., sticklebacks, jawfish), some frogs, some birds (e.g., phalaropes)",
+        "External fertilization at a nest site the male controls gives him paternity certainty and lets females re-mate quickly"
+      ],
+      [
+        "Biparental care",
+        "Most birds (~90%), some fish (cichlids), some mammals (e.g., canids, primates), some insects (burying beetles)",
+        "Offspring needs exceed what one parent can provide; monogamous mating system raises paternity certainty for males"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PATTERN 1",
+    "title": "No Parental Care — The Ancestral, Common State",
+    "items": [
+      "Most abundant reproductive strategy on Earth by species count: broadcast-spawning marine invertebrates, most bony fish, most insects",
+      "Females (and males) invest heavily in egg provisioning (yolk, protective coatings) but not in post-fertilization protection",
+      "Compensating strategy: extremely high fecundity — a single female cod can produce millions of eggs per season",
+      "Favored when parental defense would be ineffective or prohibitively costly (e.g., open ocean, dispersing larvae) and where per-offspring survival is low regardless of care"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PATTERN 2",
+    "title": "Uniparental Female Care",
+    "items": [
+      "Dominant pattern in mammals: obligate due to internal gestation and lactation — no male mammal can lactate, creating an anatomical floor on female investment",
+      "Common in birds with polygynous or promiscuous mating systems, where males maximize fitness by seeking additional mates rather than caring",
+      "In many insects (e.g., earwigs, some spiders), females guard eggs and early instars from predators and fungal infection",
+      "Female care is reinforced by certainty of maternity — a female is always certain the offspring she is caring for are her own"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PATTERN 3",
+    "title": "Uniparental Male Care — A Revealing Exception",
+    "items": [
+      "Occurs disproportionately in species with external fertilization: sticklebacks, many other nest-building fish, jawfish (mouthbrooding males), some frogs (e.g., Darwin's frog)",
+      "Key mechanism: when a male fertilizes eggs at a nest site he controls, he can be as certain — or more certain — of paternity than the female",
+      "Because males typically invest less than females in gametes (small, cheap sperm vs. large, costly eggs), a male who cares still frees the female to begin producing another clutch immediately",
+      "Classic case: phalaropes (a bird genus) show reversed sex roles — females compete for mates and males incubate and rear young"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM",
+    "title": "Fertilization Mode Shapes Who Cares",
+    "left": {
+      "h": "Internal fertilization",
+      "body": "<p>Sperm transferred inside the female; fertilization is hidden.</p><ul><li>Female has certain maternity (she carries/lays the eggs)</li><li>Male's paternity is less certain — risk of sperm competition or extra-pair mating</li><li>Predicts: female-biased care (mammals) unless paternity assurance mechanisms exist (e.g., social monogamy, mate guarding)</li></ul>"
+    },
+    "right": {
+      "h": "External fertilization",
+      "body": "<p>Gametes released and combined outside the body, often at a defended site.</p><ul><li>Male can directly observe and control fertilization at his nest — high paternity certainty</li><li>Female's maternity is also certain, but she can leave immediately after laying</li><li>Predicts: male care is far more common than in internally fertilizing groups</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PATTERN 4",
+    "title": "Biparental Care",
+    "items": [
+      "Found in the large majority of bird species (~90%), reflecting altricial young that need continuous feeding and thermoregulation that one parent alone often cannot supply",
+      "Favored when offspring demands exceed the delivery capacity of a single parent — the 'two are better than one' threshold",
+      "Requires (or promotes) social monogamy, which raises male paternity certainty enough to favor his investment",
+      "Examples beyond birds: burying beetles (Nicrophorus) biparentally guard carrion broods against competitors; canids (wolves, foxes) with helpers; some cichlid fish jointly guard fry"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SYNTHESIS",
+    "title": "Predictors of Care Pattern",
+    "cards": [
+      {
+        "h": "Paternity certainty",
+        "p": "The more confident a male is that offspring are his, the more his investment pays off in his own fitness — a recurring theme across taxa."
+      },
+      {
+        "h": "Offspring need",
+        "p": "Altricial, helpless young (most birds) require more total investment than precocial young (many reptiles, some birds), favoring biparental or extended care."
+      },
+      {
+        "h": "Mating system",
+        "p": "Monogamy correlates with biparental care; polygyny/promiscuity correlates with uniparental (usually female) care because males gain more from additional matings."
+      },
+      {
+        "h": "Environmental harshness",
+        "p": "Unpredictable or resource-poor environments raise the marginal benefit of care, tipping the cost-benefit balance toward investment."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MORE EXAMPLES",
+    "title": "Uniparental Male Care in Unusual Systems",
+    "cards": [
+      {
+        "h": "Seahorses and pipefish",
+        "p": "Females deposit eggs directly into a male brood pouch, where he supplies nutrients and osmoregulation until 'birth' — among the most complete forms of male pregnancy known."
+      },
+      {
+        "h": "Giant water bugs",
+        "p": "Females glue eggs onto the male's back; he carries, aerates, and defends them until hatching, unable to mate again until the brood is released."
+      },
+      {
+        "h": "Jacanas",
+        "p": "Sex-role-reversed shorebirds: females defend large territories and mate with multiple males, each of whom incubates and rears a clutch alone."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TESTING THE FRAMEWORK",
+    "title": "Experimental Evidence for the Cost of Care",
+    "items": [
+      "Brood-size manipulation experiments (adding or removing eggs/nestlings) show that parents rearing enlarged broods often suffer reduced survival or reduced future clutch size, confirming a real fitness cost to care",
+      "Partner-removal experiments in biparental species (e.g., removing one parent bird) typically show reduced offspring survival, confirming that both parents contribute non-redundant benefit",
+      "Cross-fostering experiments help separate genetic offspring quality from parental care effects, isolating the causal contribution of investment itself",
+      "Together, these experimental designs let biologists directly measure the cost and benefit terms in the cost-benefit framework, rather than relying on correlation alone"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "CONCEPTUAL BRIDGE",
+    "quote": "Parental care is not an act of altruism in any moral sense — it is a strategy favored by natural selection whenever the fitness return on investing in existing offspring exceeds the fitness return on investing elsewhere.",
+    "attrib": "Paraphrased from Zimmer & Emlen, Evolution: Making Sense of Life, Ch. 12"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TRANSITION",
+    "title": "But Investment Has an Endpoint — And Disagreement Begins",
+    "items": [
+      "So far we have treated 'how much to invest' as a single optimization problem solved by the parent",
+      "But offspring are not passive recipients — they are themselves shaped by natural selection to influence how much they receive",
+      "Because parent and offspring are genetically related but not genetically identical, their evolutionary interests overlap only partially",
+      "This sets up one of evolutionary biology's most elegant applications of kin selection logic: Robert Trivers' theory of parent-offspring conflict (1974)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CONFLICT THEORY",
+    "title": "Trivers' Parent-Offspring Conflict",
+    "sub": "Even within a family, natural selection does not produce perfect harmony of interests."
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY THEORY",
+    "title": "Parent-Offspring Conflict Theory",
+    "term": "Parent-offspring conflict",
+    "def": "The evolutionary prediction, formalized by Robert Trivers (1974), that offspring will be selected to demand more parental investment than parents are selected to provide, because offspring value themselves more highly (relative to their siblings) than parents value any one offspring relative to its siblings.",
+    "bullets": [
+      "Conflict is not about parents 'wanting' to harm offspring — both sides are maximizing their own inclusive fitness",
+      "The disagreement is over the marginal offspring: the point at which continued investment in one offspring reduces resources available for future offspring",
+      "This is a foundational case study for kin selection and inclusive fitness, which we will formalize with Hamilton's rule in Chapter 16"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE LOGIC",
+    "title": "Why Relatedness Asymmetry Creates Conflict",
+    "left": {
+      "h": "The parent's perspective",
+      "body": "<p>A parent is equally related to all of its offspring (r = 0.5 to each, in a simple diploid sexual species).</p><ul><li>Parents are selected to maximize the total number of offspring successfully raised over their lifetime</li><li>From the parent's-eye view, investment in one offspring has an opportunity cost equal to investment 'lost' to future or current siblings</li><li>Parents favor stopping investment in one offspring exactly when the marginal cost to future offspring equals the marginal benefit to the current one</li></ul>"
+    },
+    "right": {
+      "h": "The offspring's perspective",
+      "body": "<p>An offspring is related to itself by r = 1, but to a full sibling by only r = 0.5 (and to a half-sibling by r = 0.25).</p><ul><li>Because it values itself twice as much as a full sibling, it is selected to keep demanding investment past the point that maximizes the parent's total fitness</li><li>The offspring 'agrees' investment should stop eventually — but only once further investment would cost it more (in reduced sibling fitness, devalued by relatedness) than it gains</li><li>This creates a predictable zone of conflict between the parent's optimum and the offspring's optimum</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREVIEW — CHAPTER 16",
+    "title": "A Quick Note on Relatedness (r)",
+    "items": [
+      "Relatedness (r) is the probability that a given allele in one individual is also present, by common descent, in a relative",
+      "Parent-offspring r = 0.5; full-sibling r = 0.5; half-sibling r = 0.25; identical twin r = 1.0",
+      "Trivers' insight was to apply this genetic bookkeeping to family behavior before Hamilton's inclusive fitness framework was widely applied to real systems",
+      "We will return to r formally with Hamilton's rule (rB > C) when we cover kin selection and altruism in Chapter 16 — today, treat it as the reason offspring and parents don't see eye to eye"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MODELING THE DISAGREEMENT",
+    "title": "Parent Optimum vs. Offspring Optimum",
+    "left": {
+      "h": "Parent-optimal investment level",
+      "body": "<p>The level of investment in a given offspring that maximizes the parent's total lifetime reproductive success, summed across all current and future offspring.</p><ul><li>Investment stops when the marginal fitness gained by the focal offspring, times r = 0.5, no longer exceeds the marginal fitness cost to future siblings, also weighted by r = 0.5</li><li>Because both sides of this equation are weighted equally (0.5 = 0.5), the parent effectively treats all offspring as equally 'worth' investing in</li></ul>"
+    },
+    "right": {
+      "h": "Offspring-optimal investment level",
+      "body": "<p>The level of investment the offspring itself is selected to try to extract.</p><ul><li>The offspring weighs its own gain at r = 1 but discounts the cost to siblings at only r = 0.5</li><li>Because 1 > 0.5, the offspring's optimum is always higher than the parent's optimum for continued investment</li><li>The result: offspring evolve to solicit more than parents evolve to give, producing an observable behavioral tug-of-war</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "IMPORTANT NUANCE",
+    "title": "Conflict Is Over the Margin, Not Total Withdrawal",
+    "items": [
+      "Offspring do not benefit from unlimited investment — extracting so much that no siblings survive can eventually harm the offspring's own inclusive fitness (destroyed siblings carry shared genes)",
+      "The conflict zone is bounded: there is a level of investment both parent and offspring agree is appropriate (below the conflict zone), and a level neither would want exceeded (extreme overinvestment)",
+      "Conflict is sharpest over intermediate levels of investment, exactly at the margin where the parent wants to stop and the offspring wants to continue",
+      "Conflict also varies with the coefficient of relatedness among siblings — full siblings produce less intense conflict than half-siblings (lower r among half-sibs increases offspring's relative selfishness)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREDICTIONS OF THE THEORY",
+    "title": "Testable Predictions from Parent-Offspring Conflict Theory",
+    "items": [
+      "Offspring should evolve traits (behavioral, physiological, even placental) that manipulate parents into providing more than the parental optimum",
+      "Parents should evolve counter-adaptations to resist manipulation and control the timing/amount of investment",
+      "Conflict should be more visible late in a bout of parental care (e.g., near weaning) when the marginal cost of continued investment to the parent is rising fastest",
+      "Conflict should be reduced in species with lower relatedness asymmetry (e.g., monogamous, single-brood species) and heightened when future broods are likely (e.g., iteroparous species with overlapping generations)"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORY OF THE IDEA",
+    "title": "Building Toward Conflict Theory",
+    "items": [
+      {
+        "y": "1930",
+        "t": "R. A. Fisher lays groundwork on reproductive value and parental expenditure in The Genetical Theory of Natural Selection"
+      },
+      {
+        "y": "1954",
+        "t": "David Lack proposes clutch size and hatching asynchrony are adaptively tuned to unpredictable resources — the seed of the brood reduction hypothesis"
+      },
+      {
+        "y": "1972",
+        "t": "Robert Trivers formalizes parental investment theory, defining investment as any cost to a parent that benefits one offspring at the expense of others"
+      },
+      {
+        "y": "1974",
+        "t": "Trivers publishes 'Parent-Offspring Conflict,' applying relatedness asymmetry to predict systematic disagreement within families"
+      },
+      {
+        "y": "1991",
+        "t": "H. C. J. Godfray formalizes honest signaling models of begging, showing how signal cost can maintain honesty despite conflicting interests"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CASE 1",
+    "title": "Weaning Conflict and Begging Behavior",
+    "sub": "Parent-offspring conflict is not just theoretical — it plays out visibly at the nest and in the nursery."
+  },
+  {
+    "type": "term",
+    "eyebrow": "OBSERVABLE MANIFESTATION",
+    "title": "Weaning Conflict",
+    "term": "Weaning conflict",
+    "def": "The escalating behavioral struggle, well documented in mammals, in which offspring resist a mother's attempts to reduce or terminate nursing, often through tantrums, increased begging intensity, or physical persistence, beyond the point at which the mother's fitness optimum favors weaning.",
+    "bullets": [
+      "First formally described by Trivers as a predicted consequence of parent-offspring conflict theory",
+      "Documented across mammals from primates to ungulates: juveniles vocalize, chase, and physically harass mothers who attempt to withdraw the nipple",
+      "Timing of weaning reflects a negotiated outcome, not a unilateral parental decision — often ending closer to the offspring's preferred timing than a naive optimality model would predict, reflecting offspring bargaining power"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COST OF WEANING DELAY",
+    "title": "Why Mothers Push to Wean Sooner",
+    "left": {
+      "h": "Costs of continued nursing to the mother",
+      "body": "<p>Lactation is one of the most energetically expensive activities in mammalian reproduction.</p><ul><li>Depletes maternal body condition and fat reserves</li><li>Delays return to estrus and the start of a new reproductive cycle</li><li>Reduces the mother's ability to invest in a future litter/calf</li><li>In seasonal breeders, can shift the timing of the next birth to a less favorable season</li></ul>"
+    },
+    "right": {
+      "h": "Benefits of continued nursing to the offspring",
+      "body": "<p>The offspring gains directly from every additional bout of nursing.</p><ul><li>Milk is a high-quality, low-effort food source compared to independent foraging</li><li>Extended nursing can buffer against food scarcity or predation risk during foraging</li><li>Because the offspring discounts the cost to future siblings by r = 0.5 rather than valuing it fully, it is selected to keep demanding past the mother's optimum</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "CONFLICT BEFORE BIRTH",
+    "title": "Genomic Imprinting and Placental Conflict",
+    "term": "Genomic imprinting",
+    "def": "A phenomenon in which a gene's expression depends on whether it was inherited from the mother or the father; in the context of parent-offspring conflict, David Haig's kinship theory of imprinting proposes that paternally inherited genes favor greater resource extraction from the mother than maternally inherited genes at the same locus.",
+    "bullets": [
+      "In species where females may mate with multiple males across breeding events, a father's genes in the current fetus are not necessarily present in the mother's future offspring — so paternal genes are selected to extract more from her now",
+      "Maternal genes, by contrast, are selected to balance investment in the current offspring against the mother's own future reproduction (and thus other offspring she may carry)",
+      "This predicts a tug-of-war played out at the molecular level, not just the behavioral level"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MOLECULAR CASE STUDY",
+    "title": "IGF2 and Placental Growth Genes",
+    "left": {
+      "h": "Paternally expressed genes",
+      "body": "<p>Genes such as Igf2 (insulin-like growth factor 2) are expressed from the paternal allele in mice and humans.</p><ul><li>Promote placental growth and nutrient transfer from mother to fetus</li><li>Increase fetal growth rate, consistent with the prediction that paternal genes favor greater extraction</li></ul>"
+    },
+    "right": {
+      "h": "Maternally expressed genes",
+      "body": "<p>Genes such as Igf2r (a receptor that sequesters IGF2) are preferentially expressed from the maternal allele.</p><ul><li>Act to dampen or counteract the growth-promoting effect of paternal Igf2</li><li>Consistent with maternal genes moderating extraction to preserve resources for future reproduction</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "SIGNAL & RESPONSE",
+    "title": "Begging Behavior",
+    "term": "Begging",
+    "def": "Conspicuous offspring behaviors — vocalizations, postures, gaping, jostling — that solicit parental provisioning; interpreted under conflict theory as a costly, and therefore potentially honest, signal of offspring need used to influence how parents allocate care among current and future young.",
+    "bullets": [
+      "Classic system: nestling birds gape, call, and stretch toward parents delivering food",
+      "Begging intensity often correlates with hunger level, making it a candidate honest signal under honest-signaling (handicap-type) models",
+      "But begging is also costly: it expends energy, and loud begging calls can attract predators to the nest — a cost that keeps signaling honest"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEGGING AS A NEGOTIATION TOOL",
+    "title": "How Begging Fits the Conflict Framework",
+    "items": [
+      "Under a pure 'obedient offspring' model, chicks would signal only their true need and parents would simply supply it — no conflict would exist",
+      "Under Trivers' framework, offspring are selected to exaggerate need somewhat, because pushing parents toward the offspring's optimum (higher than the parent's) increases the offspring's own fitness",
+      "Parents, in turn, are selected to be somewhat skeptical: they use begging as one cue among several (e.g., relative begging intensity among siblings, body condition) rather than delivering unlimited resources to the loudest beggar",
+      "The equilibrium reached is a partially honest signaling system, held honest by the cost of begging itself (energy expenditure, predation risk) — an application of costly-signaling theory"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EMPIRICAL EVIDENCE",
+    "title": "Evidence for Begging as Manipulation and Signal",
+    "items": [
+      "Cross-fostering and brood-size manipulation experiments in birds (e.g., canaries, great tits) show begging intensity increases with hunger and with the number of competing siblings",
+      "Playback experiments: parents increase provisioning rates in response to louder/more intense begging calls, even independent of actual need, showing begging does influence parental decisions",
+      "Predation cost of begging demonstrated in field studies where nests with louder begging experienced higher predation rates — supporting the idea that begging is a costly, not free, signal",
+      "Brood parasites (e.g., cuckoos) exploit the begging channel: a single cuckoo chick can out-beg an entire host brood, extracting far more than the parental optimum for a single offspring — an extreme illustration of the conflict logic pushed to manipulation"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SIGNALING MODELS",
+    "title": "Why Begging Stays (Mostly) Honest",
+    "headers": [
+      "Model feature",
+      "Prediction if signals were cost-free",
+      "Prediction with costly signaling"
+    ],
+    "rows": [
+      [
+        "Begging intensity vs. true hunger",
+        "No reliable relationship — offspring would all exaggerate maximally ('cheap talk')",
+        "Positive correlation — only genuinely needy offspring can afford the energetic/predation cost of intense begging"
+      ],
+      [
+        "Equilibrium outcome",
+        "Signal system collapses; parents ignore begging entirely",
+        "Stable, partially honest signaling system persists (Godfray 1991)"
+      ],
+      [
+        "Effect of predation risk at nest",
+        "No predicted change in begging levels",
+        "Higher predation risk should select for reduced average begging intensity, since the cost of signaling rises"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "ESCALATION",
+    "title": "Intensity of Family Conflict",
+    "levels": [
+      {
+        "label": "Siblicide",
+        "color": "#4a1620",
+        "width": "320px"
+      },
+      {
+        "label": "Sibling rivalry / scramble competition",
+        "color": "#6b2c39",
+        "width": "400px"
+      },
+      {
+        "label": "Weaning conflict / tantrums",
+        "color": "#8a3f4d",
+        "width": "480px"
+      },
+      {
+        "label": "Begging above true need",
+        "color": "#a85a68",
+        "width": "540px"
+      },
+      {
+        "label": "Baseline signaling of genuine need",
+        "color": "#c47b87",
+        "width": "600px"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CASE 2",
+    "title": "Sibling Rivalry and Siblicide",
+    "sub": "When parent-offspring conflict and sibling competition combine, the outcome can be lethal."
+  },
+  {
+    "type": "term",
+    "eyebrow": "EXTREME MANIFESTATION",
+    "title": "Sibling Rivalry",
+    "term": "Sibling rivalry",
+    "def": "Competition among siblings for limited parental resources (food, parental attention, nest space), predicted by kin selection theory to be more intense the lower the relatedness among competing siblings, and capable of escalating to lethal aggression (siblicide) in some species.",
+    "bullets": [
+      "Distinct from parent-offspring conflict but closely linked: parents often create conditions (e.g., asynchronous hatching, unequal provisioning) that structure how siblings compete",
+      "Intensity of rivalry predicted to scale inversely with relatedness — full siblings (r = 0.5) should compete less intensely than half-siblings (r = 0.25) or unrelated brood-mates",
+      "Ranges from mild scramble competition for food to overt, fatal aggression"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES",
+    "title": "Siblicide in Birds",
+    "cards": [
+      {
+        "h": "Egrets and herons",
+        "p": "Facultative siblicide: parents hatch eggs asynchronously, producing a size hierarchy. In poor food years, the largest chick attacks and kills younger, smaller siblings, effectively brood-reducing to match resources."
+      },
+      {
+        "h": "Blue-footed and Nazca boobies",
+        "p": "Nazca boobies show obligate siblicide: the first-hatched chick virtually always kills its younger sibling shortly after hatching, regardless of food availability, essentially guaranteeing single-chick broods."
+      },
+      {
+        "h": "Eagles (e.g., black eagle)",
+        "p": "'Cainism' — the elder eaglet routinely attacks and kills the younger, especially where food delivery cannot support two chicks; a dramatic, well-filmed example of brood reduction."
+      },
+      {
+        "h": "Spotted hyenas (mammal example)",
+        "p": "Same-sex twin cubs, born with erupted teeth, engage in severe neonatal aggression that can be lethal, illustrating that siblicide is not restricted to birds."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FACULTATIVE VS. OBLIGATE",
+    "title": "Two Evolutionary Modes of Siblicide",
+    "left": {
+      "h": "Facultative siblicide",
+      "body": "<p>Aggression occurs only under certain conditions, typically food scarcity.</p><ul><li>Parents produce a 'marginal' extra offspring as insurance (the brood reduction hypothesis)</li><li>If resources are abundant, all chicks survive; if scarce, the hierarchy resolves down to what parents can support</li><li>Example: many egrets and herons, some raptors</li></ul>"
+    },
+    "right": {
+      "h": "Obligate siblicide",
+      "body": "<p>Aggression occurs essentially every time, regardless of resource level.</p><ul><li>Parents lay a full clutch, but the social/behavioral system guarantees only one survivor</li><li>Raises the question of why parents still lay a 'doomed' extra egg — leading hypothesis: insurance against failure of the first egg to hatch or survive</li><li>Example: Nazca booby, some eagle species</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BROOD REDUCTION HYPOTHESIS",
+    "title": "Why Would Parents Allow (or Even Cause) Siblicide?",
+    "items": [
+      "Asynchronous hatching (starting incubation before the clutch is complete) creates a size/age hierarchy among chicks — proposed by Lack (1954) as an adaptive parental strategy",
+      "The hierarchy allows the brood to be 'reduced' efficiently to match unpredictable food supply: the parent is not forced to gamble on an all-or-nothing outcome for every chick",
+      "From the parent's perspective, producing an optimistic clutch size and allowing the offspring hierarchy to resolve overinvestment is more efficient than genetically committing to a smaller, fixed brood size",
+      "This reframes 'siblicide' not as parental failure but as a parentally structured mechanism that resolves the parent-offspring conflict over how many offspring to fully provision"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KIN SELECTION LENS",
+    "title": "Why the Victim Doesn't Simply 'Fight Back' Successfully",
+    "items": [
+      "The younger, smaller chick is often at an unavoidable physical disadvantage created by the hatching asynchrony itself, limiting its ability to resist",
+      "From a kin selection perspective, a chick that cannot survive under current conditions gains more inclusive fitness by its death benefiting a full sibling (r = 0.5) than by both perishing through resource dilution",
+      "This does not mean the victim 'chooses' death altruistically — rather, selection has not favored effective counter-resistance because the conditions that trigger siblicide (severe scarcity) offer the losing chick little prospect of survival regardless",
+      "Illustrates how conflict theory and kin selection jointly predict both the aggressor's behavior and the apparent lack of an evolved counter-strategy in the victim"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RESOLUTION MECHANISMS",
+    "title": "How Family Conflict Gets Partially Resolved",
+    "items": [
+      "Honest signaling (begging) allows some information transfer despite the incentive to exaggerate, keeping outcomes closer to a negotiated compromise",
+      "Parental control mechanisms: physical ability to leave, withhold food, or produce milk/eggs with limited nutrient content limits how much offspring can extract",
+      "Offspring physiological adaptations: e.g., in some mammals, placental hormones increase maternal blood glucose delivery to the fetus beyond the mother's 'optimal' level — a physiological echo of behavioral conflict occurring even before birth",
+      "Brood hierarchies (hatching asynchrony) pre-resolve some sibling competition before it must be fought out directly",
+      "Ultimately, conflict is bounded by the shared genetic interest of all parties in the survival of at least some offspring — pure destructive escalation is rarely favored"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "SYNTHESIS",
+    "quote": "The family is not a cooperative unit by default — it is a set of individuals with overlapping but non-identical genetic interests, and its apparent harmony is itself an evolved, negotiated outcome.",
+    "attrib": "Adapted from R. Trivers' framework, as presented in Zimmer & Emlen, Ch. 12"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING THE THREADS",
+    "title": "How Today's Topics Fit Together",
+    "items": [
+      "Parental care evolves via a cost-benefit calculation balancing offspring benefit against parental reproductive cost (Slides 4–7)",
+      "Who provides care (female, male, both) is predictable from fertilization mode, paternity certainty, and offspring need (Slides 8–17)",
+      "Once care exists, parent and offspring are selected to disagree about its amount and duration, because of relatedness asymmetry (Slides 18–24)",
+      "Weaning conflict and begging are the everyday, observable expression of that disagreement (Slides 25–29)",
+      "Sibling rivalry and siblicide show the same conflict logic extended to competition among offspring themselves, sometimes resolved lethally (Slides 30–35)",
+      "All of this rests on the concept of relatedness (r), which we will formalize with Hamilton's rule when we reach kin selection in Chapter 16"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Parental care evolves when its fitness benefit to current offspring exceeds its fitness cost to the parent's future reproduction — it is not automatic or universal",
+      "Care patterns (no care, female-only, male-only, biparental) correlate strongly with fertilization mode and the resulting certainty of parentage",
+      "Trivers' parent-offspring conflict theory predicts that offspring, valuing themselves more than their siblings, are selected to demand more investment than parents are selected to give",
+      "Weaning conflict and begging behavior are real-world, measurable expressions of this evolutionary tug-of-war, kept partially honest by signaling costs",
+      "Sibling rivalry and siblicide represent conflict extended among offspring, often structured by parental strategies like hatching asynchrony (the brood reduction hypothesis)",
+      "These dynamics all rest on differential genetic relatedness — the conceptual seed of inclusive fitness and kin selection theory, to be developed fully in Chapter 16"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Lecture 11: Senescence and the Evolution of Aging",
+    "sub": "If natural selection can shape investment in offspring so precisely, why hasn't it eliminated aging and death? We turn next to the evolutionary theories of senescence — mutation accumulation, antagonistic pleiotropy, and the disposable soma."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 10</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

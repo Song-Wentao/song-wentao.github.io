@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 10: Reading Phylogenetic Trees: Homology, Characters, and Tree-Thinking</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 10",
+    "title": "Reading Phylogenetic Trees",
+    "sub": "Homology, Characters, and Tree-Thinking",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Chapter 4, \"The Tree of Life\" (1 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "Bridge",
+    "title": "From the Rocks to the Relationships",
+    "sub": "Chapter 3 gave us a timeline. Chapter 4 gives us a map of kinship."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Where We Left Off (Lecture 9)",
+    "items": [
+      "The fossil record documents mass extinctions and the tempo of life's history through deep time.",
+      "We closed Ch3 asking: given a timeline of when lineages appeared and disappeared, how do we know who is related to whom?",
+      "Answer: phylogenetics — the study of evolutionary relationships, represented visually as trees.",
+      "Today we learn to read a tree correctly before we learn to build one (that's Lecture 11).",
+      "Everything from here forward in the course leans on tree-thinking, so precision now pays off for the rest of the semester."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Tree-Thinking",
+    "sub": "What a phylogenetic tree is — and is not"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Core Concept",
+    "title": "Defining the Object",
+    "term": "Phylogenetic Tree",
+    "def": "A branching diagram that represents a hypothesis about the evolutionary relationships among a set of taxa, based on the evidence available at the time it was built.",
+    "bullets": [
+      "It is a hypothesis, not a proven fact — it can be revised as new data (fossils, genomes) arrive.",
+      "It depicts patterns of common ancestry, not a sequence of one species turning into another.",
+      "Every tree is only as good as the characters and methods used to build it."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Tree-Thinking",
+    "title": "Why 'Tree-Thinking' Is a Skill",
+    "items": [
+      "Humans default to reading diagrams left-to-right or bottom-to-top as a story of progress — trees resist that instinct.",
+      "Tree-thinking means treating a phylogeny the way you'd treat a family pedigree: it shows who shares ancestors with whom, not a ranking.",
+      "It requires practice because our intuitive 'ladder' image of evolution (amoeba to fish to reptile to mammal to human) is scientifically wrong.",
+      "Misreading a tree isn't a minor error — it can lead to wrong conclusions about which traits are ancestral, which are derived, and which species are 'closest' to which."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Common Misconception",
+    "title": "Ladder-Thinking vs. Tree-Thinking",
+    "left": {
+      "h": "The Ladder (Wrong)",
+      "body": "<ul><li>Implies a single line of progress from 'simple' to 'complex'</li><li>Places humans at the top, as evolution's goal</li><li>Reads a tree left-to-right as one species literally turning into the next</li><li>Treats living species on short branches as 'primitive' or 'unevolved'</li></ul>"
+    },
+    "right": {
+      "h": "The Tree (Correct)",
+      "body": "<ul><li>Branches represent independent lineages, each evolving in its own way</li><li>No taxon is the 'goal' — every living tip has survived equally long since the root</li><li>A tree shows splitting (speciation), not transformation of one living species into another</li><li>All living species are equally 'evolved' — they've just been shaped by different pressures</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Misreadings",
+    "title": "Three Ways People Misread Trees",
+    "items": [
+      "Misreading #1 — 'Species A evolved into Species B': trees never show a living tip becoming another living tip; both descend from a shared ancestor that no longer exists.",
+      "Misreading #2 — 'Tips near the top/right are more advanced': tip order on the page is often arbitrary; branches can be rotated around a node without changing the tree's meaning.",
+      "Misreading #3 — 'Humans are the pinnacle, other species are stepping stones toward us': every tip on a tree is a current endpoint of an equally long lineage back to the root.",
+      "A tree only tells you about branching order (who split from whom, and in what sequence) — it does not, by itself, tell you how much a lineage has changed.",
+      "Correcting these misreadings is not pedantic — it is the difference between understanding evolution and misunderstanding it."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On Tree-Thinking",
+    "quote": "Humans are not descended from monkeys, nor from any other living species — we share ancestors with them, ancestors that no longer exist.",
+    "attrib": "paraphrased from Zimmer & Emlen, Evolution: Making Sense of Life"
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Anatomy of a Tree Diagram",
+    "sub": "Nodes, branches, tips — and what each one claims"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Tree Anatomy",
+    "title": "Where Lineages Meet",
+    "term": "Node",
+    "def": "A point on a tree, usually drawn as a branching point, representing the most recent common ancestor of everything descended from it.",
+    "bullets": [
+      "Every node is itself a hypothesized ancestral population or species, not a physical fossil (unless the tree was explicitly built to place fossils at nodes).",
+      "A node splitting into two branches represents a speciation event."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Tree Anatomy",
+    "title": "Lineages Through Time",
+    "term": "Branch",
+    "def": "A line connecting a node to another node (or to a tip), representing a single, continuous lineage evolving through time.",
+    "bullets": [
+      "The branch itself carries no information about what happened along the way unless the diagram is explicitly drawn to scale.",
+      "Longer branches can mean more elapsed time, more accumulated change, or both — check the axis and caption before assuming which."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Tree Anatomy",
+    "title": "What We're Comparing",
+    "term": "Tip (Terminal Taxon)",
+    "def": "The endpoint of a branch, representing a taxon actually being compared in the analysis — typically a living species, a population, or a fossil form.",
+    "bullets": [
+      "Tips are usually the only entities on the tree we have direct data from; nodes are inferred.",
+      "The left-to-right order of tips on a printed tree is arbitrary — trees can be rotated at any node without changing what they mean."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading Conventions",
+    "title": "Branch Length — Handle With Care",
+    "items": [
+      "In a cladogram, branch lengths are meaningless — only the branching order (topology) matters.",
+      "In a phylogram, branch length is scaled to the amount of evolutionary change (e.g., genetic differences) along that lineage.",
+      "In a chronogram (time tree), branch length is scaled to elapsed time, often calibrated using fossils or molecular clock estimates.",
+      "Always check the axis label or figure caption: the same-looking diagram can be any of these three, and conflating them is a classic source of error.",
+      "A short branch does not necessarily mean 'little evolutionary change' unless you know the diagram is a phylogram or chronogram drawn to scale."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2 (cont.)",
+    "title": "Naming Groups on a Tree",
+    "sub": "Monophyletic, paraphyletic, and polyphyletic groupings"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Grouping Taxa",
+    "title": "Three Ways to Define a Group",
+    "headers": [
+      "Grouping",
+      "Definition",
+      "Example"
+    ],
+    "rows": [
+      [
+        "Monophyletic",
+        "An ancestor plus ALL of its descendants",
+        "Mammals (a common ancestor and every species descended from it)"
+      ],
+      [
+        "Paraphyletic",
+        "An ancestor plus SOME, but not all, of its descendants",
+        "'Reptiles' as traditionally defined (excludes birds, though birds descend from the reptile ancestor)"
+      ],
+      [
+        "Polyphyletic",
+        "A group defined by a trait that evolved independently in separate lineages, excluding their common ancestor",
+        "'Flying animals' (bats, birds, and insects grouped by flight alone)"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Grouping Taxa",
+    "title": "Why the Distinction Matters",
+    "cards": [
+      {
+        "h": "Monophyletic Groups Are the Goal",
+        "p": "Modern classification aims to name only monophyletic groups (also called clades), because these reflect actual shared ancestry."
+      },
+      {
+        "h": "Paraphyletic Groups Mislead",
+        "p": "Calling something 'reptiles' while excluding birds hides the fact that birds are, phylogenetically, a lineage of reptiles."
+      },
+      {
+        "h": "Polyphyletic Groups Are Usually Errors",
+        "p": "Grouping by convergent traits (like flight or warm-bloodedness across distant lineages) mixes up unrelated organisms and gets abandoned once recognized."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Homology — The Foundation of Tree-Building",
+    "sub": "Shared traits due to shared ancestry"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Revisiting L2",
+    "title": "Similarity That Signals Ancestry",
+    "term": "Homology",
+    "def": "Similarity between traits in different species that results from inheritance of that trait from a shared common ancestor.",
+    "bullets": [
+      "Recall the whale example from Lecture 2: the reduced pelvic bones of whales are homologous with the hind-limb bones of other mammals — evidence whales descend from land-dwelling, four-legged ancestors.",
+      "Homologous traits are the raw material phylogenetics uses to infer relationships, because they carry a signal of common descent."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "A Critical Distinction",
+    "title": "Homology vs. Analogy (Convergence)",
+    "headers": [
+      "",
+      "Homology",
+      "Analogy / Convergence"
+    ],
+    "rows": [
+      [
+        "Cause",
+        "Inherited from a shared common ancestor",
+        "Independently evolved in unrelated lineages"
+      ],
+      [
+        "Underlying structure",
+        "Same basic architecture, even if modified",
+        "Often superficially similar, structurally different"
+      ],
+      [
+        "Phylogenetic value",
+        "Useful for building trees",
+        "Misleading if mistaken for homology"
+      ],
+      [
+        "Example",
+        "Whale hind-limb bones vs. other mammal legs",
+        "Dolphin fins vs. shark fins (both 'fins,' unrelated origin)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "New Example",
+    "title": "Wings: A Classic Case of Convergence",
+    "items": [
+      "Bird wings, bat wings, and insect wings all perform the same function (powered flight) — but they are not all homologous to one another as wings.",
+      "Bird and bat wings are homologous as forelimbs (both are modified tetrapod arms with the same underlying bone plan), but the wing surface itself evolved independently in each lineage.",
+      "Insect wings are not modified limbs at all — they are outgrowths of the exoskeleton, built from entirely different embryonic and structural material.",
+      "So: bird and bat forelimbs = homologous; bird, bat, and insect wings as flight structures = analogous / convergent.",
+      "This is why phylogenetics never uses 'has wings' alone as evidence of close relationship — the trait's origin must be traced, not just its function."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Wings, Compared",
+    "title": "Same Function, Different Histories",
+    "left": {
+      "h": "Bird Wing & Bat Wing",
+      "body": "<ul><li>Both built from the same ancestral tetrapod forelimb skeleton (humerus, radius, ulna, digits)</li><li>Homologous as forelimbs — inherited from a common four-limbed ancestor</li><li>Feathers vs. skin membrane are independently derived flight surfaces</li></ul>"
+    },
+    "right": {
+      "h": "Insect Wing",
+      "body": "<ul><li>Not derived from a limb at all</li><li>Formed from extensions of the exoskeleton (cuticle)</li><li>Evolved independently, hundreds of millions of years apart from vertebrate flight</li><li>Analogous to bird/bat wings: same function (flight), unrelated origin</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Characters and Character States",
+    "sub": "The building blocks of a phylogenetic analysis"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Vocabulary",
+    "title": "What Gets Compared",
+    "term": "Character",
+    "def": "Any heritable feature of an organism that can vary among taxa and be scored for the purpose of building a phylogeny — e.g., 'number of limbs,' 'presence of feathers,' or 'a specific DNA base position.'",
+    "bullets": [
+      "A good character is one that can be homologized across the taxa being compared — the same feature, present or modified, in every taxon in the analysis."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Vocabulary",
+    "title": "The Values a Character Can Take",
+    "term": "Character State",
+    "def": "One of the possible conditions a character can have in a given taxon — e.g., for the character 'limb number,' the states might be 'four limbs' or 'no limbs.'",
+    "bullets": [
+      "Building a tree means scoring every taxon for every character state, then finding the branching pattern that best explains the distribution of those states."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two Major Data Sources",
+    "title": "Morphological vs. Molecular Characters",
+    "items": [
+      "Morphological characters: physical traits such as skeletal structure, presence/absence of feathers, number of vertebrae, tooth shape — historically the only data available, and still essential for placing fossils.",
+      "Molecular characters: DNA or protein sequence positions — a base at a specific site (A, T, C, or G) or an amino acid at a specific position.",
+      "Molecular data give far more characters (thousands to millions of base positions) than morphology typically allows, increasing statistical power.",
+      "The two data types are complementary: only morphology can be scored from most fossils, while molecular data dominate analyses of living taxa.",
+      "Modern phylogenetics increasingly combines both morphological and molecular characters in a single analysis."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Cladistics: The Logic of Grouping",
+    "sub": "Shared derived vs. shared ancestral characters"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The Character States That Define a Group",
+    "term": "Synapomorphy (Shared Derived Character)",
+    "def": "A character state that evolved in a common ancestor and is shared by all (and only) its descendants — the evidence used to define a monophyletic group.",
+    "bullets": [
+      "Example: the presence of mammary glands is a synapomorphy uniting all mammals, because it arose once, in the mammalian common ancestor.",
+      "Only shared derived characters (not shared ancestral ones) provide evidence for grouping taxa together in cladistics."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The Trap: Old Traits Held in Common",
+    "term": "Symplesiomorphy (Shared Ancestral Character)",
+    "def": "A character state that is shared by two or more taxa simply because it was present in a distant common ancestor and retained — it does not indicate that those taxa are especially closely related.",
+    "bullets": [
+      "Example: having a backbone (vertebrae) is shared by fish, frogs, lizards, birds, and mammals — but it's ancestral for all vertebrates, so it can't tell us which of these groups is most closely related to which.",
+      "Grouping taxa by symplesiomorphies is a classic cladistic mistake — it produces paraphyletic, not monophyletic, groups."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Core Contrast",
+    "title": "Synapomorphy vs. Symplesiomorphy",
+    "left": {
+      "h": "Synapomorphy",
+      "body": "<ul><li>A NEW trait that arose in a specific ancestor</li><li>Shared only by that ancestor's descendants</li><li>Groups taxa correctly (defines a clade)</li><li>Example: feathers uniting birds</li></ul>"
+    },
+    "right": {
+      "h": "Symplesiomorphy",
+      "body": "<ul><li>An OLD trait inherited from a much earlier ancestor</li><li>Shared broadly, beyond the group of interest</li><li>Cannot validly group taxa (it's relative to the question being asked)</li><li>Example: 'has a backbone' among vertebrates</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Cladistic Rule",
+    "title": "Only Shared-Derived Traits Define Groups",
+    "items": [
+      "Cladistics builds trees by grouping taxa according to their most recently shared derived characters — their synapomorphies.",
+      "Whether a character counts as 'derived' or 'ancestral' depends on the level being analyzed: having a backbone is derived at the level of all animals, but ancestral (symplesiomorphic) at the level of mammals vs. reptiles.",
+      "This is why the same trait can be a synapomorphy at one node and a symplesiomorphy at another — context (which taxa you're comparing) matters.",
+      "The practical goal: find the character states that are shared by a set of taxa AND not present in their outgroup (a taxon known to branch off earlier) — those are the synapomorphies worth using."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Worked Example",
+    "title": "Grouping Four Taxa by Shared Derived Traits",
+    "sub": "Lamprey, Shark, Salamander, Lizard"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Worked Example",
+    "title": "The Taxa and the Question",
+    "cards": [
+      {
+        "h": "The Taxa",
+        "p": "Lamprey (jawless fish), Shark (jawed fish), Salamander (amphibian), Lizard (reptile) — plus a known outgroup with none of the traits below."
+      },
+      {
+        "h": "The Characters",
+        "p": "(1) Jaws, (2) Bony skeleton, (3) Four limbs, (4) Amniotic egg (an egg with a protective membrane usable on land)."
+      },
+      {
+        "h": "The Question",
+        "p": "Which characters are synapomorphies that let us group these four taxa correctly, and which are just ancestral traits retained by everyone?"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Worked Example",
+    "title": "Character Matrix (0 = absent, 1 = present)",
+    "headers": [
+      "Taxon",
+      "Jaws",
+      "Bony skeleton",
+      "Four limbs",
+      "Amniotic egg"
+    ],
+    "rows": [
+      [
+        "Lamprey",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Shark",
+        "1",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Salamander",
+        "1",
+        "1",
+        "1",
+        "0"
+      ],
+      [
+        "Lizard",
+        "1",
+        "1",
+        "1",
+        "1"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Worked Example",
+    "title": "Reading the Matrix as Nested Synapomorphies",
+    "items": [
+      "Jaws (state 1) are absent in Lamprey but present in the other three — jaws are a synapomorphy uniting Shark + Salamander + Lizard relative to Lamprey.",
+      "Bony skeleton is absent in Lamprey and Shark (both have cartilage-based or jawless skeletons in this simplified example) but present in Salamander and Lizard — a synapomorphy uniting that pair.",
+      "Four limbs is shared by Salamander and Lizard only — another synapomorphy nesting them together.",
+      "Amniotic egg is present only in Lizard — a synapomorphy unique to the reptile lineage among these four (an autapomorphy relative to this group, since it's unshared).",
+      "Note what 'having a backbone' would do here: it's present in all four taxa (it's symplesiomorphic for this group) and so it gives us zero information about which of these four is most closely related to which.",
+      "The resulting tree nests the taxa in order: (Lamprey (Shark (Salamander, Lizard))) — each synapomorphy defines one more nested, more inclusive clade."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "The Cladistic Principle",
+    "quote": "Shared derived characters, not overall similarity, are what reveal the branching order of the tree of life.",
+    "attrib": "principle formalized by Willi Hennig, founder of cladistics"
+  },
+  {
+    "type": "section",
+    "tag": "Part 6",
+    "title": "A Brief History of Tree-Building Thought",
+    "sub": "From naming nature to reconstructing ancestry"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "History of Ideas",
+    "title": "Milestones on the Way to Modern Phylogenetics",
+    "items": [
+      {
+        "y": "1735",
+        "t": "Linnaeus publishes Systema Naturae, establishing hierarchical classification — but without an evolutionary interpretation."
+      },
+      {
+        "y": "1837",
+        "t": "Darwin sketches the first known 'tree of life' diagram in his private notebook, with 'I think' written above it."
+      },
+      {
+        "y": "1859",
+        "t": "Darwin's On the Origin of Species publishes the tree concept publicly, explicitly linking classification to common descent."
+      },
+      {
+        "y": "1950",
+        "t": "Willi Hennig formalizes cladistics, proposing that classification should be based strictly on shared derived characters (synapomorphies)."
+      },
+      {
+        "y": "1960s–70s",
+        "t": "Cladistic methods spread through systematics, replacing similarity-based classification with ancestry-based classification."
+      },
+      {
+        "y": "1980s–present",
+        "t": "Molecular sequencing and computational methods (parsimony, likelihood, Bayesian inference) allow trees built from massive genetic datasets."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 7",
+    "title": "Putting It Together",
+    "sub": "Common pitfalls, revisited"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Self-Check",
+    "title": "Five Questions to Ask of Any Tree You See",
+    "items": [
+      "Is this a cladogram, phylogram, or chronogram? (Check whether branch length carries meaning.)",
+      "Does the group being discussed correspond to a monophyletic clade, or is it really paraphyletic (like traditional 'reptiles' or 'invertebrates')?",
+      "Are the traits being cited as evidence of relationship homologous, or could they be convergent/analogous?",
+      "Am I reading the tip order as a ranking of 'more' or 'less' evolved? (If so, stop — that's not what tip order means.)",
+      "Are the characters used to group taxa derived (synapomorphies) or just widely shared ancestral traits (symplesiomorphies)?"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Misconceptions, Corrected",
+    "title": "Quick Reference: Myth vs. Reality",
+    "cards": [
+      {
+        "h": "Myth: Trees show progress",
+        "p": "Reality: trees show branching history. No tip is more 'advanced' than any other living tip — all have equally long histories back to the root."
+      },
+      {
+        "h": "Myth: Similar traits mean close relatives",
+        "p": "Reality: only homologous, derived traits (synapomorphies) reliably indicate close relationship — convergent traits can fool a careless observer."
+      },
+      {
+        "h": "Myth: Branch length always means change",
+        "p": "Reality: it depends on the diagram type — cladograms carry no branch-length information at all."
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Worked Example, Generalized",
+    "title": "Nested Clades Built From Nested Synapomorphies",
+    "levels": [
+      {
+        "label": "Vertebrates",
+        "color": "#4a1620",
+        "width": "420px"
+      },
+      {
+        "label": "Jawed vertebrates",
+        "color": "#6b2c39",
+        "width": "360px"
+      },
+      {
+        "label": "Bony-skeleton vertebrates",
+        "color": "#8a3f4d",
+        "width": "300px"
+      },
+      {
+        "label": "Four-limbed vertebrates",
+        "color": "#a85a68",
+        "width": "240px"
+      },
+      {
+        "label": "Amniotes",
+        "color": "#c47b87",
+        "width": "180px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "Why This All Matters for the Rest of Ch. 4",
+    "items": [
+      "Every tree we examine for the rest of this unit is a hypothesis built from characters, scored across taxa, and interpreted through tree-thinking.",
+      "Getting comfortable distinguishing homology from analogy, and synapomorphy from symplesiomorphy, is the single most important skill for the next three lectures.",
+      "Misclassifying a group as monophyletic when it's really paraphyletic (or vice versa) is one of the most common errors in introductory discussions of evolution — now you can catch it.",
+      "None of what we covered today tells us HOW to actually build a tree from a character matrix when there are many taxa and many characters — that's next time."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Bridge Forward",
+    "title": "Coming Up: Building Trees",
+    "sub": "Lecture 11 — Parsimony and Other Tree-Building Methods"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Preview",
+    "title": "What Lecture 11 Will Add",
+    "items": [
+      "Today we learned to read a finished tree and understand the logic (synapomorphies) that should justify it.",
+      "Next time: given a character matrix like the one we built today — but with many more taxa and characters — how do you actually find the best tree?",
+      "We'll introduce the parsimony principle: preferring the tree that requires the fewest independent evolutionary changes to explain the data.",
+      "We'll also preview why more taxa and characters make this a serious computational problem, and how methods like maximum likelihood and Bayesian inference build on the same logic of shared derived characters.",
+      "Bring your worked-example instincts from today — Lecture 11 is the same logic, scaled up."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "A phylogenetic tree is not a picture of progress — it is a map of history, and like any map, it is only as trustworthy as the evidence used to draw it.",
+    "attrib": "course synthesis, Evolution I"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 10</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

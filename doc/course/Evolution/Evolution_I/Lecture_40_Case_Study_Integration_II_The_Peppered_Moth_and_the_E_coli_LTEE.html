@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 40: Case Study Integration II: The Peppered Moth and the E. coli Long-Term Evolution Experiment</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 40",
+    "title": "Case Study Integration II: The Peppered Moth and the E. coli Long-Term Evolution Experiment",
+    "sub": "Two systems, decades of data, and (almost) every mechanism of evolution on display",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 6 of 11)"
+  },
+  {
+    "type": "section",
+    "tag": "PART A",
+    "title": "The Peppered Moth",
+    "sub": "Biston betularia and the classic story of industrial melanism"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Setting the Scene",
+    "title": "Britain, Soot, and a Changing Landscape",
+    "items": [
+      "The Industrial Revolution (roughly 1760–1840 in Britain, intensifying through the 19th century) burned enormous quantities of coal in factories and homes.",
+      "Coal smoke released soot and sulfur dioxide, which killed lichen and blackened tree bark, stone buildings, and walls across industrial regions like Manchester.",
+      "Before industrialization, tree trunks in England were typically pale, lichen-covered surfaces — excellent camouflage for pale, speckled organisms.",
+      "Naturalists began noticing dark ('melanic') forms of previously pale moth species appearing in industrial areas starting in the mid-1800s.",
+      "The peppered moth, Biston betularia, became the most famous and most studied example of this phenomenon — a textbook case of evolution observed within a human lifetime."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Natural History",
+    "title": "Biston betularia: The Species",
+    "items": [
+      "A nocturnal geometrid moth, common across the United Kingdom and much of temperate Europe and North America.",
+      "The wild-type form, called typica, has pale wings finely speckled with black — a near-perfect match for lichen-encrusted, pale tree bark.",
+      "A dark morph, called carbonaria, has wings that are almost uniformly black.",
+      "Both forms rest motionless on tree trunks and branches during the day, relying on camouflage (crypsis) to avoid being eaten by visually hunting birds.",
+      "A third, intermediate form (insularia) also exists, with variable amounts of mottling — the trait is more genetically complex than a simple two-morph story, though the typica/carbonaria contrast dominates the classic narrative."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Industrial Melanism",
+    "term": "Industrial Melanism",
+    "def": "The evolutionary increase in frequency of dark (melanic) pigmentation morphs within populations of moths and other insects, driven by natural selection favoring camouflage against pollution-darkened backgrounds in industrialized areas.",
+    "bullets": [
+      "First formally documented in Biston betularia near Manchester, England, in the mid-19th century.",
+      "The dark carbonaria morph was first recorded in 1848 and had risen to roughly 98% of the local population near Manchester by the 1890s.",
+      "A textbook example of rapid, observable natural selection acting on a heritable, discrete trait in response to a well-understood environmental change."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Genetics of the Morphs",
+    "title": "Inheritance of the typica/carbonaria Difference",
+    "items": [
+      "Breeding experiments long before the gene was identified showed that carbonaria behaves as a single-locus, dominant Mendelian trait relative to typica, with insularia forms showing partial dominance at a series of related alleles.",
+      "Because a single dominant allele was sufficient to produce the full dark phenotype, a rare new mutation could increase in frequency relatively quickly once favored by selection, without needing to wait for multiple genes to align.",
+      "This simple genetic architecture is part of why the peppered moth became such a clean, quantifiable case study: researchers could score moths as one of a small number of discrete phenotypic (and later genotypic) classes and track frequencies precisely across years.",
+      "Contrast this with many ecologically important traits, which are polygenic (influenced by many genes of small effect) and therefore far harder to track allele-by-allele in a wild population — the moth was, in this sense, an unusually tractable natural experiment."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Predators' Perspective",
+    "title": "Birds as Visually Hunting Predators",
+    "items": [
+      "Kettlewell's and Majerus's work depended on a key ecological assumption: that birds hunt primarily by sight and can distinguish moths from bark only when contrast between moth and background is high.",
+      "Species such as great tits (Parus major), robins, redstarts, and hedge sparrows were directly filmed or observed removing moths from tree trunks in both studies.",
+      "Camouflage effectiveness (crypsis) is frequency- and context-dependent: a moth's survival advantage depends on how well its coloration matches the specific tree it lands on, not on some fixed, universal quality of 'darkness' or 'paleness.'",
+      "This predator-driven selection is a clear example of a biotic selective agent (as opposed to abiotic agents like temperature or drought), and it connects to broader course themes about predator-prey coevolution and the costs and benefits of anti-predator traits."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Classic Experiment and Its Critics",
+    "title": "Kettlewell's Experiments — and the Scrutiny That Followed",
+    "left": {
+      "h": "Bernard Kettlewell's Mark-Release-Recapture Studies (1950s)",
+      "body": "<p>Working under J.B.S. Haldane and E.B. Ford at Oxford, Kettlewell tested whether bird predation drove morph frequencies.</p><ul><li>Released marked typica and carbonaria moths onto tree trunks in both polluted (Birmingham) and unpolluted (Dorset) woodland.</li><li>Recaptured moths later using light traps and pheromone traps to estimate relative survival.</li><li>In polluted woodland, carbonaria survived and were recaptured at higher rates than typica; the reverse held in unpolluted woodland.</li><li>He also filmed birds (great tits, redstarts) actively preying on moths resting on mismatched backgrounds — direct, visible evidence of selective predation.</li></ul>"
+    },
+    "right": {
+      "h": "Later Scrutiny and Vindication",
+      "body": "<p>Starting in the 1990s–2000s, critics (notably Ted Sargent, and geneticist Michael Majerus in his own self-critical review) raised serious methodological concerns.</p><ul><li>Kettlewell released moths at artificially high densities, directly onto trunks in daylight — moths rarely rest so low or so exposed in nature.</li><li>Photographs used in textbooks were sometimes staged (dead specimens pinned to trunks).</li><li>Michael Majerus, an early critic, ran a rigorous 7-year (2001–2007) mark-release-recapture study correcting these flaws.</li><li>Majerus's results (published posthumously in 2012) closely reproduced Kettlewell's conclusions: bird predation is a major selective force, and it favors camouflaged morphs.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Correcting the Record",
+    "title": "What Majerus's Study Fixed",
+    "items": [
+      "Moths were released at low, naturalistic densities across a large study area in Cambridgeshire rather than being crowded onto a few trunks.",
+      "Moths were allowed to choose their own resting positions, including higher up on branches and in tree canopies — closer to real behavior.",
+      "Bird predation was directly observed and quantified using this more realistic setup over multiple years and generations.",
+      "The study found strong differential bird predation on the two morphs matching background color, with an estimated selection coefficient large enough to explain the observed rate of change in morph frequency.",
+      "Conclusion: the original hypothesis — differential bird predation driven by camouflage — was correct in its essentials, even though some of Kettlewell's specific methods were flawed. The peppered moth remains valid evidence for natural selection, now on a firmer empirical footing."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Molecular Resolution — Callback to Lecture 30",
+    "title": "The Carbonaria Mutation (2016)",
+    "term": "The carbonaria Transposable-Element Insertion",
+    "def": "In 2016, a research team led by Ilik Saccheri (with Arjen van't Hof and colleagues) identified the precise genetic basis of melanism in Biston betularia: a large transposable element (~21.9 kb) inserted into the first intron of the gene cortex.",
+    "bullets": [
+      "cortex is a gene involved in cell-cycle regulation, and in Lepidoptera more broadly it sits in a genomic region strongly associated with wing pattern variation across many species.",
+      "The transposon insertion alters cortex expression during wing development, producing the uniformly dark carbonaria phenotype; it behaves as a single dominant Mendelian allele.",
+      "Using accumulated mutation rates and the known spread of the allele, the team dated the origin of this specific insertion to approximately 1819 — remarkably close to the historical record of its first sighting (1848) and the onset of severe industrial pollution.",
+      "This directly connects to Lecture 30's discussion of transposable elements as an underappreciated source of novel adaptive mutations, not just 'junk DNA' or neutral genomic clutter."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Molecular Detail",
+    "title": "How a Transposon Became an Adaptation",
+    "left": {
+      "h": "The Mechanism",
+      "body": "<p>Transposable elements ('jumping genes,' first described by Barbara McClintock) are DNA sequences that can move or copy themselves within a genome.</p><ul><li>Most transposon insertions are neutral or mildly deleterious, disrupting gene function or regulation.</li><li>In this case, the insertion into a cortex intron altered gene regulation in a way that happened to produce a large-effect, discrete phenotypic change — increased melanin deposition across the wing.</li><li>Because the insertion produced a single, large, consistent effect, it could be acted on cleanly by natural selection as pollution spread.</li></ul>"
+    },
+    "right": {
+      "h": "Why This Matters Conceptually",
+      "body": "<p>The 2016 discovery closes the loop on a story that spans the entire course.</p><ul><li>It shows precisely how a new mutation arises, at the DNA level — connecting to Lecture 27's molecular evolution content.</li><li>It shows a transposable element functioning as a source of adaptive, not just neutral or harmful, genetic variation (Lecture 30).</li><li>It replaces vague 19th-century talk of organisms 'becoming' dark with an exact mutational event, a exact gene, and a testable timeline.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Callback — Lecture 4: Lamarck",
+    "title": "Why the Peppered Moth Is NOT a Lamarckian Story",
+    "items": [
+      "It is tempting to misdescribe industrial melanism as 'moths turning black because they needed to hide' — a use/disuse or acquired-characteristics narrative reminiscent of Lamarck's proposed mechanism (Lecture 4).",
+      "The actual mechanism is standard Darwinian selection on pre-existing (or newly arising) heritable variation: the carbonaria mutation arose once, around 1819, before pollution became severe, as a random mutational event unrelated to environmental need.",
+      "Pollution did not cause the mutation; it changed the selective environment so that a previously rare, now-advantageous allele increased in frequency through differential survival and reproduction.",
+      "When pollution later declined (after UK Clean Air legislation beginning in 1956), carbonaria frequency declined again — a textbook case of selection reversing as the environment reverted, which a Lamarckian 'acquired trait' model cannot easily explain.",
+      "This is precisely the same logic used to falsify Lamarckian inheritance in Lecture 4: the trait's rise and fall tracks the external selective pressure, not any organism's 'need' or 'effort,' and the underlying allele frequency — not individual moths reshaping themselves — is what changes."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Reversal",
+    "title": "Post-1956: Clean Air Acts and the Return of typica",
+    "items": [
+      "The UK Clean Air Act of 1956 and subsequent legislation sharply reduced coal smoke and sulfur dioxide emissions in industrial cities.",
+      "Lichen recolonized tree bark, and trunks lightened over subsequent decades in many previously polluted regions.",
+      "Carbonaria frequency declined predictably in these regions over the following decades, tracked through long-term moth surveys (e.g., work compiled by L.M. Cook and colleagues).",
+      "The rate of decline closely matched predictions from selection models, providing an independent, second natural experiment confirming that bird predation on camouflage mismatch — not some other confound — was driving the frequency changes in both directions.",
+      "This two-way (rise then fall) pattern, replicated across many industrial sites in Britain and later described in North America, is part of why the peppered moth remains one of the best-documented examples of selection acting on a single, well-characterized locus in a wild population."
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "The Full Arc",
+    "title": "Timeline: Peppered Moth Industrial Melanism",
+    "items": [
+      {
+        "y": "1811",
+        "t": "Approximate mutational origin of the carbonaria transposon insertion, estimated retrospectively from molecular dating (2016 study)."
+      },
+      {
+        "y": "1848",
+        "t": "First recorded specimen of the dark carbonaria morph collected near Manchester, England."
+      },
+      {
+        "y": "1895",
+        "t": "Carbonaria frequency reaches roughly 98% in the heavily polluted Manchester area."
+      },
+      {
+        "y": "1896",
+        "t": "J.W. Tutt proposes differential bird predation as the explanation for rising melanism — the hypothesis Kettlewell would later test experimentally."
+      },
+      {
+        "y": "1953–1956",
+        "t": "Bernard Kettlewell conducts mark-release-recapture experiments in polluted and unpolluted woodland, plus direct filming of bird predation."
+      },
+      {
+        "y": "1956",
+        "t": "UK Clean Air Act begins reducing industrial pollution in Britain."
+      },
+      {
+        "y": "1970s–1990s",
+        "t": "Carbonaria frequency declines across formerly polluted regions as lichen and pale bark return."
+      },
+      {
+        "y": "1998",
+        "t": "Judith Hooper's book and other critiques bring Kettlewell's methodology under public and scientific scrutiny."
+      },
+      {
+        "y": "2001–2007",
+        "t": "Michael Majerus conducts a rigorous 7-year replication study correcting earlier methodological flaws."
+      },
+      {
+        "y": "2012",
+        "t": "Majerus's results, published posthumously, substantially vindicate the original bird-predation hypothesis."
+      },
+      {
+        "y": "2016",
+        "t": "Van't Hof, Saccheri, and colleagues identify the causal transposable-element insertion in the cortex gene."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis — Part A",
+    "title": "What the Peppered Moth Teaches Us",
+    "cards": [
+      {
+        "h": "Selection Is Observable",
+        "p": "Given a strong, well-defined selective pressure (predation on camouflage mismatch) and a discrete heritable trait, allele frequency change can be documented within decades, not just millennia."
+      },
+      {
+        "h": "Science Self-Corrects",
+        "p": "Legitimate methodological criticism of Kettlewell's work led to better-designed studies (Majerus), which confirmed rather than overturned the core conclusion — a model of how science is supposed to work."
+      },
+      {
+        "h": "Mutation Meets Selection",
+        "p": "The 2016 molecular discovery shows the full causal chain: a single transposon insertion generates variation; environmental change (pollution) determines which variant is favored."
+      },
+      {
+        "h": "Reversibility Is Diagnostic",
+        "p": "The predictable decline of carbonaria after pollution controls is strong independent evidence against confounding explanations and against any Lamarckian 'directed change' story."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "In Their Own Words",
+    "quote": "Of all the evolutionary changes that have been observed in wild populations, the case of the peppered moth is perhaps the most dramatic and the best understood.",
+    "attrib": "Adapted from summaries of Kettlewell's and later Majerus's findings, peppered moth research literature"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "The Search Before the Answer",
+    "title": "Finding cortex: The Path to the 2016 Discovery",
+    "left": {
+      "h": "Early Candidate-Gene Approaches",
+      "body": "<p>Before whole-genome sequencing was feasible, researchers used genetic crosses to map the carbonaria locus.</p><ul><li>Classical breeding studies in the 20th century localized the melanism locus to a specific chromosomal region without identifying the exact gene.</li><li>Comparisons with other Lepidoptera (butterflies with similar wing-pattern loci) suggested the region near cortex as a strong candidate, since it repeatedly turns up as a wing-pattern 'hotspot' across many species.</li></ul>"
+    },
+    "right": {
+      "h": "Resolving the Exact Mutation",
+      "body": "<p>The 2016 van't Hof/Saccheri study combined fine-scale genetic mapping with full sequencing across the candidate region.</p><ul><li>They sequenced the genomic region in both morphs across many individuals, comparing typica and carbonaria genomes base by base.</li><li>The transposon insertion was the single consistent genetic difference perfectly associated with the carbonaria phenotype across all sampled individuals.</li><li>This combination of classical mapping and modern sequencing is now the standard template for identifying the molecular basis of adaptive traits in non-model wild species.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond Britain",
+    "title": "Industrial Melanism Was a General Phenomenon",
+    "items": [
+      "Melanic forms increased in over 100 species of moths across industrialized regions of Britain, continental Europe, and North America during the 19th and 20th centuries — the peppered moth is simply the best-studied example.",
+      "Comparable declines in melanic frequency followed pollution-control legislation across many of these species and regions, reinforcing that a shared underlying mechanism (predation on camouflage mismatch) was at work rather than a peppered-moth-specific quirk.",
+      "American peppered moth populations (a related subspecies) show a closely parallel history of melanic rise and fall correlated with U.S. industrial pollution and subsequent Clean Air Act regulations (1970 U.S. Clean Air Act and amendments).",
+      "The broad taxonomic and geographic reproducibility of industrial melanism is itself a form of evidence: independent populations and species, facing a similar selective pressure, evolved convergently similar phenotypic responses."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART B",
+    "title": "The E. coli Long-Term Evolution Experiment",
+    "sub": "Watching evolution happen, one generation of bacteria at a time, since 1988"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The Long-Term Evolution Experiment (LTEE)",
+    "term": "Long-Term Evolution Experiment (LTEE)",
+    "def": "An ongoing evolution experiment, begun by Richard Lenski in 1988, in which 12 initially identical populations of the bacterium Escherichia coli are propagated by daily serial transfer in a simple glucose-limited medium, allowing evolutionary change to be observed, measured, and replayed in real time across tens of thousands of generations.",
+    "bullets": [
+      "As of the mid-2020s, the LTEE populations have exceeded 75,000 generations — far more generations than could ever be observed in any vertebrate study system.",
+      "It is widely regarded as one of the most important and information-rich experiments in the history of evolutionary biology, because every generation is preserved and every genome can be sequenced.",
+      "The experiment directly tests, in a controlled setting, questions that are normally only approachable indirectly in natural populations: the rate of adaptation, the repeatability (or not) of evolution, and the role of historical contingency."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Design",
+    "title": "How the LTEE Works",
+    "left": {
+      "h": "The Basic Setup",
+      "body": "<p>Lenski founded 12 populations from a single clone of E. coli B in 1988 at Michigan State University, where the experiment continues today.</p><ul><li>Each population grows in flasks containing a minimal medium with a limited glucose supply (glucose is the primary energy source, deliberately kept scarce to impose strong selection for efficient resource use).</li><li>Every day, 1% of each population is transferred into fresh medium — about 6.6 generations (roughly log2 of the 100-fold dilution/regrowth) occur between each transfer.</li><li>Population sizes cycle between about 5 million and 500 million cells per flask each day, giving enormous numbers of mutational opportunities.</li></ul>"
+    },
+    "right": {
+      "h": "Tracking Change Over Time",
+      "body": "<p>The design allows both real-time observation and time travel.</p><ul><li>Samples from each population are frozen in glycerol every 500 generations, creating a 'frozen fossil record' of living, revivable ancestors.</li><li>This lets researchers directly compete evolved clones against their own frozen ancestors to measure fitness gains precisely.</li><li>Six of the 12 populations were founded with a neutral genetic marker (inability to metabolize arabinose, Ara−) and six without (Ara+), allowing populations to be distinguished if cross-contamination is suspected — a built-in quality-control check.</li><li>Whole-genome sequencing at many time points reveals exactly which mutations arose, when, and whether they spread or were outcompeted.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Bacteria?",
+    "title": "The Advantages of E. coli as a Model System",
+    "items": [
+      "Extremely short generation time (about 20–30 minutes under lab conditions) allows tens of thousands of generations to be observed within a human research career — equivalent to well over a million years of generational turnover in a large mammal.",
+      "Large population sizes mean rare, beneficial mutations that would take enormous natural populations and time to appear can arise repeatedly within the experiment.",
+      "Asexual, clonal reproduction (no recombination via sex) makes it possible to trace lineages cleanly and track how single mutations spread through a population.",
+      "The frozen fossil record permits literally replaying evolution — reviving ancestors and re-running competitions or even restarting evolution from a chosen historical point.",
+      "Because all 12 populations began as genetically identical clones in an identical environment, any differences that emerge between populations must arise from evolutionary process itself: mutation, selection, and chance — not preexisting variation."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Cit+",
+    "title": "What the First ~30,000 Generations Already Showed",
+    "items": [
+      "Long before the Cit+ innovation, all 12 LTEE populations showed rapid, substantial fitness gains relative to their common ancestor within the first few thousand generations — clear, immediate evidence of ongoing adaptation to the flask environment.",
+      "All 12 populations independently evolved larger average cell size, a repeatable (parallel) morphological response to the specific selective conditions of the glucose-limited medium.",
+      "Populations also evolved changes in central metabolism and gene regulation that improved growth efficiency on glucose, again showing substantial parallelism across independently evolving lines.",
+      "This early phase established the LTEE's core value: a system where adaptation could be quantified precisely, generation by generation, well before any single dramatic innovation like Cit+ occurred."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Landmark Discovery",
+    "title": "Citrate Utilization (Cit+)",
+    "term": "The Evolution of Aerobic Citrate Utilization",
+    "def": "Around generation 31,500 (in the year 2003), one population (designated Ara−3) evolved the novel ability to transport and metabolize citrate under oxic (aerobic) conditions — a trait essentially absent from E. coli as a species for the prior ~100+ years of taxonomic description, and used as a diagnostic test to distinguish E. coli from other bacteria.",
+    "bullets": [
+      "The growth medium (DM25) contains citrate as a chelating agent, present in excess relative to glucose — but ordinary E. coli cannot import and use citrate as a carbon/energy source when oxygen is present, so this citrate normally goes untouched.",
+      "A lineage in population Ara−3 evolved the ability to exploit this abundant, previously unused resource, triggering a dramatic population expansion (more cells because more food was available) and a rapid competitive sweep.",
+      "This is widely regarded as one of the most striking examples of the evolution of a qualitatively new ecological niche observed in a controlled laboratory experiment."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Why Only One Population, and Only Once?",
+    "title": "Historical Contingency and the Cit+ Trait",
+    "left": {
+      "h": "The Contingency Question",
+      "body": "<p>Lenski and colleague Zachary Blount replayed evolution from frozen samples to ask: was Cit+ inevitable, or a fluke?</p><ul><li>They restarted evolution from frozen clones of Ara−3 taken at many earlier generations and let each replay evolve forward again under identical conditions.</li><li>Cit+ re-evolved only when they replayed from generations after about 20,000 — never from earlier time points, even after enormous additional mutational opportunity.</li><li>This showed that one or more earlier, selectively neutral or nearly neutral 'potentiating' mutations had to occur first, before the Cit+ mutation could arise and be favored.</li></ul>"
+    },
+    "right": {
+      "h": "The Potentiation–Actualization–Refinement Model",
+      "body": "<p>Blount and Lenski proposed a three-step model for how the innovation unfolded.</p><ul><li><b>Potentiation:</b> earlier mutations (not themselves beneficial) altered the genetic background, making a later mutation possible.</li><li><b>Actualization:</b> a specific mutation — a genomic rearrangement duplicating and repositioning a citrate transporter gene (citT) under aerobic-active regulation — actually produced weak Cit+ function.</li><li><b>Refinement:</b> subsequent mutations improved and stabilized the new Cit+ function, turning a marginal trait into a strongly beneficial one that swept the population.</li><li>This is a clean experimental demonstration of historical contingency: evolution is path-dependent, and the same starting point does not guarantee the same outcome.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "After the Innovation",
+    "title": "Ecological Diversification Following Cit+",
+    "items": [
+      "After Cit+ swept through population Ara−3, the population did not become uniformly Cit+; instead, Cit+ and Cit− (glucose-specialist) lineages continued to coexist for many subsequent generations.",
+      "This coexistence is explained by negative frequency-dependent selection: Cit− cells still do well when citrate-users are rare (less competition for the now relatively more abundant glucose), while Cit+ cells thrive when they can exploit largely untouched citrate.",
+      "The result is a stable within-population ecological polymorphism — essentially two 'ecotypes' partitioning resources — evolving from an originally single, uniform ancestral clone, a miniature real-time analog of ecological niche differentiation.",
+      "This finding connects the LTEE to broader themes in community and population ecology: the same population-genetic principles that maintain polymorphisms (like the moth's typica/carbonaria balance under changing conditions) can also generate new forms of ecological diversity from scratch."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Genetic Mechanism",
+    "title": "The citT Duplication in Molecular Detail",
+    "items": [
+      "The actualizing mutation was identified as a tandem duplication that placed a copy of the citT gene (encoding a citrate transporter normally expressed only under anaerobic conditions) under the control of a different promoter, active during aerobic growth.",
+      "This is a classic example of gene regulatory evolution — not a new gene from scratch, but repurposing (co-opting) an existing gene's product into a new context by changing when and where it is expressed.",
+      "Because it involved a genomic rearrangement (duplication) rather than a simple point mutation, it required a specific and comparatively rare category of mutational event, helping explain the very low rate of origin.",
+      "Later refinement involved increased copy number of the rearranged region and additional point mutations that improved growth on citrate, illustrating how selection can fine-tune a marginal innovation over subsequent generations."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis — What the LTEE Has Revealed",
+    "title": "Four Big Lessons from Decades of Data",
+    "cards": [
+      {
+        "h": "Mutation Rate & Hypermutators",
+        "p": "Several LTEE populations evolved elevated mutation rates ('mutator' or 'hypermutator' phenotypes, often from defects in DNA mismatch-repair genes like mutS). Hypermutation is itself a trait that can be favored indirectly by hitchhiking with beneficial mutations, revealing mutation rate itself as an evolvable trait."
+      },
+      {
+        "h": "Clonal Interference",
+        "p": "In large asexual populations, multiple beneficial mutations arise in different individuals at the same time and compete with one another for fixation, slowing the overall rate of adaptation compared to a population where only one beneficial lineage exists at a time."
+      },
+      {
+        "h": "Diminishing-Returns Adaptation",
+        "p": "Fitness relative to the ancestor increased rapidly in early generations but has continued to increase — more slowly — even after 70,000+ generations, following a decelerating (power-law-like) trajectory rather than plateauing sharply, showing adaptation rarely simply 'stops.'"
+      },
+      {
+        "h": "Historical Contingency",
+        "p": "The Cit+ innovation shows that identical starting genotypes in identical environments can produce different evolutionary outcomes, and that some adaptations require an improbable sequence of prior, non-adaptive changes."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Mechanism Spotlight",
+    "title": "Clonal Interference",
+    "term": "Clonal Interference",
+    "def": "A phenomenon in large asexual populations in which multiple independently arising beneficial mutations occur in different lineages simultaneously and compete with one another for dominance, since (without recombination) only one lineage can ultimately win — meaning some genuinely beneficial mutations are lost simply because they arose alongside an even more beneficial competitor.",
+    "bullets": [
+      "Clonal interference is a direct consequence of asexual reproduction: sexual populations can combine beneficial mutations from different lineages via recombination, but asexual lineages cannot.",
+      "It helps explain why the pace of adaptation in the LTEE, while steady, is slower than a naive calculation (mutation rate × population size × selection coefficient) would predict if every beneficial mutation swept independently.",
+      "Whole-genome sequencing of the LTEE populations over time has directly visualized competing beneficial lineages rising and falling before one eventually fixes — a rare direct observation of a process usually only inferred indirectly."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Shape of Adaptation",
+    "title": "Diminishing Returns — But No Clear Endpoint",
+    "items": [
+      "Lenski's team has continuously tracked relative fitness (competitive ability against the frozen ancestor) across the entire history of the LTEE.",
+      "Fitness gains follow a decelerating curve: large jumps early on, followed by ever-smaller (but still real and detectable) gains in later generations — described mathematically by power-law or hyperbolic models rather than a simple asymptote.",
+      "This is sometimes called 'diminishing-returns epistasis': the same mutation tends to confer a smaller fitness benefit when it occurs in an already well-adapted genetic background than it would in the ancestral background.",
+      "Even after tens of thousands of generations in a constant, simple environment, fitness has not obviously plateaued — suggesting there may be no true fitness 'ceiling,' or that the ceiling is far higher than initially assumed.",
+      "This finding challenges simple intuitions that evolution in a constant environment should quickly run out of ways to improve; instead, adaptation appears to be an open-ended, continually available process, even in a laboratory flask."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Genome-Level Findings",
+    "title": "What Whole-Genome Sequencing Revealed",
+    "items": [
+      "Systematic genome sequencing across generations (metagenomics of frozen samples) has allowed researchers to reconstruct the full mutational history of each population — every substitution, insertion, deletion, and rearrangement.",
+      "Populations show substantial parallelism at the level of which genes are mutated (many populations independently acquire mutations in the same handful of genes, such as those affecting global gene regulation), even though the exact mutations and their order differ — a signature of strong, predictable selection on a shared underlying biology.",
+      "At the same time, some outcomes (like Cit+) are unique to a single population, showing that predictability and contingency coexist: some evolutionary paths are highly repeatable, others are essentially unrepeatable given realistic timescales.",
+      "Genome size and gene content have not simply shrunk despite the simplified laboratory environment, complicating simple 'use it or lose it' predictions about genome streamlining under relaxed ecological complexity.",
+      "The LTEE has also documented on-again, off-again evolution of hypermutator phenotypes, with lineages sometimes reverting to lower mutation rates later, illustrating how mutation rate itself is subject to trade-offs (higher rates speed adaptation but also accumulate more deleterious mutations)."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "In His Own Words",
+    "quote": "Evolution is not just a historical narrative; it's a process we can watch unfold, replicate, and even rewind, in an experiment that has now been running for over three decades.",
+    "attrib": "Paraphrased from Richard Lenski's public writing and interviews on the LTEE"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Broader Impact",
+    "title": "Why the LTEE Became a Model for Experimental Evolution",
+    "items": [
+      "The LTEE demonstrated that laboratory 'test-tube evolution' could produce scientifically important, generalizable insights, not just anecdotal curiosities — inspiring a wave of similar experimental evolution studies in yeast, viruses, and other microbes.",
+      "Its extensive, openly shared frozen strain collection and genome data have made it a resource used by labs worldwide for questions well beyond Lenski's original design, from studying antibiotic resistance evolution to testing models of molecular evolution.",
+      "The 2008 Cit+ discovery drew significant public attention (including politically motivated criticism from opponents of evolutionary theory) precisely because it was such a clear, well-documented case of a genuinely novel adaptation arising under direct observation.",
+      "The experiment illustrates the value of very long-term, well-curated datasets in biology — a lesson increasingly echoed in other long-term field studies (e.g., the Grant's finch research discussed in Lecture 39)."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Systems, One Set of Mechanisms",
+    "title": "Peppered Moth vs. E. coli LTEE",
+    "headers": [
+      "Feature",
+      "Peppered Moth (Biston betularia)",
+      "E. coli LTEE"
+    ],
+    "rows": [
+      [
+        "Timescale observed",
+        "~170 years (1848–2016+), tens of generations",
+        "1988–present, 75,000+ generations"
+      ],
+      [
+        "Setting",
+        "Wild populations across industrial Britain",
+        "Controlled laboratory flasks"
+      ],
+      [
+        "Selective agent",
+        "Bird predation on background-mismatched camouflage",
+        "Competition for limited glucose; later, access to unused citrate"
+      ],
+      [
+        "Key mechanism revealed",
+        "Single-locus (cortex/transposon) selection on a discrete visible trait",
+        "Genome-wide dynamics: clonal interference, hypermutators, contingent innovation"
+      ],
+      [
+        "Genetic basis identified",
+        "Yes (2016) — transposable-element insertion in cortex",
+        "Yes — citT duplication/regulatory rearrangement (2008–2012 work)"
+      ],
+      [
+        "Central lesson",
+        "Selection can rapidly change allele frequencies given strong, well-defined pressure; and reverse when pressure is removed",
+        "Adaptation is fast but path-dependent; evolution can be replayed to test contingency directly"
+      ],
+      [
+        "Replicability tested?",
+        "Naturally replicated across many industrial sites in Britain and N. America",
+        "Deliberately replicated: 12 parallel populations, plus 'replay' experiments from frozen ancestors"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Framing the Evidence",
+    "title": "Levels of Evidence in Both Case Studies",
+    "levels": [
+      {
+        "label": "Molecular mechanism identified (gene, mutation)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Mechanism experimentally tested (replay / manipulation)",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Pattern quantified over time (frequency, fitness)",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Phenomenon observed (dark moths; new bacterial trait)",
+        "color": "#a85a68",
+        "width": "380px"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "An Old Debate, Revisited",
+    "title": "Is Evolution Predictable? Gould vs. Conway Morris, Tested",
+    "left": {
+      "h": "The Classic Debate",
+      "body": "<p>Paleontologist Stephen Jay Gould famously argued (using the Cambrian-era Burgess Shale fauna) that 'replaying the tape of life' would likely produce wildly different outcomes each time — evolution is dominated by contingency.</p><ul><li>Paleontologist Simon Conway Morris countered that convergent evolution is so pervasive that similar environments reliably produce similar solutions (echolocation, camera eyes, wings evolving independently many times), suggesting strong constraint and predictability.</li></ul>"
+    },
+    "right": {
+      "h": "What the LTEE Adds",
+      "body": "<p>The LTEE is one of the only systems where 'replaying the tape' is literally possible, using the frozen fossil record.</p><ul><li>Parallel mutations in the same genes across the 12 populations support Conway Morris's predictability view for many traits (cell size, core metabolism).</li><li>The Cit+ replay experiments — where the trait only re-evolved from post-20,000-generation backgrounds — support Gould's contingency view for this specific, rare innovation.</li><li>The honest conclusion: both views are correct, depending on the trait and the depth of history involved — a nuance only a controlled replay experiment could demonstrate this cleanly.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Threads",
+    "title": "Why These Two Case Studies Belong Together",
+    "items": [
+      "Both systems demonstrate that evolution is not merely inferred from the fossil record or comparative anatomy — it can be observed directly, in real time, with clear before-and-after data.",
+      "Both required correcting or refining an initial simple story with more rigorous follow-up work — Majerus's replication of Kettlewell, and Blount's replay experiments dissecting the Cit+ innovation — modeling how science self-corrects without discarding a fundamentally sound theory.",
+      "Both cases were ultimately resolved down to the level of specific DNA sequence changes, connecting classical, whole-organism natural history to the molecular tools developed across Lectures 27–30.",
+      "Both illustrate that natural selection requires standing or newly arising heritable variation to act on — camouflage variation already segregating (or a novel transposon insertion) in the moths; spontaneous mutations arising continuously in the bacteria.",
+      "Together they show evolution operating across radically different scales: a multicellular eukaryote with sexual reproduction and generation times of a year, versus a unicellular, asexual prokaryote with generation times of minutes — yet governed by the same core principles."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Mechanisms on Display",
+    "title": "Mapping Each Case Study to Core Evolutionary Mechanisms",
+    "left": {
+      "h": "Peppered Moth",
+      "body": "<ul><li><b>Mutation:</b> the original carbonaria transposon insertion (~1819).</li><li><b>Natural selection:</b> differential bird predation by background matching.</li><li><b>Gene flow / migration:</b> spread of carbonaria between regional populations as pollution spread.</li><li><b>Environmental change as selective driver:</b> industrial pollution, then its reversal.</li><li><b>Reversibility:</b> selection reversing course after Clean Air legislation.</li></ul>"
+    },
+    "right": {
+      "h": "E. coli LTEE",
+      "body": "<ul><li><b>Mutation:</b> continuously observed arising and being sequenced in real time, including the citT rearrangement.</li><li><b>Natural selection:</b> competition for limited glucose; later, for citrate.</li><li><b>Genetic drift:</b> visible in the loss of some beneficial lineages via clonal interference and in neutral marker (Ara) dynamics.</li><li><b>Historical contingency:</b> Cit+ required specific potentiating mutations to occur first.</li><li><b>Evolvability of mutation rate itself:</b> hypermutator lineages as a second-order evolutionary trait.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Callback — Lecture 39",
+    "title": "Finches, Moths, and Bacteria: A Unified Toolkit",
+    "items": [
+      "Lecture 39 examined the Grants' four-decade study of Darwin's finches on Daphne Major, showing rapid beak-size evolution tracking drought-driven seed availability — a wild, sexually reproducing vertebrate with generation times of roughly one to two years.",
+      "This lecture's two case studies extend that same 'watch evolution happen' logic to a wild invertebrate with a roughly one-year generation time (the moth) and a lab-based, asexual microbe with a generation time of minutes (E. coli) — together spanning nearly the full range of study systems available to evolutionary biologists.",
+      "All three systems required identifying a specific, measurable selective pressure (drought and seed hardness; bird predation and camouflage; nutrient competition and access to citrate) and connecting it quantitatively to a heritable trait.",
+      "All three case studies were eventually resolved down to identifiable genes or genomic regions (ALX1 and HMGA2 in finches; cortex in moths; citT in E. coli), reflecting the broader trajectory of the field toward molecular-level confirmation of classical ecological and phenotypic observations."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Limits and Caveats",
+    "title": "What Each Case Study Does NOT Show",
+    "items": [
+      "The peppered moth demonstrates selection on an already-existing (or single newly arisen) large-effect allele; it does not by itself demonstrate the gradual, many-locus accumulation thought to underlie complex trait evolution.",
+      "Kettlewell's original experimental design had real flaws (density, staging, resting position) — a useful reminder that a hypothesis being ultimately correct does not retroactively excuse poor methodology, and that replication matters.",
+      "The LTEE is conducted in a highly simplified, constant environment; results about diminishing returns or the pace of adaptation may not directly transfer to fluctuating natural environments with predators, parasites, and multiple interacting species.",
+      "E. coli's asexual reproduction means clonal interference dynamics documented here may differ substantially from sexual eukaryotic populations, where recombination allows different beneficial mutations to combine.",
+      "Neither case study is a substitute for macroevolutionary evidence (fossils, phylogenetics); rather, both are powerful demonstrations of the microevolutionary mechanisms that, extended over deep time, are understood to produce macroevolutionary patterns."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Setting the Record Straight",
+    "title": "Misconceptions These Case Studies Correct",
+    "cards": [
+      {
+        "h": "\"The Moth Study Was Debunked\"",
+        "p": "A common misconception following 1990s–2000s criticism. In fact, Majerus's rigorous replication confirmed the core finding; only some early methodological details were flawed, not the conclusion itself."
+      },
+      {
+        "h": "\"Bacteria Can't Really 'Evolve' Anything New\"",
+        "p": "The Cit+ innovation is a documented case of a genuinely novel ecological capability arising via mutation and selection in real time — direct evidence against the claim that mutation and selection cannot generate qualitative novelty."
+      },
+      {
+        "h": "\"Evolution Is Too Slow to Observe\"",
+        "p": "Both systems show measurable, sometimes dramatic, evolutionary change within a human research career — decades for moths, and continuously for bacteria — refuting the idea that evolution is only a matter of inference about the deep past."
+      },
+      {
+        "h": "\"Adaptation Should Plateau in a Constant Environment\"",
+        "p": "The LTEE's continuing (if decelerating) fitness gains after 75,000+ generations show that even simple, unchanging environments offer surprisingly persistent opportunities for further adaptive refinement."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On the Value of Replication",
+    "quote": "I was as surprised as anyone... but the data don't lie: when you do the experiment properly, over enough time and with enough moths, the predation effect is real and it is strong.",
+    "attrib": "Paraphrased summary of Michael Majerus's 2001–2007 study conclusions"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Big Picture Takeaways",
+    "title": "Why Case Studies Like These Matter",
+    "cards": [
+      {
+        "h": "Evolution Is Testable Science",
+        "p": "Both systems generated specific, falsifiable predictions (moth survival rates by habitat; the timing and mechanism of Cit+ evolution) that were tested empirically, not just described as historical narrative."
+      },
+      {
+        "h": "Molecular Tools Complete the Story",
+        "p": "Both stories were only fully resolved once molecular genetic techniques (genome sequencing, transposon detection) became available — showing how each course unit builds toward integrated understanding."
+      },
+      {
+        "h": "Contingency and Predictability Coexist",
+        "p": "The LTEE shows evolution can be both highly repeatable (parallel mutations across populations) and highly contingent (Cit+ in only one lineage) — a nuance often lost in simplified textbook accounts."
+      },
+      {
+        "h": "Timescale Doesn't Limit Rigor",
+        "p": "Whether it's 170 years of wild moth data or 75,000+ generations of bacteria in flasks, sufficiently long-term, well-designed studies can capture evolution with the same rigor as any other observable natural process."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Vocabulary Check",
+    "title": "Mutation Rate",
+    "term": "Mutation Rate",
+    "def": "The frequency with which new mutations arise per genome (or per base pair) per generation or per unit time; a fundamental population-genetic parameter that determines how much new heritable variation is available for selection to act on.",
+    "bullets": [
+      "In the LTEE, baseline mutation rates for wild-type E. coli are on the order of roughly 10⁻³ to 10⁻⁴ new mutations per genome per generation, but several populations evolved 'mutator' phenotypes with rates elevated by 10- to 100-fold.",
+      "Elevated mutation rates are a double-edged evolutionary trait: they increase the supply of beneficial mutations (speeding adaptation) but also increase the load of deleterious mutations, creating an evolutionary trade-off that the LTEE has allowed researchers to observe directly playing out over time.",
+      "In the peppered moth, the relevant mutation (the cortex transposon insertion) was a single rare event around 1819, illustrating that even very low baseline mutation rates can, given enough time and a large enough population, generate the raw material for a major adaptive shift."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture Summary",
+    "title": "Key Points to Remember",
+    "items": [
+      "The peppered moth's rise and fall of melanism is a rigorously (if imperfectly, historically) documented case of natural selection acting on a single locus, now traced to a specific transposable-element insertion in the cortex gene (2016).",
+      "Early criticism of Kettlewell's methods was scientifically valuable and led to Majerus's more rigorous replication (2001–2007), which substantially confirmed the original bird-predation hypothesis.",
+      "The peppered moth story is explicitly not Lamarckian: the mutation arose independently of environmental 'need,' and selection changed its frequency — with frequency reversing when pollution was reduced, which a Lamarckian mechanism could not neatly explain.",
+      "The E. coli LTEE, running continuously since 1988, has produced the most detailed real-time genomic record of adaptation in any organism, including over 75,000 generations of observed change.",
+      "The evolution of aerobic citrate utilization (Cit+) in one population demonstrates historical contingency: a rare innovation required earlier potentiating mutations and has not re-evolved from earlier starting points, even when replayed.",
+      "The LTEE has revealed clonal interference, evolving mutation rates (hypermutators), and a diminishing-returns — but still ongoing — pattern of fitness improvement over tens of thousands of generations.",
+      "Together, these two systems illustrate that virtually every core mechanism covered this semester — mutation, selection, drift, gene flow, contingency, and the molecular basis of adaptive novelty — can be directly observed, not merely inferred, given the right combination of system, timescale, and tools."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Questions",
+    "title": "Concepts to Be Ready to Explain",
+    "items": [
+      "Why the peppered moth story is not an example of Lamarckian inheritance, and what specific evidence (the timing of the mutation, and the post-1956 reversal) demonstrates this.",
+      "How Kettlewell's original experimental design differed from Majerus's later replication, and why both the flaws and the eventual confirmation matter for understanding the scientific process.",
+      "What a transposable element is, and how the cortex insertion functions as a concrete example of a TE-derived adaptive mutation (linking back to Lecture 30).",
+      "The basic design of the LTEE: population number, medium, transfer schedule, and the purpose of the frozen 'fossil record.'",
+      "What the Cit+ innovation was, why it took roughly 31,500 generations to appear in only one population, and what the potentiation–actualization–refinement model explains about it.",
+      "The difference between clonal interference and diminishing-returns epistasis, and why both slow (but do not stop) the pace of adaptation in the LTEE."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Quick Reference",
+    "title": "Key Names and Terms From This Lecture",
+    "cards": [
+      {
+        "h": "People",
+        "p": "Bernard Kettlewell (original predation experiments); Michael Majerus (rigorous replication); Ilik Saccheri & Arjen van't Hof (2016 molecular discovery); Richard Lenski & Zachary Blount (LTEE and Cit+ contingency work)."
+      },
+      {
+        "h": "Moth Terms",
+        "p": "typica, carbonaria, insularia; industrial melanism; crypsis; cortex gene; transposable element insertion."
+      },
+      {
+        "h": "LTEE Terms",
+        "p": "Serial transfer; frozen fossil record; Ara+/Ara− marker; citT; Cit+; clonal interference; hypermutator; diminishing-returns epistasis."
+      },
+      {
+        "h": "Big Ideas",
+        "p": "Real-time observed evolution; historical contingency; potentiation–actualization–refinement; predictability vs. contingency in evolution."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING AHEAD",
+    "title": "Lecture 41: Evolution in Medicine and Agriculture",
+    "sub": "From peppered moths and petri dishes to antibiotic resistance, cancer, and crop breeding — applying evolutionary theory to urgent, real-world problems"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 40</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

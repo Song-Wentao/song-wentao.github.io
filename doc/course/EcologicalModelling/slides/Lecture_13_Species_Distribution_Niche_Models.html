@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 13: Species Distribution / Niche Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 13",
+    "title": "Species Distribution / Niche Models",
+    "sub": "Reusing Lecture 12's random-forest toolkit on spatial presence data -- from tree locations to a habitat-suitability map",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Picking Up the Thread",
+    "title": "\"We'll Reuse This Exact Toolkit on Spatial Presence Data\"",
+    "sub": "Lecture 12 closed with that promise -- today we cash it in on 3604 mapped Beilschmiedia pendula trees"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From Community Classification to Habitat Mapping",
+    "title": "Same Algorithms, a New Kind of Question",
+    "items": [
+      "Lecture 12 asked: given a site's species composition, what management regime is it under? A classification problem with labeled sites and many predictors",
+      "Lecture 13 asks: given where a species HAS been found, and the environment at those locations, where else might it occur? A classification problem too -- but the labels have to be built first",
+      "Random forests need no new code to move from one question to the other -- the same randomForest() / RandomForestClassifier / build_forest() calls apply directly",
+      "What is new is the DATA STRUCTURE: we have tree locations, not a table of sites each labeled present/absent"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Dataset",
+    "title": "Barro Colorado Island: One of Ecology's Most-Cited Datasets",
+    "items": [
+      "3604 individually mapped Beilschmiedia pendula trees across a 1000m x 500m, 50-hectare forest plot on Barro Colorado Island, Panama",
+      "A fine covariate grid (x, y, elevation, slope gradient) spans the same plot -- ~20,000 grid cells derived from a topographic survey",
+      "Source: Condit, Hubbell & Foster (2002, Science); Hubbell et al. (1999, Science) -- the BCI forest census, and the standard teaching example for spatial point-pattern / SDM-style modeling (e.g. Baddeley, Rubak & Turner's Spatial Point Patterns)",
+      "This is a genuinely important canopy tree species with real, checkable elevation preferences on BCI -- not a toy simulation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What Is an SDM?",
+    "title": "Relating Occurrence to Environment, Then Predicting Elsewhere",
+    "items": [
+      "A species distribution model (SDM) -- also called a niche model -- relates where a species occurs to environmental covariates (climate, elevation, soil, land cover) at those locations",
+      "The fitted relationship is then used to predict habitat suitability at OTHER locations, including places never surveyed",
+      "Outputs are typically a continuous suitability surface or probability map across a landscape, used for reserve design, invasive species risk, climate-change range shift projections, and survey planning",
+      "Today: elevation and slope gradient predict where Beilschmiedia pendula is likely to occur across the BCI plot"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "A Fundamental Data Problem",
+    "title": "We Have Locations, Not Surveys",
+    "sub": "Every tree in bei_points.csv is a confirmed presence -- but nobody walked the plot recording where it was absent"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Presence-Background Data",
+    "term": "presence-background data",
+    "def": "Occurrence data consisting only of confirmed presence locations, with no corresponding survey of true absences -- the standard data structure for museum records, citizen-science observations, and, here, a mapped-tree census, which fundamentally changes how an SDM must be built and interpreted.",
+    "bullets": [
+      "A tree census records where individuals WERE found -- it says nothing about locations that were searched and found empty",
+      "Without true absences, you cannot directly fit presence/absence logistic regression or any other binary classifier",
+      "The field's workaround is to sample 'background' points from across the study area and contrast presences against them, NOT against confirmed absences",
+      "This distinction changes what a fitted SDM coefficient means: it describes presence vs. environmental AVAILABILITY, not presence vs. absence"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Matters for Interpretation",
+    "title": "Presence-Only Is Not Presence/Absence",
+    "items": [
+      "A logistic regression fit to presence vs. background estimates a quantity proportional to relative occurrence probability, not the true probability of presence at a site",
+      "Predicted 'suitability' is best read as a relative index across the landscape (where is it MORE vs. LESS suitable), not a calibrated absolute probability",
+      "This is true of essentially all classical presence-only SDM methods (MaxEnt, presence-background GLMs, presence-background random forests) -- it is a property of the data, not a flaw in any one algorithm",
+      "Ecologists still find this workflow extremely useful -- reserve design and risk mapping need relative suitability, not a perfectly calibrated absolute probability"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Standard Workaround",
+    "title": "Generating Background Points",
+    "sub": "Sample random locations across the study area to stand in for 'available but unobserved' environmental conditions"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Recipe",
+    "title": "Presences vs. Random Background",
+    "items": [
+      "Sample random (x, y) locations across the full extent of the covariate grid -- here, uniformly across the 1000m x 500m BCI plot",
+      "Extract elevation and gradient at each background point exactly as for the presence points, so both classes have identical predictors",
+      "Label presence points 1 and background points 0, then treat the combined table as an ordinary binary classification dataset",
+      "How many background points? More background points reduce sampling noise in the 'availability' estimate, but there is no single correct number -- we use 2x the number of presences here, with a fixed seed for reproducibility (Exercise 1 asks you to test sensitivity to this choice)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Extracting Covariates at Point Locations",
+    "title": "Nearest-Neighbour Lookup on a Regular Grid",
+    "items": [
+      "Tree and background coordinates are continuous; the covariate grid is a fine, regular lattice -- so each point needs the elevation/gradient of its NEAREST grid cell",
+      "A KD-tree nearest-neighbour search does this efficiently for thousands of points against tens of thousands of grid cells: FNN::get.knnx() in R, scipy.spatial.cKDTree in Python, NearestNeighbors.jl in Julia",
+      "This is the same join needed for presence points AND background points -- write it once, apply it to both",
+      "Because the grid spacing is small (~5m) relative to the environmental gradients of interest, nearest-neighbour assignment is an adequate approximation to true bilinear interpolation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Nearest-Neighbour Join and Background Sampling",
+    "left": {
+      "h": "Extract elev/grad at tree locations (FNN)",
+      "body": "<pre><code>library(FNN)\n\npts  &lt;- read.csv(\"data/bei_points.csv\")\ngrid &lt;- read.csv(\"data/bei_covariates_grid.csv\")\n\nnn &lt;- FNN::get.knnx(\n  data  = grid[, c(\"x\",\"y\")],\n  query = pts[, c(\"x\",\"y\")], k = 1)\n\npts$elev &lt;- grid$elev[nn$nn.index[, 1]]\npts$grad &lt;- grid$grad[nn$nn.index[, 1]]</code></pre>"
+    },
+    "right": {
+      "h": "Sample and extract for background points",
+      "body": "<pre><code>n_bg &lt;- 2 * nrow(pts)\nbg_x &lt;- runif(n_bg, min(grid$x), max(grid$x))\nbg_y &lt;- runif(n_bg, min(grid$y), max(grid$y))\n\nnn_bg &lt;- FNN::get.knnx(\n  data  = grid[, c(\"x\",\"y\")],\n  query = cbind(x = bg_x, y = bg_y), k = 1)\n\nbackground &lt;- data.frame(\n  x = bg_x, y = bg_y,\n  elev = grid$elev[nn_bg$nn.index[, 1]],\n  grad = grid$grad[nn_bg$nn.index[, 1]])</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "Nearest-Neighbour Join and Background Sampling",
+    "left": {
+      "h": "Extract elev/grad at tree locations (cKDTree)",
+      "body": "<pre><code>from scipy.spatial import cKDTree\n\npts  = pd.read_csv(\"data/bei_points.csv\")\ngrid = pd.read_csv(\n    \"data/bei_covariates_grid.csv\")\n\ntree = cKDTree(grid[[\"x\",\"y\"]].values)\n_, idx = tree.query(\n    pts[[\"x\",\"y\"]].values, k=1)\n\npts[\"elev\"] = grid[\"elev\"].values[idx]\npts[\"grad\"] = grid[\"grad\"].values[idx]</code></pre>"
+    },
+    "right": {
+      "h": "Sample and extract for background points",
+      "body": "<pre><code>rng = np.random.RandomState(13)\nn_bg = 2 * len(pts)\nbg_x = rng.uniform(grid.x.min(),\n                    grid.x.max(), n_bg)\nbg_y = rng.uniform(grid.y.min(),\n                    grid.y.max(), n_bg)\n\n_, idx_bg = tree.query(\n    np.column_stack([bg_x, bg_y]), k=1)\n\nbackground = pd.DataFrame({\n    \"x\": bg_x, \"y\": bg_y,\n    \"elev\": grid[\"elev\"].values[idx_bg],\n    \"grad\": grid[\"grad\"].values[idx_bg]})</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "Nearest-Neighbour Join and Background Sampling",
+    "left": {
+      "h": "Extract elev/grad at tree locations (KDTree)",
+      "body": "<pre><code>using NearestNeighbors\n\npts  = CSV.read(\"data/bei_points.csv\", DataFrame)\ngrid = CSV.read(\n  \"data/bei_covariates_grid.csv\", DataFrame)\n\nkdtree = KDTree(\n  permutedims(Matrix(grid[:, [:x,:y]])))\nidx, _ = knn(kdtree,\n  permutedims(Matrix(pts[:, [:x,:y]])), 1)\nidx = first.(idx)\n\npts.elev = grid.elev[idx]\npts.grad = grid.grad[idx]</code></pre>"
+    },
+    "right": {
+      "h": "Sample and extract for background points",
+      "body": "<pre><code>n_bg = 2 * nrow(pts)\nbg_x = rand(n_bg) .* (maximum(grid.x) -\n  minimum(grid.x)) .+ minimum(grid.x)\nbg_y = rand(n_bg) .* (maximum(grid.y) -\n  minimum(grid.y)) .+ minimum(grid.y)\n\nidx_bg, _ = knn(kdtree,\n  permutedims(hcat(bg_x, bg_y)), 1)\nidx_bg = first.(idx_bg)\n\nbackground = DataFrame(x = bg_x, y = bg_y,\n  elev = grid.elev[idx_bg],\n  grad = grid.grad[idx_bg])</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Assembling the Modeling Table",
+    "title": "Building the Presence (1) / Background (0) Dataset",
+    "items": [
+      "Stack the presence rows (label = 1, elev/grad from nearest grid cell) and background rows (label = 0, elev/grad from nearest grid cell) into a single table",
+      "Here: 3604 presence rows and 7208 background rows (2x oversampling) -- 10,812 rows total, with just three columns that matter for modeling: presence, elev, grad",
+      "Split into training and held-out test rows (75/25 here) BEFORE fitting anything, so AUC can be reported honestly on data neither model has seen",
+      "From this point on, fitting an SDM is literally an ordinary binary classification problem -- exactly the workflow from Lecture 12, just with a presence-vs-background label instead of a management-regime label"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Classical Baseline",
+    "title": "Logistic Regression SDM",
+    "sub": "presence ~ elev + grad, fit as an ordinary binomial GLM on the presence-background table"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Start Here",
+    "title": "The Interpretable, Well-Understood Baseline",
+    "items": [
+      "A binomial GLM of presence on elev and grad is the direct SDM analogue of Lecture 6's GLM material -- same glm(family = binomial) call, new data structure",
+      "Coefficients are directly interpretable: a positive elev coefficient means higher elevation is associated with higher relative occurrence, holding grad fixed",
+      "AIC and coefficient p-values behave normally -- this is exactly the classical inferential toolkit from earlier lectures, just applied to a presence-background response",
+      "On the BCI data: both elev and grad come out strongly positive and significant, consistent with Beilschmiedia favoring the plot's more sloped, higher-elevation interior over the flatter lowland edge"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Logistic Regression SDM with glm(family = binomial)",
+    "left": {
+      "h": "Fit and inspect",
+      "body": "<pre><code>glm_fit &lt;- glm(\n  presence ~ elev + grad,\n  data = train_dat, family = binomial)\n\nsummary(glm_fit)\nAIC(glm_fit)</code></pre>"
+    },
+    "right": {
+      "h": "Held-out AUC (pROC)",
+      "body": "<pre><code>library(pROC)\n\npred &lt;- predict(glm_fit, newdata = test_dat,\n                 type = \"response\")\nroc_obj &lt;- pROC::roc(test_dat$presence, pred,\n  levels = c(\"0\",\"1\"), direction = \"&lt;\")\nauc(roc_obj)   # 0.59 on the BCI split</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "Logistic Regression SDM with sklearn.linear_model.LogisticRegression",
+    "left": {
+      "h": "Fit and inspect",
+      "body": "<pre><code>from sklearn.linear_model import (\n    LogisticRegression)\n\nglm_fit = LogisticRegression()\nglm_fit.fit(X_train, y_train)\n\nglm_fit.intercept_, glm_fit.coef_</code></pre>"
+    },
+    "right": {
+      "h": "Held-out AUC (sklearn)",
+      "body": "<pre><code>from sklearn.metrics import roc_auc_score\n\npred = glm_fit.predict_proba(X_test)[:, 1]\nroc_auc_score(y_test, pred)\n  # 0.61 on the BCI split</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "Logistic Regression SDM with GLM.jl",
+    "left": {
+      "h": "Fit and inspect",
+      "body": "<pre><code>using GLM\n\nglm_fit = glm(\n  @formula(presence ~ elev + grad),\n  train_dat, Binomial(), LogitLink())\n\nglm_fit\naic(glm_fit)</code></pre>"
+    },
+    "right": {
+      "h": "Held-out AUC (rank-based, hand-rolled)",
+      "body": "<pre><code>pred = predict(glm_fit, test_dat)\n\n# Mann-Whitney U relationship --\n# no extra AUC package required\nauc_rank(pred, test_dat.presence)</code></pre>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Reusing Lecture 12's Toolkit",
+    "title": "Random Forest SDM",
+    "sub": "The exact randomForest / RandomForestClassifier / build_forest calls from Lecture 12, applied to presence-background classification"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "No New Code Required",
+    "title": "Why Random Forest Transfers Directly",
+    "items": [
+      "presence-vs-background with elev and grad predictors is just another binary classification table -- the same object type the random forest code from Lecture 12 already expects",
+      "Random forests can capture nonlinear and interactive elevation/gradient effects (e.g. an interior elevation optimum) that a linear-in-elev GLM cannot represent without an explicit polynomial term",
+      "Variable importance (mean decrease in accuracy/Gini) again comes for free from the fitting procedure, exactly as in Lecture 12's species-importance ranking",
+      "The tradeoff is the same one discussed in Lecture 12's compare slide: more predictive flexibility, less interpretability than the GLM's signed coefficients"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Random Forest SDM with randomForest::randomForest()",
+    "left": {
+      "h": "Fit and inspect importance",
+      "body": "<pre><code>library(randomForest)\n\nrf_fit &lt;- randomForest(\n  presence ~ elev + grad,\n  data = train_dat, ntree = 500,\n  importance = TRUE)\n\nprint(rf_fit)\nimportance(rf_fit)</code></pre>"
+    },
+    "right": {
+      "h": "Held-out AUC (pROC)",
+      "body": "<pre><code>pred &lt;- predict(rf_fit, newdata = test_dat,\n                 type = \"prob\")[, \"1\"]\nroc_obj &lt;- pROC::roc(test_dat$presence, pred,\n  levels = c(\"0\",\"1\"), direction = \"&lt;\")\nauc(roc_obj)   # 0.70 on the BCI split</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "Random Forest SDM with sklearn.ensemble.RandomForestClassifier",
+    "left": {
+      "h": "Fit and inspect importance",
+      "body": "<pre><code>from sklearn.ensemble import (\n    RandomForestClassifier)\n\nrf_fit = RandomForestClassifier(\n    n_estimators=500, max_features=\"sqrt\",\n    oob_score=True, random_state=13)\nrf_fit.fit(X_train, y_train)\n\nrf_fit.oob_score_\nrf_fit.feature_importances_</code></pre>"
+    },
+    "right": {
+      "h": "Held-out AUC (sklearn)",
+      "body": "<pre><code>pred = rf_fit.predict_proba(X_test)[:, 1]\nroc_auc_score(y_test, pred)\n  # 0.72 on the BCI split</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "Random Forest SDM with DecisionTree.jl",
+    "left": {
+      "h": "Fit (build_forest, from Lecture 12)",
+      "body": "<pre><code>using DecisionTree\n\nrf_model = build_forest(\n  string.(train_dat.presence),\n  Matrix{Float64}(train_dat[:, [:elev,:grad]]),\n  1, 500, 0.7, -1)\n\nrf_model</code></pre>"
+    },
+    "right": {
+      "h": "Held-out AUC (rank-based)",
+      "body": "<pre><code>probs = apply_forest_proba(rf_model,\n  Matrix{Float64}(test_dat[:, [:elev,:grad]]),\n  [\"0\",\"1\"])\n\nauc_rank(probs[:, 2], test_dat.presence)</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Comparison",
+    "title": "Random Forest Out-Predicts the Linear GLM Here",
+    "items": [
+      "On a held-out 25% test split: logistic regression AUC ~0.59-0.61, Random Forest AUC ~0.70-0.72 -- a meaningful gap, consistently reproduced across R and Python",
+      "The gap is consistent with a real nonlinear elevation effect (see the partial dependence slide ahead) that the linear-in-elev GLM cannot represent without an added polynomial term",
+      "Both models agree elevation and gradient both matter -- random forest variable importance ranks them close to equal, matching the GLM's two significant coefficients",
+      "An AUC around 0.7 is a moderate, believable value for a two-covariate presence-background SDM -- not spectacular, but well above the 0.5 no-skill baseline"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Choosing an SDM Approach",
+    "title": "Logistic Regression vs. Random Forest vs. MaxEnt",
+    "headers": [
+      "Criterion",
+      "Logistic Regression SDM",
+      "Random Forest SDM",
+      "MaxEnt"
+    ],
+    "rows": [
+      [
+        "Data structure it expects",
+        "Presence + user-generated background, fit as an ordinary binomial GLM",
+        "Presence + user-generated background, fit as an ordinary classifier",
+        "Presence-only natively -- background/pseudo-absence generation is handled internally by the algorithm"
+      ],
+      [
+        "Interpretability",
+        "High -- signed coefficients, familiar GLM inference",
+        "Moderate -- variable importance and partial dependence, no signed effect sizes",
+        "Moderate -- response curves per covariate, feature-class regularization output"
+      ],
+      [
+        "Typical use in the field",
+        "Baseline / when a small number of covariates and clean inference matter",
+        "Strong baseline when many correlated covariates and nonlinearities are expected",
+        "The most widely used presence-only-SPECIFIC tool in applied SDM work (conservation, invasive species risk)"
+      ],
+      [
+        "Tooling used here / elsewhere",
+        "glm() / LogisticRegression / GLM.jl -- what this lecture fits",
+        "randomForest / RandomForestClassifier / DecisionTree.jl -- what this lecture fits",
+        "Not fit in this lecture -- see R's maxnet or dismo, Python's elapid, for a dedicated implementation"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Honest Note on MaxEnt",
+    "title": "The Field's Most Popular Presence-Only Tool, Not Covered Hands-On Today",
+    "items": [
+      "MaxEnt (maximum entropy modeling) is purpose-built for presence-only data -- it estimates a probability distribution over the study area that is as close to uniform as possible while matching the environmental conditions at presence points",
+      "It is, by a wide margin, the most cited and most operationally deployed SDM method in conservation and invasive-species applications",
+      "R's maxnet and dismo packages, and Python's elapid, provide accessible MaxEnt implementations that would slot directly into the presence + background dataset built in this lecture",
+      "We build the logistic-regression and random-forest SDMs by hand here because they reuse tools you already know from Lectures 6 and 12 -- MaxEnt is worth learning next if you continue in applied SDM work"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Classic SDM Output",
+    "title": "Predicting a Continuous Suitability Surface",
+    "sub": "Apply the fitted model to every cell of the covariate grid, not just the training points"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From Model to Map",
+    "title": "Predicting Across the Full Covariate Grid",
+    "items": [
+      "Both the GLM and the Random Forest can predict a probability for ANY (elev, grad) combination -- so we predict at all ~20,000 cells of bei_covariates_grid.csv, not just the training points",
+      "Each grid cell's predicted probability becomes a pixel value in a raster/heatmap -- the classic SDM output: a continuous habitat-suitability surface across the whole study area",
+      "This lecture visualizes the Random Forest's prediction (figures/lecture_13_suitability_map.png), but the same code pattern (predict, reshape, plot) works identically for the GLM's prediction",
+      "Predicted suitability across the grid ranges from near 0 in low-elevation, flat areas to over 0.5 in the plot's higher, more sloped interior -- directly visualizing the elevation/gradient preference"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "figures/lecture_13_suitability_map.png",
+    "title": "The Habitat-Suitability Map",
+    "items": [
+      "x-y raster spanning the full 1000m x 500m BCI plot, colored by predicted Random Forest suitability (viridis scale: dark = low, yellow = high)",
+      "Higher-suitability areas cluster in the plot's central-to-eastern zone, where elevation and slope gradient are both higher -- matching the plot's real topography (a low, flat swath near the western edge, rising terrain further east)",
+      "This is exactly the map format used operationally for reserve boundary decisions, invasive species risk zones, and post-hoc explanations of where field surveys should focus next",
+      "R: ggplot2::geom_raster(); Python: matplotlib scatter/pcolormesh on the grid; Julia: Plots.jl scatter with zcolor -- three ways to the same output"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "What Did the Model Learn?",
+    "title": "Partial Dependence on Elevation",
+    "sub": "Hold slope gradient at its median and sweep elevation across its observed range -- what happens to predicted suitability?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Partial Dependence",
+    "term": "partial dependence",
+    "def": "A plot of a model's predicted response as one covariate varies across its range while all other covariates are held fixed (commonly at their median or mean) -- a way to visualize what a model has learned about a single predictor's effect, independent of the values of the others.",
+    "bullets": [
+      "For the GLM, the partial dependence curve is just the fitted logistic curve in elev -- necessarily monotonic because the model only has a linear elev term",
+      "For the Random Forest, the partial dependence curve can be non-monotonic -- capturing a genuine interior optimum if the data supports one, with no extra modeling step required",
+      "On the BCI data, both models' partial dependence curves peak in the ~140-160m elevation range, well above the plot's lowest elevations",
+      "This matches published findings on Beilschmiedia pendula's real elevation association on BCI -- a checkable ecological pattern, not an artifact of this lecture's simulation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Ecology",
+    "title": "Beilschmiedia Favors Higher, More Sloped Ground on BCI",
+    "items": [
+      "Predicted suitability rises steadily with elevation across most of the observed range in both models -- consistent with Beilschmiedia pendula being under-represented on the plot's low-lying, seasonally wetter western terrace",
+      "The Random Forest's partial dependence curve shows the rise leveling off (and in places dipping slightly) at the very highest elevations -- a hint of an interior optimum the linear GLM cannot represent (Exercise 2 asks you to test this with a quadratic elev term)",
+      "Slope gradient also has a strong positive effect in both models -- steeper ground on BCI tends to be better-drained, and Beilschmiedia recruitment is known in the literature to respond to drainage-related soil conditions",
+      "This is a genuine, if modest, demonstration of SDM partial dependence recovering an ecologically sensible signal from real mapped-tree data"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Reading the Fine Print",
+    "title": "Honest Caveats About Presence-Only SDMs",
+    "sub": "The workflow is standard and useful -- but every choice you made along the way can move the answer"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Caveat 1",
+    "title": "Background-Point Choice Is Not Neutral",
+    "items": [
+      "The number, spatial distribution, and sampling scheme of background points all influence fitted coefficients and predicted suitability -- there is no single 'correct' background sample",
+      "Uniform-random background (used here) treats the whole plot as equally 'available' -- in real-world SDMs with biased survey effort, background sampling that matches the SURVEY bias (not just the study area) is often preferred (target-group background sampling)",
+      "Exercise 1 asks you to refit with 1x, 2x, and 4x as many background points and directly observe how much the GLM coefficients move",
+      "This sensitivity is a well-documented property of presence-background methods, not specific to this lecture's code -- always report and, where possible, test it"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Caveat 2",
+    "title": "Spatial Autocorrelation Inflates Apparent Accuracy",
+    "items": [
+      "The train/test split used to compute AUC in this lecture is a simple RANDOM split of presence + background points -- nearby points can land on opposite sides of the split despite being ecologically near-identical",
+      "Because nearby locations share similar elevation and gradient (spatial autocorrelation), a model can 'predict' a test point well simply by having seen a near-neighbor during training -- inflating the apparent AUC beyond what the model would achieve on a truly independent new area",
+      "The flexible Random Forest is generally MORE susceptible to this inflation than the two-coefficient GLM, because it can fit fine-grained local structure that a linear model cannot",
+      "Lecture 16 (Spatial Modeling) returns to this exact problem and introduces spatially blocked cross-validation as the fix -- Exercise 4 previews the idea with a simple left-half/right-half split of the BCI plot"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Which Tool for Which SDM Question",
+    "title": "Matching the Method to the Goal",
+    "cards": [
+      {
+        "h": "Need interpretable, testable elevation/gradient effects",
+        "p": "Logistic regression SDM -- signed coefficients, AIC-based model comparison, familiar GLM inference from Lecture 6"
+      },
+      {
+        "h": "Need the best predictive suitability map, many covariates",
+        "p": "Random Forest SDM (or gradient boosting, from Lecture 12) -- captures nonlinearities and interactions automatically"
+      },
+      {
+        "h": "Working with true presence-only data, no background yet built",
+        "p": "MaxEnt (R: maxnet/dismo; Python: elapid) -- purpose-built for presence-only, handles background generation internally"
+      },
+      {
+        "h": "Reporting model performance for publication or planning",
+        "p": "Always pair AUC with a spatial validation check (Lecture 16) -- a random-split AUC alone overstates real predictive skill"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Putting the Pieces Together",
+    "title": "The Presence-Only SDM Workflow, End to End",
+    "items": [
+      "1) Recognize you have presence-only data -- tree locations, museum records, citizen-science sightings all share this structure",
+      "2) Generate background points across the study area's covariate grid, with a fixed seed and a documented sampling scheme",
+      "3) Extract covariates at both presence and background locations via nearest-neighbour lookup, and assemble a presence(1)/background(0) table",
+      "4) Fit a classical baseline (logistic regression) and a flexible learner (random forest), compare by held-out AUC, and predict a full suitability surface for mapping"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Grounding Reminder",
+    "quote": "A species distribution model does not tell you where a species IS -- it tells you where the environment resembles the places it has already been found. That difference matters most exactly where you are tempted to trust the map the most: in unsurveyed territory.",
+    "attrib": "Paraphrased from the presence-only SDM literature (Elith & Leathwick, and related work)"
+  },
+  {
+    "type": "section",
+    "tag": "Lecture 14: Population Modeling",
+    "title": "From Where a Species Lives to How Its Population Changes",
+    "sub": "Today's static suitability snapshot becomes tomorrow's dynamic, time-varying population trajectory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What Carries Forward",
+    "title": "A Different Axis, Familiar Machinery",
+    "items": [
+      "Lecture 13 answered a spatial question (where is suitable habitat, right now); Lecture 14 turns to a temporal question (how does a population change over time given growth, survival, and reproduction rates)",
+      "Population models often use SDM-style suitability surfaces as an input -- e.g. carrying capacity or habitat quality that varies across space, informed by exactly the kind of map built in this lecture",
+      "The comparison mindset carries over directly: classical closed-form models (exponential/logistic growth, matrix population models) versus more flexible, simulation-based approaches, echoing today's GLM-vs-Random-Forest framing",
+      "The same discipline about validation and honest uncertainty -- train/test splits here, credible intervals and sensitivity analysis there -- remains the throughline across the rest of the course"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before Lecture 14",
+    "title": "What To Have Ready",
+    "items": [
+      "Comfort extracting covariates via nearest-neighbour join and fitting/comparing a GLM against a random forest on a binary outcome -- both return directly in Lecture 15's community models",
+      "The specific ecological finding from today (Beilschmiedia favors higher, more sloped ground on BCI) is worth remembering -- Lecture 15 revisits the same BCI plot from a community, multi-species angle",
+      "Complete this lecture's four exercises (background point sensitivity, an elev^2 optimum term, RF vs. GLM AUC stability, and a spatially blocked train/test split) before Lecture 16 formalizes the spatial cross-validation fix",
+      "No new software required for Lecture 14 beyond what you already have -- population modeling in R/Python/Julia builds on base language matrix and ODE tools already introduced"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 13</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

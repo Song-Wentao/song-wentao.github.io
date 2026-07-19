@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 19: Genetic Drift and Effective Population Size</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 19",
+    "title": "Genetic Drift and Effective Population Size",
+    "sub": "Random sampling, small populations, and the accidents of reproduction",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 6, \"The Ways of Change\" (lecture 2 of 5)"
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "From Deterministic to Random Change",
+    "sub": "Why allele frequencies wander even without selection"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Roadmap",
+    "title": "Today's Agenda",
+    "items": [
+      "Quick recap: Hardy-Weinberg as a null model of no evolutionary change",
+      "Genetic drift: evolution by random sampling of alleles",
+      "Why drift matters more in small populations than large ones",
+      "Effective population size (Ne) versus census population size",
+      "Factors that shrink Ne: sex ratio, reproductive variance, fluctuations",
+      "Founder effects and genetic bottlenecks — with real case studies",
+      "Fixation and loss of alleles by drift alone",
+      "Telling drift apart from selection"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap from Lecture 18",
+    "title": "Hardy-Weinberg: The Null Model",
+    "items": [
+      "Hardy-Weinberg equilibrium describes allele and genotype frequencies that stay constant across generations under a specific set of idealized conditions",
+      "Assumptions: infinite population size, random mating, no mutation, no migration, no natural selection",
+      "p² + 2pq + q² = 1 predicts genotype frequencies from allele frequencies (p, q) at equilibrium",
+      "Violating any assumption can cause allele frequencies to change — that change is evolution",
+      "Today we focus on what happens when the 'infinite population size' assumption fails"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Genetic Drift",
+    "term": "Genetic Drift",
+    "def": "Random change in allele frequencies from one generation to the next, caused by chance sampling of gametes and survivors rather than by differences in fitness.",
+    "bullets": [
+      "A purely stochastic evolutionary force — it has no direction and no 'goal'",
+      "Occurs in every finite population, in every generation, to some degree",
+      "Distinct from natural selection, which is a systematic, non-random process"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Sampling Analogy",
+    "title": "Drift as a Sampling Problem",
+    "items": [
+      "Each generation, only a subset of possible gametes actually combines to form the next generation's zygotes",
+      "Think of a population's gene pool as an urn full of colored marbles (alleles); each new generation is a finite draw from that urn",
+      "Even if allele frequencies in the parental gene pool are exactly 50:50, a small sample can easily come out 60:40, 70:30, or more skewed by chance alone",
+      "The smaller the sample (population), the larger the expected deviation from the parental frequencies — this is basic sampling statistics, not biology-specific"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Two Forces Compared",
+    "title": "Drift vs. Natural Selection",
+    "left": {
+      "h": "Natural Selection",
+      "body": "<p>Systematic and predictable in direction.</p><ul><li>Driven by consistent fitness differences among genotypes</li><li>Tends to increase frequency of alleles that improve survival/reproduction</li><li>Effect scales with the strength of selection (s), largely independent of population size</li><li>Produces adaptation — a match between organism and environment</li></ul>"
+    },
+    "right": {
+      "h": "Genetic Drift",
+      "body": "<p>Random and unpredictable in direction.</p><ul><li>Driven by chance variation in who survives and reproduces</li><li>Can increase OR decrease the frequency of any allele, including beneficial ones</li><li>Effect scales inversely with population size (stronger when N is small)</li><li>Produces no adaptive trend — outcomes are effectively a random walk</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanics",
+    "title": "How Drift Changes Allele Frequencies",
+    "items": [
+      "Generation to generation, allele frequency (p) doesn't stay fixed at its expected value — it fluctuates randomly around it",
+      "Over many generations, this random walk can carry an allele all the way to 0% (loss) or 100% (fixation)",
+      "Once an allele is lost or fixed, drift at that locus stops — there is no more variation left to sample from",
+      "The variance in allele frequency change per generation is approximately p(1-p)/(2N) for a diploid population of size N",
+      "Notice N sits in the denominator: as N gets smaller, the variance (magnitude of random change) gets larger"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Population Size Matters",
+    "title": "Why Drift Is Stronger in Small Populations",
+    "items": [
+      "Small populations are small 'samples' drawn from the previous generation's gene pool — small samples deviate more from the expected value",
+      "In a population of 5 breeding individuals, losing one individual by chance (predation, accident) can shift allele frequencies dramatically",
+      "In a population of 5 million, the same single chance death has a negligible effect on overall allele frequencies",
+      "Rare alleles are especially vulnerable to being lost entirely in small populations, purely by bad luck",
+      "Conservation biology consequence: small, isolated populations (endangered species, island populations) are drift-dominated"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Population Size Matters",
+    "title": "Drift in Small vs. Large Populations",
+    "left": {
+      "h": "Small Populations (N ~ tens to hundreds)",
+      "body": "<p>Drift is a dominant evolutionary force.</p><ul><li>Allele frequencies can swing by 10-20% or more in a single generation from chance sampling alone</li><li>Rare alleles are easily lost entirely; alleles can reach fixation within a handful of generations</li><li>Even alleles under moderate selection can be lost or fixed essentially at random</li><li>Analogous to flipping a coin only 10 times — large percentage swings from 50:50 are common</li></ul>"
+    },
+    "right": {
+      "h": "Large Populations (N ~ tens of thousands+)",
+      "body": "<p>Drift is weak and slow-acting.</p><ul><li>Allele frequencies change only gradually from one generation to the next due to sampling alone</li><li>Fixation or loss by drift alone would take an enormous number of generations</li><li>Natural selection, even if weak, tends to dominate over drift</li><li>Analogous to flipping a coin 10,000 times — the proportion reliably stays close to 50:50</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Useful Mental Model",
+    "quote": "Genetic drift is what happens to allele frequencies when the fate of a gene depends more on which individuals happen to have surviving offspring than on which alleles are actually 'better.'",
+    "attrib": "Paraphrased conceptual summary, Zimmer & Emlen Ch. 6"
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Effective Population Size",
+    "sub": "Why the number that matters for drift is rarely the number you'd count"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Effective Population Size (Ne)",
+    "term": "Effective Population Size (Ne)",
+    "def": "The size of an idealized Wright-Fisher population (random mating, equal sex ratio, non-overlapping generations, Poisson-distributed reproductive success) that would experience the same rate of genetic drift as the actual population being studied.",
+    "bullets": [
+      "Ne is a genetic, not a demographic, concept — it measures 'evolutionary' population size",
+      "Ne is almost always smaller than the census population size (N), often dramatically so",
+      "Ne determines the strength of drift, the rate of loss of heterozygosity, and the effectiveness of selection relative to drift"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Census Size vs. Effective Size",
+    "title": "N vs. Ne: Why the Gap Exists",
+    "items": [
+      "Census size (N): the number of living individuals you could, in principle, count in a population",
+      "Effective size (Ne): the number of individuals that behave, genetically, like an idealized breeding population",
+      "Ne is reduced whenever real populations deviate from the idealized assumptions — unequal sex ratios, skewed reproductive success, fluctuating numbers, overlapping generations, non-random mating",
+      "Typical estimates: Ne/N ratios of 0.1–0.5 are common in wild populations — meaning the 'genetically effective' population is often a fraction of what a census suggests",
+      "Implication: a population that looks demographically healthy (large N) can still be genetically vulnerable to drift if Ne is small"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Comparing the Two Measures",
+    "title": "Census Population Size vs. Effective Population Size",
+    "headers": [
+      "Feature",
+      "Census Size (N)",
+      "Effective Size (Ne)"
+    ],
+    "rows": [
+      [
+        "What it counts",
+        "All living individuals",
+        "Individuals contributing equally to the next gene pool"
+      ],
+      [
+        "Measured by",
+        "Direct counts, surveys, mark-recapture",
+        "Genetic data, pedigree/demographic modeling"
+      ],
+      [
+        "Sensitivity to sex ratio",
+        "Not sensitive",
+        "Highly sensitive — skewed ratios lower Ne"
+      ],
+      [
+        "Sensitivity to reproductive variance",
+        "Not sensitive",
+        "Highly sensitive — high variance lowers Ne"
+      ],
+      [
+        "Relevant to",
+        "Ecology, harvest limits, habitat capacity",
+        "Strength of drift, loss of diversity, inbreeding"
+      ],
+      [
+        "Typical relationship",
+        "Baseline count",
+        "Usually smaller than N (often Ne/N = 0.1–0.5)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Factor 1 of 3",
+    "title": "Unequal Sex Ratio Reduces Ne",
+    "items": [
+      "When the numbers of breeding males and females differ, fewer individuals effectively contribute genes to the next generation",
+      "Formula: Ne = 4(Nm × Nf) / (Nm + Nf), where Nm and Nf are the numbers of breeding males and females",
+      "Example: 100 breeding females but only 4 breeding males (common in harem-mating systems, e.g., elephant seals) gives Ne = 4(4×100)/(104) ≈ 15.4 — far below the census size of 104",
+      "Highly polygynous mating systems (a few males monopolize matings) are especially prone to this effect",
+      "Sex-biased dispersal, sex-biased mortality, and mating system all influence the effective sex ratio"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Factor 2 of 3",
+    "title": "Variance in Reproductive Success Reduces Ne",
+    "items": [
+      "The idealized Wright-Fisher model assumes every individual has an equal, random (Poisson) chance of contributing offspring",
+      "Real populations rarely work this way: some individuals produce many offspring, others produce none — variance in reproductive success (Vk) is typically greater than the Poisson expectation",
+      "High variance concentrates the gene pool of the next generation into fewer 'genetic parents,' shrinking Ne even when N stays constant",
+      "Species with sweepstakes reproduction (e.g., many marine broadcast spawners, where a tiny fraction of adults account for most surviving offspring) can have Ne many orders of magnitude smaller than N",
+      "Reducing variance in reproductive success (e.g., managed breeding programs that equalize family sizes) is a key conservation strategy for raising Ne"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Factor 3 of 3",
+    "title": "Population Size Fluctuations Reduce Ne",
+    "items": [
+      "Population size often fluctuates across generations — booms, crashes, seasonal cycles",
+      "Ne over multiple generations is best approximated by the harmonic mean of the generation-by-generation sizes, not the arithmetic mean",
+      "Harmonic mean is disproportionately pulled down by small values — a single generation with a severe crash (bottleneck) can dominate the long-term Ne",
+      "Example: population sizes of 1000, 1000, 1000, and 10 across four generations give an arithmetic mean of ~752 but a harmonic mean of only ~39.6",
+      "Practical upshot: rare, brief bottlenecks can leave a lasting genetic signature even if the population later rebounds numerically"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Putting the Factors Together",
+    "title": "Why Real Populations Have Low Ne",
+    "left": {
+      "h": "Idealized (Wright-Fisher) Population",
+      "body": "<ul><li>Equal numbers of breeding males and females</li><li>Random, Poisson-distributed family sizes</li><li>Constant population size every generation</li><li>Non-overlapping generations, random mating</li><li>Result: Ne = N</li></ul>"
+    },
+    "right": {
+      "h": "Typical Real Population",
+      "body": "<ul><li>Skewed sex ratio (polygyny, harem systems)</li><li>High variance in reproductive success (sweepstakes reproduction)</li><li>Fluctuating size (bottlenecks, seasonal crashes)</li><li>Overlapping generations, non-random mating (e.g., philopatry)</li><li>Result: Ne << N, often by an order of magnitude or more</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Summary of Three Factors",
+    "title": "Factors That Reduce Effective Population Size Below Census Size",
+    "cards": [
+      {
+        "h": "Unequal Sex Ratio",
+        "p": "When breeding males and females are unequal in number (e.g., harem-mating systems), the rarer sex disproportionately limits genetic contribution, sharply lowering Ne relative to N."
+      },
+      {
+        "h": "Variance in Reproductive Success",
+        "p": "When some individuals produce far more offspring than others rather than each contributing roughly equally, fewer effective 'genetic parents' populate the next generation."
+      },
+      {
+        "h": "Population Fluctuation",
+        "p": "Ne across generations approximates the harmonic mean of generation-by-generation size, which is pulled down heavily by any generation with a severe crash or bottleneck."
+      },
+      {
+        "h": "Overlapping Generations",
+        "p": "When generations overlap and not all age classes breed each cycle, the effective number of breeders per generation is smaller than the total number of living individuals."
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Ranking the Effects",
+    "title": "Factors That Reduce Effective Population Size",
+    "levels": [
+      {
+        "label": "Severe sex-ratio skew (harem mating)",
+        "color": "#4a1620",
+        "width": "320px"
+      },
+      {
+        "label": "High variance in reproductive success",
+        "color": "#6b2c39",
+        "width": "400px"
+      },
+      {
+        "label": "Population bottlenecks / fluctuations",
+        "color": "#8a3f4d",
+        "width": "480px"
+      },
+      {
+        "label": "Overlapping generations & non-random mating",
+        "color": "#a85a68",
+        "width": "560px"
+      },
+      {
+        "label": "Idealized Wright-Fisher baseline (Ne = N)",
+        "color": "#c47b87",
+        "width": "640px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Formal Combination",
+    "title": "Combining Multiple Reductions in Ne",
+    "items": [
+      "Each factor (sex ratio, reproductive variance, fluctuation) can be modeled with its own formula and applied sequentially or in combination",
+      "Because these effects can compound, the combined Ne is often much lower than any single factor alone would predict",
+      "Conservation geneticists use Ne, not N, to estimate rates of inbreeding, loss of heterozygosity, and extinction risk from genetic causes",
+      "A common rule of thumb (debated, but widely cited): Ne ≈ 500 is sometimes proposed as a threshold for retaining long-term evolutionary potential — many endangered species fall well below this",
+      "Management actions (equalizing family size, supplementing gene flow, balancing sex ratios in captive breeding) directly target raising Ne"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Fixation and Loss of Alleles",
+    "sub": "The long-run fate of variation under drift alone"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Fixation",
+    "term": "Fixation",
+    "def": "The state in which an allele has reached a frequency of 100% in a population, so that every individual is homozygous for that allele and no other allele remains at that locus.",
+    "bullets": [
+      "Once fixed, an allele can only change frequency again through new mutation or migration",
+      "Fixation can happen via drift alone, via selection alone, or via a combination of both"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Probability and Time",
+    "title": "Fixation Probability Under Pure Drift",
+    "items": [
+      "Under drift alone (no selection), the probability that a given allele will eventually become fixed equals its current frequency in the population",
+      "Example: a neutral allele at frequency p = 0.10 has a 10% chance of eventual fixation and a 90% chance of eventual loss, purely by chance",
+      "This is a foundational result because it means even a brand-new mutation (frequency = 1/2N in a diploid population) has only a small chance of ever becoming fixed",
+      "Expected time to fixation or loss depends on population size: larger Ne means slower drift, so fixation/loss takes longer on average",
+      "For a neutral allele, expected time to fixation is roughly on the order of 4Ne generations (for alleles that do fix)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Loss of Genetic Variation",
+    "title": "Drift Steadily Erodes Heterozygosity",
+    "items": [
+      "Every generation, drift removes some genetic variation as alleles drift toward loss or fixation — variation is not restored unless new mutation or migration adds it back",
+      "Expected heterozygosity declines by a factor of [1 − 1/(2Ne)] each generation in the absence of mutation or migration",
+      "Smaller Ne means faster loss of heterozygosity — small isolated populations lose genetic diversity quickly",
+      "This steady loss of variation is a core reason small populations are vulnerable: less standing variation means less raw material for future adaptation to new challenges (disease, climate change)",
+      "Mutation continually introduces new variation, so real populations reach a mutation-drift balance rather than losing all variation permanently — but small Ne shifts that balance toward less diversity"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "The Founder Effect",
+    "sub": "When a new population starts from just a few individuals"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Founder Effect",
+    "term": "Founder Effect",
+    "def": "A change in allele frequencies (and often a loss of genetic diversity) that occurs when a new population is established by a small number of individuals from a larger source population.",
+    "bullets": [
+      "A special case of genetic drift: the 'sample' is the small group of founders, not a within-population bottleneck",
+      "The founding group may, by chance, carry a non-representative sample of the source population's alleles"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences of Founding Events",
+    "title": "How Founder Effects Shape New Populations",
+    "items": [
+      "Rare alleles present in the source population may be entirely absent from the founders, and thus absent from the entire new population going forward",
+      "Alleles that were rare in the source population can, by chance, be overrepresented among the founders and rise to high frequency in descendants",
+      "Genetic diversity in the new population is typically lower than in the source population, roughly in proportion to how few founders there were",
+      "Founder effects are especially relevant to island colonization, human migration into new regions, and captive breeding programs started from few individuals",
+      "Founder effects can also elevate the frequency of otherwise rare recessive genetic disorders in the new population"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Studies",
+    "title": "Founder Effects in the Real World",
+    "cards": [
+      {
+        "h": "Amish Populations (Pennsylvania)",
+        "p": "Descended from a small number of 18th-century founders. Ellis-van Creveld syndrome, vanishingly rare elsewhere, occurs at much higher frequency due to one founding couple carrying the allele."
+      },
+      {
+        "h": "Afrikaner Population (South Africa)",
+        "p": "Founded largely by a small group of Dutch settlers. Elevated frequency of Huntington's disease and porphyria variegata traces to a handful of founding carriers."
+      },
+      {
+        "h": "Island Colonization (e.g., Silvereyes, Drosophila)",
+        "p": "Birds and insects that colonize new islands from a few blown-off-course individuals show reduced genetic diversity and rapid divergence from mainland populations."
+      },
+      {
+        "h": "Ashkenazi Jewish Population",
+        "p": "A historical population bottleneck and founder event elevated the frequency of specific alleles including certain BRCA1/BRCA2 and Tay-Sachs variants."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Genetic Bottlenecks",
+    "sub": "Drastic, temporary reductions in population size"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Genetic (Population) Bottleneck",
+    "term": "Genetic Bottleneck",
+    "def": "A sharp, often temporary reduction in population size that causes a corresponding sharp reduction in genetic diversity, because only a small surviving subset of the original gene pool passes alleles to the next generation.",
+    "bullets": [
+      "Can be caused by natural disasters, disease epidemics, habitat loss, overhunting, or climatic events",
+      "Distinct from the founder effect in that a bottleneck reduces an existing population in place, rather than establishing a brand-new population elsewhere"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Genetic Signatures",
+    "title": "How Bottlenecks Leave a Genetic Mark",
+    "items": [
+      "Sudden loss of many alleles, especially rare ones, because they simply may not be present in the surviving individuals",
+      "Sharp drop in heterozygosity and allelic diversity relative to the pre-bottleneck population",
+      "Even after the population recovers numerically (census size N rebounds), the loss of genetic diversity persists for many generations because it depends on Ne history (harmonic mean), not current N",
+      "Increased likelihood of inbreeding and expression of deleterious recessive alleles in subsequent generations",
+      "Reduced capacity to adapt to future environmental change due to the depleted pool of genetic variation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Studies",
+    "title": "Classic Bottleneck Examples",
+    "cards": [
+      {
+        "h": "Cheetahs (Acinonyx jubatus)",
+        "p": "Extremely low genetic diversity across the species, consistent with severe bottleneck(s) roughly 10,000–12,000 years ago. Cheetahs can accept skin grafts from unrelated individuals with minimal rejection — evidence of near-uniform MHC genes."
+      },
+      {
+        "h": "Northern Elephant Seals (Mirounga angustirostris)",
+        "p": "Hunted to as few as ~20–30 individuals by the late 1800s. Population has since rebounded to over 100,000, but genetic diversity remains far lower than in the related southern elephant seal, which was never reduced so severely."
+      },
+      {
+        "h": "Greater Prairie Chicken (Illinois)",
+        "p": "Habitat fragmentation shrank the Illinois population to under 50 birds by the 1990s, with reduced hatching success. Genetic rescue via translocated birds from other states restored diversity and fitness."
+      },
+      {
+        "h": "Wisent / European Bison",
+        "p": "Reduced to roughly a dozen founders in captivity in the early 20th century after near-extinction in the wild; all living bison today descend from this narrow bottleneck."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Case Study Detail",
+    "title": "Cheetahs: A Textbook Bottleneck",
+    "left": {
+      "h": "The Evidence",
+      "body": "<ul><li>Extremely low variation at protein and DNA markers compared to other mammals</li><li>Skin grafts between unrelated cheetahs are not rejected — implies near-identical MHC (immune) genotypes</li><li>Sperm quality and abnormalities are unusually high, another symptom of low genetic diversity</li><li>Estimated bottleneck occurred near the end of the last Ice Age, possibly compounded by more recent human-caused declines</li></ul>"
+    },
+    "right": {
+      "h": "The Consequences",
+      "body": "<ul><li>Reduced disease resistance — outbreaks can spread rapidly through a genetically uniform population</li><li>Elevated juvenile mortality in some populations</li><li>Limited raw material for future adaptation to new threats</li><li>A cautionary example frequently cited in conservation genetics for why maintaining Ne, not just N, matters</li></ul>"
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Case Study Detail",
+    "title": "Northern Elephant Seal: Population History",
+    "items": [
+      {
+        "y": "Pre-1800s",
+        "t": "Abundant population along the Pacific coast, likely numbering in the tens of thousands, with high genetic diversity"
+      },
+      {
+        "y": "1800s",
+        "t": "Intensive commercial hunting for blubber oil drives the population toward extinction"
+      },
+      {
+        "y": "~1890s",
+        "t": "Population reduced to an estimated 20–30 surviving individuals on Guadalupe Island, Mexico — a severe genetic bottleneck"
+      },
+      {
+        "y": "Early 1900s",
+        "t": "Legal protection begins; the tiny surviving population starts to recover numerically"
+      },
+      {
+        "y": "Mid-late 1900s",
+        "t": "Population rebounds explosively into the tens of thousands as colonies recolonize former range"
+      },
+      {
+        "y": "Today",
+        "t": "Population exceeds 100,000, but genetic diversity remains markedly lower than in the southern elephant seal, which avoided such a severe bottleneck"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Bottleneck vs. Founder Effect",
+    "title": "Two Related but Distinct Processes",
+    "items": [
+      "Both are special, intense cases of genetic drift acting on a small sample of a gene pool",
+      "Bottleneck: an existing population is drastically reduced in place, then may or may not recover its numbers",
+      "Founder effect: a small group leaves (or is otherwise isolated from) a larger source population to establish a new one elsewhere",
+      "Both reduce genetic diversity relative to the original source population and can elevate the frequency of rare (including harmful recessive) alleles",
+      "A population can experience a founder effect and then also go through subsequent bottlenecks — the effects can compound over time"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Distinguishing Drift From Selection",
+    "sub": "Two very different processes that can look similar — and can interact"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Telling Them Apart",
+    "title": "Genetic Drift vs. Natural Selection",
+    "headers": [
+      "Property",
+      "Genetic Drift",
+      "Natural Selection"
+    ],
+    "rows": [
+      [
+        "Direction of change",
+        "Random — no consistent direction",
+        "Consistent — favors higher-fitness alleles"
+      ],
+      [
+        "Cause",
+        "Chance sampling of survivors/gametes",
+        "Systematic differences in survival/reproduction"
+      ],
+      [
+        "Dependence on population size",
+        "Strong — stronger in small Ne",
+        "Weak — operates in populations of any size"
+      ],
+      [
+        "Effect on beneficial alleles",
+        "Can eliminate them by chance",
+        "Tends to increase their frequency"
+      ],
+      [
+        "Effect on harmful alleles",
+        "Can fix them by chance, especially if only mildly deleterious",
+        "Tends to decrease their frequency"
+      ],
+      [
+        "Repeatability",
+        "Different outcome each time, even from identical starting conditions",
+        "More repeatable outcome given the same selective pressure"
+      ],
+      [
+        "Predictability",
+        "Statistical only (variance can be predicted, direction cannot)",
+        "Direction is predictable from fitness differences"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "When Drift Overpowers Selection",
+    "title": "Drift Can Defeat Selection in Small Populations",
+    "items": [
+      "Selection is efficient at fixing beneficial alleles or removing harmful ones only when its strength (s) is large relative to drift (roughly, when Ne·s >> 1)",
+      "When Ne is small, drift can overwhelm weak selection — mildly deleterious alleles can drift to fixation, and mildly beneficial alleles can be lost, essentially by bad luck",
+      "This is why small, endangered populations can accumulate deleterious mutations over time even while under 'selection' against them — a process sometimes called mutational meltdown",
+      "Nearly neutral theory (an extension of Kimura's neutral theory) formalizes this: whether an allele behaves as 'effectively neutral' depends on the product of Ne and the selection coefficient s, not on s alone",
+      "Practical implication: strategies to boost Ne (e.g., genetic rescue via introducing migrants) can restore the efficacy of selection in a threatened population"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Detecting the Signature",
+    "title": "How Biologists Distinguish Drift From Selection in Data",
+    "items": [
+      "Selection tends to act consistently on a specific locus with a known functional/adaptive story, while drift affects the whole genome roughly equally",
+      "Comparing patterns of variation across many neutral genetic markers (expected to reflect only drift/demography) versus candidate functional loci helps flag outlier loci under selection",
+      "Statistical tests (e.g., FST outlier tests, tests for reduced diversity around a locus, tests of the site-frequency spectrum) look for deviations from the pattern expected under drift alone",
+      "Repeated, independent instances of the same allele frequency change across populations facing the same environmental pressure are more consistent with selection than drift",
+      "A single unusual allele frequency change in one isolated small population is more parsimoniously explained by drift"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Useful Intuition",
+    "title": "The Coin-Flip Analogy for Drift",
+    "items": [
+      "Flipping a fair coin 10 times can easily give 7 heads and 3 tails purely by chance — a large deviation from the expected 50:50",
+      "Flipping the same fair coin 10,000 times will almost always land very close to 50:50 — large deviations become vanishingly unlikely",
+      "Allele frequency change by drift behaves the same way: 'flips' = gametes sampled into the next generation, and 'sample size' = (twice) the effective population size",
+      "Small populations are like small numbers of coin flips — large, erratic swings in allele frequency are expected purely by chance",
+      "This analogy also explains why repeating an evolutionary 'experiment' in small populations rarely gives the same outcome twice"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Applications",
+    "title": "Why This Matters: Conservation Genetics",
+    "items": [
+      "Endangered species with small Ne are at elevated risk from inbreeding depression, loss of adaptive potential, and accumulation of deleterious mutations",
+      "Population viability analyses incorporate Ne, not just census counts, to project extinction risk over time",
+      "Genetic rescue — introducing individuals from another population to increase gene flow and Ne — has reversed inbreeding depression in cases like the Florida panther and greater prairie chicken",
+      "Captive breeding programs actively manage pedigrees to equalize family sizes and sex ratios, directly targeting the factors that erode Ne",
+      "Understanding drift also matters for interpreting genetic data used in wildlife forensics, population assignment, and species conservation status assessments"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Big Picture",
+    "title": "Small Populations: A Double Bind",
+    "left": {
+      "h": "Genetic Consequences",
+      "body": "<ul><li>Rapid loss of heterozygosity and allelic diversity</li><li>Increased fixation of both beneficial and harmful alleles by chance</li><li>Weakened efficacy of selection against mildly deleterious mutations</li><li>Elevated inbreeding and expression of recessive disorders</li></ul>"
+    },
+    "right": {
+      "h": "Demographic Consequences",
+      "body": "<ul><li>Reduced capacity to adapt to new diseases, climate shifts, or competitors</li><li>Genetic problems can further depress population growth, deepening the decline</li><li>This feedback loop is sometimes called the 'extinction vortex'</li><li>Breaking the cycle typically requires boosting Ne, e.g., through genetic rescue or habitat connectivity</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Misconceptions",
+    "title": "Clearing Up Confusion About Drift",
+    "items": [
+      "Misconception: 'Drift only matters for neutral traits.' Reality: drift affects all alleles, including ones under weak selection, when Ne is small enough",
+      "Misconception: 'A large census population means drift is negligible.' Reality: Ne, which can be much smaller than N, is what determines drift's strength",
+      "Misconception: 'Drift and selection are mutually exclusive explanations.' Reality: both act simultaneously in real populations; their relative importance depends on Ne·s",
+      "Misconception: 'Bottlenecks always cause extinction.' Reality: many bottlenecked populations (like elephant seals) rebound numerically, though genetic diversity often stays reduced",
+      "Misconception: 'Founder effects are rare.' Reality: they are common whenever new populations establish from small groups — colonization, invasive species, human migration, captive breeding"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Review",
+    "title": "Key Terms to Know",
+    "items": [
+      "Genetic drift — random change in allele frequencies due to chance sampling",
+      "Effective population size (Ne) — the idealized population size that produces the same drift as the real one",
+      "Fixation and loss — the two possible end states for an allele evolving under drift",
+      "Founder effect — reduced diversity when a new population starts from few individuals",
+      "Genetic bottleneck — sharp reduction in diversity following a sharp drop in population size",
+      "Harmonic mean — the appropriate way to average population sizes across generations when calculating Ne",
+      "Nearly neutral theory — framework describing when Ne·s is too small for selection to dominate over drift"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Synthesis",
+    "title": "How Today's Concepts Connect to Hardy-Weinberg",
+    "items": [
+      "Hardy-Weinberg equilibrium assumed infinite population size — today we removed that assumption and asked what happens in real, finite populations",
+      "Genetic drift is one of the primary forces (alongside selection, mutation, migration, and non-random mating) that can violate Hardy-Weinberg and cause evolutionary change",
+      "Unlike selection, drift causes change even when no genotype has any survival or reproductive advantage",
+      "The magnitude of drift-driven departures from Hardy-Weinberg expectations scales with 1/Ne — smaller effective populations depart from equilibrium expectations faster",
+      "Next lecture shifts to natural selection itself — the deterministic counterpart to today's random process"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture Summary",
+    "title": "Genetic Drift and Effective Population Size: Key Takeaways",
+    "items": [
+      "Genetic drift is random change in allele frequencies caused by chance sampling across generations — it has no direction and can act on any allele",
+      "Drift's strength is inversely proportional to effective population size (Ne); small populations experience much stronger drift than large ones",
+      "Ne is usually smaller than census size N because of unequal sex ratios, high variance in reproductive success, and population fluctuations (harmonic mean effect)",
+      "Founder effects and genetic bottlenecks are intense, real-world instances of drift that reduce genetic diversity — illustrated by cheetahs, northern elephant seals, and founder populations like the Amish and Afrikaners",
+      "Given enough time, drift alone can fix or eliminate any allele; the probability of eventual fixation for a neutral allele equals its current frequency",
+      "Drift and selection act simultaneously in real populations; when Ne·s is small, drift can overwhelm weak selection, with major implications for conservation genetics"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "In a small enough population, even the fittest allele can vanish — not because it failed, but because chance never gave it the numbers to survive.",
+    "attrib": "Course synthesis, drawing on Zimmer & Emlen Ch. 6"
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — LECTURE 20",
+    "title": "Natural Selection I",
+    "sub": "Directional, stabilizing, and disruptive selection on quantitative traits"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 19</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

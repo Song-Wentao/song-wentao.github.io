@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 18: Allele Frequencies at Equilibrium: The Hardy-Weinberg Model</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 18",
+    "title": "Allele Frequencies at Equilibrium: The Hardy-Weinberg Model",
+    "sub": "Opening Chapter 6, \"The Ways of Change\" — the mathematical baseline against which real evolution is measured",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 6, \"The Ways of Change\" (lecture 1 of 5)"
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 6 — THE WAYS OF CHANGE",
+    "title": "From Variation to Change",
+    "sub": "Chapter 5 asked where heritable variation comes from — mutation, recombination, gene flow, heritability. Chapter 6 asks what happens to that variation over time: how do allele frequencies actually shift from one generation to the next?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "FOUNDATIONAL VOCABULARY",
+    "title": "Gene Pool",
+    "term": "Gene pool",
+    "def": "The complete set of all alleles at all loci carried by every individual in a population, considered collectively.",
+    "bullets": [
+      "The gene pool is the raw material that population genetics studies — it is the population's total genetic \"inventory\"",
+      "Individuals are born, reproduce, and die, but the gene pool persists across generations as alleles are passed on and recombined",
+      "Allele frequencies are simply a way of summarizing the composition of the gene pool at a given locus",
+      "Evolution can be redefined, equivalently, as a change in the composition of a population's gene pool over time"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP — WHERE WE LEFT OFF",
+    "title": "Chapter 5 in One Slide",
+    "items": [
+      "Mutation creates new alleles — the ultimate source of all genetic variation",
+      "Meiotic recombination and independent assortment reshuffle existing variation into new combinations",
+      "Gene flow moves alleles between populations, homogenizing or introducing variation",
+      "Heritability (h²) measures the proportion of phenotypic variance attributable to genetic variance",
+      "None of these processes, by themselves, explains why a population's allele frequencies change over generations",
+      "Chapter 6 introduces the four evolutionary forces — drift, selection, migration, and mutation pressure — but first we need a baseline for \"no change\""
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "Building the Null Model of Evolution",
+    "items": [
+      "Reframe populations in genetic terms: allele frequencies vs. genotype frequencies",
+      "Derive the Hardy-Weinberg equation, p² + 2pq + q² = 1",
+      "Examine the five assumptions required for Hardy-Weinberg equilibrium",
+      "Work through numerical examples: predicting genotype frequencies from allele frequencies",
+      "Test a real population against Hardy-Weinberg expectations",
+      "Understand why each violated assumption points to a specific evolutionary force",
+      "Preview: Lecture 19 begins with the first force — genetic drift"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Allele Frequency",
+    "term": "Allele frequency",
+    "def": "The proportion of all copies of a gene in a population's gene pool that are a particular allele.",
+    "bullets": [
+      "Denoted with a lowercase letter, conventionally p and q for a two-allele locus",
+      "Calculated as: (number of copies of the allele) / (total number of allele copies at that locus in the population)",
+      "For a diploid population of N individuals, there are 2N total allele copies at any autosomal locus",
+      "Allele frequencies always sum to 1 across all alleles at a locus (p + q = 1 for two alleles)",
+      "This is a property of the population's gene pool — not of any single individual"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Genotype Frequency",
+    "term": "Genotype frequency",
+    "def": "The proportion of individuals in a population that carry a particular genotype at a locus.",
+    "bullets": [
+      "For a two-allele locus (A and a), the three possible genotypes are AA, Aa, and aa",
+      "Calculated as: (number of individuals with that genotype) / (total number of individuals)",
+      "Genotype frequencies also sum to 1: freq(AA) + freq(Aa) + freq(aa) = 1",
+      "Genotype frequencies describe individuals; allele frequencies describe the gene pool they collectively carry",
+      "The two are linked mathematically — that link is exactly what Hardy-Weinberg describes"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CLARIFYING THE DISTINCTION",
+    "title": "Two Ways to Describe the Same Population",
+    "left": {
+      "h": "Allele frequencies (p, q)",
+      "body": "<p>Track the <b>gene pool</b> — the pooled set of allele copies across all individuals.</p><ul><li>Ignores which alleles are paired together in individuals</li><li>Example: p(A) = 0.7, q(a) = 0.3</li><li>Changes only when alleles are added, lost, or transmitted unequally across generations</li></ul>"
+    },
+    "right": {
+      "h": "Genotype frequencies",
+      "body": "<p>Track <b>individuals</b> — how alleles are packaged into diploid genotypes.</p><ul><li>Depends on how gametes combine at fertilization (mating pattern)</li><li>Example: freq(AA)=0.49, freq(Aa)=0.42, freq(aa)=0.09</li><li>Can change every generation even while allele frequencies stay constant</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THIS MATTERS",
+    "title": "Population Genetics: A Change in Scale",
+    "items": [
+      "Chapters 1-5 largely examined variation at the level of individuals, traits, and pedigrees",
+      "Population genetics shifts the unit of analysis to the population's gene pool as a whole",
+      "Evolution, formally defined, is a change in allele frequencies in a population over time",
+      "To detect evolution, we need a way to predict what allele and genotype frequencies would look like if nothing were changing",
+      "That prediction is the Hardy-Weinberg principle — evolution's null hypothesis"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "HISTORICAL ORIGINS",
+    "title": "Hardy and Weinberg, 1908",
+    "sub": "A mathematical puzzle solved independently by an English mathematician and a German physician — and it became the foundation of population genetics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A THOUGHT EXPERIMENT",
+    "title": "Why Dominance Alone Cannot Change Allele Frequency",
+    "items": [
+      "Suppose allele A is dominant and allele a is recessive, and initially p = 0.9, q = 0.1",
+      "Intuition might suggest that dominant A should keep increasing generation after generation because it is expressed more often",
+      "But dominance is a property of phenotype expression within a heterozygote — it has no bearing on which gametes are transmitted to the next generation",
+      "Meiosis is fair: a heterozygous Aa individual transmits A and a to offspring in a 1:1 ratio, regardless of which allele is dominant",
+      "Hardy and Weinberg's algebra confirms that with random mating and no other forces, p stays 0.9 and q stays 0.1 indefinitely"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BACKSTORY",
+    "title": "Why the Question Even Arose",
+    "items": [
+      "Early 1900s: some biologists worried that dominant alleles should mechanically increase in frequency generation after generation, eventually swamping recessive alleles",
+      "This confusion stemmed from conflating dominance (a pattern of expression) with reproductive or genetic advantage",
+      "G. H. Hardy (mathematician, Cambridge) and Wilhelm Weinberg (physician, Stuttgart) independently proved this fear was mathematically unfounded in 1908",
+      "Their insight: under simple Mendelian inheritance and random mating, allele frequencies do not change on their own — dominance alone has no effect on frequency",
+      "The result is now called the Hardy-Weinberg principle (or Hardy-Weinberg equilibrium, HWE)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "THE CENTRAL EQUATION",
+    "title": "The Hardy-Weinberg Equation",
+    "term": "Hardy-Weinberg equilibrium",
+    "def": "For a two-allele locus with allele frequencies p and q (p + q = 1), the expected genotype frequencies at equilibrium are p² (AA), 2pq (Aa), and q² (aa), and p² + 2pq + q² = 1.",
+    "bullets": [
+      "p = frequency of allele A; q = frequency of allele a",
+      "p² = probability two A gametes combine = expected frequency of AA homozygotes",
+      "2pq = probability an A and an a gamete combine (in either order) = expected frequency of Aa heterozygotes",
+      "q² = probability two a gametes combine = expected frequency of aa homozygotes",
+      "These are the genotype frequencies expected after one generation of random mating, given allele frequencies p and q"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DERIVING THE EQUATION",
+    "title": "From Allele Frequencies to Genotype Frequencies",
+    "items": [
+      "Step 1: Assume a gene pool of gametes in which allele A has frequency p and allele a has frequency q, with p + q = 1",
+      "Step 2: Random mating means gametes combine independently — the genotype of an offspring is like drawing two gametes independently at random from the pool",
+      "Step 3: Apply the multiplication rule for independent events: P(A from sperm AND A from egg) = p × p = p²",
+      "Step 4: P(a from sperm AND a from egg) = q × q = q²",
+      "Step 5: P(A from sperm AND a from egg) = p × q; P(a from sperm AND A from egg) = q × p — both produce an Aa heterozygote, so add them: pq + qp = 2pq",
+      "Step 6: Because these are the only three possible genotypes, their frequencies must sum to 1: p² + 2pq + q² = 1",
+      "This is simply the algebraic expansion of (p + q)² = 1"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE OTHER HALF OF THE MODEL",
+    "title": "HWE Also Predicts Allele Frequencies Stay Constant",
+    "left": {
+      "h": "Genotype frequencies after mating",
+      "body": "<p>Given p² AA, 2pq Aa, q² aa individuals in the next generation, we can recover the allele frequencies they carry.</p><ul><li>freq(A) = freq(AA) + ½freq(Aa) = p² + ½(2pq) = p² + pq = p(p+q) = p</li><li>freq(a) = q² + pq = q(p+q) = q</li></ul>"
+    },
+    "right": {
+      "h": "The key conclusion",
+      "body": "<p>Allele frequencies p and q are <b>unchanged</b> after a generation of random mating with no other forces acting.</p><ul><li>Genotype frequencies reach equilibrium proportions in a single generation of random mating</li><li>Allele frequencies remain constant indefinitely thereafter, generation after generation</li><li>This is the mathematical proof that dominance alone cannot erode a recessive allele</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE FIVE ASSUMPTIONS",
+    "title": "Conditions Required for Hardy-Weinberg Equilibrium",
+    "cards": [
+      {
+        "h": "No mutation",
+        "p": "No new alleles are created and no existing alleles are converted into other alleles during the generation in question."
+      },
+      {
+        "h": "No selection",
+        "p": "All genotypes have equal survival and reproductive success — no genotype is favored or disfavored."
+      },
+      {
+        "h": "No migration",
+        "p": "No individuals (and their alleles) enter or leave the population — the population is genetically closed."
+      },
+      {
+        "h": "Random mating",
+        "p": "Individuals pair up with no regard to genotype at the locus in question — mating is not assortative."
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE FIFTH ASSUMPTION",
+    "title": "Infinite Population Size",
+    "cards": [
+      {
+        "h": "Why size matters",
+        "p": "With a finite population, allele frequencies among offspring are a finite sample from the parental gene pool, and finite samples deviate from expected proportions by chance."
+      },
+      {
+        "h": "The idealization",
+        "p": "An infinitely large population eliminates this sampling error entirely — offspring allele frequencies exactly equal parental allele frequencies."
+      },
+      {
+        "h": "The real-world consequence",
+        "p": "Every real population is finite, so every real population experiences some degree of random sampling error across generations — this is genetic drift, the subject of Lecture 19."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "UNPACKING THE ASSUMPTIONS",
+    "title": "What Each Assumption Really Rules Out",
+    "items": [
+      "No mutation: rules out any process that changes p and q by converting A alleles to a alleles or vice versa",
+      "No selection: rules out differential survival or reproduction — every genotype must have identical fitness",
+      "No migration (no gene flow): rules out any transfer of alleles into or out of the population from other populations",
+      "Random mating: rules out non-random pairing such as inbreeding, disassortative mating, or mate choice based on the trait itself",
+      "Infinite population size: rules out random sampling error (chance) in which alleles happen to be passed to the next generation",
+      "In real populations, all five assumptions are violated to some degree — which is exactly why real populations evolve"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "WHY BUILD A MODEL THAT'S NEVER TRUE?",
+    "title": "Hardy-Weinberg as a Null Model",
+    "sub": "No real population is ever perfectly in equilibrium. The power of the model lies in its use as a baseline for detecting and measuring departures from it"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "VISUALIZING THE MODEL",
+    "title": "How Genotype Frequencies Shift with Allele Frequency",
+    "left": {
+      "h": "At p = 0.1 (rare allele A)",
+      "body": "<p>p² = 0.01, 2pq = 0.18, q² = 0.81</p><ul><li>AA homozygotes are very rare</li><li>Most copies of A are hidden in Aa heterozygotes</li><li>aa homozygotes dominate the population</li></ul>"
+    },
+    "right": {
+      "h": "At p = 0.5 (intermediate)",
+      "body": "<p>p² = 0.25, 2pq = 0.50, q² = 0.25</p><ul><li>Heterozygote frequency is at its maximum possible value</li><li>Homozygote classes are equal and relatively common</li><li>This is the point of maximum genetic diversity at the locus, as measured by heterozygosity</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE LOGIC OF A NULL MODEL",
+    "title": "Why Biologists Use an \"Unrealistic\" Equation",
+    "items": [
+      "A null model specifies what pattern we expect if the process we're interested in (evolution) is NOT occurring",
+      "Hardy-Weinberg plays this role for population genetics: it predicts genotype frequencies under \"no evolutionary change\"",
+      "Comparing observed genotype frequencies in a real population to Hardy-Weinberg expectations reveals whether — and by implication, how — evolution is acting",
+      "Analogy: a control group in an experiment. HWE is the control condition against which real populations are the treatment",
+      "This mirrors how physicists use Newton's first law (no net force → constant velocity) as a baseline for detecting forces"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED EXAMPLE 1",
+    "title": "Predicting Genotype Frequencies from Allele Frequencies",
+    "left": {
+      "h": "Given",
+      "body": "<p>In a population of wildflowers, the allele for red pigment (A) has frequency p = 0.6, and the allele for no pigment (a) has frequency q = 0.4.</p><ul><li>Assume the population is in Hardy-Weinberg equilibrium</li><li>Population size: 500 individuals</li></ul>"
+    },
+    "right": {
+      "h": "Solve",
+      "body": "<p>freq(AA) = p² = 0.6² = 0.36 → 36% of plants, or 180 individuals</p><p>freq(Aa) = 2pq = 2(0.6)(0.4) = 0.48 → 48% of plants, or 240 individuals</p><p>freq(aa) = q² = 0.4² = 0.16 → 16% of plants, or 80 individuals</p><p>Check: 0.36 + 0.48 + 0.16 = 1.00 ✓ and 180+240+80 = 500 ✓</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WORKED EXAMPLE 1, CONTINUED",
+    "title": "Reading the Result",
+    "items": [
+      "Note that heterozygotes (Aa) are the most common genotype class here, even though neither allele is at especially high or low frequency",
+      "This is a general feature of Hardy-Weinberg: heterozygote frequency 2pq is maximized when p = q = 0.5, where 2pq = 0.5",
+      "Heterozygotes are common at intermediate allele frequencies — a key reason recessive alleles rarely disappear, since most copies are \"hidden\" in heterozygotes rather than exposed in homozygotes",
+      "This is precisely the phenomenon Hardy and Weinberg were originally asked to explain"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED EXAMPLE 2 — GOING THE OTHER DIRECTION",
+    "title": "Estimating Allele Frequency from Genotype Counts",
+    "left": {
+      "h": "Given",
+      "body": "<p>Cystic fibrosis is a recessive condition. In a population of 10,000 births, 4 infants are affected (genotype aa).</p><ul><li>Only the aa phenotype is directly observable at birth</li><li>Assume the population is in Hardy-Weinberg equilibrium</li></ul>"
+    },
+    "right": {
+      "h": "Solve",
+      "body": "<p>freq(aa) = q² = 4/10,000 = 0.0004</p><p>q = √0.0004 = 0.02</p><p>p = 1 − q = 0.98</p><p>Expected carrier (Aa) frequency = 2pq = 2(0.98)(0.02) ≈ 0.0392, or about 1 in 25 people</p><p>This is how HWE lets us estimate the frequency of unseen heterozygous carriers from the frequency of visible homozygotes.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY WORKED EXAMPLE 2 MATTERS",
+    "title": "A Real Application: Carrier Frequency Estimation",
+    "items": [
+      "Recessive genetic disorders are often only observable in the homozygous recessive genotype",
+      "Hardy-Weinberg lets clinicians and genetic counselors estimate q directly from the frequency of affected individuals (q²), then infer carrier frequency (2pq)",
+      "This calculation underlies population-level genetic screening and counseling for conditions such as cystic fibrosis, Tay-Sachs disease, and sickle-cell trait",
+      "Important caveat: this method assumes Hardy-Weinberg conditions hold — including random mating with respect to carrier status, which is not always realistic"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "TESTING A POPULATION",
+    "title": "Observed vs. Expected Genotype Frequencies",
+    "headers": [
+      "Genotype",
+      "Observed count (n = 200)",
+      "Observed frequency",
+      "HWE-expected frequency"
+    ],
+    "rows": [
+      [
+        "MM",
+        "64",
+        "0.32",
+        "p² = 0.36"
+      ],
+      [
+        "MN",
+        "100",
+        "0.50",
+        "2pq = 0.48"
+      ],
+      [
+        "NN",
+        "36",
+        "0.18",
+        "q² = 0.16"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTERPRETING THE TABLE",
+    "title": "Is This Population in Equilibrium?",
+    "items": [
+      "First recover allele frequencies from the observed data: freq(M) = p = [64 + ½(100)]/200 = 114/200 = 0.57; freq(N) = q = 0.43",
+      "Use p and q to generate the HWE-expected genotype frequencies shown in the table's last column",
+      "Compare observed to expected: the differences here are modest (0.32 vs 0.36, 0.50 vs 0.48, 0.18 vs 0.16)",
+      "The question is whether these differences are larger than we'd expect from random sampling alone, or whether they signal a real evolutionary process",
+      "Answering that question rigorously requires a formal statistical test"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE STATISTICAL LOGIC (CONCEPTUAL)",
+    "title": "Chi-Square: Formalizing \"Close Enough\"",
+    "items": [
+      "The chi-square (χ²) goodness-of-fit test compares observed counts to expected counts across genotype categories",
+      "Conceptually: χ² = Σ [(observed − expected)² / expected], summed across all genotype classes",
+      "A small χ² value means observed counts are close to Hardy-Weinberg expectations — consistent with equilibrium",
+      "A large χ² value means the deviation is unlikely to be due to chance alone — suggesting one or more HWE assumptions is being violated",
+      "The resulting p-value tells us the probability of seeing a deviation this large (or larger) if the population really were in equilibrium",
+      "We are not calculating this by hand today — the key takeaway is the logic: quantify the mismatch, then ask whether chance can plausibly explain it"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT A SIGNIFICANT DEVIATION TELLS US",
+    "title": "When a Population Fails the Hardy-Weinberg Test",
+    "items": [
+      "A statistically significant deviation from HWE tells us that at least one assumption is being violated — it does not by itself tell us which one",
+      "Excess of heterozygotes relative to expectation can suggest heterozygote advantage (a form of selection) or negative assortative mating",
+      "Deficit of heterozygotes relative to expectation can suggest inbreeding, population subdivision (the Wahlund effect), or selection against heterozygotes",
+      "Follow-up data — pedigrees, fitness measurements, migration records — are needed to identify the specific cause",
+      "This is exactly how population geneticists use HWE in practice: as a diagnostic screen, not a final answer"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "ASSUMPTIONS IN THE REAL WORLD",
+    "title": "Everyday Violations You Can Already Recognize",
+    "cards": [
+      {
+        "h": "Small island populations",
+        "p": "Founder events and small breeding groups violate infinite population size, making drift a dominant force — a preview of Lecture 19."
+      },
+      {
+        "h": "Antibiotic-resistant bacteria",
+        "p": "Resistant genotypes survive antibiotic exposure at far higher rates than susceptible genotypes — a textbook violation of no-selection."
+      },
+      {
+        "h": "Human assortative mating for height",
+        "p": "People tend to partner with others of similar height more often than random pairing would predict — a violation of random mating."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE PAYOFF",
+    "title": "From Null Model to Discovery Engine",
+    "sub": "Each of the five Hardy-Weinberg assumptions maps onto a real evolutionary force — violating an assumption is not a technicality, it is evolution happening"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE BRIDGE TO CHAPTER 6",
+    "title": "Violated Assumption → Evolutionary Force",
+    "headers": [
+      "HWE assumption",
+      "When violated, this force operates",
+      "Where it's covered"
+    ],
+    "rows": [
+      [
+        "Infinite population size",
+        "Genetic drift — random sampling error in allele transmission",
+        "Lecture 19"
+      ],
+      [
+        "No selection",
+        "Natural selection — differential survival/reproduction by genotype",
+        "Lectures 20-21"
+      ],
+      [
+        "No migration",
+        "Gene flow — alleles move between populations",
+        "Lecture 22"
+      ],
+      [
+        "No mutation",
+        "Mutation pressure — recurrent creation/conversion of alleles",
+        "Revisits Ch. 5 mechanism"
+      ],
+      [
+        "Random mating",
+        "Non-random mating — inbreeding, assortative mating, sexual selection",
+        "Lecture 22 / Ch. 7 preview"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "Hardy-Weinberg Defines Evolution by What It Excludes",
+    "items": [
+      "Hardy-Weinberg equilibrium is, by construction, a description of a population that is NOT evolving",
+      "Every mechanism that causes real allele-frequency change must therefore violate at least one of the five assumptions",
+      "This makes the model doubly useful: it is both a null hypothesis for detecting evolution and a conceptual map of evolution's possible causes",
+      "The rest of Chapter 6 will take each violated assumption in turn and build a quantitative model of the resulting evolutionary force",
+      "Keep the p² + 2pq + q² = 1 equation in mind — later lectures will show how selection and drift systematically distort these proportions generation after generation"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL HIERARCHY",
+    "title": "From Baseline to Real Evolutionary Change",
+    "levels": [
+      {
+        "label": "Hardy-Weinberg equilibrium (null model)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Observed deviation from HWE (signal of change)",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Identify which assumption is violated",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Attribute to drift, selection, migration, or mutation",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Quantitative model of that evolutionary force",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "VOCABULARY CHECK",
+    "title": "Genetic Equilibrium",
+    "term": "Genetic equilibrium",
+    "def": "A state in which allele and genotype frequencies in a population remain constant from one generation to the next.",
+    "bullets": [
+      "Under Hardy-Weinberg conditions, equilibrium genotype frequencies (p², 2pq, q²) are reached after a single generation of random mating",
+      "Equilibrium allele frequencies (p, q) then persist unchanged indefinitely, as long as all five assumptions continue to hold",
+      "Equilibrium is not the same as \"no genetic variation\" — a population can be highly polymorphic and still be at equilibrium",
+      "Equilibrium is a dynamic balance, not stasis of individuals: individuals are born and die every generation, but the population-level frequencies do not shift"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FRAMING THE MODEL",
+    "quote": "Hardy-Weinberg equilibrium is less a description of nature than a ruler held up against it — evolution is precisely the discrepancy the ruler reveals.",
+    "attrib": "paraphrased framing, following Zimmer & Emlen, Ch. 6"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "What Hardy-Weinberg Does NOT Say",
+    "items": [
+      "It does not say allele frequencies never change in nature — quite the opposite, it specifies the narrow conditions under which they would not change",
+      "It does not say dominant alleles increase over time — this was the very misconception Hardy and Weinberg refuted",
+      "It does not require p = q = 0.5 — the equation holds for any values of p and q that sum to 1",
+      "It does not apply only to one generation — once at equilibrium, a population stays there indefinitely unless a force disturbs it",
+      "It is not a description of any single real population — it is an idealized reference point"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "EXTENDING THE MODEL",
+    "title": "Beyond Two Alleles and Autosomal Loci",
+    "left": {
+      "h": "Multiple alleles",
+      "body": "<p>Many loci have more than two segregating alleles (e.g., ABO blood type has three: I^A, I^B, i).</p><ul><li>With alleles at frequencies p, q, r (p+q+r=1), expected genotype frequencies expand to (p+q+r)²</li><li>p², q², r² for homozygotes; 2pq, 2pr, 2qr for each heterozygote class</li></ul>"
+    },
+    "right": {
+      "h": "X-linked loci",
+      "body": "<p>For genes on the X chromosome, the model must be adjusted by sex.</p><ul><li>Females (XX): genotype frequencies follow p², 2pq, q² as usual</li><li>Males (XY, hemizygous): genotype frequencies equal allele frequencies directly — freq(X^A Y) = p, freq(X^a Y) = q</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHY THIS MODEL MATTERS BEYOND THE CLASSROOM",
+    "title": "Applications of the Hardy-Weinberg Principle",
+    "cards": [
+      {
+        "h": "Medical genetics",
+        "p": "Estimating carrier frequencies for recessive diseases from the frequency of affected individuals, informing genetic counseling and screening programs."
+      },
+      {
+        "h": "Conservation biology",
+        "p": "Testing wild or captive populations for departures from HWE as an early warning sign of inbreeding, population fragmentation, or genetic bottlenecks."
+      },
+      {
+        "h": "Forensic genetics",
+        "p": "Estimating how rare a given DNA profile is in a population, using HWE to combine independent locus frequencies into an overall match probability."
+      },
+      {
+        "h": "Evolutionary biology",
+        "p": "Serving as the statistical null hypothesis in virtually every population genetic study, from field surveys to genome-wide association studies."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A NOTE ON POPULATION DEFINITION",
+    "title": "HWE Requires Defining the Population Correctly",
+    "items": [
+      "Hardy-Weinberg calculations assume you are sampling from a single, randomly-mating population — not several distinct subpopulations pooled together",
+      "Pooling genetically distinct subpopulations creates an apparent heterozygote deficit even if each subpopulation is individually at equilibrium — a phenomenon called the Wahlund effect",
+      "This is a reminder that testing for HWE is also, implicitly, a test of whether you've correctly identified the boundaries of the breeding population",
+      "Misdiagnosing population structure as selection (or vice versa) is a classic pitfall in population genetics"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "From Hardy-Weinberg to Modern Population Genetics",
+    "items": [
+      {
+        "y": "1908",
+        "t": "G. H. Hardy and Wilhelm Weinberg independently derive the equilibrium principle bearing their names"
+      },
+      {
+        "y": "1918-1932",
+        "t": "R. A. Fisher, J. B. S. Haldane, and Sewall Wright synthesize Mendelian genetics with Darwinian selection, founding theoretical population genetics"
+      },
+      {
+        "y": "1930s-40s",
+        "t": "The Modern Synthesis unites population genetics with paleontology, systematics, and natural history"
+      },
+      {
+        "y": "1966",
+        "t": "Protein electrophoresis reveals extensive allozyme variation in natural populations, motivating tests of HWE at real loci"
+      },
+      {
+        "y": "2000s-present",
+        "t": "Genome-wide SNP data make HWE testing a routine quality-control and discovery step in human and non-human population studies"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING FORWARD",
+    "title": "Setting Up the Rest of Chapter 6",
+    "items": [
+      "Lecture 19 relaxes the infinite-population assumption: genetic drift and effective population size",
+      "Lectures 20-21 relax the no-selection assumption: modeling natural selection's effect on allele frequencies, including fitness and selection coefficients",
+      "Lecture 22 relaxes the no-migration and random-mating assumptions: gene flow and non-random mating",
+      "Each lecture will reuse today's p, q, p², 2pq, q² framework as the baseline that the new force distorts",
+      "By the end of Chapter 6 you will be able to build a complete quantitative model of one generation's allele-frequency change under any combination of forces"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED EXAMPLE 3 — DETECTING SELECTION",
+    "title": "When Deviation Signals a Real Force",
+    "left": {
+      "h": "Given",
+      "body": "<p>In a moth population, allele frequencies at hatching are p = 0.5, q = 0.5 (expected: 25% AA, 50% Aa, 25% aa).</p><p>Among adults surviving to reproduce, genotype frequencies are measured as 15% AA, 45% Aa, 40% aa.</p>"
+    },
+    "right": {
+      "h": "Interpretation",
+      "body": "<p>Homozygous aa survives at much higher frequency than expected (40% vs 25%), while AA is reduced (15% vs 25%).</p><ul><li>This pattern is inconsistent with random, unbiased survival</li><li>It is consistent with natural selection favoring the aa genotype between hatching and adulthood</li><li>This is exactly the kind of pattern Lecture 20 will formalize with fitness values and selection coefficients</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PRACTICAL SKILLS CHECK",
+    "title": "What You Should Be Able to Do After Today",
+    "items": [
+      "Distinguish allele frequency from genotype frequency, and calculate each from raw data",
+      "Derive p² + 2pq + q² = 1 from first principles using the multiplication and addition rules of probability",
+      "List and explain all five Hardy-Weinberg assumptions",
+      "Compute expected genotype frequencies given allele frequencies, and vice versa",
+      "Compare observed genotype frequencies to Hardy-Weinberg expectations and describe, conceptually, how a chi-square test would evaluate the mismatch",
+      "Map a departure from a specific HWE assumption to the evolutionary force responsible for it"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "QUICK REFERENCE",
+    "title": "Hardy-Weinberg Formula Cheat Sheet",
+    "headers": [
+      "Quantity",
+      "Symbol",
+      "Formula"
+    ],
+    "rows": [
+      [
+        "Frequency of allele A",
+        "p",
+        "p = freq(AA) + ½freq(Aa)"
+      ],
+      [
+        "Frequency of allele a",
+        "q",
+        "q = 1 − p"
+      ],
+      [
+        "Expected freq. of AA",
+        "p²",
+        "p × p"
+      ],
+      [
+        "Expected freq. of Aa",
+        "2pq",
+        "2 × p × q"
+      ],
+      [
+        "Expected freq. of aa",
+        "q²",
+        "q × q"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED EXAMPLE 4 — MULTIPLE GENERATIONS",
+    "title": "Confirming Equilibrium Persists Over Time",
+    "left": {
+      "h": "Given",
+      "body": "<p>A population starts with p = 0.7, q = 0.3 and satisfies all five HWE assumptions for three consecutive generations.</p><ul><li>Generation 1 genotype frequencies: p²=0.49, 2pq=0.42, q²=0.09</li></ul>"
+    },
+    "right": {
+      "h": "Solve",
+      "body": "<p>Recompute allele frequency from Gen 1 genotypes: p = 0.49 + ½(0.42) = 0.70 — unchanged</p><p>Because p and q are unchanged, Generation 2 genotype frequencies are recalculated from the same p=0.7, q=0.3 and come out identical: 0.49, 0.42, 0.09</p><p>This confirms equilibrium is self-perpetuating: once reached, it persists every subsequent generation with no further change, as long as assumptions hold.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Key Takeaways from Today",
+    "items": [
+      "Allele frequencies describe a population's gene pool; genotype frequencies describe how those alleles are packaged into individuals",
+      "The Hardy-Weinberg equation, p² + 2pq + q² = 1, predicts genotype frequencies from allele frequencies under five idealized assumptions",
+      "No mutation, no selection, no migration, random mating, and infinite population size together define a population that is, by definition, not evolving",
+      "Because no real population perfectly satisfies all five assumptions, Hardy-Weinberg functions as a null model — a baseline for detecting and diagnosing evolutionary change",
+      "Each violated assumption identifies a specific evolutionary force, giving Chapter 6 its roadmap: drift, selection, migration, and non-random mating",
+      "Every quantitative model of evolution introduced in the coming lectures is, at its core, a modification of this equation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — 19",
+    "title": "Genetic Drift and Effective Population Size",
+    "sub": "What happens when the \"infinite population\" assumption fails? We derive how random sampling error alone can drive allele frequencies to fixation or loss — even with no selection at all."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 18</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

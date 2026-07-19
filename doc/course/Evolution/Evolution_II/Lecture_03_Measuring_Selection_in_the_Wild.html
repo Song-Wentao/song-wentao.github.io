@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 3: Measuring Selection in the Wild: Selection Differentials, Gradients, and Fitness Surfaces</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 3",
+    "title": "Measuring Selection in the Wild",
+    "sub": "Selection Differentials, Selection Gradients, and Fitness Surfaces",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 10, \"Natural Selection: Empirical Studies in the Wild\" (lecture 3 of 4)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE ARE",
+    "title": "Course Roadmap",
+    "items": [
+      "Lecture 1 (Ch10): Why field studies matter — moving from 'selection is plausible' to 'selection is measured'",
+      "Lecture 2 (Ch10): Case studies — Trinidadian guppies, Darwin's finches, threespine stickleback, soapberry bugs",
+      "Lecture 3 (today): The formal statistical toolkit — S, β, and fitness surfaces (Lande & Arnold 1983)",
+      "Lecture 4 (Ch10): Rapid contemporary evolution and synthesis of the empirical selection literature",
+      "Recall from Evolution I, Ch7: heritability, the breeder's equation R = h²S — today we dissect that S term rigorously"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "From Qualitative to Quantitative Selection",
+    "sub": "Why biologists needed a formal statistical language for natural selection"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MOTIVATION",
+    "title": "Today's Agenda",
+    "items": [
+      "Why 'selection acts on the trait' is not precise enough for a science",
+      "The selection differential, S: raw covariance between a trait and relative fitness",
+      "The problem of correlated traits and the need for the selection gradient, β",
+      "The Lande & Arnold (1983) multiple-regression framework linking S, β, and the P matrix",
+      "Fitness surfaces (adaptive landscapes) as a geometric picture of multivariate selection",
+      "Revisiting directional, stabilizing, and disruptive selection with quadratic gradients (γ)",
+      "A worked conceptual example combining directional and stabilizing components",
+      "Practical challenges: lifetime fitness, confounding variables, statistical power, long-term datasets",
+      "Lab vs. field selection studies compared",
+      "Synthesis and a look ahead to Lecture 4"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "REVIEW",
+    "title": "What Evolution I Already Gave Us",
+    "items": [
+      "The breeder's equation: R = h²S, where R is the response to selection and h² is narrow-sense heritability",
+      "S there was treated somewhat informally as 'the strength of selection' — a single number",
+      "Quantitative genetics (Ch7) established that continuous traits are polygenic and that phenotype = genotype + environment",
+      "What was missing: a rigorous, general definition of S that works for any trait, in any wild population, measured directly from data",
+      "Today we import the statistical machinery developed by evolutionary biologists in the 1980s to fill that gap"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FRAMING",
+    "quote": "To say that a trait is 'under selection' is a hypothesis. To say by how much, and in what direction, relative to which other traits — that is a measurement.",
+    "attrib": "paraphrased framing, after Lande & Arnold (1983), Evolution"
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "The Selection Differential (S)",
+    "sub": "Quantifying raw selection on a single trait"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Selection Differential (S)",
+    "term": "Selection differential, S",
+    "def": "The covariance between an individual's trait value and its relative fitness; equivalently, the difference between the mean trait value of selected (surviving/reproducing) individuals and the mean trait value of the population before selection.",
+    "bullets": [
+      "S = cov(z, w), where z is the trait and w is relative fitness (individual fitness divided by mean population fitness)",
+      "Equivalently: S = z̄(after selection) − z̄(before selection)",
+      "Units are in the original trait units (mm, g, days), making S intuitive but not directly comparable across traits",
+      "S is a purely descriptive, phenotypic statistic — it says nothing yet about genetics or causation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANICS",
+    "title": "How S Is Actually Measured in the Field",
+    "items": [
+      "Step 1: capture, mark, and measure a trait (e.g., beak depth, body size, wing length) on a large sample at the start of a fitness-relevant period",
+      "Step 2: track survival, mating success, or offspring number for each marked individual (a season, a year, or a lifetime)",
+      "Step 3: convert absolute fitness (e.g., number of offspring) to relative fitness by dividing by the population mean",
+      "Step 4: compute the covariance (or the mean-difference formula) between trait value and relative fitness",
+      "A positive S means individuals with larger trait values had higher relative fitness; negative S means smaller values were favored"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED NUMBERS",
+    "title": "A Simple S Calculation",
+    "left": {
+      "h": "Before selection (n = 200 finches)",
+      "body": "<p>Mean beak depth z̄ = 9.4 mm</p><ul><li>Drought year: only large-seeded, hard fruits available</li><li>Survivors of the dry season are recaptured 6 months later</li></ul>"
+    },
+    "right": {
+      "h": "After selection (survivors, n = 84)",
+      "body": "<p>Mean beak depth z̄' = 10.1 mm</p><ul><li>S = z̄' − z̄ = 10.1 − 9.4 = <strong>+0.7 mm</strong></li><li>Positive S: selection favored deeper beaks during the drought</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "IMPORTANT CAVEAT",
+    "title": "What S Does — and Does Not — Tell You",
+    "items": [
+      "S measures the total selection acting on a trait, including selection that is only apparent because the trait is correlated with some other, unmeasured trait under direct selection",
+      "Example: if beak depth is correlated with overall body size, and body size is what predators/starvation actually 'sees,' S on beak depth will be nonzero even if beak depth itself has no causal effect on survival",
+      "This is the central limitation that motivated Lande & Arnold's extension from S to β",
+      "S answers 'is this trait associated with fitness?' — not 'does this trait causally affect fitness, independent of other traits?'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "The Selection Gradient (β)",
+    "sub": "Disentangling direct selection from correlated selection"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Selection Gradient (β)",
+    "term": "Selection gradient, β",
+    "def": "The partial regression coefficient of relative fitness on a trait, holding all other measured traits constant; it estimates the direct, causal strength of selection acting on that trait alone.",
+    "bullets": [
+      "Obtained from a multiple regression: w = α + β₁z₁ + β₂z₂ + … + βₙzₙ + ε",
+      "Each βᵢ is the slope on trait i after statistically controlling for correlations with all other traits in the model",
+      "Because traits are standardized (mean 0, variance 1) before analysis, β values are directly comparable across traits with different units",
+      "Introduced formally by Russell Lande and Stevan Arnold (1983, Evolution) as the standard method for multivariate selection analysis"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "LANDE & ARNOLD (1983) FRAMEWORK",
+    "title": "Selection Differential vs. Selection Gradient",
+    "left": {
+      "h": "S — Selection Differential",
+      "body": "<p><strong>What it is:</strong> total (bivariate) covariance between one trait and relative fitness</p><ul><li>Includes direct selection on the trait itself</li><li>Includes indirect selection 'borrowed' via correlation with other selected traits</li><li>Easy to compute; needs only one trait and fitness data</li><li>Cannot distinguish cause from correlation</li></ul>"
+    },
+    "right": {
+      "h": "β — Selection Gradient",
+      "body": "<p><strong>What it is:</strong> partial regression coefficient, controlling for all other measured traits</p><ul><li>Isolates direct selection on the focal trait</li><li>Removes the contribution of trait correlations</li><li>Requires simultaneous measurement of multiple, potentially correlated traits</li><li>Only as good as the set of traits included in the model — 'unmeasured confounds' can still bias β</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MATH, INTUITIVELY",
+    "title": "How S and β Relate: The P Matrix",
+    "items": [
+      "Lande & Arnold showed the vector of selection differentials S relates to the vector of gradients β through the phenotypic variance-covariance matrix P: S = Pβ, or equivalently β = P⁻¹S",
+      "P contains the variances of each trait on the diagonal and the covariances between traits off the diagonal",
+      "When traits are uncorrelated (P is diagonal), S and β are essentially the same — no correction needed",
+      "When traits are strongly correlated, S and β can differ substantially, even in sign",
+      "This matrix algebra is the same logic used for the breeder's equation extended to multiple traits (multivariate breeder's equation: Δz̄ = Gβ, with G the genetic covariance matrix)"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CLASSIC ILLUSTRATION",
+    "title": "When S and β Disagree: A Cautionary Case",
+    "left": {
+      "h": "Naïve interpretation using only S",
+      "body": "<p>Suppose tail length and body size are positively correlated in a bird population.</p><ul><li>Long-tailed birds happen to survive better (positive S for tail length)</li><li>Conclusion if you stop here: 'long tails are directly favored by selection'</li></ul>"
+    },
+    "right": {
+      "h": "What the gradient reveals",
+      "body": "<p>Multiple regression controlling for body size shows β for tail length ≈ 0.</p><ul><li>The true target of selection is body size (β for body size is large and positive)</li><li>Tail length only appeared under selection because it correlates with body size</li><li>This is exactly the scenario Lande & Arnold's method was designed to catch</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "PRACTICAL NOTE",
+    "title": "Standardizing Traits Before Estimating β",
+    "cards": [
+      {
+        "h": "Mean-standardize",
+        "p": "Divide trait values by the trait mean; resulting β is a selection intensity comparable in relative (percentage) terms across traits of different units."
+      },
+      {
+        "h": "Variance-standardize",
+        "p": "Subtract the mean and divide by the standard deviation (z-scores); resulting β is in units of standard deviations of selection per generation."
+      },
+      {
+        "h": "Why it matters",
+        "p": "Without standardization, a β for beak depth (mm) and a β for body mass (g) cannot be meaningfully compared — standardization puts all traits on the same scale."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Fitness Surfaces and Adaptive Landscapes",
+    "sub": "Visualizing selection on multiple traits at once"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Fitness Surface",
+    "term": "Fitness surface (individual adaptive landscape)",
+    "def": "A geometric representation, typically estimated by regression, showing how relative fitness (the vertical axis, or a contour value) changes as a function of one or more phenotypic trait values (the horizontal axes).",
+    "bullets": [
+      "Distinct from Sewall Wright's population-level adaptive landscape (genotype/allele-frequency space) — this is a phenotype-fitness surface for a single population at a point in time",
+      "With one trait, the surface is a curve (fitness vs. trait value)",
+      "With two traits, it is literally a 3-D surface (or a 2-D contour plot) — peaks are fitness optima, valleys are fitness minima",
+      "Estimated statistically using both linear (β) and quadratic (γ) regression terms fit to survival or fecundity data"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BUILDING THE SURFACE",
+    "title": "The Quadratic Regression Model",
+    "items": [
+      "Full model: w = α + β₁z₁ + β₂z₂ + ½γ₁₁z₁² + ½γ₂₂z₂² + γ₁₂z₁z₂ + ε",
+      "Linear terms (β) capture directional selection — the 'tilt' of the surface",
+      "Quadratic terms on a single trait (γᵢᵢ) capture stabilizing (γᵢᵢ < 0) or disruptive (γᵢᵢ > 0) selection — the 'curvature'",
+      "Cross-product terms (γᵢⱼ) capture correlational selection — selection favoring particular combinations of two traits together",
+      "This is the standard method (Lande & Arnold 1983; Phillips & Arnold 1989) for estimating nonlinear selection in wild populations"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "REVISITING EVOLUTION I — NOW WITH NUMBERS",
+    "title": "Three Modes of Selection, Quantified",
+    "cards": [
+      {
+        "h": "Directional (β ≠ 0, γ ≈ 0)",
+        "p": "Fitness rises (or falls) roughly linearly across the observed trait range; the mean is pushed toward one extreme. Fitness surface looks like a ramp or tilted plane."
+      },
+      {
+        "h": "Stabilizing (γ < 0)",
+        "p": "Fitness peaks at an intermediate value and declines on both sides; negative quadratic coefficient. Fitness surface is a dome/hill with the population sitting near the peak."
+      },
+      {
+        "h": "Disruptive (γ > 0)",
+        "p": "Fitness is lowest at intermediate values and highest at both extremes; positive quadratic coefficient. Fitness surface is a valley (saddle along one axis), can promote polymorphism."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "GEOMETRY OF THE SURFACE",
+    "title": "Reading a Bivariate Fitness Surface",
+    "left": {
+      "h": "Single peak (stabilizing on both axes)",
+      "body": "<p>Contour lines form closed ellipses/circles around one optimum combination of trait 1 and trait 2.</p><ul><li>Selection pulls the population toward the peak from any direction</li><li>Common for traits under strong functional/biomechanical constraints (e.g., beak shape trade-offs)</li></ul>"
+    },
+    "right": {
+      "h": "Ridge or saddle (correlational selection)",
+      "body": "<p>Contour lines form an elongated ridge — fitness is high along a particular combination of trait 1 and trait 2, but drops off the ridge.</p><ul><li>Reveals selection favoring trait <em>combinations</em>, not each trait independently</li><li>Example: predator-avoidance traits that only work together (camouflage pattern matched to microhabitat choice)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAUTION",
+    "title": "Fitness Surfaces Are Estimates, Not Photographs",
+    "items": [
+      "A fitness surface is a statistical model fit to finite, noisy data — it has confidence regions, not sharp boundaries",
+      "Apparent peaks or ridges near the edge of the observed trait range are often statistical artifacts of low sample size at the extremes",
+      "The surface describes selection in one population, in one set of environmental conditions, during one measurement window — it is not a universal, permanent feature of the species",
+      "Cross-validation and resampling (e.g., bootstrapping) are standard ways researchers test whether an estimated peak or ridge is robust"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "A Worked Conceptual Example",
+    "sub": "Putting S, β, and γ together on one dataset"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "Selection on Clutch Size in a Songbird",
+    "left": {
+      "h": "Setup",
+      "body": "<p>Researchers measure clutch size (number of eggs) and track number of fledglings that survive to breeding age (a fitness proxy) across 400 nests over 5 years.</p><ul><li>Raw S for clutch size is small and positive</li><li>But larger clutches also correlate with earlier laying date, a trait known to independently affect fledgling survival</li></ul>"
+    },
+    "right": {
+      "h": "Analysis and interpretation",
+      "body": "<p>Multiple regression of relative fitness on clutch size and laying date (plus a quadratic term on clutch size) reveals:</p><ul><li>β for laying date is large and negative (earlier = higher fitness) — a real directional target</li><li>β (linear) for clutch size is near zero once laying date is controlled for</li><li>γ for clutch size² is negative and significant — <strong>stabilizing selection</strong> on an intermediate clutch size, independent of laying date</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTERPRETING THE EXAMPLE",
+    "title": "Why This Case Matters",
+    "items": [
+      "The raw S alone would have suggested weak, roughly directional selection favoring larger clutches — misleading",
+      "The multivariate gradient analysis reveals two separate selective processes operating simultaneously: directional selection on timing, stabilizing selection on clutch size",
+      "This mirrors the classic 'clutch size trade-off' literature (Lack's hypothesis: too many eggs strains parental provisioning; too few underuses reproductive capacity)",
+      "This is exactly the kind of finding that a single-trait S analysis cannot reliably produce — multivariate methods are often necessary, not optional"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS TABLE",
+    "title": "S, β, and γ Side by Side",
+    "headers": [
+      "Parameter",
+      "What it measures",
+      "How estimated",
+      "Interpretive risk if used alone"
+    ],
+    "rows": [
+      [
+        "S (differential)",
+        "Total association between trait and fitness",
+        "Covariance or mean-difference, single trait",
+        "Confounds direct and indirect (correlated) selection"
+      ],
+      [
+        "β (linear gradient)",
+        "Direct, causal strength of directional selection",
+        "Partial regression slope, multiple traits",
+        "Only as good as the traits included in the model"
+      ],
+      [
+        "γ (quadratic gradient)",
+        "Curvature: stabilizing/disruptive selection",
+        "Quadratic regression coefficient, controlling for linear terms",
+        "Requires large sample sizes for adequate statistical power"
+      ],
+      [
+        "γᵢⱼ (correlational gradient)",
+        "Selection on trait combinations",
+        "Cross-product regression term",
+        "Easily confused with pre-existing trait correlation, not selection"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "Practical Challenges of Field Selection Studies",
+    "sub": "Why this is hard to do well — and why it takes decades"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CHALLENGE 1",
+    "title": "Measuring Lifetime Fitness",
+    "cards": [
+      {
+        "h": "The ideal",
+        "p": "True fitness is lifetime reproductive success — total offspring surviving to reproduce themselves, integrated across an individual's entire life."
+      },
+      {
+        "h": "The practical compromise",
+        "p": "Most studies use fitness proxies measured over a season or year: survival to next census, mating success, or fledgling/offspring count — each an incomplete stand-in for lifetime fitness."
+      },
+      {
+        "h": "The consequence",
+        "p": "Selection estimated from a proxy can misrepresent selection on true fitness, especially if there are trade-offs between early-life and late-life fitness components (e.g., current reproduction vs. future survival)."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHALLENGE 2",
+    "title": "Confounding Environmental Variables",
+    "items": [
+      "Selection often varies year to year with weather, resource availability, predator density, and population density — a single-season S may not represent 'typical' selection",
+      "Unmeasured environmental gradients can create spurious trait-fitness associations if the trait also correlates with where/when an individual was sampled (a form of confounding, not unlike confounding in observational epidemiology)",
+      "Maternal effects and developmental plasticity can make a trait value partly a product of the very environment that also affects fitness, complicating causal interpretation",
+      "Solution strategies: multi-year datasets, statistical control for cohort/year effects, and where possible, manipulative experiments embedded within field studies"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHALLENGE 3",
+    "title": "Statistical Power and Sample Size",
+    "items": [
+      "Nonlinear (γ) selection coefficients require substantially larger sample sizes to detect than linear (β) coefficients — a well-known result from selection-analysis methodology papers (e.g., Kingsolver et al. 2001 meta-analysis)",
+      "Many wild populations are logistically difficult to sample at the scale needed (hundreds to thousands of marked individuals with known fates)",
+      "Rare fitness events (e.g., a single catastrophic winter that removes 90% of a population) can dominate estimates from short study windows, producing effect sizes that don't generalize",
+      "Publication bias: studies finding significant selection are more likely to be published, potentially inflating the perceived typical strength of selection in the literature"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CHALLENGE 4",
+    "title": "Why Long-Term Datasets Are Gold",
+    "cards": [
+      {
+        "h": "Averaging out noise",
+        "p": "Multi-decade studies (Grant & Grant's Daphne Major finches, Kruuk's Soay sheep, Clutton-Brock's red deer) let researchers separate persistent selection from single-year environmental flukes."
+      },
+      {
+        "h": "Capturing fluctuating selection",
+        "p": "Long time series reveal that selection direction itself can reverse between years (e.g., drought years vs. wet years in Darwin's finches), something a one-year snapshot would miss entirely."
+      },
+      {
+        "h": "Enabling pedigree-based genetics",
+        "p": "Decades of marked individuals with known parentage allow direct estimation of heritability and genetic (co)variance (G matrix) alongside phenotypic selection — closing the loop back to the breeder's equation."
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "STUDY DESIGN COMPARISON",
+    "title": "Laboratory vs. Field Selection Studies",
+    "headers": [
+      "Dimension",
+      "Laboratory selection studies",
+      "Field selection studies"
+    ],
+    "rows": [
+      [
+        "Environmental control",
+        "High — temperature, diet, density held constant",
+        "Low — weather, predators, resources vary naturally and often uncontrollably"
+      ],
+      [
+        "Ecological realism",
+        "Low — simplified, artificial environment",
+        "High — captures selection as it actually occurs in nature"
+      ],
+      [
+        "Typical fitness measure",
+        "Survival to adulthood or fecundity under controlled conditions, often over 1 generation",
+        "Multi-year survival, lifetime reproductive success, mark-recapture return rates"
+      ],
+      [
+        "Sample size and tracking",
+        "Often large, easy to track (e.g., Drosophila vials)",
+        "Often limited by logistics of capturing and re-sighting free-ranging animals"
+      ],
+      [
+        "Generalizability",
+        "Strong internal validity, weaker external validity to wild conditions",
+        "Strong external validity, but confounded by uncontrolled variables"
+      ],
+      [
+        "Typical analysis",
+        "Direct comparison of selected vs. control lines, realized heritability",
+        "Lande & Arnold regression: S, β, γ from measured traits and fitness proxies"
+      ]
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "METHODOLOGICAL PERSPECTIVE",
+    "quote": "Selection gradients tell us what natural selection is doing to a trait right now, in this population, in these conditions — they are a measurement of the present, not a prophecy about the future.",
+    "attrib": "paraphrased methodological caveat, common in the selection-analysis literature (e.g., Kingsolver et al. 2001)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONNECTING FORWARD",
+    "title": "From Measured Selection to Predicted Evolution",
+    "items": [
+      "β and γ describe selection on phenotype within a generation — they are not automatically the same as the evolutionary response across generations",
+      "The multivariate breeder's equation, Δz̄ = Gβ, converts a selection gradient into a predicted evolutionary response, but only if G (the additive genetic variance-covariance matrix) is also known",
+      "If a trait has low heritability, even strong selection (large β) may produce little evolutionary change — selection and evolution are not synonyms",
+      "This is why long-term pedigreed field studies (Soay sheep, Daphne Major finches) are so valuable: they measure both β and G in the same wild population"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "REVISITING L2 CASE STUDIES",
+    "title": "Applying the Toolkit to Last Lecture's Systems",
+    "left": {
+      "h": "Guppies and stickleback (L2)",
+      "body": "<p>Predation-regime comparisons (high vs. low predation) can be reanalyzed as differences in the fitness surface itself:</p><ul><li>High-predation sites: steep directional gradient favoring rapid maturation/small size</li><li>Low-predation sites: gradient flattens or reverses toward larger body size / delayed maturation</li></ul>"
+    },
+    "right": {
+      "h": "Darwin's finches (L2, revisited above)",
+      "body": "<p>Grant & Grant's multi-decade dataset is the textbook example of γ estimation in the wild:</p><ul><li>Drought years: strong directional β for larger beak depth</li><li>Non-drought years: gradient weakens, occasionally reverses — evidence of fluctuating selection</li></ul>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL HIERARCHY",
+    "title": "From Data to Inference: Levels of the Selection Toolkit",
+    "levels": [
+      {
+        "label": "Raw field data: marked individuals, trait measurements, fitness records",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Selection differential (S): trait-fitness covariance",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Selection gradient (β): partial regression, controls correlated traits",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Fitness surface (β, γ): full nonlinear, multivariate shape",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Predicted evolutionary response: Δz̄ = Gβ",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON PITFALLS",
+    "title": "Mistakes to Avoid When Reading Selection Studies",
+    "items": [
+      "Treating a significant S as proof of direct, causal selection on that trait — always ask whether correlated traits were controlled for",
+      "Extrapolating a fitness surface estimated within the observed trait range to trait values far outside that range",
+      "Assuming a single season's β generalizes to 'the' selection pressure on a species — check whether the study is multi-year",
+      "Confusing a selection gradient (a within-generation, phenotypic statistic) with the genetic response to selection (a between-generation, evolutionary outcome) — they are linked but not identical",
+      "Ignoring sample size when interpreting a nonsignificant γ — absence of evidence for curvature is not evidence of a flat fitness surface if power was low"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM",
+    "title": "Correlational Selection",
+    "term": "Correlational selection",
+    "def": "Selection favoring particular combinations of two or more traits jointly, captured statistically by the cross-product (γᵢⱼ) term in a quadratic fitness-regression model; it can generate or reinforce genetic correlations between traits even when neither trait is under selection independently.",
+    "bullets": [
+      "Classic example: garter snake color pattern and escape behavior selected together because each only functions effectively in combination with the other",
+      "Can produce a ridge-shaped fitness surface rather than a single peak",
+      "Important for understanding the evolution of trait integration and functional modules, not just single traits in isolation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHOD IN PRACTICE",
+    "title": "A Minimal Recipe for a Selection-Gradient Study",
+    "left": {
+      "h": "Data collection",
+      "body": "<p>1. Choose and precisely measure candidate traits on a large, representative sample</p><p>2. Mark individuals uniquely (bands, tags, genetic ID)</p><p>3. Track a fitness component over a defined window (season, year, lifetime)</p>"
+    },
+    "right": {
+      "h": "Analysis",
+      "body": "<p>4. Convert to relative fitness (divide by population mean)</p><p>5. Standardize traits (mean- or variance-standardize)</p><p>6. Fit linear model for β, then add quadratic/cross-product terms for γ</p><p>7. Bootstrap or cross-validate to assess robustness of estimated peaks/ridges</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STATISTICAL DETAIL",
+    "title": "Why γ Coefficients Are Reported as ½γ",
+    "items": [
+      "The quadratic regression model is conventionally written with coefficients on z² as ½γ rather than γ directly",
+      "This convention makes γ interpretable directly as the curvature (second derivative) of the fitness function at that point, matching standard usage in the selection-gradient literature since Lande & Arnold (1983)",
+      "Students reading primary literature should check which convention a given paper uses before comparing γ values across studies",
+      "This is a technical detail, but a common source of confusion when comparing published selection gradients"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "REAL-WORLD APPLICATION",
+    "title": "Fields Where This Toolkit Is Used Beyond Classic Evolutionary Ecology",
+    "cards": [
+      {
+        "h": "Conservation biology",
+        "p": "Estimating selection gradients on traits in small, threatened populations to predict adaptive potential and extinction risk under environmental change."
+      },
+      {
+        "h": "Agricultural and fisheries management",
+        "p": "Quantifying human-induced selection gradients, e.g., size-selective harvesting in fisheries driving earlier maturation and smaller body size."
+      },
+      {
+        "h": "Human evolutionary biology",
+        "p": "Selection-gradient analysis applied to historical demographic datasets to study selection on traits like birth weight, age at first reproduction, or stature."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "Key Takeaways",
+    "items": [
+      "S (selection differential) is a simple, total measure of trait-fitness association but conflates direct and indirect selection",
+      "β (selection gradient), from Lande & Arnold's multiple-regression framework, isolates direct selection by controlling for correlated traits, via S = Pβ",
+      "Adding quadratic and cross-product terms (γ) extends the linear gradient model into a full fitness surface, quantitatively capturing directional, stabilizing, disruptive, and correlational selection",
+      "Rigorous field estimates require large samples, multi-year replication, careful handling of environmental confounds, and ideally lifetime fitness data",
+      "Selection gradients (β, γ) are within-generation, phenotypic statistics; converting them into predicted evolutionary change requires genetic variance data (the G matrix) via Δz̄ = Gβ"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Discussion Prompts",
+    "left": {
+      "h": "Conceptual",
+      "body": "<ul><li>Why can S be significant even when a trait has no direct causal effect on fitness?</li><li>Under what conditions would S and β be numerically identical?</li><li>What does a negative γ tell you that a β near zero does not?</li></ul>"
+    },
+    "right": {
+      "h": "Applied",
+      "body": "<ul><li>Design a minimal field study to estimate β for clutch size, controlling for laying date</li><li>Given a ridge-shaped fitness surface, what evolutionary outcome would you predict for the two correlated traits?</li><li>Why might a one-year selection-gradient study overestimate or underestimate long-term selection?</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY TERM RECAP",
+    "title": "Relative Fitness",
+    "term": "Relative fitness (w)",
+    "def": "An individual's absolute fitness (e.g., number of offspring, probability of survival) divided by the mean absolute fitness of the population; used in selection-gradient analysis so that coefficients (S, β, γ) are expressed on a standardized, population-independent scale.",
+    "bullets": [
+      "Mean relative fitness in any population is, by construction, equal to 1",
+      "Standardizing to relative fitness allows comparison of selection strength across different species, traits, and studies",
+      "Necessary algebraic step before computing covariances or regression coefficients in the Lande & Arnold framework"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "What Lecture 4 Will Add",
+    "items": [
+      "How the selection-gradient toolkit from today is applied to detect rapid, contemporary evolution within a researcher's lifetime",
+      "Case studies of measurable evolutionary change over just a handful of generations (beyond what L2's guppy/stickleback/soapberry examples already showed)",
+      "A synthesis of Chapter 10: what the accumulated body of field selection studies tells us about the pace and pervasiveness of natural selection in the wild",
+      "Connecting back to Evolution I's quantitative genetics: when do measured selection gradients actually predict observed evolutionary change, and when do they not?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GLOSSARY CHECK",
+    "title": "Vocabulary Recap Before You Read Chapter 10 Further",
+    "items": [
+      "Selection differential (S) — total, raw covariance between a single trait and relative fitness",
+      "Selection gradient (β) — partial regression coefficient isolating direct selection on a trait, controlling for correlated traits",
+      "Quadratic/nonlinear gradient (γ) — curvature term capturing stabilizing, disruptive, or correlational selection",
+      "Fitness surface — the estimated multivariate function relating trait combinations to relative fitness",
+      "P matrix — phenotypic variance-covariance matrix linking S and β via S = Pβ",
+      "G matrix — additive genetic variance-covariance matrix linking β to predicted evolutionary response via Δz̄ = Gβ"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "COMING UP — LECTURE 4",
+    "title": "Rapid Evolution and the Chapter 10 Synthesis",
+    "sub": "Can we watch natural selection reshape a population in real time? And what does 30+ years of field selection research add up to?"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 3</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

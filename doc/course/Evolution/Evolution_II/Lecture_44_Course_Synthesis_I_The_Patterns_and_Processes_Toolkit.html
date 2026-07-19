@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 44: Course Synthesis I: The Patterns and Processes Toolkit</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 44",
+    "title": "Course Synthesis I: The Patterns and Processes Toolkit",
+    "sub": "Walking back through Chapters 10–18 — from selection in the wild to evolutionary medicine",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 10 of 11) — Course Synthesis I"
+  },
+  {
+    "type": "section",
+    "tag": "WHERE WE ARE",
+    "title": "The First of Two Closing Lectures",
+    "sub": "L44 rebuilds the conceptual toolkit chapter by chapter; L45 zooms out to the full two-semester arc (mechanisms + patterns)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ROADMAP",
+    "title": "What This Lecture Does",
+    "items": [
+      "Revisits every chapter of Evolution II (Ch10–18) in sequence, extracting the one central question and one key concept from each",
+      "Shows explicitly how each chapter's toolkit item was necessary before the next chapter's questions could even be asked",
+      "Builds a single comprehensive comparison table spanning all nine chapters — the closest thing to a 'course cheat sheet' you will get",
+      "Reviews the Applied Unit (L35–41) as worked demonstrations of these tools solving real problems",
+      "Ends with a pyramid model of how individual-level processes scale up into population-, species-, and clade-level patterns",
+      "Sets up L45, which folds this semester's material back into Evolution I's mechanisms (Ch1–9) for the full two-semester synthesis"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "Why Synthesize Now?",
+    "items": [
+      "Evolution I (Ch1–9) established the mechanisms: mutation, drift, migration, and above all natural selection acting on heritable variation",
+      "Evolution II (Ch10–18) asked what those mechanisms produce when you let them run in real populations, over real time, in real ecological and social contexts",
+      "Each chapter in this half of the course is best understood as a lens that reveals a different consequence of the same underlying process",
+      "A synthesis lecture is not a re-lecture — it is an exercise in seeing the connective tissue that individual chapter-by-chapter teaching necessarily obscures",
+      "By the end of today you should be able to draw a single arrow diagram connecting Ch10 through Ch18 without notes"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 10",
+    "title": "Selection in the Wild",
+    "sub": "Can we actually watch natural selection happen?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH10 — CORE CONCEPTS",
+    "title": "Selection in the Wild: The Toolkit",
+    "items": [
+      "Central question: is natural selection a slow, invisible force we infer from the fossil record, or can it be measured in living populations over a few generations?",
+      "The Grants' 40+ years on Daphne Major: beak-depth shifts in Geospiza fortis tracking drought-driven seed hardness, generation by generation",
+      "Reznick's guppy transplant experiments: life-history and color-pattern shifts under altered predation regimes, replicated and reversible",
+      "Industrial melanism in Biston betularia revisited with modern genomics (the transposable-element insertion at the cortex locus)",
+      "Methodological toolkit introduced here: selection differentials, selection gradients, and reaction norms for separating genetic change from plasticity",
+      "Central lesson: selection is fast, measurable, and often stronger in nature than lab intuition predicts"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH10 — KEY TERM",
+    "title": "Selection Differential",
+    "term": "Selection Differential",
+    "def": "The difference between the mean phenotype of survivors/reproducers in a generation and the mean phenotype of the whole population before selection acted — a direct, measurable snapshot of selection's instantaneous strength.",
+    "bullets": [
+      "Distinguished from the selection gradient, which partitions differentials across correlated traits",
+      "Requires a heritability estimate (from Ch1–9 toolkit) to predict the resulting response to selection — the breeder's equation, R = h²S",
+      "This is where Evolution I's quantitative genetics becomes empirically actionable"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 11",
+    "title": "Sex",
+    "sub": "Why does costly, complicated sexual reproduction exist at all?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH11 — CORE CONCEPTS",
+    "title": "Sex: The Toolkit",
+    "items": [
+      "Central question: asexual reproduction should out-compete sex two-to-one every generation (the 'two-fold cost of sex') — so why is sex nearly universal among eukaryotes?",
+      "Leading explanations: the Red Queen hypothesis (sex as an arms-race defense against fast-evolving parasites), Muller's ratchet avoidance, and the DNA-repair hypothesis",
+      "Anisogamy explains the origin of two sexes from an ancestral state of same-sized gametes — sperm competition and egg provisioning diverge from there",
+      "Sexual selection (Darwin's second mechanism) reintroduced with modern data: intersexual choice (peacock trains, guppy ornaments) and intrasexual competition (male-male contests)",
+      "Sexual conflict: the sexes do not always share optimal strategies, producing traits (harmful mating plugs, antagonistic seminal proteins) favored by one sex at the other's expense",
+      "This chapter converts 'sex' from a taxonomic fact into a set of testable evolutionary hypotheses"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH11 — KEY TERM",
+    "title": "Red Queen Hypothesis",
+    "term": "Red Queen Hypothesis",
+    "def": "The idea that sexual reproduction persists because it generates novel genotype combinations fast enough to stay ahead of rapidly coevolving parasites and pathogens — 'running in place' just to maintain fitness.",
+    "bullets": [
+      "Named for Lewis Carroll's Through the Looking-Glass ('it takes all the running you can do to keep in the same place')",
+      "Directly previews Ch15 (coevolution) — sex is itself a coevolutionary adaptation",
+      "Supported by New Zealand Potamopyrgus snail studies: sexual clones dominate in high-parasite-load populations, asexual clones dominate where parasites are scarce"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 12",
+    "title": "Life History and Parental Care",
+    "sub": "How should an organism spend a finite budget of time, energy, and risk?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH12 — CORE CONCEPTS",
+    "title": "Life History: The Toolkit",
+    "items": [
+      "Central question: given finite resources, how does selection shape the timing of reproduction, number and size of offspring, and investment in parental care?",
+      "Core trade-offs: current vs. future reproduction, offspring number vs. offspring size, growth vs. reproduction, survival vs. reproductive effort",
+      "r-selection vs. K-selection as a first-pass heuristic — largely superseded by more precise trade-off and bet-hedging models but still pedagogically useful",
+      "Trivers' parental investment theory: the sex investing more in offspring becomes the choosier, more competed-for sex — this is the mechanistic bridge back to Ch11's sexual selection",
+      "Parent-offspring conflict (also Trivers): parents and offspring are related by only 1/2, so their optima for investment level diverge — weaning conflict as the classic case",
+      "Semelparity vs. iteroparity (Pacific salmon vs. most mammals) as extreme resolutions of the reproduction-vs-survival trade-off"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CH12 — SYNTHESIS",
+    "title": "Life History Ties Sex to Speciation",
+    "left": {
+      "h": "Backward link to Ch11",
+      "body": "<p>Parental investment theory explains <em>why</em> sexual selection intensity differs across taxa: whichever sex invests less becomes the sex under stronger sexual selection.</p><ul><li>High male care (many birds) → weaker sexual dimorphism</li><li>Low male care (many mammals) → strong sexual dimorphism, intense male-male competition</li></ul>"
+    },
+    "right": {
+      "h": "Forward link to Ch13",
+      "body": "<p>Life-history divergence between populations (different breeding seasons, different habitats, different mate-choice criteria) is one of the most common <em>first steps</em> toward reproductive isolation.</p><ul><li>Allochronic isolation from shifted breeding timing</li><li>Ecological life-history divergence under disruptive selection sets up speciation</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH12 — KEY TERM",
+    "title": "Parent-Offspring Conflict",
+    "term": "Parent-Offspring Conflict",
+    "def": "The evolutionary tension arising because a parent is equally related to all its offspring while each offspring is more related to itself than to its siblings — producing divergent optima for how much investment should continue (e.g., weaning age, sibling rivalry).",
+    "bullets": [
+      "Predicted quantitatively by Trivers (1974) directly from Hamilton's relatedness framework, previewing Ch16's kin-selection math",
+      "Observed empirically in begging-call intensity, weaning conflict, and placental gene expression (genomic imprinting)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 13",
+    "title": "Speciation",
+    "sub": "How does one lineage become two?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH13 — CORE CONCEPTS",
+    "title": "Speciation: The Toolkit",
+    "items": [
+      "Central question: what turns a continuously variable population into two or more genetically and reproductively distinct lineages?",
+      "Species concepts revisited with nuance: biological (reproductive isolation), morphological, ecological, and phylogenetic — each useful, none universal",
+      "Prezygotic vs. postzygotic isolating mechanisms cataloged: habitat, temporal, behavioral, and mechanical isolation vs. hybrid inviability/sterility",
+      "Geographic modes: allopatric (most common, requires a barrier), parapatric, and sympatric (requires strong disruptive selection, e.g., Rhagoletis apple maggot flies)",
+      "Reinforcement: selection against hybrids strengthens prezygotic isolation where diverging populations re-contact — completing speciation",
+      "Ring species (Ensatina salamanders, Larus gulls) as a spatial snapshot of speciation-in-progress: adjacent populations interbreed, but the ends of the ring do not"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH13 — KEY TERM",
+    "title": "Reproductive Isolation",
+    "term": "Reproductive Isolation",
+    "def": "Any heritable barrier — behavioral, ecological, mechanical, or genetic — that prevents or reduces successful interbreeding between diverging populations, defining the completion point of speciation under the biological species concept.",
+    "bullets": [
+      "Builds directly on Ch10's selection-in-the-wild toolkit: isolating barriers are themselves products of measurable selection differentials",
+      "Sets up Ch14: once isolation is complete, the two lineages are free to diverge independently, generating the raw material of macroevolutionary pattern"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 14",
+    "title": "Macroevolution",
+    "sub": "Do microevolutionary processes explain the grand pattern of life's history?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH14 — CORE CONCEPTS",
+    "title": "Macroevolution: The Toolkit",
+    "items": [
+      "Central question: can natural selection and drift, operating within populations generation to generation, account for adaptive radiations, mass extinctions, and deep phylogenetic branching patterns?",
+      "Punctuated equilibrium (Eldredge & Gould) reframed as a hypothesis about tempo, not a rejection of Darwinian mechanism — stasis punctuated by rapid speciation events",
+      "Adaptive radiation case studies: Darwin's finches, Hawaiian silverswords, African cichlids — ecological opportunity plus standing variation equals rapid diversification",
+      "The 'Big Five' mass extinctions and the distinction between background extinction and mass extinction dynamics; selection during mass extinction may favor different traits than normal-times selection",
+      "Species selection and sorting: traits that increase speciation or reduce extinction rate can spread across a clade even without individual-level selection favoring them",
+      "Molecular phylogenetics as the primary modern tool for reconstructing macroevolutionary pattern — connects back to Ch1–9's molecular clock concepts"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CH14 — SYNTHESIS",
+    "title": "From Species to Clades",
+    "left": {
+      "h": "What Ch13 hands off",
+      "body": "<p>Speciation events are the fundamental unit of macroevolution — every branch point in a phylogeny is, mechanistically, an instance of Ch13's isolating-mechanism toolkit succeeding.</p>"
+    },
+    "right": {
+      "h": "What Ch14 adds",
+      "body": "<p>Macroevolution asks about the <em>rate and pattern</em> of speciation and extinction across many lineages and long timescales — a statistical, comparative question that individual speciation events cannot answer alone.</p><ul><li>Diversification rate = speciation rate − extinction rate</li><li>Sets up Ch15: interactions between clades (not just within them) shape these rates</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH14 — KEY TERM",
+    "title": "Adaptive Radiation",
+    "term": "Adaptive Radiation",
+    "def": "The rapid diversification of a single ancestral lineage into many ecologically and morphologically distinct descendant species, typically triggered by access to a new adaptive zone (new habitat, reduced competition, or a key innovation).",
+    "bullets": [
+      "Darwin's finches, Hawaiian silverswords, and African rift-lake cichlids are the canonical cases across plants, animals, and vastly different timescales",
+      "Requires standing genetic variation (Ch1–9) and ecological opportunity simultaneously — neither alone is sufficient"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 15",
+    "title": "Coevolution",
+    "sub": "How do interacting species become each other's selective environment?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH15 — CORE CONCEPTS",
+    "title": "Coevolution: The Toolkit",
+    "items": [
+      "Central question: when two species interact repeatedly across generations, how does each one's evolution shape and constrain the other's?",
+      "Antagonistic coevolution: predator-prey and host-parasite arms races — the rough-skinned newt (Taricha) / garter snake (Thamnophis) tetrodotoxin arms race as the textbook case",
+      "Mutualistic coevolution: figs and fig wasps, yucca and yucca moths — tight one-to-one coevolved dependency, contrasted with diffuse coevolution among many interacting partners",
+      "Geographic mosaic theory of coevolution (Thompson): coevolutionary intensity and even direction vary across populations, producing hotspots and coldspots rather than one uniform arms race",
+      "Explicit callback to Ch11's Red Queen: coevolution is the ecological engine that makes sexual recombination advantageous in the first place",
+      "Coevolution reframes 'the environment' — for many traits, the most important selective agent is another evolving species, not the abiotic world"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH15 — KEY TERM",
+    "title": "Evolutionary Arms Race",
+    "term": "Evolutionary Arms Race",
+    "def": "A coevolutionary escalation in which reciprocal selection drives both interacting species toward ever more extreme offensive or defensive traits, with each side's adaptation resetting the selective baseline for the other.",
+    "bullets": [
+      "Newt tetrodotoxin resistance and snake toxin potency track each other geographically in a coevolutionary mosaic",
+      "Arms races can be symmetric (predator-prey) or asymmetric in the stakes for each party ('life-dinner principle')"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 16",
+    "title": "Behavior",
+    "sub": "Can natural selection shape actions the way it shapes anatomy?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH16 — CORE CONCEPTS",
+    "title": "Behavior: The Toolkit",
+    "items": [
+      "Central question: is behavior — flexible, context-dependent, sometimes learned — subject to the same selective logic as fixed morphological traits?",
+      "Behavioral heritability demonstrated through selection experiments (e.g., artificial selection on Drosophila foraging behavior, dog domestication behavioral syndromes)",
+      "Kin selection and inclusive fitness (Hamilton): altruistic behavior can evolve when rb > c — the cost to the actor is outweighed by the relatedness-weighted benefit to recipients",
+      "Eusociality in Hymenoptera explained (with caveats — haplodiploidy is not sufficient alone) via inclusive fitness and later multilevel-selection debates",
+      "Evolutionary game theory: the Hawk-Dove game and evolutionarily stable strategies (ESS) show how frequency-dependent selection maintains behavioral polymorphism",
+      "Reciprocal altruism (Trivers again) and its requirement for repeated interactions and individual recognition — links behavior to Ch15's coevolutionary logic within a species"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH16 — KEY TERM",
+    "title": "Hamilton's Rule",
+    "term": "Hamilton's Rule",
+    "def": "The condition rb > c, where r is genetic relatedness between actor and recipient, b is the fitness benefit to the recipient, and c is the fitness cost to the actor — altruism is favored by selection whenever this inequality holds.",
+    "bullets": [
+      "Explains why worker bees forgo reproduction (r = 3/4 to full sisters under haplodiploidy) but is not a complete explanation of eusociality on its own",
+      "Directly extends Ch12's parental investment logic to non-offspring relatives"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 17",
+    "title": "Human Evolution",
+    "sub": "What does the fossil and genomic record say about our own origins?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH17 — CORE CONCEPTS",
+    "title": "Human Evolution: The Toolkit",
+    "items": [
+      "Central question: can the same tools used on finches and guppies reconstruct the specific evolutionary history of Homo sapiens — and what do they reveal?",
+      "Hominin phylogeny: Australopithecus through early Homo, with the fossil record read as a genuinely bushy tree, not a single-file 'march of progress'",
+      "Bipedalism precedes large brain size in the fossil record — reordering the classic (and incorrect) 'big brain first' narrative",
+      "Brain-size and life-history evolution: extended childhood, cooperative breeding ('grandmother hypothesis'), and encephalization trade-offs against Ch12's life-history framework",
+      "Out-of-Africa dispersal reconstructed via both fossils and genomics; ancient-DNA evidence of interbreeding with Neanderthals and Denisovans, leaving measurable introgressed segments in living humans",
+      "Ongoing human evolution: lactase persistence, high-altitude adaptation (Tibetan EPAS1 variant from Denisovan introgression), and other textbook cases of recent, strong, measurable selection — closing the loop back to Ch10"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CH17 — SYNTHESIS",
+    "title": "Humans Are Not a Special Case",
+    "left": {
+      "h": "Every prior tool applies",
+      "body": "<p>Selection differentials (Ch10), sexual selection (Ch11), life-history trade-offs (Ch12), population splitting and admixture (Ch13), phylogenetic reconstruction (Ch14), and coevolution with pathogens (Ch15) all appear in the human story.</p>"
+    },
+    "right": {
+      "h": "What's genuinely new",
+      "body": "<p>Culture as a second, fast-acting inheritance system that interacts with genetic evolution (gene-culture coevolution) — lactase persistence evolving <em>because</em> dairying culture existed first.</p><ul><li>Sets up Ch18: cultural/technological change can outpace genetic adaptation, creating evolutionary mismatch</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH17 — KEY TERM",
+    "title": "Gene-Culture Coevolution",
+    "term": "Gene-Culture Coevolution",
+    "def": "A feedback process in which a cultural practice creates a novel selective environment that favors particular genetic variants, which in turn can reinforce or extend the cultural practice — the clearest case of culture acting as an evolutionary force.",
+    "bullets": [
+      "Classic case: dairying culture arose first, then created selection favoring the lactase-persistence allele in pastoralist populations",
+      "Generalizes Ch15's coevolution concept to an interaction between a biological genome and a non-biological (cultural) inheritance system"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 18",
+    "title": "Evolutionary Medicine",
+    "sub": "Why does natural selection leave us vulnerable to disease?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CH18 — CORE CONCEPTS",
+    "title": "Evolutionary Medicine: The Toolkit",
+    "items": [
+      "Central question: if natural selection is so powerful, why hasn't it made the human body disease-proof?",
+      "Six categories of evolutionary explanation for vulnerability (after Nesse & Williams): mismatch, constraint, trade-offs, coevolution, defenses mistaken for defects, and reproduction-over-health selection bias",
+      "Evolutionary mismatch: bodies shaped by Pleistocene conditions operating in a modern diet/activity/light environment — obesity, myopia, some autoimmune patterns",
+      "Antibiotic and antiviral resistance as real-time natural selection (directly recapitulating Ch10's methodology) with immediate clinical stakes",
+      "Fever, morning sickness, and other 'symptoms' reframed as evolved defenses rather than malfunctions — a direct echo of Ch15's host-pathogen coevolution",
+      "Senescence explained by antagonistic pleiotropy and mutation accumulation, since selection's force weakens after reproductive age — closing the course by returning to Ch1–9's fitness concept applied to aging"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CH18 — KEY TERM",
+    "title": "Evolutionary Mismatch",
+    "term": "Evolutionary Mismatch",
+    "def": "A condition in which a trait that was adaptive (or neutral) in the environment where it evolved becomes maladaptive because the environment has changed faster than the trait can — the organizing concept of Darwinian/evolutionary medicine.",
+    "bullets": [
+      "Requires knowing the ancestral selective environment (Ch10's methodology) to diagnose",
+      "The capstone chapter: it requires every prior tool (selection, coevolution, life history, human evolutionary history) to explain a single modern health outcome"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE FULL TOOLKIT",
+    "title": "Chapters 10–18: One Table, Nine Chapters",
+    "headers": [
+      "Chapter",
+      "Central Question",
+      "Key Concept",
+      "Key Term",
+      "Bridge to Next Chapter"
+    ],
+    "rows": [
+      [
+        "Ch10 — Selection in the Wild",
+        "Can selection be measured in real time?",
+        "Field-measurable strength of selection",
+        "Selection differential",
+        "Establishes selection as fast and measurable — the baseline for every later chapter"
+      ],
+      [
+        "Ch11 — Sex",
+        "Why does costly sexual reproduction persist?",
+        "Recombination as a coevolutionary defense",
+        "Red Queen hypothesis",
+        "Introduces sexual selection, which requires a theory of investment (Ch12)"
+      ],
+      [
+        "Ch12 — Life History & Parental Care",
+        "How is a finite reproductive budget allocated?",
+        "Trade-offs and parental investment",
+        "Parental investment theory",
+        "Investment asymmetries shape mate choice and divergence that seed speciation (Ch13)"
+      ],
+      [
+        "Ch13 — Speciation",
+        "How does one lineage split into two?",
+        "Reproductive isolation via prezygotic/postzygotic barriers",
+        "Reproductive isolation",
+        "Completed speciation events become the branch points macroevolution studies (Ch14)"
+      ],
+      [
+        "Ch14 — Macroevolution",
+        "Do microevolutionary processes explain deep-time patterns?",
+        "Diversification as speciation minus extinction rate",
+        "Punctuated equilibrium",
+        "Interactions between diversifying clades drive reciprocal selection (Ch15)"
+      ],
+      [
+        "Ch15 — Coevolution",
+        "How do interacting species shape each other's evolution?",
+        "Reciprocal selection between species",
+        "Evolutionary arms race",
+        "Coevolutionary logic applies within a species too, via social behavior (Ch16)"
+      ],
+      [
+        "Ch16 — Behavior",
+        "Can selection shape flexible actions, not just anatomy?",
+        "Inclusive fitness and frequency-dependent strategies",
+        "Hamilton's rule",
+        "All prior tools converge on one species' behavioral and cultural evolution (Ch17)"
+      ],
+      [
+        "Ch17 — Human Evolution",
+        "What do fossils and genomes reveal about our origins?",
+        "Gene-culture coevolution",
+        "Out-of-Africa / introgression",
+        "Culture outpacing genetic change creates mismatch, the seed of Ch18"
+      ],
+      [
+        "Ch18 — Evolutionary Medicine",
+        "Why does selection leave us vulnerable to disease?",
+        "Evolutionary mismatch and trade-offs",
+        "Antagonistic pleiotropy",
+        "Applies every prior chapter's tool to a single applied domain: human health"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL SCALING",
+    "title": "From Individual Variation to Applied Pattern",
+    "levels": [
+      {
+        "label": "Individual Variation & Measurable Selection (Ch10)",
+        "color": "#4a1620",
+        "width": "640px"
+      },
+      {
+        "label": "Mating Systems & Resource Allocation (Ch11–12)",
+        "color": "#6b2c39",
+        "width": "560px"
+      },
+      {
+        "label": "Population Splitting: Speciation (Ch13)",
+        "color": "#8a3f4d",
+        "width": "480px"
+      },
+      {
+        "label": "Clade-Level Pattern: Macroevolution & Coevolution (Ch14–15)",
+        "color": "#a85a68",
+        "width": "400px"
+      },
+      {
+        "label": "Social & Cultural Evolution: Behavior & Humans (Ch16–17)",
+        "color": "#c47b87",
+        "width": "320px"
+      },
+      {
+        "label": "Applied Synthesis: Evolutionary Medicine (Ch18)",
+        "color": "#c47b87",
+        "width": "240px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "READING THE PYRAMID",
+    "title": "What the Hierarchy Actually Shows",
+    "items": [
+      "Nothing above the base level is a separate 'kind' of evolution — every higher tier is built entirely from Ch10's measurable selection acting on heritable variation",
+      "Each tier introduces a new unit of analysis (individual → mating pair → population → species → clade → society → applied case) without introducing a new mechanism",
+      "The pyramid is not a hierarchy of importance — applied fields like evolutionary medicine are not 'more advanced,' just more integrative, requiring tools from every lower tier simultaneously",
+      "This is the single most testable claim of the whole course: if you cannot trace an arrow from any top-tier phenomenon back down to selection differentials, the explanation is incomplete"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "APPLIED UNIT REVIEW",
+    "title": "L35–41 in Review",
+    "sub": "The toolkit was never just theoretical — watch it solve real problems"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE TOOLKIT IN ACTION",
+    "title": "Applied Unit: Four Demonstrations",
+    "cards": [
+      {
+        "h": "Conservation & Agriculture",
+        "p": "Selection differentials and life-history theory (Ch10, Ch12) applied directly to captive breeding programs, invasive species management, and crop/livestock improvement under climate change."
+      },
+      {
+        "h": "Antibiotic & Antiviral Resistance",
+        "p": "Ch10's field-selection methodology and Ch15's coevolutionary arms-race framework applied to real-time, clinically urgent pathogen evolution — the fastest, most consequential natural selection most students will ever witness."
+      },
+      {
+        "h": "Astrobiology & Universal Darwinism",
+        "p": "Asked whether natural selection is a necessary feature of any self-replicating chemical system anywhere in the universe — stress-testing whether the Ch1–18 toolkit is truly general or just Earth-contingent."
+      },
+      {
+        "h": "Integrative Case Studies",
+        "p": "Multi-chapter case studies (e.g., cichlid radiations, human high-altitude adaptation) requiring simultaneous application of speciation, macroevolution, coevolution, and human-evolution tools together."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "APPLIED UNIT — WHY IT MATTERS",
+    "title": "Applied Work Is the Real Test of the Toolkit",
+    "left": {
+      "h": "Theory alone can hide gaps",
+      "body": "<p>A concept that sounds coherent in lecture can fail the moment it meets a messy real dataset — captive-breeding pedigrees, resistant bacterial strains, ambiguous fossil placements.</p>"
+    },
+    "right": {
+      "h": "L35–41 forced integration",
+      "body": "<p>Every applied case in the unit required combining tools from at least three different chapters — proof that the chapter-by-chapter toolkit is genuinely modular and composable, not a set of isolated facts to memorize separately.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A RECURRING DEBATE",
+    "title": "Levels of Selection, Revisited Across Ch10–18",
+    "left": {
+      "h": "Individual-level default",
+      "body": "<p>Ch10–13 largely operate at the individual level: selection differentials, mate choice, and reproductive isolation are all properties of individual organisms competing within a population.</p>"
+    },
+    "right": {
+      "h": "Where higher levels enter",
+      "body": "<p>Ch14's species selection, Ch15's coevolutionary mosaics, and Ch16's kin/group-level altruism debates all require asking whether selection can act above the individual — a question the course revisits rather than resolves once.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY GUIDE",
+    "title": "Mapping Learning Objectives to Chapters",
+    "items": [
+      "Explain and calculate a selection differential from field data → Ch10",
+      "Contrast hypotheses for the maintenance of sexual reproduction → Ch11",
+      "Apply parental investment theory to predict mating-system variation → Ch12",
+      "Distinguish species concepts and classify isolating mechanisms → Ch13",
+      "Evaluate whether a macroevolutionary pattern requires species-level selection → Ch14",
+      "Diagram a coevolutionary arms race and identify geographic mosaic structure → Ch15",
+      "Apply Hamilton's rule to a proposed case of altruism → Ch16",
+      "Trace a specific human adaptation to fossil, genomic, and cultural evidence → Ch17",
+      "Diagnose an evolutionary-mismatch explanation for a modern health condition → Ch18"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A CLOSING THOUGHT ON SYNTHESIS",
+    "quote": "Nothing in biology makes sense except in the light of evolution.",
+    "attrib": "Theodosius Dobzhansky, 1973"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON THREADS",
+    "title": "Three Ideas That Recur in Every Single Chapter",
+    "items": [
+      "Trade-offs: whether it is time vs. energy (Ch12), offense vs. defense (Ch15), or health vs. reproductive success (Ch18), selection never optimizes a trait in isolation — it balances competing demands",
+      "Context-dependence: the 'right' strategy (mating system, life history, immune response, behavior) depends entirely on the current environment, which is why the geographic mosaic and mismatch concepts recur so often",
+      "Measurability: from Grant's finches to antibiotic resistance assays, this half of the course insisted that evolutionary claims be testable with real data, not just plausible narratives"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MISCONCEPTIONS CORRECTED",
+    "title": "Nine Misreadings This Course Fixed",
+    "items": [
+      "'Selection is too slow to observe' — corrected in Ch10: selection is routinely measurable within a handful of generations",
+      "'Sex evolved simply because it increases variation' — corrected in Ch11: variation is a byproduct, not the primary maintaining benefit under Red Queen dynamics",
+      "'More offspring is always better' — corrected in Ch12: offspring number trades off directly against offspring quality and parental survival",
+      "'Species are always sharply, permanently distinct' — corrected in Ch13: ring species and incomplete reinforcement show speciation as a continuous process, not a switch",
+      "'Punctuated equilibrium contradicts Darwin' — corrected in Ch14: it is a claim about tempo, fully compatible with gradual selection acting within rapid speciation windows",
+      "'Coevolution always means mutual benefit' — corrected in Ch15: most well-studied coevolution is antagonistic, not mutualistic",
+      "'Altruism disproves natural selection' — corrected in Ch16: Hamilton's rule shows altruism is exactly what gene-level selection predicts under kinship",
+      "'Human evolution ended with modern anatomy' — corrected in Ch17: lactase persistence and high-altitude adaptation show measurable selection within the last 10,000 years",
+      "'Disease means evolution failed' — corrected in Ch18: much apparent 'design flaw' is mismatch, trade-off, or an evolved defense working as intended"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "What L44 Deliberately Left Out",
+    "items": [
+      "This lecture stayed within Evolution II (Ch10–18) — it has not yet reconnected to Evolution I's mechanistic toolkit (mutation, drift, migration, selection formalism from Ch1–9)",
+      "It has not yet addressed the philosophical and pedagogical question of why the course is structured mechanisms-first, patterns-second",
+      "It has not yet asked what a single unified 'evolutionary biologist's toolkit' looks like when you erase the Ch1–9 / Ch10–18 boundary entirely",
+      "All three of these are the explicit business of Lecture 45"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Key Takeaways from Today",
+    "items": [
+      "Chapters 10–18 form a connected chain, not a list: each chapter's key concept is both a consequence of the previous chapter and a precondition for the next",
+      "Selection in the wild (Ch10) is the empirical foundation for everything that follows, from sexual selection through evolutionary medicine",
+      "The comprehensive compare table is your primary study tool — be able to reconstruct it from memory, including the bridge column",
+      "The pyramid model shows that 'higher-level' phenomena are not mechanistically distinct from individual-level selection — they are selection observed at a different unit of analysis",
+      "The Applied Unit (L35–41) demonstrated that this toolkit is not academic trivia — it solves conservation, medical, and astrobiological problems today",
+      "Come to L45 ready to erase the semester boundary and build one continuous model spanning Ch1 through Ch18"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Lecture 45: Course Synthesis II",
+    "sub": "The full two-semester arc — reuniting Evolution I's mechanisms with Evolution II's patterns"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 44</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

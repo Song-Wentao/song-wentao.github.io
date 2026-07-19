@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 34: Chapter 17-18 Synthesis</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 34",
+    "title": "Chapter 17–18 Synthesis: Human Evolution, Medicine, and the Patterns-and-Processes Arc",
+    "sub": "Closing the 'patterns, processes, and applications' unit before we turn to applied evolutionary biology",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 18, \"Evolutionary Medicine\" (lecture 3 of 3)"
+  },
+  {
+    "type": "section",
+    "tag": "PART ONE",
+    "title": "Bringing Chapters 17 and 18 Together",
+    "sub": "Human evolution as both a case study and a foundation"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Recap — Chapter 17",
+    "title": "Human Evolution as a Case Study",
+    "left": {
+      "h": "What Chapter 17 established",
+      "body": "<p>Chapters 17 (Lectures 28–31) traced the hominin lineage using the same tools built across Evolution II:</p><ul><li>Fossil and molecular phylogenies place humans within the great apes, not above them</li><li>Bipedalism, brain expansion, and tool use evolved on staggered timelines, not as a single 'package'</li><li>Ancient DNA (Neanderthal, Denisovan) revealed admixture, not simple replacement</li><li>Culture and gene-culture coevolution (e.g., lactase persistence) show biology and behavior co-evolving</li></ul>"
+    },
+    "right": {
+      "h": "Why it mattered as a case study",
+      "body": "<p>Human evolution was never a side topic — it was a proving ground for concepts from Chapters 10–16:</p><ul><li>Selection in the wild (Ch10) → selection on bipedalism, diet, disease resistance</li><li>Life history (Ch12) → slow human life history, extended childhood, menopause</li><li>Speciation and macroevolution (Ch13–14) → hominin diversification and extinction</li><li>Behavior (Ch16) → cooperation, language, culture as evolved traits</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Recap — Chapter 18",
+    "title": "Evolutionary Medicine: Three Big Ideas",
+    "left": {
+      "h": "Lecture 32 — Mismatch",
+      "body": "<p>Modern environments diverge from the environments our physiology evolved in:</p><ul><li>Diet, activity level, sleep, and social structure have all changed faster than our genomes</li><li>Mismatch diseases: obesity, type 2 diabetes, myopia, some autoimmune conditions</li><li>Evolutionary trade-offs (thrifty genotype hypothesis) reframe 'disorders' as once-adaptive responses</li></ul>"
+    },
+    "right": {
+      "h": "Lectures 32–33 — Infection, Cancer, Pleiotropy",
+      "body": "<p>Three more domains where evolutionary logic explains disease:</p><ul><li><b>Infectious disease:</b> pathogens evolve faster than hosts — antibiotic and antimalarial resistance, virulence trade-offs</li><li><b>Cancer:</b> somatic evolution within the body — clonal selection among mutant cell lineages</li><li><b>Antagonistic pleiotropy:</b> alleles good for reproduction/early life but costly later (e.g., aging, some cancer risk alleles)</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Evolutionary Medicine",
+    "term": "Evolutionary Medicine",
+    "def": "A field that applies evolutionary theory to explain why the human body is vulnerable to disease, treating illness not as a design flaw but as the predictable outcome of selection operating under trade-offs, mismatch, and phylogenetic constraint.",
+    "bullets": [
+      "Distinguishes proximate causes ('how' a disease happens, e.g., a blocked artery) from evolutionary causes ('why' we remain vulnerable, e.g., trade-offs that favored early reproduction over late-life health)",
+      "Reframes many diseases as by-products of adaptations that were beneficial in ancestral contexts",
+      "Provides predictive power: evolutionary theory anticipates resistance evolution, virulence patterns, and cancer progression"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "The Original Framing",
+    "quote": "Nothing in biology makes sense except in the light of evolution.",
+    "attrib": "Theodosius Dobzhansky, 1973"
+  },
+  {
+    "type": "quote",
+    "eyebrow": "The Medical Parallel",
+    "quote": "Nothing in medicine makes sense except in the light of evolution.",
+    "attrib": "paraphrasing Randolph Nesse & George C. Williams, echoing Dobzhansky, in the spirit of Evolutionary Medicine"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why the Parallel Holds",
+    "title": "Medicine Needs Evolutionary Theory the Way Biology Does",
+    "items": [
+      "Dobzhansky's claim was that evolution is the unifying framework that makes disparate biological facts cohere — comparative anatomy, biogeography, genetics, development",
+      "The same is true of medicine: without evolutionary context, diseases look like an unrelated list of malfunctions to memorize",
+      "With evolutionary context, diseases fall into recognizable categories — mismatch, trade-off, arms race, constraint, somatic evolution — that generalize across organ systems",
+      "Evolutionary medicine does not replace mechanistic (proximate) medicine — it supplies the 'why', which explains why the mechanisms exist in the first place and why they remain imperfect",
+      "This is the same proximate/ultimate distinction (Chapter 1, Evolution I) applied to a new domain: clinical practice"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART TWO",
+    "title": "The Patterns and Processes Arc: Chapters 10–18",
+    "sub": "Nine chapters, one connected story of how evolution actually plays out"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framing the Arc",
+    "title": "What Chapters 10–18 Were Building Toward",
+    "items": [
+      "Evolution I (Ch1–9) gave you the mechanistic toolkit: mutation, drift, selection, inheritance, phylogenetics — how evolution works, in principle",
+      "Evolution II's first arc (Ch10–18) asked a different question: what does evolution actually produce when those mechanisms run, in real populations, over real time, in real ecological and social contexts?",
+      "Each chapter added a pattern or a process layer: selection measured in nature, sex and mate choice, life history trade-offs, the origin of species, deep-time macroevolutionary patterns, coevolving species pairs, evolved behavior, human origins, and medical consequences",
+      "Today's lecture is the hinge — a deliberate synthesis stop, structurally identical in purpose to Lecture 34 of Evolution I: consolidate everything before the course pivots to application",
+      "After this lecture, Lectures 35–45 will not introduce new mechanisms; they will apply this toolkit to agriculture, conservation, forensics, biotechnology, and public policy"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Course Map",
+    "title": "The Ch10–18 Arc at a Glance",
+    "items": [
+      {
+        "y": "Ch10",
+        "t": "Selection in the Wild — measuring selection in real populations"
+      },
+      {
+        "y": "Ch11",
+        "t": "Sex — why sex exists, sexual selection, mating systems"
+      },
+      {
+        "y": "Ch12",
+        "t": "Life History — trade-offs across the lifespan"
+      },
+      {
+        "y": "Ch13",
+        "t": "Speciation — how one lineage becomes two"
+      },
+      {
+        "y": "Ch14",
+        "t": "Macroevolution — deep-time patterns, radiations, extinctions"
+      },
+      {
+        "y": "Ch15",
+        "t": "Coevolution — species shaping each other's evolution"
+      },
+      {
+        "y": "Ch16",
+        "t": "Behavior — the evolution of cooperation, conflict, and cognition"
+      },
+      {
+        "y": "Ch17",
+        "t": "Human Evolution — our lineage as a case study"
+      },
+      {
+        "y": "Ch18",
+        "t": "Evolutionary Medicine — applying it all to human health"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 10",
+    "title": "Selection in the Wild",
+    "sub": "From theory to field measurement"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 10 Recap",
+    "title": "Selection in the Wild — Core Concept",
+    "items": [
+      "Natural selection is not just a logical argument (Darwin's three postulates) — it is a measurable, quantifiable process in living populations",
+      "Case studies: Grants' Galápagos finches (beak size tracking rainfall and seed hardness year to year), guppy predation experiments (Endler, Reznick), peppered moth industrial melanism, HIV and antibiotic resistance evolving in real time",
+      "Selection differentials and selection gradients let biologists quantify the strength and direction of selection on a trait",
+      "Key lesson: selection is often strong, fast, and detectable within a human lifetime — evolution is not only a deep-time phenomenon",
+      "Connects forward to medicine: the same statistical logic used to measure selection on finch beaks is used to measure selection on drug-resistance alleles in pathogens"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 11",
+    "title": "Sex",
+    "sub": "The paradox of sexual reproduction and sexual selection"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 11 Recap",
+    "title": "Sex — Core Concept",
+    "items": [
+      "The 'paradox of sex': asexual reproduction should be twice as efficient, yet sex is nearly universal among eukaryotes — explained by hypotheses such as the Red Queen (coevolving parasites) and mutation-purging via recombination",
+      "Sexual selection (Darwin's second mechanism) explains traits that reduce survival but increase mating success — peacock tails, elaborate courtship, weaponry",
+      "Anisogamy (unequal gamete size) generates conflicting reproductive strategies between sexes, driving mate choice, competition, and sexual dimorphism",
+      "Mating systems (monogamy, polygyny, polyandry) evolve in response to ecology and parental investment asymmetries",
+      "Connects forward: sexual selection and Red Queen dynamics reappear in Chapter 15 (coevolution) and in Chapter 18's account of why sex may help hosts stay ahead of fast-evolving pathogens"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 12",
+    "title": "Life History",
+    "sub": "Trade-offs across the lifespan"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 12 Recap",
+    "title": "Life History — Core Concept",
+    "items": [
+      "Organisms face finite resources, forcing trade-offs among growth, reproduction, and survival — the currency of life-history theory",
+      "Key trade-offs: current vs. future reproduction, offspring number vs. offspring size, early vs. late reproduction",
+      "r- and K-selection / fast-slow life history continuum explain variation from short-lived, high-fecundity species to long-lived, low-fecundity species like humans",
+      "Senescence (aging) evolves because selection is weaker on late-life effects — this is the direct conceptual ancestor of antagonistic pleiotropy in Chapter 18",
+      "Connects forward: human life history (slow, with extended juvenile period and menopause) is central to Chapter 17, and life-history trade-off logic is the backbone of the evolutionary explanation for aging-related disease in Chapter 18"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 13",
+    "title": "Speciation",
+    "sub": "How one lineage becomes two"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 13 Recap",
+    "title": "Speciation — Core Concept",
+    "items": [
+      "Species form when populations accumulate reproductive isolation — the biological species concept centers on this, though other species concepts (phylogenetic, morphological) apply in different contexts",
+      "Allopatric speciation (geographic separation) is the most common route; sympatric and parapatric speciation occur under disruptive selection or strong ecological divergence without full geographic separation",
+      "Reproductive isolating mechanisms are classified as prezygotic (before fertilization: habitat, temporal, behavioral, mechanical, gametic isolation) and postzygotic (after fertilization: hybrid inviability, sterility, breakdown)",
+      "Hybrid zones and reinforcement show speciation as a continuum, not a single instant event",
+      "Connects forward: speciation processes generated the hominin diversity discussed in Chapter 17, and understanding reproductive isolation matters for interpreting Neanderthal-human admixture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 14",
+    "title": "Macroevolution",
+    "sub": "Deep-time patterns above the species level"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 14 Recap",
+    "title": "Macroevolution — Core Concept",
+    "items": [
+      "Macroevolution examines patterns visible only over millions of years and across many lineages: adaptive radiation, mass extinction, stasis, and evolutionary trends",
+      "The fossil record documents punctuated equilibrium alongside gradual change — tempo and mode both vary across lineages",
+      "Mass extinctions (e.g., end-Permian, end-Cretaceous) reset the diversity landscape and open ecological space for radiations — a reminder that contingency, not just adaptation, shapes the tree of life",
+      "Evolvability, developmental constraint, and key innovations (e.g., jaws, limbs) explain why some lineages diversify explosively while others remain conservative",
+      "Connects forward: the hominin fossil record (Chapter 17) is a macroevolutionary dataset in miniature — radiation of Australopithecus and early Homo, followed by extinction of all hominin lineages but one"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 15",
+    "title": "Coevolution",
+    "sub": "Species as each other's selective environment"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 15 Recap",
+    "title": "Coevolution — Core Concept",
+    "items": [
+      "Coevolution occurs when two (or more) species exert reciprocal selective pressure on each other — predator-prey, host-parasite, plant-pollinator, mutualist pairs",
+      "Arms races can be symmetric (predator-prey escalation) or asymmetric (parasite evolves faster than host due to shorter generation time)",
+      "The Red Queen hypothesis (from Chapter 11) formalizes coevolution as a race that never ends — running just to stay in place relative to a coevolving antagonist",
+      "Mutualisms (e.g., gut microbiota, pollination, coral-algae symbiosis) show coevolution can stabilize into cooperation as well as conflict",
+      "Connects forward: host-pathogen coevolution is the direct conceptual basis for Chapter 18's account of infectious disease, antibiotic resistance, and virulence evolution"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 16",
+    "title": "Behavior",
+    "sub": "The evolution of cooperation, conflict, and cognition"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 16 Recap",
+    "title": "Behavior — Core Concept",
+    "items": [
+      "Behaviors are traits subject to selection like any other phenotype, studied through the lens of behavioral ecology and sociobiology",
+      "Kin selection and Hamilton's rule (rB > C) explain the evolution of altruism toward relatives; reciprocal altruism and game theory (e.g., tit-for-tat) explain cooperation among non-relatives",
+      "Sexual conflict, parent-offspring conflict, and mating strategies extend selfish-gene logic to social interactions",
+      "Cognitive and cultural evolution (social learning, cumulative culture) blur the line between genetic and non-genetic inheritance — setting up gene-culture coevolution",
+      "Connects forward: human cooperation, language, and culture in Chapter 17 are extensions of the same behavioral-ecology framework, and health behaviors (diet, hygiene, risk-taking) discussed in Chapter 18 are themselves evolved behavioral traits interacting with modern environments"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 17",
+    "title": "Human Evolution",
+    "sub": "Our lineage as a case study in every prior concept"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 17 Recap",
+    "title": "Human Evolution — Core Concept",
+    "items": [
+      "Humans are a twig on the primate branch of the tree of life, sharing a most recent common ancestor with chimpanzees roughly 6–7 million years ago",
+      "Bipedalism preceded large brains by millions of years; encephalization accelerated later alongside tool complexity and social group size",
+      "Out-of-Africa dispersal, admixture with Neanderthals and Denisovans, and recent human evolution (lactase persistence, high-altitude adaptation, disease resistance alleles) show evolution continuing into the present",
+      "Gene-culture coevolution — culture creating new selective environments that feed back on genes — is a distinctly human acceleration of ordinary evolutionary process",
+      "Connects forward: this is the direct bridge into Chapter 18 — the same recent evolutionary history (agriculture, sedentism, dietary shift) that shaped our genome is the source of mismatch between ancestral biology and modern life"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 18",
+    "title": "Evolutionary Medicine",
+    "sub": "Applying evolutionary theory to human health"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter 18 Recap",
+    "title": "Evolutionary Medicine — Core Concept",
+    "items": [
+      "Evolutionary medicine integrates mismatch theory, life-history trade-offs, coevolutionary arms races, and somatic (within-body) evolution to explain disease susceptibility",
+      "Mismatch diseases arise when modern environments diverge from ancestral ones faster than genomes can track",
+      "Infectious disease dynamics (Ch15's coevolution) explain antibiotic resistance, virulence evolution, and the evolutionary arms race between hosts and pathogens",
+      "Cancer is somatic evolution: cell lineages within a body accumulate mutations and are selected for proliferation, recapitulating Darwinian dynamics at a cellular scale",
+      "Antagonistic pleiotropy (rooted in Chapter 12's life-history trade-offs) explains why alleles favoring early reproduction can carry costs later in life, including cancer risk and senescence"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Full Arc, Side by Side",
+    "title": "Chapters 10–18: Central Questions, Key Concepts, and Connections",
+    "headers": [
+      "Chapter",
+      "Central Question",
+      "Key Concept(s)",
+      "Connects Forward To"
+    ],
+    "rows": [
+      [
+        "Ch10 — Selection in the Wild",
+        "How strong and fast is selection in real populations?",
+        "Selection differentials/gradients; field case studies (finches, guppies, moths)",
+        "Measuring resistance evolution in pathogens (Ch18)"
+      ],
+      [
+        "Ch11 — Sex",
+        "Why does costly sexual reproduction persist, and what drives mate choice?",
+        "Red Queen hypothesis; sexual selection; anisogamy; mating systems",
+        "Host-parasite arms races (Ch15); sex as anti-pathogen strategy (Ch18)"
+      ],
+      [
+        "Ch12 — Life History",
+        "How do organisms allocate finite resources across growth, reproduction, survival?",
+        "Trade-offs; r/K and fast-slow continuum; evolution of senescence",
+        "Human life-history evolution (Ch17); antagonistic pleiotropy (Ch18)"
+      ],
+      [
+        "Ch13 — Speciation",
+        "How does one lineage split into two?",
+        "Reproductive isolation; allopatric/sympatric speciation; species concepts",
+        "Hominin diversification and Neanderthal admixture (Ch17)"
+      ],
+      [
+        "Ch14 — Macroevolution",
+        "What patterns emerge above the species level, over deep time?",
+        "Adaptive radiation; mass extinction; punctuated equilibrium; contingency",
+        "Hominin fossil record as a macroevolutionary case study (Ch17)"
+      ],
+      [
+        "Ch15 — Coevolution",
+        "How do interacting species shape each other's evolution?",
+        "Arms races; Red Queen dynamics; mutualism vs. antagonism",
+        "Host-pathogen coevolution and virulence (Ch18)"
+      ],
+      [
+        "Ch16 — Behavior",
+        "Why do organisms cooperate, compete, and behave as they do?",
+        "Kin selection; reciprocal altruism; game theory; cultural evolution",
+        "Human cooperation, culture, health behavior (Ch17–18)"
+      ],
+      [
+        "Ch17 — Human Evolution",
+        "How did our lineage evolve, and what makes it distinctive?",
+        "Bipedalism, encephalization, admixture, gene-culture coevolution",
+        "Direct foundation for evolutionary medicine (Ch18)"
+      ],
+      [
+        "Ch18 — Evolutionary Medicine",
+        "Why does the human body remain vulnerable to disease?",
+        "Mismatch; trade-offs; somatic evolution (cancer); antagonistic pleiotropy",
+        "Bridge to applied evolutionary biology (Lectures 35–45)"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Cross-Chapter Threads (1)",
+    "title": "Two Concepts That Run Through the Entire Arc",
+    "left": {
+      "h": "The Red Queen, from sex to pandemics",
+      "body": "<p>First introduced to explain the persistence of sex (Ch11), the Red Queen hypothesis reappears as the engine of host-pathogen coevolution (Ch15) and directly explains why antibiotics, antivirals, and vaccines face a moving evolutionary target (Ch18).</p><ul><li>Ch11: sex as a strategy to outrun coevolving parasites</li><li>Ch15: reciprocal escalation between hosts and pathogens</li><li>Ch18: resistance evolution as a real-time, clinically visible Red Queen race</li></ul>"
+    },
+    "right": {
+      "h": "Trade-offs, from life history to aging and cancer",
+      "body": "<p>Life-history trade-off theory (Ch12) is the direct ancestor of antagonistic pleiotropy (Ch18), one continuous logical thread rather than two separate ideas.</p><ul><li>Ch12: selection favors early-life reproduction even at a later-life cost, because selection's force declines with age</li><li>Ch17: human life history (slow growth, long juvenility, menopause) sets the stage for which trade-offs matter to our species</li><li>Ch18: many age-related diseases, including cancer risk, are the clinical face of these ancestral trade-offs</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Cross-Chapter Threads (2)",
+    "title": "Deep Time Meets the Clinic",
+    "left": {
+      "h": "Macroevolution's contingency, medicine's constraint",
+      "body": "<p>Chapter 14 established that evolution is not optimization from scratch — it is tinkering constrained by ancestry and history. That same logic explains many 'imperfect' features of human anatomy and physiology.</p><ul><li>The recurrent laryngeal nerve's long detour, the vertebrate blind spot, the human birth canal's narrow fit with a large-brained fetus — all historical/developmental constraints, not design flaws</li><li>Understanding constraint prevents the mistake of assuming every trait is optimally adaptive</li></ul>"
+    },
+    "right": {
+      "h": "Behavior's game theory, medicine's decision-making",
+      "body": "<p>Chapter 16's frameworks for evolved decision-making (risk sensitivity, parent-offspring conflict, cost-benefit trade-offs) extend directly into evolutionary medicine's account of human health behavior.</p><ul><li>Risk-taking, food preferences, and immune allocation reflect evolved decision rules tuned to ancestral, not modern, conditions</li><li>Pregnancy sickness, fever, and pain are reframed in Ch18 as evolved defenses, not simply symptoms — the same adaptationist reasoning used throughout Ch16</li></ul>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Conceptual Flow",
+    "title": "How the Arc Builds, Layer by Layer",
+    "levels": [
+      {
+        "label": "Ch18: Applied to human health",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Ch17: Case study — humans",
+        "color": "#6b2c39",
+        "width": "560px"
+      },
+      {
+        "label": "Ch15–16: Interaction — coevolution & behavior",
+        "color": "#8a3f4d",
+        "width": "500px"
+      },
+      {
+        "label": "Ch13–14: Diversification — speciation & macroevolution",
+        "color": "#a85a68",
+        "width": "440px"
+      },
+      {
+        "label": "Ch10–12: Foundations — selection, sex, life history",
+        "color": "#c47b87",
+        "width": "380px"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Looking Back at Evolution I",
+    "title": "The Mechanisms Toolkit, Now Fully Deployed",
+    "cards": [
+      {
+        "h": "Mutation & Variation",
+        "p": "Ch1–3's raw material for evolution underlies every pattern in this arc — from beak-size variation in finches (Ch10) to the mutations that seed cancer clones (Ch18)."
+      },
+      {
+        "h": "Selection & Drift",
+        "p": "The Ch4–6 machinery of selection and drift is what field biologists measure in Ch10 and what clinicians now track in real time as resistance and tumor evolution."
+      },
+      {
+        "h": "Phylogenetics & Inheritance",
+        "p": "Tree-building and quantitative genetics (Ch7–8) are the tools behind hominin phylogenies (Ch17) and the heritability estimates behind life-history trade-offs (Ch12)."
+      },
+      {
+        "h": "Speciation Concepts",
+        "p": "Even Evolution I's brief introduction to species and lineages (Ch9) is the seed that grows into the full speciation and macroevolution chapters (Ch13–14) here."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Synthesis Statement",
+    "title": "Everything You Need Before We Apply These Patterns",
+    "items": [
+      "You now have the complete conceptual toolkit of Evolution II's first arc: how selection is measured, why sex and mate choice evolve, how organisms allocate resources across a lifespan, how species form and diversify, what deep time reveals, how species shape each other, how behavior evolves, and how all of this converges on human biology and health",
+      "Every remaining topic in this course — agriculture, conservation biology, forensic and behavioral applications, biotechnology, and the societal implications of evolutionary science — is an application of these nine chapters, not a new body of theory",
+      "When Lecture 35 begins the applied/synthesis unit, you should be able to recognize which Ch10–18 concept underlies each new case: is it a selection problem? A life-history trade-off? A coevolutionary arms race? A macroevolutionary pattern?",
+      "This mirrors exactly what Lecture 34 of Evolution I did for the mechanisms unit (Ch1–9): a deliberate pause to consolidate before pivoting to use the material",
+      "Mastery check: if you can explain any Ch10–18 concept using only tools from Ch1–9 (mutation, selection, drift, inheritance, phylogeny), you have achieved the level of integration this course was designed to build"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Bridge Concept",
+    "title": "Applied Evolutionary Biology",
+    "term": "Applied Evolutionary Biology",
+    "def": "The use of evolutionary theory and the patterns/processes established in Ch10–18 to solve practical problems in agriculture, medicine, conservation, forensics, and biotechnology.",
+    "bullets": [
+      "Not a new theoretical framework — a deliberate redeployment of the existing toolkit toward real-world problems",
+      "Success in applied evolutionary biology depends on correctly diagnosing which underlying process (selection, drift, coevolution, life-history trade-off, etc.) is operating in a given applied context",
+      "This is exactly the transition point at which Lecture 34 sits: theory behind us, application ahead"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What's Coming",
+    "title": "Preview of the Applied/Synthesis Unit (Lectures 35–45)",
+    "items": [
+      "Evolution in agriculture: crop and livestock domestication, artificial selection, resistance management in pests and weeds",
+      "Conservation genetics: inbreeding depression, effective population size, evolutionary rescue in threatened species",
+      "Evolution and biotechnology: directed evolution, CRISPR, synthetic biology's use of evolutionary principles",
+      "Forensic and behavioral applications: phylogenetics in outbreak tracing and criminal investigations",
+      "Evolution, ethics, and society: public understanding of evolution, science communication, and policy implications",
+      "A final course-wide synthesis lecture drawing together Evolution I and Evolution II into a single coherent framework"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Full Course Perspective",
+    "title": "Evolution I vs. Evolution II: Two Halves of One Framework",
+    "headers": [
+      "Dimension",
+      "Evolution I (Ch1–9)",
+      "Evolution II (Ch10–18)"
+    ],
+    "rows": [
+      [
+        "Core question",
+        "How does evolution work, mechanistically?",
+        "What does evolution produce, in real populations and deep time?"
+      ],
+      [
+        "Primary tools",
+        "Mutation, drift, selection, inheritance, phylogenetics",
+        "Field measurement, life-history theory, speciation models, macroevolutionary patterns, coevolution, behavioral ecology"
+      ],
+      [
+        "Typical scale",
+        "Population genetics, molecular scale",
+        "Organismal, ecological, and geological scale"
+      ],
+      [
+        "Capstone lecture",
+        "Lecture 34: synthesis before Evolution II begins",
+        "Lecture 34: synthesis before applied unit begins"
+      ],
+      [
+        "What follows",
+        "Evolution II's patterns and processes (Ch10–18)",
+        "Applied/synthesis unit (Lectures 35–45)"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Synthesis in Practice",
+    "title": "Case Studies That Touch the Whole Arc",
+    "cards": [
+      {
+        "h": "Lactase Persistence",
+        "p": "Gene-culture coevolution (Ch16–17): dairy farming culture created new selection pressure, producing rapid, measurable selection (Ch10) on a single locus within the last ~10,000 years."
+      },
+      {
+        "h": "Antibiotic Resistance",
+        "p": "A textbook case of selection in the wild (Ch10) driven by host-pathogen coevolution (Ch15), with direct clinical stakes explained by Chapter 18."
+      },
+      {
+        "h": "Sickle-Cell Allele",
+        "p": "Antagonistic/balancing trade-off (Ch12 logic): heterozygote advantage against malaria versus homozygote disease cost — a coevolutionary (Ch15) and medical (Ch18) case in one."
+      },
+      {
+        "h": "Cancer as Somatic Evolution",
+        "p": "Applies selection, drift, and clonal dynamics (Ch10, Evolution I) within a single body — macroevolution's population-level logic (Ch14) rescaled to cell lineages."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Proximate and Ultimate, Revisited",
+    "title": "One Distinction, Used Nine Times",
+    "left": {
+      "h": "The distinction, restated",
+      "body": "<p>First introduced in Evolution I, the proximate/ultimate distinction asks two different but complementary questions about any biological trait:</p><ul><li><b>Proximate:</b> What is the immediate mechanism? (physiology, development, biochemistry)</li><li><b>Ultimate:</b> Why did selection favor this mechanism? (evolutionary history and function)</li></ul>"
+    },
+    "right": {
+      "h": "Where it reappeared across Ch10–18",
+      "body": "<ul><li>Ch10: proximate beak shape vs. ultimate seed-hardness selection</li><li>Ch12: proximate hormonal aging vs. ultimate declining selection force with age</li><li>Ch16: proximate neural reward circuits vs. ultimate fitness benefits of cooperation</li><li>Ch18: proximate disease mechanism (e.g., artery plaque) vs. ultimate explanation (diet-genome mismatch)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Shared Analytical Toolkit",
+    "title": "The Methods That Cut Across All Nine Chapters",
+    "items": [
+      "Phylogenetic comparative methods — used to reconstruct hominin relationships (Ch17), trace coevolutionary history (Ch15), and identify macroevolutionary radiations (Ch14)",
+      "Quantitative genetics and selection gradients — used to measure selection in the wild (Ch10) and to quantify heritability of life-history traits (Ch12)",
+      "Game theory and cost-benefit modeling — used to explain mating systems (Ch11), cooperative behavior (Ch16), and virulence evolution (Ch18)",
+      "Population genetic models of drift and gene flow — used to explain speciation (Ch13) and to interpret human genomic admixture (Ch17)",
+      "Across all nine chapters, the same handful of quantitative and comparative tools reappear — reinforcing why Evolution I's toolkit had to come first"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Recurring Constraint Concept",
+    "title": "Evolutionary Tinkering",
+    "term": "Evolutionary Tinkering",
+    "def": "Francois Jacob's metaphor for evolution as a process that modifies existing structures rather than designing optimal ones from scratch — producing traits that are functional but often historically constrained or imperfect.",
+    "bullets": [
+      "Explains macroevolutionary patterns of descent with modification (Ch14) — new structures co-opted from old ones (exaptation)",
+      "Explains many 'flawed' features of human anatomy discussed in evolutionary medicine (Ch18) as the legacy of vertebrate, then primate, then hominin ancestry",
+      "A unifying idea that prevents both extremes: neither everything is optimally adaptive, nor is anything arbitrary — traits are constrained, cost-effective solutions given historical starting points"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Open Questions Across the Arc",
+    "title": "What Remains Actively Debated",
+    "left": {
+      "h": "Unresolved or contested questions",
+      "body": "<ul><li>How much of human cognitive and social evolution (Ch16–17) was driven by ecological pressures versus social/cultural ones?</li><li>How universal is the Red Queen as an explanation for sex (Ch11) versus other hypotheses (mutation-purging, Muller's ratchet)?</li><li>How predictable is macroevolution (Ch14) — would replaying the tape of life produce similar outcomes (Gould's contingency debate)?</li></ul>"
+    },
+    "right": {
+      "h": "Why open questions matter for the applied unit",
+      "body": "<ul><li>Applied evolutionary biology often operates under uncertainty about which process dominates in a given system</li><li>Conservation and public-health decisions (Lectures 35–45) must be made despite incomplete resolution of these debates</li><li>Recognizing open questions is itself a course learning goal — evolutionary biology is an active, evolving science, not a closed textbook</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Chapter-by-Chapter, Compressed",
+    "title": "The Nine-Chapter Arc in One Slide",
+    "items": [
+      "Ch10 Selection in the Wild — evolution is measurable in living populations",
+      "Ch11 Sex — costly reproduction persists because of coevolutionary and genetic benefits",
+      "Ch12 Life History — finite resources force trade-offs across the lifespan",
+      "Ch13 Speciation — reproductive isolation splits lineages",
+      "Ch14 Macroevolution — deep time reveals radiation, extinction, and contingency",
+      "Ch15 Coevolution — species evolve in response to each other, endlessly",
+      "Ch16 Behavior — cooperation, conflict, and cognition are evolved traits",
+      "Ch17 Human Evolution — our own lineage instantiates every concept above",
+      "Ch18 Evolutionary Medicine — and all of it explains why bodies get sick"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "Our bodies are not poorly designed machines; they are well-tinkered ancestors, running the software of the Pleistocene on the hardware of the present.",
+    "attrib": "paraphrased synthesis, in the spirit of Zimmer & Emlen, Ch. 18"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "End-of-Lecture Summary",
+    "title": "Key Takeaways",
+    "items": [
+      "Chapters 17 and 18 form a unit: human evolution is both a case study for the entire Ch10–18 arc and the direct foundation for evolutionary medicine",
+      "'Nothing in medicine makes sense except in the light of evolution' is not just a slogan — mismatch, trade-off, coevolutionary arms race, and somatic evolution concepts from Ch10–18 all converge to explain disease",
+      "The Ch10–18 arc as a whole answers: what does evolution produce in real populations, over real time, in real ecological and social contexts?",
+      "Every chapter in this arc connects forward to at least one other — the Red Queen, life-history trade-offs, and tinkering/constraint are threads running through the entire unit",
+      "This lecture completes the 'patterns, processes, applications' foundation — Lectures 35–45 will apply, not re-derive, this toolkit"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Before You Leave",
+    "title": "Self-Check Questions",
+    "cards": [
+      {
+        "h": "Can you trace a thread?",
+        "p": "Pick one concept (e.g., trade-offs, Red Queen, tinkering) and trace it from its first appearance through to Chapter 18. Which chapters does it pass through?"
+      },
+      {
+        "h": "Can you classify a disease?",
+        "p": "Given a disease example, can you categorize it as primarily mismatch, trade-off/pleiotropy, coevolutionary arms race, or somatic evolution — or some combination?"
+      },
+      {
+        "h": "Can you connect back to Evolution I?",
+        "p": "For any Ch10–18 concept, can you name the Ch1–9 mechanism (mutation, selection, drift, inheritance) that underlies it?"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — L35",
+    "title": "Opening the Applied/Synthesis Unit",
+    "sub": "Evolution in agriculture: artificial selection, domestication, and resistance management"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming Up in Lecture 35",
+    "title": "What to Expect Next Time",
+    "items": [
+      "We shift from describing evolutionary patterns to actively applying evolutionary theory to human-designed systems, beginning with agriculture",
+      "Topics: the history and genetics of domestication, artificial selection compared to natural selection, and the evolutionary arms race between pests/pathogens and agricultural management",
+      "Bring your Ch10 (selection) and Ch15 (coevolution) notes — Lecture 35 will lean heavily on both",
+      "This begins an eleven-lecture arc (L35–45) applying the Ch10–18 toolkit across agriculture, conservation, biotechnology, forensics, and science-in-society topics, closing with a full-course synthesis"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 34</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

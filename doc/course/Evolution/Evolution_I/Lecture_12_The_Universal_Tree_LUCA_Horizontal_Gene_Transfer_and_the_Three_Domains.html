@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 12: The Universal Tree: LUCA, Horizontal Gene Transfer, and the Three Domains</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 12",
+    "title": "The Universal Tree: LUCA, Horizontal Gene Transfer, and the Three Domains",
+    "sub": "How microbes rewired our picture of life's deepest branches",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 4, \"The Tree of Life\" (lecture 3 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "04.3",
+    "title": "From Two Kingdoms to a Universal Tree",
+    "sub": "Rethinking the deepest branches of life"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What we'll cover",
+    "items": [
+      "The three-domain system: Bacteria, Archaea, Eukarya",
+      "Carl Woese and the ribosomal RNA revolution",
+      "The Last Universal Common Ancestor (LUCA): what we can and cannot infer",
+      "Horizontal gene transfer (HGT) — genes moving sideways, not just down generations",
+      "Endosymbiosis: mitochondria and chloroplasts as extreme cases of gene/genome transfer",
+      "Why biologists now talk about a 'web' or 'net' of life, not just a tree"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECAP — LECTURE 11",
+    "title": "Where we left off",
+    "items": [
+      "We build phylogenetic trees from shared derived characters (morphological or molecular)",
+      "Parsimony, distance, and maximum-likelihood methods each estimate the tree that best explains the data",
+      "All tree-building methods assume genes are inherited vertically — parent to offspring",
+      "That assumption works well for most animals and plants, but it starts to break down as we push deeper into the tree, into single-celled and microbial lineages",
+      "Today: what happens at the very root of the tree of life, where that assumption is most strained"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Three Domains of Life",
+    "term": "Three Domains of Life",
+    "def": "The classification of all cellular life into three deep evolutionary lineages — Bacteria, Archaea, and Eukarya — based on fundamental differences in ribosomal RNA sequence, cell chemistry, and genetics, rather than on visible morphology.",
+    "bullets": [
+      "Proposed by Carl Woese and George Fox in 1977 (formalized 1990)",
+      "Replaced earlier two-kingdom (prokaryote/eukaryote) and five-kingdom schemes",
+      "Domains sit above 'Kingdom' in the taxonomic hierarchy — the broadest category we use"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Classification before Woese",
+    "items": [
+      "1735 — Linnaeus: two kingdoms, Plantae and Animalia, based on visible form",
+      "1866 — Haeckel adds Protista for microorganisms",
+      "1938 — Copeland separates bacteria into Monera, giving four kingdoms",
+      "1969 — Whittaker's five-kingdom system: Monera, Protista, Fungi, Plantae, Animalia",
+      "All of these classified organisms by what they looked like or how they got their food — not by evolutionary descent",
+      "The five-kingdom system lumped ALL prokaryotes together in Monera, implying they were one another's closest relatives — this turned out to be wrong"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY FIGURE",
+    "title": "Carl Woese (1928–2012)",
+    "term": "Carl Woese",
+    "def": "American microbiologist who pioneered the use of ribosomal RNA (rRNA) gene sequences to reconstruct deep evolutionary relationships among microorganisms, leading to the discovery of Archaea as a distinct domain of life.",
+    "bullets": [
+      "Worked at the University of Illinois starting in the 1960s",
+      "Reasoned that a molecule present in every living cell, that changes slowly, and that performs the same essential job everywhere, would make an ideal 'universal chronometer'",
+      "Chose the small subunit ribosomal RNA (16S/18S rRNA) for this purpose"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY ribosomal RNA?",
+    "title": "The logic of a 'universal molecular clock'",
+    "items": [
+      "Ribosomes are essential for protein synthesis in every living cell — no known exceptions",
+      "Because ribosomal function is so constrained, rRNA sequence changes slowly and steadily over deep time",
+      "The gene is present as a single copy (or a few nearly identical copies) in essentially all genomes, so it can be directly compared across wildly different organisms",
+      "Unlike morphology, rRNA sequence is not subject to convergent evolution driven by shared habitat or lifestyle",
+      "This let Woese compare bacteria, yeast, and animals on a single, apples-to-apples evolutionary yardstick for the first time"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A METHODOLOGICAL SHIFT",
+    "title": "Morphology vs. molecules for classifying microbes",
+    "left": {
+      "h": "Classifying by morphology",
+      "body": "<p>Traditional microbiology grouped microbes by traits visible under a microscope or in culture:</p><ul><li>Cell shape (rod, coccus, spiral)</li><li>Gram stain reaction</li><li>Metabolic capabilities (methane production, sulfur oxidation)</li><li>Habitat (soil, gut, hot spring)</li></ul><p>Problem: these traits evolve independently many times and don't reliably track ancestry.</p>"
+    },
+    "right": {
+      "h": "Classifying by rRNA sequence",
+      "body": "<p>Woese instead compared the sequence of a slowly evolving, universally shared gene:</p><ul><li>Directly measures accumulated mutational change since a common ancestor</li><li>Works even when organisms look nothing alike</li><li>Revealed that some 'bacteria-like' microbes were in fact radically different at the molecular level</li></ul><p>Result: a classification based on genealogy, not appearance.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE 1977 DISCOVERY",
+    "title": "Woese and Fox find a 'third form of life'",
+    "items": [
+      "Woese and George Fox sequenced rRNA from methane-producing microbes (methanogens)",
+      "Methanogens looked like ordinary bacteria under a microscope — no nucleus, single circular chromosome, similar size",
+      "But their rRNA sequences were roughly as different from bacteria as bacteria are from eukaryotes",
+      "Woese and Fox concluded methanogens represented a wholly separate, ancient lineage — they named this group the Archaebacteria (later renamed Archaea)",
+      "Published in Proceedings of the National Academy of Sciences, 1977 — initially met with skepticism and even hostility from the microbiology community"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "IN HIS OWN WORDS",
+    "quote": "There evolved a third form of living systems... a group as distinct from bacteria as bacteria are from eukaryotic cells.",
+    "attrib": "Carl Woese, describing the discovery of Archaea (1977)"
+  },
+  {
+    "type": "term",
+    "eyebrow": "DOMAIN PROFILE",
+    "title": "Archaea",
+    "term": "Archaea",
+    "def": "A domain of single-celled, membrane-bound prokaryotes that lack a nucleus but are biochemically and genetically distinct from Bacteria, sharing many molecular features (e.g., transcription and translation machinery) with Eukarya.",
+    "bullets": [
+      "Cell walls lack peptidoglycan (unlike most Bacteria)",
+      "Cell membrane lipids use ether bonds and branched isoprenoid chains, versus ester bonds and straight fatty acid chains in Bacteria and Eukarya",
+      "RNA polymerase and ribosomal proteins more closely resemble the eukaryotic versions than the bacterial ones",
+      "Long dismissed as 'just weird bacteria' — now recognized as an equally deep, independent branch of life"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE ARCHAEA LIVE",
+    "title": "Not just extremophiles",
+    "items": [
+      "Early archaea discovered in extreme environments: boiling hot springs, deep-sea hydrothermal vents, hypersaline lakes, highly acidic or alkaline habitats",
+      "This gave the false impression that Archaea were inherently 'extreme' organisms",
+      "We now know archaea are abundant in ordinary environments too: soil, ocean plankton, and the human gut and skin microbiome",
+      "Marine archaea (e.g., Thaumarchaeota) may be among the most numerous organisms on Earth",
+      "'Extremophile' describes a lifestyle, not a taxonomic identity — many extremophiles are bacteria, and many archaea are not extremophiles at all"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "Bacteria vs. Archaea vs. Eukarya: key features",
+    "headers": [
+      "Feature",
+      "Bacteria",
+      "Archaea",
+      "Eukarya"
+    ],
+    "rows": [
+      [
+        "Nuclear envelope",
+        "Absent",
+        "Absent",
+        "Present"
+      ],
+      [
+        "Membrane lipids",
+        "Ester-linked, straight chains",
+        "Ether-linked, branched chains",
+        "Ester-linked, straight chains"
+      ],
+      [
+        "Cell wall",
+        "Often peptidoglycan",
+        "No peptidoglycan (varies)",
+        "Varies (cellulose, chitin, none)"
+      ],
+      [
+        "RNA polymerase",
+        "One simple type",
+        "Multiple subunits, eukaryote-like",
+        "Multiple types, complex"
+      ],
+      [
+        "Histones",
+        "Absent",
+        "Present in many lineages",
+        "Present"
+      ],
+      [
+        "Introns in genes",
+        "Rare",
+        "Occasional",
+        "Common"
+      ],
+      [
+        "Membrane-bound organelles",
+        "Absent",
+        "Absent",
+        "Present (mitochondria, plastids, etc.)"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DOMAIN PROFILE",
+    "title": "Eukarya at a glance",
+    "items": [
+      "Cells contain a true nucleus bounded by a double membrane, plus internal membrane-bound organelles",
+      "Includes protists, fungi, plants, and animals — the domain we and all visible multicellular life belong to",
+      "Genomes are typically larger and more complex, organized into multiple linear chromosomes with associated histone proteins",
+      "Eukaryotic informational genes (DNA replication, transcription, translation) resemble archaeal genes most closely",
+      "Eukaryotic metabolic genes are a patchwork, with a large bacterial contribution — a clue we'll return to when we discuss endosymbiosis"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "ARCHAEAL DIVERSITY",
+    "title": "Major archaeal lifestyles",
+    "cards": [
+      {
+        "h": "Methanogens",
+        "p": "Produce methane as a metabolic byproduct in anaerobic environments — wetlands, landfills, and the guts of cows and termites."
+      },
+      {
+        "h": "Halophiles",
+        "p": "Thrive in extremely salty environments such as salt flats and the Dead Sea, often using light-driven proton pumps for energy."
+      },
+      {
+        "h": "Thermophiles/Hyperthermophiles",
+        "p": "Live at temperatures above 45–80°C, including near boiling hydrothermal vents and geysers such as those in Yellowstone."
+      },
+      {
+        "h": "Marine and soil archaea",
+        "p": "Free-living, non-extreme archaea (e.g., ammonia-oxidizing Thaumarchaeota) that are abundant throughout ordinary ocean and soil habitats."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONVERGENCE AND DIVERGENCE",
+    "title": "Why Archaea confused microbiologists for decades",
+    "left": {
+      "h": "Archaea resemble Bacteria in...",
+      "body": "<ul><li>Cell size and simplicity</li><li>Lack of a nucleus and membrane-bound organelles</li><li>Single circular chromosome (typically)</li><li>Overall 'prokaryotic' body plan</li></ul><p>These shared traits are largely ancestral/superficial, not evidence of close kinship.</p>"
+    },
+    "right": {
+      "h": "Archaea resemble Eukarya in...",
+      "body": "<ul><li>Core machinery of DNA replication</li><li>Transcription (RNA polymerase structure)</li><li>Translation initiation factors</li><li>Some histone-like DNA-packaging proteins</li></ul><p>These deep molecular similarities point to a shared ancestry for the 'genetic information-processing' systems of Archaea and Eukarya.</p>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "LUCA",
+    "title": "The Last Universal Common Ancestor",
+    "sub": "Peering into the deepest, blurriest part of the tree"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "LUCA",
+    "term": "Last Universal Common Ancestor (LUCA)",
+    "def": "The hypothetical population of cells from which all currently living organisms — every bacterium, archaeon, and eukaryote — are descended. LUCA is not the first living thing, but the most recent common ancestor of all life alive today.",
+    "bullets": [
+      "Estimated to have existed roughly 3.5–4.2 billion years ago",
+      "Not a single cell, but likely a population or community of interbreeding/gene-sharing cells",
+      "Its existence is inferred logically from the universality of the genetic code and shared cellular machinery, not observed directly"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT WE CAN INFER",
+    "title": "Features LUCA likely had",
+    "items": [
+      "A DNA genome, transcribed into RNA and translated into protein using essentially the same genetic code used by life today",
+      "Ribosomes built from rRNA and proteins, functioning much as they do now",
+      "A set of around 20 standard amino acids and the enzymatic machinery (aminoacyl-tRNA synthetases) to charge tRNAs",
+      "A cell membrane and basic mechanisms for energy metabolism, likely involving proton gradients (chemiosmosis)",
+      "These inferences come from comparing genes and traits shared by ALL three domains — any feature universal across Bacteria, Archaea, and Eukarya was probably present in their common ancestor"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT WE CANNOT CONFIDENTLY INFER",
+    "title": "The limits of LUCA reconstruction",
+    "items": [
+      "Whether LUCA had a cell wall, and if so, what kind — bacterial and archaeal membrane chemistry differ fundamentally",
+      "LUCA's exact habitat and metabolism (though hydrothermal vent environments are a leading hypothesis)",
+      "Whether LUCA was a single organism or a loosely defined population exchanging genes freely",
+      "The complete gene content of LUCA's genome — estimates range from a few hundred to over a thousand genes, depending on methodology and assumptions",
+      "Because HGT (covered shortly) can make a gene look 'ancestral' when it actually spread later between lineages, reconstructing LUCA's gene set is genuinely difficult and actively debated"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COMPETING MODELS",
+    "title": "How complex was LUCA?",
+    "left": {
+      "h": "The 'progenote' hypothesis",
+      "body": "<p>Woese himself proposed that LUCA (which he called a 'progenote') was a simple, loosely organized entity:</p><ul><li>Imprecise translation machinery</li><li>Genome not yet fully stabilized</li><li>Extensive horizontal gene transfer within the ancestral population, blurring lines between 'individuals'</li></ul><p>Under this view, the three domains crystallized out of a shared, HGT-rich ancestral gene pool.</p>"
+    },
+    "right": {
+      "h": "The 'complex cell' hypothesis",
+      "body": "<p>More recent genomic analyses (e.g., Weiss et al. 2016) suggest LUCA was already a sophisticated cell:</p><ul><li>Hundreds of genes shared by all three domains</li><li>Complex metabolism, including genes for anaerobic, CO2-fixing, H2-dependent chemistry</li><li>Full genetic code and translation apparatus essentially modern</li></ul><p>Under this view, LUCA was less a 'primitive precursor' and more a fully functional, if ancient, cell.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE DID LUCA LIVE?",
+    "title": "The hydrothermal vent hypothesis",
+    "items": [
+      "Many genes reconstructed as ancestral in LUCA relate to anaerobic metabolism, hydrogen and CO2 use, and tolerance of high temperatures",
+      "This pattern matches conditions at deep-sea hydrothermal vents, especially alkaline 'white smoker' systems (like the Lost City vent field)",
+      "Vents provide natural proton gradients, mineral catalysts, and a steady supply of chemical energy without requiring sunlight",
+      "This hypothesis is consistent with, but not proof of, an origin of life at or near such vents — LUCA is the last common ancestor of extant life, not necessarily the first life ever to exist",
+      "Important distinction: LUCA studies tell us about the ancestor of all surviving lineages, not directly about the origin-of-life event itself, which likely predates LUCA by an unknown span of time"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "HOW CONFIDENT ARE WE?",
+    "title": "Confidence in different parts of the tree of life",
+    "levels": [
+      {
+        "label": "Root / LUCA & domain divergence",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Relationships among major microbial phyla",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Origin of eukaryotes from archaea + bacteria",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Relationships among animal phyla",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Relationships within well-studied groups (e.g., vertebrates)",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "HGT",
+    "title": "Horizontal Gene Transfer",
+    "sub": "When genes move sideways instead of down"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Horizontal Gene Transfer",
+    "term": "Horizontal Gene Transfer (HGT)",
+    "def": "The movement of genetic material between organisms by means other than parent-to-offspring (vertical) inheritance — including transfer between different species, genera, or even domains of life.",
+    "bullets": [
+      "Also called lateral gene transfer (LGT)",
+      "Extremely common among prokaryotes; documented but less pervasive in eukaryotes",
+      "Directly violates the assumption, built into standard tree-building methods, that every gene in a genome shares the same ancestry"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY IT MATTERS FOR PHYLOGENY",
+    "title": "HGT complicates the tree",
+    "items": [
+      "A tree built from one gene (say, rRNA) may show a genuine 'organismal' history of vertical descent",
+      "But a tree built from a different gene in the SAME organisms might show a totally different pattern, because that gene arrived via HGT from an unrelated lineage",
+      "This means no single gene tree is guaranteed to represent the true history of the whole organism or species",
+      "Biologists must compare many genes (whole-genome or multi-gene approaches) to distinguish the dominant vertical signal from HGT 'noise'",
+      "For microbes, HGT is so pervasive that some biologists question whether a single bifurcating 'tree' is even the right way to represent their history at all"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MECHANISMS OF HGT",
+    "title": "Three classic ways prokaryotes exchange genes",
+    "cards": [
+      {
+        "h": "Transformation",
+        "p": "A cell takes up naked DNA fragments directly from its environment (e.g., released by dead, lysed cells) and incorporates them into its own genome."
+      },
+      {
+        "h": "Transduction",
+        "p": "A bacteriophage (virus that infects bacteria) accidentally packages host DNA instead of, or along with, its own genome, then injects it into a new host cell during a later infection."
+      },
+      {
+        "h": "Conjugation",
+        "p": "Two bacterial cells form a direct physical connection (a pilus) and transfer plasmid DNA — sometimes including chromosomal genes — from donor to recipient cell."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE IN GENOMES",
+    "title": "How we detect HGT after the fact",
+    "items": [
+      "A gene's phylogenetic tree conflicts sharply with the tree built from most other genes in the genome ('phylogenetic incongruence')",
+      "A gene's base composition (GC content) or codon usage differs markedly from the rest of the host genome, suggesting recent foreign origin",
+      "A gene is found in patchy, scattered distribution across distantly related taxa but absent from close relatives — hard to explain by vertical inheritance alone",
+      "Genes conferring antibiotic resistance are a well-documented, medically important example — resistance genes spread rapidly between unrelated bacterial species via plasmids",
+      "Classic case: extensive HGT of antibiotic-resistance and virulence genes among pathogenic bacteria, a major driver of the modern antibiotic-resistance crisis"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO MODES OF INHERITANCE",
+    "title": "Vertical vs. horizontal transmission",
+    "left": {
+      "h": "Vertical inheritance",
+      "body": "<p>The 'textbook' mode assumed by standard phylogenetics:</p><ul><li>Genes pass from parent to offspring</li><li>Produces a strictly branching, tree-like pattern</li><li>Underlies Darwin's original 'tree of life' metaphor</li><li>Dominant mode in most eukaryotes, especially animals</li></ul>"
+    },
+    "right": {
+      "h": "Horizontal transmission",
+      "body": "<p>Genes move between contemporaneous, often unrelated, lineages:</p><ul><li>Can jump between distantly related species or even domains</li><li>Produces reticulate (net-like, criss-crossing) patterns</li><li>Especially common in prokaryotes, but documented in eukaryotes too</li><li>Can introduce entirely novel functions in a single step, rather than by slow mutation and selection</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HGT IS NOT JUST A MICROBE STORY",
+    "title": "Horizontal transfer in eukaryotes",
+    "items": [
+      "Bdelloid rotifers (microscopic animals) carry a surprisingly high proportion of foreign, bacterial-derived genes in their genomes",
+      "Some plant lineages have acquired genes from fungi or other plants via HGT, including genes involved in herbicide resistance and parasitism",
+      "Certain insects (e.g., some beetles, whiteflies) have acquired functional genes from bacterial symbionts, aiding digestion or pest resistance",
+      "Transposable elements ('jumping genes') can sometimes move between eukaryotic species, a phenomenon called horizontal transposon transfer",
+      "These cases remain the exception rather than the rule in eukaryotes — vertical inheritance is still the dominant signal in most animal and plant phylogenies"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A CHANGING METAPHOR",
+    "quote": "The tree of life is not a tree... it is more like an interconnected web, particularly at its base, among the prokaryotes.",
+    "attrib": "Paraphrasing W. Ford Doolittle's influential critique of tree-thinking (2000)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE 'RING' OR 'NET' OF LIFE",
+    "title": "Reticulate models for microbial evolution",
+    "items": [
+      "W. Ford Doolittle and others argued that at the deepest, most microbial levels, evolutionary history looks less like a branching tree and more like a tangled net or web",
+      "Some researchers have proposed a 'ring of life,' with early bacterial and archaeal lineages fusing (via massive HGT or symbiosis) to give rise to the eukaryotic lineage, rather than eukaryotes simply branching off cleanly",
+      "This does not mean the tree metaphor is useless — vertical descent is still the dominant signal for most genes, most of the time, especially away from the deepest nodes",
+      "Rather, the tree is best understood as the 'trunk' pattern running through a mesh of horizontal connections, particularly dense near the root and among prokaryotes"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "ENDOSYMBIOSIS",
+    "title": "Endosymbiosis",
+    "sub": "When gene transfer becomes whole-genome transfer"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Endosymbiotic Theory",
+    "term": "Endosymbiotic Theory",
+    "def": "The theory, championed by Lynn Margulis, that mitochondria and chloroplasts originated as free-living bacteria that were engulfed by a host cell and, over evolutionary time, became permanent, integrated organelles rather than being digested.",
+    "bullets": [
+      "Mitochondria descend from an alphaproteobacterium (a group related to modern Rickettsia)",
+      "Chloroplasts descend from a cyanobacterium (a photosynthetic bacterium)",
+      "Represents an extreme, one-time case of horizontal transfer — not of a single gene, but of an entire genome and cellular lineage"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE — MITOCHONDRIA",
+    "title": "Why we think mitochondria were once free-living bacteria",
+    "items": [
+      "Mitochondria have their own small, circular genome, distinct from the nuclear genome and resembling bacterial chromosomes in structure",
+      "Mitochondrial ribosomes and rRNA sequences are more similar to bacterial (specifically alphaproteobacterial) ribosomes than to the eukaryotic host's cytoplasmic ribosomes",
+      "Mitochondria replicate by binary fission, independently of the cell cycle, much like free-living bacteria",
+      "Mitochondria are bounded by a double membrane — consistent with an outer membrane derived from the host's engulfing vacuole and an inner membrane derived from the original bacterial cell membrane",
+      "Mitochondrial genes use a genetic code with minor deviations from the 'universal' code, in patterns matching bacterial code variants"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE — CHLOROPLASTS",
+    "title": "Why we think chloroplasts were once free-living cyanobacteria",
+    "items": [
+      "Chloroplasts, like mitochondria, contain their own circular genome and bacterial-type ribosomes",
+      "Chloroplast photosynthetic machinery (photosystems, chlorophyll biosynthesis genes) closely resembles that of modern cyanobacteria",
+      "Chloroplasts are bounded by two (in plants and green algae) or more (in some algal lineages) membranes, reflecting their more complex acquisition history",
+      "Phylogenetic analyses of chloroplast genes consistently nest them within the cyanobacterial radiation, not as an independent lineage",
+      "All primary plastids (in plants, green algae, red algae, glaucophytes) trace back to a single ancient cyanobacterial endosymbiosis event"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "ONE ENDOSYMBIOSIS, OR SEVERAL?",
+    "title": "Primary vs. secondary endosymbiosis",
+    "left": {
+      "h": "Primary endosymbiosis",
+      "body": "<p>A eukaryotic host cell engulfs a free-living prokaryote directly:</p><ul><li>Mitochondria: host engulfs an alphaproteobacterium (once, near the base of the eukaryotic tree)</li><li>Chloroplasts: a eukaryotic host engulfs a cyanobacterium (once, giving rise to plants, green algae, red algae, and glaucophytes)</li></ul>"
+    },
+    "right": {
+      "h": "Secondary (and tertiary) endosymbiosis",
+      "body": "<p>A eukaryotic host engulfs another eukaryote that ALREADY has a primary plastid:</p><ul><li>Explains plastids in groups like diatoms, brown algae, and dinoflagellates</li><li>Produces plastids bounded by 3–4 membranes, a molecular 'fingerprint' of the extra engulfment event</li><li>Some lineages show evidence of repeated secondary/tertiary transfers, further complicating their gene trees</li></ul>"
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "DISCOVERY TIMELINE",
+    "title": "How endosymbiotic theory became mainstream",
+    "items": [
+      {
+        "y": "1905",
+        "t": "Konstantin Mereschkowski proposes that chloroplasts originated as symbiotic cyanobacteria (largely ignored at the time)"
+      },
+      {
+        "y": "1920s",
+        "t": "Ivan Wallin proposes a similar symbiotic origin for mitochondria; also largely dismissed"
+      },
+      {
+        "y": "1967",
+        "t": "Lynn Margulis publishes 'On the Origin of Mitosis Mitosing Cells,' reviving and expanding endosymbiotic theory with strong supporting arguments"
+      },
+      {
+        "y": "1970s–80s",
+        "t": "Discovery and sequencing of mitochondrial and chloroplast DNA confirms these organelles have their own bacterial-like genomes"
+      },
+      {
+        "y": "1977",
+        "t": "Woese and Fox's rRNA work on Archaea, occurring in parallel, provides the same molecular toolkit later used to pin down organelle ancestry precisely"
+      },
+      {
+        "y": "1980s–90s",
+        "t": "Genomic comparisons confirm mitochondria trace to alphaproteobacteria and chloroplasts to cyanobacteria; endosymbiotic theory becomes standard textbook science"
+      },
+      {
+        "y": "2000s–present",
+        "t": "Genome-scale studies reveal massive gene transfer from organelle to nuclear genomes, and complex secondary/tertiary endosymbioses across the eukaryotic tree"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ENDOSYMBIOSIS AS EXTREME HGT",
+    "title": "Connecting the dots",
+    "items": [
+      "Endosymbiosis is best understood as a spectacular, large-scale special case of horizontal gene transfer: instead of one gene moving, an entire bacterial genome (and cell) was incorporated",
+      "Over time, most organelle genes were transferred from the organelle genome into the host nuclear genome — a process called endosymbiotic gene transfer",
+      "Human mitochondria retain only about 37 genes today; the ancestral alphaproteobacterium likely had well over 1,000",
+      "The proteins those transferred genes encode are still made in the cytoplasm and then imported back into the mitochondrion or chloroplast using specialized targeting sequences",
+      "This is why eukaryotic genomes are genetic mosaics — informational genes tend to be archaeal-like, while a substantial fraction of metabolic genes are bacterial-like, reflecting this endosymbiotic legacy"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "GENOME COMPARISON",
+    "title": "Organelle genomes vs. free-living bacterial genomes",
+    "headers": [
+      "Feature",
+      "Free-living bacterium",
+      "Mitochondrion/Chloroplast"
+    ],
+    "rows": [
+      [
+        "Genome size",
+        "~1–10 million base pairs, thousands of genes",
+        "~16,000 bp (mitochondria) to ~150,000 bp (chloroplasts); tens of genes"
+      ],
+      [
+        "Genome shape",
+        "Typically circular, single copy",
+        "Typically circular, present in many copies per organelle"
+      ],
+      [
+        "Cell wall",
+        "Present in most lineages",
+        "Absent (bounded only by membrane(s))"
+      ],
+      [
+        "Independent survival",
+        "Capable of free-living existence",
+        "Cannot survive or replicate outside the host cell"
+      ],
+      [
+        "Gene loss/transfer to host",
+        "None",
+        "Extensive — most ancestral genes moved to host nucleus"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BROADER IMPLICATIONS",
+    "title": "How HGT and endosymbiosis change classification",
+    "items": [
+      "A strictly bifurcating (branching) tree cannot fully represent lineages whose genomes are fusions of multiple ancestral sources",
+      "Eukaryotes themselves may best be depicted not as a simple branch off one parent lineage, but as a fusion product of an archaeal host and a bacterial (mitochondrial) endosymbiont",
+      "This motivates alternative diagrams: rings, webs, or 'trees with a reticulated base' that explicitly show fusion and horizontal transfer events, not just splitting",
+      "Even so, many biologists retain the tree as the primary organizing metaphor for large-scale, mostly vertical descent (e.g., within animals or plants), while treating reticulation as a documented complication near the root and among microbes"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "VISUALIZING DEEP EVOLUTION",
+    "title": "Tree, web, or ring?",
+    "left": {
+      "h": "The classic tree",
+      "body": "<p>Darwin's single branching diagram, still useful because:</p><ul><li>Vertical inheritance dominates for most genes, most lineages</li><li>Easy to read and communicate</li><li>Captures nested, hierarchical relationships well for macroscopic organisms</li></ul>"
+    },
+    "right": {
+      "h": "Webs, nets, and rings",
+      "body": "<p>Reticulate diagrams add horizontal connections where needed:</p><ul><li>Show HGT events as cross-links between branches</li><li>Show endosymbiosis as branches merging, not just splitting</li><li>Most useful for microbial evolution and for the origin of eukaryotes</li><li>Harder to read, but more accurate at the deepest levels</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MODERN EVIDENCE",
+    "title": "Metagenomics and the ongoing revision of deep phylogeny",
+    "items": [
+      "Most environmental microbes cannot be cultured in the lab, so for decades their diversity was invisible to classical methods",
+      "Metagenomics — sequencing DNA directly from environmental samples (soil, ocean water, hot springs) — has revealed vast, previously unknown branches of the archaeal and bacterial tree",
+      "The 2015 discovery of the Asgard archaea (e.g., Lokiarchaeota) from deep-sea sediments provided the closest known living relatives of eukaryotic host lineages",
+      "Asgard archaea possess genes for cytoskeleton-related and membrane-remodeling proteins previously thought unique to eukaryotes — key evidence for the archaeal origin of the eukaryotic host cell",
+      "This is a live area of research: the fine details of the three-domain tree and the origin of eukaryotes continue to be revised as more genomes are sequenced"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SUMMARY OF VISUAL MODELS",
+    "title": "Four ways biologists have drawn the deep tree of life",
+    "cards": [
+      {
+        "h": "The classic tree",
+        "p": "Strictly bifurcating branches represent purely vertical descent; simplest but misses reticulation."
+      },
+      {
+        "h": "The web/net of life",
+        "p": "Adds horizontal cross-links between branches to represent HGT events, especially dense among prokaryotes."
+      },
+      {
+        "h": "The ring of life",
+        "p": "Depicts eukaryotes arising from the fusion of an archaeal and a bacterial lineage rather than simple branching."
+      },
+      {
+        "h": "Tree with a reticulated base",
+        "p": "Keeps a tree-like structure for most lineages but explicitly tangles the root, where LUCA, early HGT, and endosymbiosis occurred."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "What to remember from today",
+    "items": [
+      "The three-domain system (Bacteria, Archaea, Eukarya), based on rRNA sequence comparison, replaced older classifications built on visible morphology",
+      "LUCA is a logical inference from universally shared traits, not a fossil or a single discovered organism — much about it remains uncertain",
+      "Horizontal gene transfer is pervasive among prokaryotes and means that individual gene trees do not always match the 'true' organismal history",
+      "Mitochondria and chloroplasts originated through endosymbiosis — an extreme, whole-genome case of horizontal transfer — and carry strong molecular evidence of their bacterial ancestry",
+      "These processes mean the deepest parts of the tree of life are better visualized as a tree with a tangled, web-like or ring-like base, rather than a perfectly clean set of branches"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "Putting it all together",
+    "items": [
+      "Woese's rRNA revolution replaced intuition-based classification with a rigorous, molecular measure of relatedness, uncovering Archaea as a wholly separate domain",
+      "LUCA gives us a working hypothesis for the ancestor of all living things, built from features shared across all three domains, but many details remain actively debated",
+      "HGT shows that 'inheritance' in microbes is not a single clean line of descent — genes routinely cross species and even domain boundaries",
+      "Endosymbiosis shows that entire genomes, not just individual genes, can be horizontally acquired and then deeply integrated into a host lineage — this is how eukaryotic cells got their mitochondria and chloroplasts",
+      "Together, these findings mean modern phylogenetics increasingly represents deep evolutionary history using reticulate (net-like) diagrams alongside the traditional tree"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT — LECTURE 13",
+    "title": "Chapter 4 Synthesis and Midterm I Review",
+    "sub": "Pulling together trees, LUCA, HGT, and endosymbiosis before Midterm I"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP — LECTURE 13",
+    "title": "Preview",
+    "items": [
+      "Synthesizing Chapter 4: how tree-reading, tree-building, and the complications from today fit together into one coherent picture of the tree of life",
+      "Working through practice problems: reading cladograms, identifying HGT/endosymbiosis signatures in real data",
+      "Structured review session for Midterm I, covering Lectures 1–12",
+      "Bring your questions from Chapters 1–4 — office hours are also available before the exam"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 12</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

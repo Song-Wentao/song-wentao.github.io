@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 2: Data Structures and Management</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 2",
+    "title": "Data Structures and Management",
+    "sub": "Tidy data, joins, missing values, and grouped summaries for ecological datasets",
+    "footnote": "Ecological Modelling with R, Python, and Julia — worked examples: Dutch dune meadows & oribatid mites, Lac Cromwell"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Roadmap",
+    "title": "What this lecture covers",
+    "items": [
+      "Tidy-data principles: what makes a dataset analysis-ready",
+      "Wide vs. long format, and why species-by-site matrices are naturally wide",
+      "Joining a species matrix to an environmental covariate table by site ID",
+      "A philosophy for missing data: when to drop, when to impute, when to flag",
+      "Grouping and summarizing: the split-apply-combine pattern",
+      "Computing derived variables: total abundance, species richness"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Tidy Data Principles",
+    "sub": "The grammar every downstream analysis in this course assumes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Tidy data",
+    "term": "tidy data",
+    "def": "A dataset in which every column is a variable, every row is an observation, and every cell is a single value. Tidy tables are the common currency that lets one function call feed the next.",
+    "bullets": [
+      "Each variable forms a column (e.g. site, species, count, pH)",
+      "Each observation forms a row (e.g. one species record at one site)",
+      "Each type of observational unit forms its own table (species records vs. site covariates)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why it matters",
+    "title": "Tidy data is not a style preference",
+    "items": [
+      "Plotting libraries (ggplot2, matplotlib/seaborn, Plots.jl + StatsPlots) expect one row per observation",
+      "Statistical model formulas (y ~ x) map directly onto tidy columns",
+      "group_by/summarize, joins, and filters all assume a consistent row = observation contract",
+      "Untidy data forces ad hoc indexing that is hard to read, debug, and reproduce",
+      "Every lecture after this one assumes your inputs are already tidy — this is where that habit starts"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Wide vs. Long",
+    "title": "Species community matrices are inherently wide",
+    "left": {
+      "h": "Wide format (site × species)",
+      "body": "<p>The natural output of a field survey: one row per site, one column per species, cell = abundance.</p><pre><code>site  Achimill  Agrostol  Airaprae\n1     1         0         0\n2     3         0         0\n3     0         4         0</code></pre><p>Convenient for data entry and for ordination methods (Lecture 4), but violates tidy principles: species identity is spread across column names, not stored as a value.</p>"
+    },
+    "right": {
+      "h": "Long format (tidy)",
+      "body": "<p>One row per (site, species) observation — the tidy representation.</p><pre><code>site  species    count\n1     Achimill   1\n1     Agrostol   0\n1     Airaprae   0\n2     Achimill   3\n2     Agrostol   0</code></pre><p>Required for grouped summaries, tidyverse/pandas-style plotting, and joins where species is itself a grouping variable.</p>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Practical Guidance",
+    "title": "When to use which layout",
+    "cards": [
+      {
+        "h": "Store wide",
+        "p": "Community matrices for ordination (vegan, scikit-bio) and diversity index functions typically expect sites × species wide input."
+      },
+      {
+        "h": "Analyze long",
+        "p": "Grouped summaries, per-species statistics, and tidy plotting pipelines are far simpler in long format."
+      },
+      {
+        "h": "Reshape, don't duplicate",
+        "p": "Keep one canonical wide CSV on disk; reshape to long in-memory as needed rather than maintaining two files."
+      },
+      {
+        "h": "Round-trip both ways",
+        "p": "pivot_longer/melt/stack go wide→long; pivot_wider/pivot/unstack go long→wide — you will use both directions constantly."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "Joins and Merges",
+    "sub": "Combining a species matrix with an environmental covariate table"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Concepts",
+    "title": "Joining on a shared key",
+    "items": [
+      "A join combines two tables using a common key column — here, site",
+      "Left join: keep every row of the left table, attach matches from the right (most common in ecology: keep every survey site)",
+      "Inner join: keep only rows whose key appears in both tables",
+      "One-to-one here (one env record per site); one-to-many is common when joining traits tables to species lists",
+      "Always check row counts before and after a join — an unexpected increase signals a duplicated key"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example",
+    "title": "Joining mite_species.csv to mite_env.csv by site",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>mite_species &lt;- read.csv(\"data/mite_species.csv\")\nmite_env     &lt;- read.csv(\"data/mite_env.csv\")\n\nmite_joined &lt;- merge(\n  mite_species, mite_env,\n  by = \"site\"\n)\n\n# tidyverse:\n# mite_species |&gt;\n#   dplyr::left_join(mite_env, by = \"site\")</code></pre>"
+    },
+    "right": {
+      "h": "Python (pandas)",
+      "body": "<pre><code>import pandas as pd\n\nmite_species = pd.read_csv(\n    \"data/mite_species.csv\")\nmite_env = pd.read_csv(\n    \"data/mite_env.csv\")\n\nmite_joined = mite_species.merge(\n    mite_env, on=\"site\", how=\"left\"\n)</code></pre>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Three Languages, One Pattern",
+    "title": "Core data-management verbs across R, Python, and Julia",
+    "headers": [
+      "Operation",
+      "R",
+      "Python",
+      "Julia"
+    ],
+    "rows": [
+      [
+        "Read CSV",
+        "read.csv(\"f.csv\")",
+        "pd.read_csv(\"f.csv\")",
+        "CSV.read(\"f.csv\", DataFrame)"
+      ],
+      [
+        "Join / merge",
+        "merge(a, b, by=\"site\")",
+        "a.merge(b, on=\"site\")",
+        "leftjoin(a, b, on=:site)"
+      ],
+      [
+        "Group + summarize",
+        "aggregate(y~g, a, mean)",
+        "a.groupby(\"g\")[\"y\"].mean()",
+        "combine(groupby(a,:g), :y=>mean)"
+      ],
+      [
+        "Reshape wide → long",
+        "reshape(a, direction=\"long\", ...)",
+        "a.melt(id_vars=\"site\")",
+        "stack(a, Not(:site))"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Pitfalls",
+    "title": "Join gotchas in ecological data",
+    "items": [
+      "Key type mismatch: site stored as integer in one file and as a zero-padded string (\"01\") in another — the join silently drops everything",
+      "Duplicate keys inflate row counts (e.g. repeated-measures plots without a visit/year column)",
+      "Case and whitespace differences in text keys (\"Site 1\" vs \"site1\") cause silent non-matches",
+      "A left join introduces NA/NaN for env variables when a species-matrix site has no covariate record — check for these immediately",
+      "Always compare nrow()/len(df) before and after a join as a sanity check"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Handling Missing Data",
+    "sub": "A philosophy, not just a function call"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Missing data (NA / NaN / missing)",
+    "term": "missingness",
+    "def": "A placeholder marking that a value was not recorded, not measured, or not applicable — as opposed to a true zero. Ecological field data is rarely fully complete: instruments fail, plots are inaccessible, observers run out of time.",
+    "bullets": [
+      "R: NA (logical NA propagates; is.na() to test)",
+      "Python/pandas: NaN or pd.NA (np.nan for numeric, None/NA for object columns)",
+      "Julia: the `missing` singleton, propagates through arithmetic by design"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Decision Framework",
+    "title": "Drop, impute, or flag?",
+    "items": [
+      "Drop (listwise deletion) when missingness is rare, random, and the sample is large enough to absorb the loss",
+      "Impute (mean/median, model-based, or multiple imputation) when missingness is moderate and dropping would bias the covariate distribution",
+      "Flag with an explicit indicator column when the fact of missingness may itself be informative (e.g. a sensor that fails in wet conditions)",
+      "Never silently let NA propagate into a model fit — R, Python, and Julia all differ in default na-handling behavior",
+      "Document every decision: it changes the effective sample size and can change scientific conclusions"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Toolkit",
+    "title": "Four strategies you'll use throughout this course",
+    "cards": [
+      {
+        "h": "Listwise deletion",
+        "p": "na.omit() / dropna() / dropmissing(). Simple and unbiased only under MCAR (missing completely at random)."
+      },
+      {
+        "h": "Simple imputation",
+        "p": "Replace with column mean/median. Fast, but shrinks variance and can distort covariate relationships."
+      },
+      {
+        "h": "Model-based imputation",
+        "p": "Predict the missing value from other correlated variables (regression, kNN, mice/missForest). Preserves more structure."
+      },
+      {
+        "h": "Missingness indicator",
+        "p": "Add a binary was_missing column alongside an imputed value so models can learn from the pattern of missingness itself."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Always Check First",
+    "title": "Explicit missing-data checks",
+    "left": {
+      "h": "R",
+      "body": "<pre><code>sum(is.na(mite_species))\nsum(is.na(mite_env))\n\ncolSums(is.na(mite_env))\n# -&gt; per-column breakdown,\n#    even if the total is 0</code></pre><p>Run this before every join and every model fit — even on datasets you believe are complete.</p>"
+    },
+    "right": {
+      "h": "Python",
+      "body": "<pre><code>mite_species.isna().sum().sum()\nmite_env.isna().sum().sum()\n\nmite_env.isna().sum()\n# -&gt; per-column Series</code></pre><p>Watch for silent NA-sniffing traps: pandas reads a literal string \"None\" in a category column as NaN unless told otherwise.</p>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Part 4",
+    "title": "Grouping and Summarizing",
+    "sub": "The split-apply-combine pattern"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Concepts",
+    "title": "Split → Apply → Combine",
+    "items": [
+      "Split the tidy table into groups defined by one or more categorical variables (e.g. Substrate)",
+      "Apply a summary function independently within each group (mean, sd, n, ...)",
+      "Combine the per-group results back into a single summary table",
+      "R: aggregate() or dplyr group_by()+summarize(); Python: groupby(); Julia: groupby()+combine()",
+      "This single pattern will reappear for every model diagnostic and every exploratory summary in this course"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example",
+    "title": "Mean richness and abundance by Substrate",
+    "left": {
+      "h": "R (base R)",
+      "body": "<pre><code>richness_by_substrate &lt;- aggregate(\n  cbind(richness, total_abundance)\n    ~ Substrate,\n  data = mite_joined, FUN = mean\n)\n\n# tidyverse:\n# mite_joined |&gt;\n#   group_by(Substrate) |&gt;\n#   summarize(mean_richness = mean(richness))</code></pre>"
+    },
+    "right": {
+      "h": "Python (pandas)",
+      "body": "<pre><code>richness_by_substrate = (\n    mite_joined\n    .groupby(\"Substrate\")\n    [[\"richness\", \"total_abundance\"]]\n    .mean()\n    .reset_index()\n)</code></pre>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Reading the Output",
+    "title": "Oribatid mite richness by substrate, at a glance",
+    "cards": [
+      {
+        "h": "Sphagnum-3",
+        "p": "Highest mean richness (~25 species/site) among substrate classes in this 70-site survey."
+      },
+      {
+        "h": "Bare peat",
+        "p": "Lowest mean richness (~5 species/site) — a sparse, low-productivity microhabitat."
+      },
+      {
+        "h": "Interface / Litter",
+        "p": "Intermediate richness, consistent with transitional or resource-rich microhabitats."
+      },
+      {
+        "h": "Next step",
+        "p": "Lecture 3 asks whether these differences are statistically distinguishable, not just descriptively different."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 5",
+    "title": "Computing Derived Variables",
+    "sub": "Turning a raw count matrix into analysis-ready covariates"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Species richness",
+    "term": "species richness",
+    "def": "The number of distinct species present at a site, regardless of their abundance — computed as the count of nonzero columns in a site's row of the species matrix.",
+    "bullets": [
+      "Distinct from total abundance, which sums individuals across all species",
+      "The simplest diversity metric; richer indices (Shannon, Simpson) weight by evenness and appear later in the course",
+      "Sensitive to sampling effort — rarefaction addresses this, out of scope for this lecture"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Common Derived Variables",
+    "title": "Building blocks you will reuse all course",
+    "items": [
+      "Total abundance: row sum across all species columns",
+      "Species richness: count of nonzero species columns per row",
+      "Relative abundance: each species count divided by that row's total abundance",
+      "Presence/absence: species matrix converted to 0/1 via (count > 0)",
+      "Diversity indices (Shannon, Simpson) build directly on these row-wise summaries — previewed here, formalized in Lecture 15"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Worked Example",
+    "title": "Row sums and richness from a wide species matrix",
+    "left": {
+      "h": "R",
+      "body": "<pre><code>sp_cols &lt;- setdiff(\n  names(mite_species), \"site\")\n\nmite_species$total_abundance &lt;-\n  rowSums(mite_species[, sp_cols])\n\nmite_species$richness &lt;-\n  rowSums(mite_species[, sp_cols] &gt; 0)</code></pre>"
+    },
+    "right": {
+      "h": "Python",
+      "body": "<pre><code>sp_cols = [c for c in\n    mite_species.columns if c != \"site\"]\n\nmite_species[\"total_abundance\"] = \\\n    mite_species[sp_cols].sum(axis=1)\n\nmite_species[\"richness\"] = \\\n    (mite_species[sp_cols] &gt; 0).sum(axis=1)</code></pre>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Second Worked Example",
+    "title": "Dune meadow: richness by management regime",
+    "cards": [
+      {
+        "h": "Hay + fertilizer (HF)",
+        "p": "Highest mean richness among the four Management classes in the 20-site dune survey."
+      },
+      {
+        "h": "Standard farming (SF)",
+        "p": "Intermediate richness — more intensive land use than nature management."
+      },
+      {
+        "h": "Biological farming (BF)",
+        "p": "Intermediate-to-low richness, reflecting reduced but nonzero management intensity."
+      },
+      {
+        "h": "Nature management (NM)",
+        "p": "Lowest mean richness in this summary — counterintuitive at first glance, worth unpacking with Moisture and Use as covariates."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Best Practices",
+    "title": "Reproducible data management habits",
+    "items": [
+      "Keep raw CSVs untouched in data/ — never overwrite the original file with a cleaned version",
+      "Script every transformation (join, reshape, derived variable) so it can be rerun end-to-end",
+      "Name derived columns explicitly (richness, total_abundance) rather than reusing ambiguous names",
+      "Print row/column counts after every join and reshape as a running sanity check",
+      "Record data provenance: source, survey year, and any exclusions in a comment or README"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Worth Remembering",
+    "quote": "Tidy datasets are all alike, but every messy dataset is messy in its own way.",
+    "attrib": "Hadley Wickham, “Tidy Data” (2014)"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "The Pipeline",
+    "title": "From raw survey sheets to a model-ready table",
+    "levels": [
+      {
+        "label": "Raw CSVs (wide species matrix, env table)",
+        "color": "#c97a2b",
+        "width": 100
+      },
+      {
+        "label": "Tidy / long-format tables",
+        "color": "#0e7c86",
+        "width": 82
+      },
+      {
+        "label": "Joined (species + environment by site)",
+        "color": "#0e7c86",
+        "width": 64
+      },
+      {
+        "label": "Missing-data checked & resolved",
+        "color": "#0e7c86",
+        "width": 46
+      },
+      {
+        "label": "Derived variables + grouped summaries",
+        "color": "#132326",
+        "width": 30
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Workflow",
+    "title": "A typical data-management session",
+    "items": [
+      {
+        "y": "Step 1",
+        "t": "Load raw CSVs; inspect dimensions and column types"
+      },
+      {
+        "y": "Step 2",
+        "t": "Check for missing data explicitly, column by column"
+      },
+      {
+        "y": "Step 3",
+        "t": "Join species and environmental tables by site key"
+      },
+      {
+        "y": "Step 4",
+        "t": "Reshape to long format where a tidy layout is needed"
+      },
+      {
+        "y": "Step 5",
+        "t": "Compute derived variables (richness, abundance)"
+      },
+      {
+        "y": "Step 6",
+        "t": "Group, summarize, and sanity-check before modeling"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "This Lecture's Data",
+    "title": "Three real published community datasets",
+    "cards": [
+      {
+        "h": "Dune meadows",
+        "p": "20 sites × 30 plant species, Dutch dune meadow vegetation (Jongman, ter Braak & van Tongeren) with Management, Use, Moisture covariates."
+      },
+      {
+        "h": "Oribatid mites",
+        "p": "70 sites × 35 species, Lac Cromwell peat-moss survey (Borcard & Legendre 1994) with Substrate, Shrub, Topo covariates."
+      },
+      {
+        "h": "Lichen pastures",
+        "p": "Reindeer-grazed lichen pasture vegetation and soil chemistry (Väre, Ohtonen & Oksanen 1995) — used in this lecture's exercises."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Hands-On",
+    "title": "In today's lab, you will",
+    "items": [
+      "Compute species richness for the dune dataset and merge it with dune_env",
+      "Reshape the mite species matrix from wide to long and rank species by occupancy",
+      "Run a full missing-data audit on the lichen pasture (varespec/varechem) dataset",
+      "Group richness by two different environmental factors and compare their apparent effects",
+      "See exercises/lecture_02_exercises.md for the full instructions"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Wrap-Up",
+    "title": "From Clean Tables to First Statistics",
+    "sub": "Everything from here on assumes a tidy, joined, richness-and-abundance-annotated table"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "What to remember from this lecture",
+    "items": [
+      "Tidy data (one row per observation, one column per variable) is the shared contract behind every tool in this course",
+      "Species-by-site matrices are naturally wide; reshape to long for grouping, plotting, and per-species summaries",
+      "Joins combine species and environmental tables by a shared site key — always check row counts before and after",
+      "Missing data needs an explicit check and a deliberate drop/impute/flag decision, even on datasets that turn out complete",
+      "Richness and total abundance are the first derived variables you'll compute from almost every dataset in this course"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Recap",
+    "title": "The full pipeline, start to finish",
+    "left": {
+      "h": "R",
+      "body": "<pre><code>sp &lt;- read.csv(\"data/mite_species.csv\")\nenv &lt;- read.csv(\"data/mite_env.csv\")\nj &lt;- merge(sp, env, by = \"site\")\nj$richness &lt;- rowSums(\n  j[, setdiff(names(sp), \"site\")] &gt; 0)\naggregate(richness ~ Substrate,\n          j, mean)</code></pre>"
+    },
+    "right": {
+      "h": "Python",
+      "body": "<pre><code>sp = pd.read_csv(\"data/mite_species.csv\")\nenv = pd.read_csv(\"data/mite_env.csv\")\nj = sp.merge(env, on=\"site\")\ncols = [c for c in sp.columns if c!=\"site\"]\nj[\"richness\"] = (j[cols] &gt; 0).sum(1)\nj.groupby(\"Substrate\")[\"richness\"].mean()</code></pre>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Debugging Checklist",
+    "title": "If your joined table looks wrong, check these first",
+    "cards": [
+      {
+        "h": "Row count jumped",
+        "p": "A join produced more rows than either input — look for duplicate keys in the right-hand table."
+      },
+      {
+        "h": "Unexpected NAs",
+        "p": "A left join introduced NA for every row of a new column — the key values don't actually match (type or formatting mismatch)."
+      },
+      {
+        "h": "Richness looks too high",
+        "p": "You summed abundances instead of counting nonzero columns — richness and total abundance are not the same variable."
+      },
+      {
+        "h": "Group summary has one row",
+        "p": "The grouping column has only one level after the join — check that the join preserved the categorical variable you expect."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Cross-Language Notes",
+    "title": "Small but important differences across R, Python, and Julia",
+    "items": [
+      "R's merge() sorts by the key by default; pandas' merge() preserves left-table row order",
+      "Julia's DataFrames.jl leftjoin() requires Symbol column names (:site), not strings",
+      "pandas silently reads the literal string \"None\" as NaN unless you set keep_default_na=False — a real trap for categorical columns",
+      "Julia's `missing` propagates through arithmetic (1 + missing == missing); use skipmissing() explicitly",
+      "All three ecosystems support both a base/pandas-style verb API and a pipe-based grammar (R's |>, Python's method chaining, Julia's |>)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Definition",
+    "title": "Relative abundance",
+    "term": "relative abundance",
+    "def": "A species' count at a site divided by that site's total abundance across all species, expressing composition independent of overall sampling intensity.",
+    "bullets": [
+      "Useful when total captures/counts vary widely across sites due to effort, not ecology",
+      "Foundational input to many ordination and diversity methods covered in Lectures 4 and 15"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Coming Up",
+    "title": "Lecture 3: Basic Statistical Analysis",
+    "items": [
+      "Are the substrate-level richness differences we saw today statistically distinguishable, or within noise?",
+      "t-tests, ANOVA, and nonparametric alternatives on the tidy tables you now know how to build",
+      "Assumption checking: normality, variance homogeneity, and what to do when they fail",
+      "Same three-language treatment: R, Python, and Julia side by side on the same ecological questions"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Field Notes",
+    "title": "Reading messy real-world CSVs",
+    "items": [
+      "Check delimiter, decimal separator, and encoding before trusting a default read_csv() call",
+      "Watch for leading zeros in site IDs being silently parsed as integers (\"01\" -> 1)",
+      "Inspect column types immediately after loading — a numeric column read as text usually means a stray non-numeric value or missing-value code",
+      "Strip whitespace from column names and string values before using them as join keys or group labels",
+      "When in doubt, print str()/df.dtypes/describe()/first(df,5) before writing a single line of analysis code"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Table Hygiene",
+    "title": "Small habits that prevent big headaches",
+    "cards": [
+      {
+        "h": "Consistent site keys",
+        "p": "Store the site identifier with the same type and format in every table you plan to join."
+      },
+      {
+        "h": "One unit per column",
+        "p": "Don't mix a count and its units in one text field (\"12 individuals\") — split into a numeric column and a units attribute."
+      },
+      {
+        "h": "No formatting in data",
+        "p": "Keep raw CSVs free of merged cells, footnotes, or summary rows — those belong in a report, not the data table."
+      },
+      {
+        "h": "Version your cleaning",
+        "p": "A script that reproduces the cleaned table from the raw file is worth more than any manually-edited spreadsheet."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Extending the Pattern",
+    "title": "Multiple summary statistics per group at once",
+    "left": {
+      "h": "R",
+      "body": "<pre><code>aggregate(\n  richness ~ Substrate,\n  data = mite_joined,\n  FUN = function(x)\n    c(mean = mean(x), sd = sd(x), n = length(x))\n)</code></pre>"
+    },
+    "right": {
+      "h": "Python",
+      "body": "<pre><code>mite_joined.groupby(\"Substrate\")[\n    \"richness\"\n].agg([\"mean\", \"std\", \"count\"])</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before You Model",
+    "title": "A checklist to run before any statistical analysis",
+    "items": [
+      "Every table is tidy: one row per observation, one column per variable",
+      "Join keys match exactly in type and formatting across tables",
+      "Missing data has been checked column-by-column and a drop/impute/flag decision documented",
+      "Derived variables (richness, abundance) are computed once, correctly, and reused everywhere",
+      "Grouped summaries have been sanity-checked against the raw data for at least one group"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Toolchain",
+    "title": "The packages behind today's code",
+    "cards": [
+      {
+        "h": "R",
+        "p": "Base R (read.csv, merge, aggregate, reshape) plus the tidyverse (dplyr, tidyr) shown as commented alternatives throughout."
+      },
+      {
+        "h": "Python",
+        "p": "pandas for everything in this lecture: read_csv, merge, groupby, melt; matplotlib for the summary figure."
+      },
+      {
+        "h": "Julia",
+        "p": "CSV.jl for I/O, DataFrames.jl for joins/grouping/reshaping (leftjoin, groupby+combine, stack), Plots.jl for the figure."
+      }
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "Next: Lecture 3",
+    "title": "Basic Statistical Analysis",
+    "sub": "From tidy, joined, richness-annotated tables to hypothesis tests and confidence intervals",
+    "footnote": "Bring your cleaned mite_joined and dune_joined tables — we pick up exactly where this lecture leaves off"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 2</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

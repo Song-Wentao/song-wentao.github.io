@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 33: Cis-Regulatory Evolution: Changing Form Without Changing Genes</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 33",
+    "title": "Cis-Regulatory Evolution",
+    "sub": "Changing Form Without Changing Genes",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 9, \"From Genes to Traits\" (lecture 3 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 9 · LECTURE 3 OF 4",
+    "title": "From Toolkit Genes to Switches",
+    "sub": "L31 gave us deep homology and evo-devo. L32 gave us Hox genes and body plans. Today: how changing WHEN, WHERE, and HOW MUCH a gene is expressed can rebuild an organism without altering a single protein."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We'll Cover",
+    "items": [
+      "Recap: toolkit genes are ancient and reused — so where does morphological novelty actually come from?",
+      "Cis-regulatory elements: enhancers, promoters, silencers, and insulators as genomic 'switches'",
+      "Why regulatory mutations are often better raw material for evolution than coding mutations — the pleiotropy problem",
+      "Case study 1: Pitx1 enhancer loss and pelvic spine reduction in freshwater stickleback",
+      "Case study 2: cis-regulatory rewiring of pigmentation genes in Drosophila",
+      "More case studies: human-specific regulatory elements, cavefish eye loss, coat-color evolution",
+      "The coding-vs-regulatory debate: King & Wilson (1975) through Sean B. Carroll's evo-devo synthesis",
+      "Reconnecting to L14: regulatory mutations as a distinct class of mutation with a distinct evolutionary logic"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BRIDGE FROM LECTURE 32",
+    "title": "The Puzzle Hox Genes Left Us",
+    "items": [
+      "Hox genes and other toolkit genes are deeply conserved — nearly the same gene set builds a fly, a mouse, and a human",
+      "If the genes themselves are so similar across wildly different body plans, the genes alone cannot explain the differences",
+      "Something else must vary between species to produce different outcomes from the same genetic toolkit",
+      "That 'something else' is largely the regulatory DNA that decides when, where, and how much each toolkit gene is turned on",
+      "Today we open up that regulatory DNA and ask how changes to it drive evolution"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Cis-Regulatory Element",
+    "term": "Cis-Regulatory Element (CRE)",
+    "def": "A stretch of non-coding DNA that controls the transcription of a nearby gene on the same DNA molecule (hence 'cis,' meaning 'on this side'), by serving as a binding platform for transcription factors that activate or repress that gene.",
+    "bullets": [
+      "Includes promoters, enhancers, silencers, and insulators",
+      "Does not itself encode protein — it encodes information about gene regulation",
+      "Can be located far from the gene it controls: upstream, downstream, or even inside an intron of a neighboring gene",
+      "Contrast with 'trans-acting' factors (like transcription factor proteins) that diffuse through the cell and can act on genes anywhere in the genome"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Enhancer",
+    "term": "Enhancer",
+    "def": "A modular cis-regulatory DNA sequence, typically a few hundred base pairs long, that binds a specific combination of transcription factors and thereby drives gene expression in a particular tissue, at a particular developmental stage, or in response to a particular signal.",
+    "bullets": [
+      "Works over long distances by DNA looping, bringing bound transcription factors into contact with the promoter and RNA polymerase",
+      "A single gene commonly has many enhancers, each controlling expression in a different context — a 'modular' architecture",
+      "Enhancer sequence, not just gene sequence, evolves under natural selection, and enhancer changes are a major route to morphological change"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE REGULATORY TOOLKIT",
+    "title": "Four Kinds of Regulatory DNA",
+    "items": [
+      "Promoter — sits immediately upstream of the transcription start site; assembles RNA polymerase II and general transcription factors to initiate transcription",
+      "Enhancer — can sit far away (kilobases upstream, downstream, or in an intron); boosts transcription in specific cells or conditions by binding activating transcription factors",
+      "Silencer — analogous to an enhancer but binds repressive transcription factors, shutting expression off in particular contexts",
+      "Insulator — blocks or restricts an enhancer from acting on the wrong gene, effectively partitioning the genome into independent regulatory neighborhoods"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANISM",
+    "title": "How an Enhancer Actually Switches a Gene On",
+    "items": [
+      "Transcription factors (TFs) are diffusible proteins encoded elsewhere in the genome that recognize short DNA motifs (often 6–12 bp) within an enhancer",
+      "An enhancer typically contains binding sites for several different TFs — the enhancer 'reads' the combination of TFs present in a given cell",
+      "Because a cell's TF combination reflects its identity (limb cell vs eye cell vs wing-spot cell), the enhancer effectively computes a cell-specific decision about whether to fire",
+      "DNA looping brings the enhancer-bound TF complex into physical contact with the promoter, recruiting RNA polymerase and boosting transcription",
+      "This 'combinatorial control' means the same gene can be reused in dozens of different tissues, each governed by a different dedicated enhancer"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "ARCHITECTURE",
+    "title": "Modularity: One Gene, Many Switches",
+    "left": {
+      "h": "A single gene, many enhancers",
+      "body": "<p>Developmental genes are often flanked by a battery of independent enhancers, each dedicated to one expression domain.</p><ul><li>An eye enhancer drives expression only in the eye</li><li>A limb enhancer drives expression only in the limb bud</li><li>A gut enhancer drives expression only in the gut</li></ul>"
+    },
+    "right": {
+      "h": "Why modularity matters for evolution",
+      "body": "<p>Because each enhancer works independently, a mutation in ONE enhancer can change expression in ONE tissue only.</p><ul><li>The eye enhancer can mutate without touching limb or gut expression</li><li>This lets evolution tinker with one trait at a time</li><li>The protein-coding sequence, and all other uses of the gene, remain untouched</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE CENTRAL CONTRAST",
+    "title": "Coding Mutations vs. Regulatory Mutations",
+    "left": {
+      "h": "Mutation in the coding region",
+      "body": "<p>Changes the amino acid sequence of the protein itself.</p><ul><li>Alters the protein everywhere it is used, in every tissue and life stage</li><li>A gene like Pax6 or Hox genes is reused dozens of times across the body — a coding change hits all of them at once</li><li>High risk of deleterious <b>pleiotropy</b>: a 'fix' in one tissue can break function in another</li><li>Often removed by purifying selection before it can spread</li></ul>"
+    },
+    "right": {
+      "h": "Mutation in a cis-regulatory element",
+      "body": "<p>Changes when, where, or how much the gene is expressed — not the protein itself.</p><ul><li>Because enhancers are modular, the mutation can be confined to a single enhancer controlling a single tissue</li><li>The protein's biochemical function is unaffected everywhere else it is needed</li><li>Pleiotropic cost is low — evolution can adjust one trait while leaving the rest of the organism alone</li><li>This makes regulatory DNA a favored substrate for morphological evolution</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY REGULATION WINS",
+    "title": "The Logic of Low-Cost Tinkering",
+    "items": [
+      "Most toolkit genes (transcription factors, signaling molecules) are pleiotropic: reused repeatedly across development",
+      "A coding mutation in a pleiotropic gene is like rewriting a subroutine that is called from a hundred different places in a program — nearly guaranteed to break something",
+      "A regulatory mutation in one modular enhancer is like editing a single call to that subroutine — everything else keeps working as before",
+      "Because CREs are modular, natural selection can act on one enhancer at a time, producing precise, tissue-specific changes",
+      "This does not mean coding mutations never matter — it means regulatory mutations are disproportionately likely to be the ones that survive selection and accumulate into visible morphological differences between species"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THE ORIGINAL INSIGHT",
+    "quote": "Organismal evolution relies much more on the evolution of gene regulation than on sequence changes in individual genes.",
+    "attrib": "Mary-Claire King & Allan Wilson, \"Evolution at Two Levels in Humans and Chimpanzees,\" Science, 1975"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE 1975 HYPOTHESIS",
+    "title": "King & Wilson: A Prescient Puzzle",
+    "items": [
+      "King and Wilson compared human and chimpanzee proteins and found them roughly 99% identical at the amino acid level",
+      "Yet humans and chimps differ enormously in anatomy, development, brain size, and behavior",
+      "Their conclusion: the anatomical differences must be driven mainly by changes in gene regulation, not by changes in the proteins themselves",
+      "At the time this was a hypothesis without a mechanism — enhancers, transcription factors, and toolkit genes were barely understood in 1975",
+      "Three decades of evo-devo research, especially in the 2000s, supplied the mechanistic evidence that vindicated their idea"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CASE STUDIES",
+    "title": "Watching Regulatory Evolution in Action",
+    "sub": "Three systems where biologists have traced a visible trait difference all the way down to a single mutated enhancer."
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY 1",
+    "title": "Pitx1",
+    "term": "Pitx1 (Pituitary Homeobox 1)",
+    "def": "A transcription factor gene required for development of hindlimb and pelvic structures in vertebrates. Loss of Pitx1 expression specifically in the pelvic region — without loss of the gene itself — underlies repeated evolutionary loss of the pelvic spine in freshwater stickleback fish.",
+    "bullets": [
+      "Pitx1 has multiple enhancers driving expression in different tissues: pelvis, hindlimb, tooth, and parts of the head",
+      "The protein-coding sequence of Pitx1 is essentially unchanged between marine and pelvis-reduced freshwater stickleback",
+      "The difference lies in a pelvic-specific enhancer"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE ORGANISM",
+    "title": "Stickleback: A Living Laboratory",
+    "items": [
+      "Threespine stickleback (Gasterosteus aculeatus) are small fish found in both ocean and freshwater habitats across the Northern Hemisphere",
+      "Ancestral marine populations have a robust pelvic girdle with prominent pelvic spines, used for defense against predatory fish",
+      "Many freshwater populations, isolated after the last glaciation (~10,000–20,000 years ago), have repeatedly and independently lost or reduced the pelvic spine",
+      "Freshwater ponds often lack large predatory fish but do have insect predators that can grab a fish by a protruding spine — so the spine becomes a liability rather than a defense",
+      "This is a classic case of rapid, repeated, parallel evolution — the same trait lost again and again in different lake populations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE MECHANISM (KINGSLEY LAB)",
+    "title": "How the Spine Disappears",
+    "left": {
+      "h": "What stays the same",
+      "body": "<p>Sequencing the Pitx1 gene itself in spine-reduced fish found no consistent coding differences from marine fish.</p><ul><li>The Pitx1 protein is identical or nearly so</li><li>Pitx1 is still expressed normally in the pituitary, brain, and other tissues</li><li>Overall Pitx1 function is intact everywhere except the pelvis</li></ul>"
+    },
+    "right": {
+      "h": "What changes",
+      "body": "<p>A specific pelvic enhancer of Pitx1 is deleted or disrupted in freshwater populations.</p><ul><li>Loss of this enhancer abolishes Pitx1 expression specifically in the pelvic primordium</li><li>Without Pitx1 signal there, the pelvic girdle and spine fail to form</li><li>All other Pitx1-dependent structures develop normally because their enhancers are untouched</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EVIDENCE",
+    "title": "How Biologists Nailed It Down",
+    "items": [
+      "David Kingsley's lab (Stanford/HHMI) crossed marine and freshwater stickleback and mapped the pelvic-loss trait to the Pitx1 locus using quantitative trait locus (QTL) analysis",
+      "They identified a ~500 bp pelvic-specific enhancer upstream of Pitx1 and showed it was deleted independently in multiple freshwater populations",
+      "Functional test: attaching the marine version of the enhancer to a reporter gene drove expression specifically in the pelvic region of transgenic fish; the freshwater deletion allele failed to do so",
+      "Recreating the enhancer deletion (or its functional loss) in the lab reduces pelvic structures, confirming causation, not just correlation",
+      "Because the same enhancer region is independently deleted in geographically separate lake populations, this is strong evidence of repeated, predictable regulatory evolution acting on the same 'weak point' in the genome"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "PHENOTYPE COMPARISON",
+    "title": "Marine vs. Freshwater Stickleback",
+    "headers": [
+      "Trait",
+      "Marine (ancestral)",
+      "Freshwater (derived)"
+    ],
+    "rows": [
+      [
+        "Pitx1 coding sequence",
+        "Standard allele",
+        "Same protein sequence"
+      ],
+      [
+        "Pitx1 pelvic enhancer",
+        "Intact",
+        "Deleted or nonfunctional"
+      ],
+      [
+        "Pelvic spine",
+        "Large, prominent",
+        "Reduced or absent"
+      ],
+      [
+        "Pitx1 expression elsewhere (pituitary, brain, etc.)",
+        "Normal",
+        "Normal, unaffected"
+      ],
+      [
+        "Selective context",
+        "Predatory fish favor spines for defense",
+        "Insect predators + low predation favor spine loss"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CASE STUDY 2",
+    "title": "Painting Wings and Bodies",
+    "sub": "From stickleback bone to fruit fly pigment: cis-regulatory evolution rewires a completely different kind of trait."
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY 2",
+    "title": "Drosophila pigmentation genes",
+    "term": "yellow and the pigmentation gene network",
+    "def": "A set of enzyme-encoding genes (including yellow, ebony, and tan) that control pigment deposition in the fly cuticle. Differences in body and wing pigmentation patterns between and within Drosophila species are driven largely by changes in the cis-regulatory elements of these genes, not by changes to the enzymes themselves.",
+    "bullets": [
+      "The yellow gene promotes dark (melanic) pigment; ebony promotes lighter, yellowish cuticle",
+      "These enzymes are metabolically similar across species — pattern differences trace to when and where the genes are switched on"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE TRAIT",
+    "title": "Pigmentation as a Model System",
+    "items": [
+      "Drosophila species vary strikingly in body pigmentation — some have fully dark abdomens, some banded patterns, some entirely pale bodies",
+      "Pigmentation is easy to score visually, develops in a well-studied tissue (the cuticle/epidermis), and is controlled by a compact, well-characterized set of genes — ideal for tracing genotype to phenotype",
+      "Sexual dimorphism in pigmentation (e.g., males with fully black abdominal tips in some species) also evolves via regulatory changes",
+      "Because the trait is discrete and visible, researchers can directly compare regulatory DNA sequence to pigment pattern across many species and populations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "REGULATORY REWIRING",
+    "title": "The yellow Gene's Modular Enhancers",
+    "left": {
+      "h": "Enhancer structure",
+      "body": "<p>The yellow gene has separate, independently evolvable enhancers for different body regions:</p><ul><li>A wing-blade enhancer</li><li>An abdominal-stripe enhancer</li><li>A bristle enhancer</li><li>Enhancers for other cuticle structures</li></ul>"
+    },
+    "right": {
+      "h": "Evolutionary outcome",
+      "body": "<p>Species-specific pigment patterns arise from mutations in specific enhancers, each affecting only its own body region.</p><ul><li>Gain of a wing-spot enhancer element turns on yellow in a new wing region, producing a spot used in courtship</li><li>Loss/gain of abdominal enhancer activity changes stripe or tip pigmentation</li><li>Other yellow-dependent structures (bristles, legs) are unaffected</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE WING SPOT (PRUD'HOMME ET AL.)",
+    "title": "Building a New Pigment Spot from Old Parts",
+    "items": [
+      "Several Drosophila species (e.g., in the melanogaster group) independently evolved a dark spot on the male wing used in courtship display",
+      "Prud'homme, Gompel, Carroll and colleagues showed the spot arises from a novel cis-regulatory element that recruits the yellow gene into a new expression domain in the wing",
+      "The novel element evolved by gaining new binding sites for transcription factors already present in that part of the wing (notably Engrailed and the Hedgehog pathway) — no new gene was needed, just a new combination of old regulatory inputs",
+      "In independent lineages, similar spots evolved through partly overlapping but non-identical regulatory changes to the same gene — a case of repeated evolution using the same genetic 'lever'",
+      "This illustrates the general principle: novel traits often arise by rewiring existing genes into new contexts rather than inventing new genes from scratch"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BROADENING THE EVIDENCE",
+    "title": "More Cis-Regulatory Case Studies",
+    "cards": [
+      {
+        "h": "Human-specific regulatory elements",
+        "p": "Human Accelerated Regions (HARs) are DNA sequences highly conserved across mammals but rapidly changed in the human lineage. Many sit near neurodevelopmental or limb-patterning genes and act as enhancers, suggesting human-specific traits (brain expansion, hand and foot structure) trace partly to regulatory tweaks."
+      },
+      {
+        "h": "Cavefish eye loss",
+        "p": "Mexican tetra (Astyanax mexicanus) cave populations lose eyes during development. Regulatory changes affecting Hedgehog signaling and genes like Pax6 alter the timing and level of expression in the eye field, triggering apoptosis of lens tissue — while these same genes function normally elsewhere in the fish."
+      },
+      {
+        "h": "Rock pocket mouse coat color",
+        "p": "Populations of Chaetodipus intermedius on dark lava flows evolved dark coats via coding changes in Mc1r, but in other populations and in related deer mice (Peromyscus), coat-color differences instead trace to regulatory changes affecting Agouti expression — showing coding and regulatory routes can produce the same adaptive outcome."
+      },
+      {
+        "h": "Three-spined stickleback armor plating",
+        "p": "Beyond the pelvis, lateral bony armor plate number in stickleback is controlled largely by regulatory alleles of the Ectodysplasin (Eda) gene, again showing repeated, independent regulatory evolution at the same locus across many freshwater lake populations."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DEEPER LOOK",
+    "title": "Human Accelerated Regions (HARs)",
+    "items": [
+      "Comparative genomics identified ~2,700+ HARs: sequences nearly frozen across non-human mammals for tens of millions of years, but showing a burst of substitutions specifically on the human lineage",
+      "HAR1 lies within a gene expressed in developing neurons of the cerebral cortex during a critical window of brain development",
+      "HARE5 acts as an enhancer for the FZD8 gene, a Wnt-signaling receptor; the human version of HARE5 drives earlier and stronger expression than the chimp version when tested in mouse embryos, correlating with a larger neocortex",
+      "Other HARs sit near limb-development genes and are candidates for explaining changes in human hand and foot morphology (e.g., thumb opposability, foot arch)",
+      "HARs are a genomic signature of exactly the King & Wilson prediction: regulatory DNA, not protein-coding DNA, carrying the signal of rapid human-specific evolution"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DEEPER LOOK",
+    "title": "Cavefish: Losing an Organ by Turning Down a Switch",
+    "items": [
+      "Astyanax mexicanus exists as sighted, pigmented surface-dwelling populations and multiple independently evolved blind, depigmented cave populations",
+      "Cave populations show elevated Hedgehog (Shh) signaling at the midline of the head during early development",
+      "Excess Shh signaling upregulates cell death (apoptosis) in the lens, and lens degeneration secondarily halts development of the rest of the eye",
+      "This is regulatory, not purely a 'broken gene' story: the Shh pathway genes themselves are functional and needed elsewhere in the head — it is the level/timing of signaling in one tissue that has shifted",
+      "Debate continues over whether eye loss is directly adaptive (energy savings, developmental trade-off with taste buds/jaw via shared signaling) or a neutral consequence of relaxed selection — but the proximate regulatory mechanism is well established"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "DEEPER LOOK",
+    "title": "Agouti and coat-color regulatory evolution",
+    "term": "Agouti regulatory alleles",
+    "def": "Non-coding regulatory mutations that change the level or timing of Agouti protein expression in hair follicles, shifting pigment production between dark eumelanin and light pheomelanin without altering the Agouti protein sequence itself.",
+    "bullets": [
+      "In deer mice (Peromyscus polionotus) on the pale Florida Gulf Coast beaches, a regulatory mutation upstream of Agouti increases its expression in dorsal hair follicles, producing a lighter coat that matches the sand",
+      "Hopi Hoekstra's lab showed this regulatory change, not a coding change, is largely responsible, complementing the coding-based Mc1r story in rock pocket mice",
+      "Together these cases show evolution can reach the same adaptive endpoint — camouflage — via either coding or regulatory mutations, depending on which path is available and least costly in a given gene/population"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE CENTRAL DISTINCTION",
+    "title": "Coding-Region vs. Regulatory-Region Mutations",
+    "headers": [
+      "Property",
+      "Coding-region mutation",
+      "Cis-regulatory mutation"
+    ],
+    "rows": [
+      [
+        "What changes",
+        "Amino acid sequence of the protein",
+        "When/where/how much the gene is transcribed"
+      ],
+      [
+        "Modularity",
+        "Low — affects the protein in every context it's used",
+        "High — each enhancer can be tweaked independently"
+      ],
+      [
+        "Pleiotropy risk",
+        "Often high, especially in toolkit/TF genes used many times",
+        "Often low, because expression domains are separable"
+      ],
+      [
+        "Typical evolutionary role",
+        "Fine-tuning protein biochemistry; sometimes new functions",
+        "Repositioning existing gene functions into new times/places"
+      ],
+      [
+        "Detectability",
+        "Amino acid change is directly visible in protein sequence",
+        "Requires comparing non-coding DNA and expression patterns"
+      ],
+      [
+        "Classic example",
+        "Mc1r coding changes in rock pocket mice",
+        "Pitx1 pelvic enhancer loss in stickleback"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE BIG DEBATE",
+    "title": "Coding Genes or Regulatory Switches?",
+    "sub": "Two competing pictures of how evolution builds new forms — and how the evidence eventually settled the argument."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE OLDER, GENE-CENTRIC VIEW",
+    "title": "Before Evo-Devo: Focus on the Protein",
+    "items": [
+      "Mid-20th-century population genetics (the Modern Synthesis) treated genes largely as units encoding proteins, with evolution proceeding via allele-frequency change at protein-coding loci",
+      "Molecular evolution in the 1970s-80s (e.g., Kimura's neutral theory) mostly modeled and measured coding-sequence substitution rates, since these were what could be sequenced and compared most easily at the time",
+      "Under this framework, morphological differences between species were expected to correlate with the degree of protein sequence divergence",
+      "King and Wilson's 1975 finding — nearly identical human and chimp proteins despite huge morphological/behavioral differences — was a direct empirical challenge to this expectation",
+      "For decades this challenge could not be resolved mechanistically because enhancers, chromatin, and toolkit gene networks were essentially unknown"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE EVO-DEVO SYNTHESIS",
+    "title": "Carroll and the Regulatory Turn",
+    "items": [
+      "Discovery of Hox genes and their deep conservation (1980s) made clear that body-plan diversity could not be explained by differences in the toolkit genes themselves",
+      "Sean B. Carroll and colleagues, building on work across many labs, argued that morphological evolution proceeds predominantly through changes in the cis-regulatory DNA controlling toolkit genes",
+      "This became a central thesis of the evo-devo field, popularized in Carroll's 2005 book Endless Forms Most Beautiful",
+      "The core claim is not that coding mutations never matter, but that regulatory mutations are disproportionately responsible for morphological (as opposed to biochemical) evolution, precisely because of the pleiotropy argument covered earlier",
+      "This reframes 'the genetic basis of evolution' from a single question (which genes changed?) into two linked questions: which genes, and which of their many regulatory switches?"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "THE EVO-DEVO MANIFESTO",
+    "quote": "Morphological evolution is far less about the invention of new genes than about the modification of the deployment of old ones — a process centered on evolutionary changes in the cis-regulatory DNA sequences that control gene expression.",
+    "attrib": "Sean B. Carroll, Endless Forms Most Beautiful, 2005 (paraphrased summary of the book's central thesis)"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FRAMING THE DEBATE",
+    "title": "Two Models, Not Mutually Exclusive",
+    "left": {
+      "h": "Gene-centric / structuralist view",
+      "body": "<p>Emphasizes changes to protein-coding sequence as the substrate of adaptation.</p><ul><li>Well suited to biochemical adaptations: enzyme kinetics, receptor binding, toxin resistance</li><li>Directly testable by comparing protein sequences and functional assays</li><li>Dominant framework before evo-devo tools existed</li></ul>"
+    },
+    "right": {
+      "h": "Regulatory / evo-devo view",
+      "body": "<p>Emphasizes changes to cis-regulatory DNA as the substrate of adaptation.</p><ul><li>Well suited to morphological adaptations: shape, pattern, number/size of body structures</li><li>Explains how deeply conserved toolkit genes can still produce vast diversity</li><li>Requires developmental and genomic tools (reporter assays, comparative genomics) that matured mainly after the 1990s</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS, NOT EITHER/OR",
+    "title": "Where Modern Evolutionary Biology Lands",
+    "items": [
+      "Both coding and regulatory mutations contribute to evolution; the question is which type predominates for which kind of trait",
+      "Regulatory mutations are disproportionately important for morphological novelty and pattern differences, because of their low pleiotropic cost in modular gene networks",
+      "Coding mutations remain crucial for biochemical/physiological adaptation: enzyme function, protein-protein binding, toxin resistance, and cases like lactase persistence (coding-adjacent regulatory change) or antifreeze glycoproteins in Antarctic fish (novel coding sequence)",
+      "Some traits (like coat color, discussed earlier) show that either route can reach the same phenotype in different lineages — evolution takes whichever path is available and least costly",
+      "The current consensus treats coding and regulatory evolution as complementary tool sets, not competing explanations"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "HIERARCHY OF CONTROL",
+    "title": "From Master Regulator to Phenotype",
+    "levels": [
+      {
+        "label": "Master regulatory TF (e.g., Pitx1, Pax6)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Battery of tissue-specific enhancers",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Downstream target genes switched on/off",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Cellular behavior (proliferation, death, differentiation)",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Visible phenotype (spine, spot, eye)",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAVEATS AND CRITIQUES",
+    "title": "Where the Regulatory-Centric Story Needs Care",
+    "items": [
+      "Not every interesting mutation is regulatory — famous coding examples remain central to evolutionary biology (lysozyme convergence in foregut fermenters, antifreeze proteins, opsin tuning in vision)",
+      "Distinguishing a 'regulatory' from a 'coding' mutation experimentally is laborious: it requires comparative expression data, reporter constructs, and often genome editing — the evidence bar is higher than simply sequencing a gene",
+      "Ascertainment bias: regulatory case studies are often chosen because the phenotype (pigment spot, spine, coat color) is easy to score, which may overrepresent certain trait classes in the literature",
+      "Cis-regulatory elements themselves can be pleiotropic if they are shared across cell types or if changing one enhancer disrupts a nearby gene's chromatin environment — modularity is a matter of degree, not absolute",
+      "The debate is best read as a shift in emphasis and evidentiary standards, not a simple 'regulation replaces coding' story"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "KEEPING BOTH ROUTES IN VIEW",
+    "title": "When Each Route Tends to Dominate",
+    "headers": [
+      "Trait type",
+      "More often driven by",
+      "Example"
+    ],
+    "rows": [
+      [
+        "Body shape / structure size or presence",
+        "Regulatory mutation",
+        "Pitx1 enhancer loss, stickleback pelvic spine"
+      ],
+      [
+        "Color pattern",
+        "Regulatory mutation (often)",
+        "yellow gene wing spot, Drosophila"
+      ],
+      [
+        "Enzyme/protein biochemical activity",
+        "Coding mutation",
+        "Lysozyme convergence in ruminants and colobine monkeys"
+      ],
+      [
+        "Novel protein function",
+        "Coding mutation (with gene duplication)",
+        "Antifreeze glycoproteins in Antarctic notothenioid fish"
+      ],
+      [
+        "Dietary/metabolic adaptation",
+        "Either, gene-dependent",
+        "Lactase persistence (regulatory, near LCT); Mc1r pocket mice (coding)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "BACK TO L14",
+    "title": "Reconnecting the Mutation Menu",
+    "sub": "How cis-regulatory changes fit into the catalogue of mutation types you learned in Lecture 14."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "RECALL FROM L14",
+    "title": "The Mutation Types You Already Know",
+    "items": [
+      "Point mutations: substitutions, including synonymous, missense, and nonsense changes within coding sequence",
+      "Insertions and deletions (indels): can cause frameshifts if they occur within coding sequence and are not a multiple of three bases",
+      "Chromosomal-scale mutations: duplications, inversions, translocations, and whole-genome duplication",
+      "Gene duplication as a source of new genetic material, potentially freeing one copy to evolve a new function (neofunctionalization) or split ancestral functions (subfunctionalization)",
+      "L14 largely framed these mutation types by their effect on coding sequence and protein product"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "ADDING A CATEGORY",
+    "title": "Regulatory Mutation as a Distinct Evolutionary Path",
+    "left": {
+      "h": "Same molecular mutation types...",
+      "body": "<p>Point mutations, indels, and small structural changes can all occur in cis-regulatory DNA, using the exact same mutational mechanisms covered in L14 (replication error, transposon insertion, unequal recombination).</p>"
+    },
+    "right": {
+      "h": "...but a different functional consequence",
+      "body": "<p>Because the mutation lands in a switch rather than in the coding sequence, its effect is on gene expression pattern, not protein structure.</p><ul><li>Same mutational process, different genomic address, different phenotypic logic</li><li>Regulatory mutations therefore deserve their own place in the mutation-to-phenotype framework from L14</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTEGRATING THE FRAMEWORK",
+    "title": "One Mutation Menu, Two Genomic Neighborhoods",
+    "items": [
+      "Any of the mutation types from L14 (substitution, indel, duplication, inversion, transposon insertion) can strike either a coding region or a regulatory region",
+      "Where the mutation lands determines its functional class: a single-nucleotide substitution in an exon can be missense; the same kind of substitution in an enhancer can destroy or create a transcription-factor binding site",
+      "This is why comparative genomics increasingly maps mutations by genomic context, not just by mutation type — 'substitution' alone doesn't tell you the evolutionary consequence",
+      "The take-home extension of L14: to predict a mutation's evolutionary significance, you need to know both what kind of mutation it is AND what kind of DNA it hit",
+      "This connects mutation-level molecular genetics (L14) to organism-level phenotypic evolution (L31–L33) through a single unifying lens: modularity of regulatory architecture"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODS SPOTLIGHT",
+    "title": "How Biologists Detect Cis-Regulatory Evolution",
+    "items": [
+      "Reporter gene assays: fuse a candidate regulatory element to a marker gene (like GFP or lacZ) and observe where/when it drives expression in a transgenic embryo",
+      "Comparative expression studies: use in situ hybridization or RNA sequencing to compare where a gene is transcribed across species or populations",
+      "QTL mapping and genome-wide association: cross populations differing in a trait and statistically map the causal region, as in the stickleback pelvic studies",
+      "ATAC-seq and ChIP-seq: identify open chromatin and transcription-factor binding sites genome-wide, revealing candidate active enhancers in a given tissue",
+      "CRISPR-Cas9 genome editing: directly delete, insert, or edit a candidate enhancer in a living organism to test whether it is necessary and sufficient for the trait"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "METHODS SPOTLIGHT",
+    "title": "Reporter gene assay",
+    "term": "Reporter Gene Assay",
+    "def": "An experimental technique in which a putative regulatory element is cloned upstream of an easily visualized marker gene (such as green fluorescent protein or lacZ/beta-galactosidase) and introduced into an organism, so that the marker's expression pattern reveals exactly where and when the regulatory element is active.",
+    "bullets": [
+      "Used to confirm that the Pitx1 pelvic enhancer drives pelvis-specific expression in stickleback",
+      "Used to test whether human vs. chimp versions of a HAR drive different expression levels or timing when placed in a common host embryo",
+      "A cornerstone technique linking a specific DNA sequence to a specific developmental function"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODS SPOTLIGHT",
+    "title": "CRISPR Editing Confirms Causation",
+    "items": [
+      "Earlier evidence for cis-regulatory evolution was often correlational: an enhancer sequence differs between species/populations, and it drives different reporter expression in a dish or transgenic line",
+      "CRISPR-Cas9 allows researchers to directly delete or rewrite an endogenous enhancer in its native genomic location and observe the resulting phenotype in a living, breeding organism",
+      "In stickleback, CRISPR-mediated disruption of the Pitx1 pelvic enhancer in an intact marine-type fish reduces pelvic structures, directly confirming the enhancer is necessary for the trait",
+      "Similar approaches have tested candidate human regulatory elements (e.g., limb enhancers) by inserting the human sequence into mouse embryos and observing altered limb development",
+      "This has shifted the field from correlation to experimentally demonstrated causation for many classic cis-regulatory case studies"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORY OF THE IDEA",
+    "title": "Milestones in Cis-Regulatory Evolution",
+    "items": [
+      {
+        "y": "1975",
+        "t": "King & Wilson propose that regulatory, not protein, differences explain human-chimp divergence"
+      },
+      {
+        "y": "1983–1984",
+        "t": "Hox gene clusters discovered in Drosophila and shown to be conserved across animals"
+      },
+      {
+        "y": "1990s",
+        "t": "Enhancer 'bashing' experiments in flies and vertebrates map modular tissue-specific enhancers for toolkit genes"
+      },
+      {
+        "y": "2004",
+        "t": "Prud'homme, Gompel & Carroll trace Drosophila wing-spot evolution to a novel yellow gene enhancer"
+      },
+      {
+        "y": "2004",
+        "t": "Kingsley lab links stickleback pelvic reduction to the Pitx1 locus and pelvic enhancer"
+      },
+      {
+        "y": "2005",
+        "t": "Carroll's Endless Forms Most Beautiful popularizes the evo-devo regulatory synthesis"
+      },
+      {
+        "y": "2006–2008",
+        "t": "Human Accelerated Regions (HAR1, HARE5, and others) identified via comparative genomics"
+      },
+      {
+        "y": "2010s–present",
+        "t": "CRISPR editing directly tests causality of candidate enhancers across many systems"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TOOLKIT GENES REVISITED",
+    "title": "Common Regulatory 'Hot Spots' in the Genome",
+    "items": [
+      "Pitx1 — pelvic/hindlimb structures across vertebrates, repeatedly targeted by regulatory loss in stickleback",
+      "Pax6 — eye development master regulator across animals; regulatory changes implicated in cavefish eye reduction",
+      "yellow / ebony / tan — pigmentation enzymes in insects, repeatedly rewired to produce new color patterns",
+      "Agouti / Mc1r — pigment-type switching genes in mammals, evolving via both coding and regulatory routes",
+      "Eda (Ectodysplasin) — skeletal armor plating in stickleback, another regulatory hotspot independently used by many lake populations",
+      "A recurring theme: the same small set of 'evolutionary hot spot' genes gets used again and again across independent lineages, because their modular regulatory architecture makes them especially safe places for evolution to tinker"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHO DID THIS WORK",
+    "title": "Key Figures in Cis-Regulatory Evolution",
+    "cards": [
+      {
+        "h": "Mary-Claire King & Allan Wilson",
+        "p": "1975 paper proposing that regulatory change, not protein change, drives human-chimp divergence — the founding hypothesis for this entire field."
+      },
+      {
+        "h": "Sean B. Carroll",
+        "p": "Evo-devo researcher whose lab's work on Drosophila pigmentation and whose book Endless Forms Most Beautiful (2005) popularized the cis-regulatory view of morphological evolution."
+      },
+      {
+        "h": "David Kingsley",
+        "p": "Led the stickleback genetics program identifying Pitx1 and Eda as regulatory hot spots for repeated, parallel skeletal evolution in freshwater populations."
+      },
+      {
+        "h": "Hopi Hoekstra",
+        "p": "Deer mouse (Peromyscus) researcher whose work on Agouti regulatory variation complements Mc1r coding-based coat-color studies, illustrating both evolutionary routes side by side."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "Things Students Often Get Wrong",
+    "items": [
+      "Misconception: 'Regulatory mutations are always neutral or minor.' Reality — they can have large, even lethal, phenotypic effects; they just tend to be more tissue-restricted than coding mutations in the same gene",
+      "Misconception: 'Enhancers are optional extras.' Reality — many genes cannot be expressed correctly at all without their enhancers; enhancers are not decorative, they are essential control circuitry",
+      "Misconception: 'Cis-regulatory evolution means the gene itself didn't matter.' Reality — the gene's protein function still had to be useful in the new context; regulatory evolution repositions a functional protein, it doesn't invent function from nothing",
+      "Misconception: 'Coding mutations are old news / irrelevant now.' Reality — both routes remain active and important; which one dominates depends on the trait and the gene involved",
+      "Misconception: '\"Cis\" refers to a chemical property.' Reality — here \"cis\" simply means the regulatory DNA acts on a gene located on the same DNA molecule/chromosome, as opposed to \"trans\"-acting diffusible factors"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "VOCABULARY CHECK",
+    "title": "Cis- vs. Trans-Acting Regulation",
+    "left": {
+      "h": "Cis-acting",
+      "body": "<p>DNA sequence elements (promoters, enhancers, silencers, insulators) that regulate a gene located on the same chromosome/DNA molecule.</p><ul><li>Physically linked to the gene they control</li><li>Typically affect only the allele they are physically attached to</li></ul>"
+    },
+    "right": {
+      "h": "Trans-acting",
+      "body": "<p>Diffusible molecules, usually transcription factor proteins (or regulatory RNAs), encoded elsewhere in the genome that bind to cis-regulatory elements.</p><ul><li>Can act on any gene in the genome carrying the matching binding site</li><li>Mutations in trans-acting factors tend to be more pleiotropic than cis mutations, because one TF can regulate many genes</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EXAM-RELEVANT TAKEAWAYS",
+    "title": "What You Should Be Able to Do After Today",
+    "items": [
+      "Define cis-regulatory element, enhancer, promoter, silencer, and insulator, and distinguish cis- from trans-acting regulation",
+      "Explain, using the pleiotropy argument, why regulatory mutations are often favored raw material for morphological evolution compared to coding mutations",
+      "Walk through the Pitx1/stickleback pelvic spine case study from phenotype to enhancer mechanism to experimental evidence",
+      "Walk through the Drosophila pigmentation case study, including the yellow gene and the evolution of a novel wing spot enhancer",
+      "Summarize the King & Wilson hypothesis and how Carroll's evo-devo synthesis provided the mechanistic backing for it",
+      "Situate cis-regulatory mutation within the broader mutation framework from L14, explaining how the same mutational mechanisms produce different evolutionary consequences depending on genomic location"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Putting It All Together",
+    "items": [
+      "Cis-regulatory elements are DNA switches (enhancers, promoters, silencers, insulators) that control a gene's expression pattern without altering its protein product",
+      "Because enhancers are modular, regulatory mutations can change one trait in one tissue while leaving the rest of the organism's biology untouched — a lower pleiotropic cost than most coding mutations",
+      "Stickleback Pitx1 pelvic enhancer loss and Drosophila yellow gene enhancer evolution are two well-documented, experimentally confirmed cases of this process producing real adaptive and novel traits",
+      "Human accelerated regions, cavefish eye loss, and coat-color evolution extend the pattern across vertebrates and show that both regulatory and coding routes remain part of evolution's toolkit",
+      "King & Wilson's 1975 regulatory hypothesis, once untestable, is now supported by decades of evo-devo mechanistic evidence assembled largely under Carroll's synthesis",
+      "This is not a replacement for the mutation types you learned in L14, but an extension: the same mutational mechanisms produce different evolutionary outcomes depending on whether they land in coding or regulatory DNA"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT TIME — LECTURE 34",
+    "title": "Evo-Devo Case Studies and the Chapter 9 Synthesis",
+    "sub": "We will pull together limb evolution, eye evolution, and the broader evo-devo toolkit into a unified picture of how genotype builds phenotype — closing out Chapter 9 before moving into speciation."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 33</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

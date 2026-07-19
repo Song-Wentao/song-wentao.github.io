@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 22: Balancing Selection, Selection-Drift Interaction, and Chapter 6 Synthesis</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 22",
+    "title": "Balancing Selection, Selection-Drift Interaction, and Chapter 6 Synthesis",
+    "sub": "How natural populations keep their genetic variation — and what happens when selection is too weak to matter",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 6, \"The Ways of Change\" (lecture 5 of 5)"
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING BACK",
+    "title": "From L18 to L21",
+    "sub": "Hardy-Weinberg equilibrium → genetic drift → directional/stabilizing/disruptive selection → sexual selection. Today we close the loop."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "Three Goals for Lecture 22",
+    "items": [
+      "Part 1: Balancing selection — mechanisms that actively maintain genetic variation rather than eroding it",
+      "Heterozygote advantage (overdominance): the sickle-cell/malaria case study in depth",
+      "Frequency-dependent selection and spatially/temporally varying selection",
+      "Part 2: When selection meets drift — the selection coefficient s versus population size Ne, and the nearly-neutral intuition",
+      "Part 3: Chapter 6 synthesis — a full review of the five 'ways of change' before we move to Chapter 7 (quantitative genetics)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "Maintaining Genetic Variation",
+    "sub": "Not all selection erodes diversity — some forms actively preserve it"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Balancing Selection",
+    "term": "Balancing selection",
+    "def": "A category of natural selection in which multiple alleles at a locus are actively maintained in a population over long timescales, rather than one allele being driven to fixation.",
+    "bullets": [
+      "Contrasts sharply with directional selection (fixes one extreme) and stabilizing selection (fixes the intermediate, purges extremes)",
+      "Produces stable polymorphism: two or more alleles persist at appreciable frequencies generation after generation",
+      "Three major mechanisms: heterozygote advantage, frequency-dependent selection, and spatially/temporally varying selection",
+      "Important because it is one of the few processes that can counteract drift's tendency to erode variation in finite populations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY IT MATTERS",
+    "title": "Why Should We Care About Maintained Variation?",
+    "items": [
+      "Standing genetic variation is the raw material for future evolutionary responses to environmental change",
+      "Populations with balanced polymorphisms can respond faster to new selective pressures (pathogens, climate shifts) than genetically uniform populations",
+      "Balancing selection explains puzzling patterns: alleles that seem 'bad' (like sickle-cell) persisting at surprisingly high frequency",
+      "It also explains why some loci show far more diversity than neutral expectation predicts — e.g., MHC/immune genes",
+      "Recognizing balancing selection requires distinguishing it statistically from relaxed purifying selection or recent admixture"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "MECHANISM 1",
+    "title": "Heterozygote Advantage",
+    "sub": "When the heterozygote outperforms both homozygotes"
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 1 OF 3",
+    "title": "Heterozygote Advantage (Overdominance)",
+    "term": "Heterozygote advantage / overdominance",
+    "def": "A form of balancing selection in which heterozygous individuals (Aa) have higher fitness than either homozygote (AA or aa), so selection favors keeping both alleles in the population.",
+    "bullets": [
+      "Also called overdominance because heterozygote fitness exceeds ('is over') both homozygote fitnesses",
+      "Neither allele can go to fixation: as one allele becomes rare, more of its copies end up in fit heterozygotes, protecting it from loss",
+      "Produces a stable internal equilibrium allele frequency — the population settles at a predictable mix of AA, Aa, aa",
+      "Classic textbook case: the sickle-cell allele (HbS) and malaria resistance in human populations"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE MATH OF OVERDOMINANCE",
+    "title": "Finding the Equilibrium Allele Frequency",
+    "left": {
+      "h": "Relative fitness setup",
+      "body": "<p>Assign relative fitnesses to the three genotypes, where heterozygote fitness = 1 (highest):</p><ul><li>w<sub>AA</sub> = 1 &minus; s (homozygote cost s)</li><li>w<sub>Aa</sub> = 1 (heterozygote, fittest)</li><li>w<sub>aa</sub> = 1 &minus; t (homozygote cost t)</li></ul><p>Selection removes AA and aa individuals every generation, but recombination in heterozygotes keeps regenerating both homozygote classes.</p>"
+    },
+    "right": {
+      "h": "Equilibrium result",
+      "body": "<p>The population reaches a stable equilibrium frequency for allele a:</p><ul><li>q&#770; = s / (s + t)</li><li>Equilibrium is <em>stable</em>: push the frequency away from q&#770; in either direction and selection pushes it back</li><li>Both alleles are permanently protected from fixation and loss as long as s, t &gt; 0</li><li>This is a rare case where selection itself preserves polymorphism indefinitely</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY BACKGROUND",
+    "title": "The Sickle-Cell Allele (HbS)",
+    "items": [
+      "HbS is a single point mutation in the beta-globin gene (HBB), changing one amino acid in hemoglobin",
+      "Homozygotes (HbS/HbS) develop sickle-cell disease: red blood cells deform into a sickle shape, causing anemia, pain crises, and often early mortality without treatment",
+      "Heterozygotes (HbA/HbS) are generally healthy — they carry 'sickle-cell trait' with only mild, usually asymptomatic effects",
+      "HbS reaches allele frequencies of 10-20% in parts of sub-Saharan Africa, India, and the Mediterranean — far too common to be explained by mutation alone",
+      "The puzzle: why does a severely deleterious allele persist at such high frequency instead of being purged by selection?"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY",
+    "title": "Sickle-Cell and Malaria: The Overdominance Solution",
+    "left": {
+      "h": "Fitness in malaria-endemic regions",
+      "body": "<p>The resolution: heterozygotes (HbA/HbS) have <strong>higher fitness</strong> than either homozygote where malaria (<em>Plasmodium falciparum</em>) is common.</p><ul><li>HbA/HbA: normal hemoglobin, but fully susceptible to severe, often fatal malaria</li><li>HbS/HbS: protected from malaria, but suffers sickle-cell disease</li><li>HbA/HbS: sickled cells inhibit parasite replication, giving strong malaria resistance, without full-blown sickle-cell disease</li></ul>"
+    },
+    "right": {
+      "h": "Geographic correlation",
+      "body": "<p>The key evidence is geographic: HbS frequency tracks historical malaria prevalence almost precisely.</p><ul><li>High HbS frequency in regions with holoendemic malaria (parts of West/Central Africa)</li><li>Low or absent HbS in malaria-free regions, even among populations of similar ancestry</li><li>In malaria-free environments (e.g., after migration to the U.S.), the heterozygote advantage disappears and HbS frequency is expected to decline over generations</li><li>This is a textbook example of an environmentally contingent equilibrium</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BEYOND SICKLE-CELL",
+    "title": "Other Documented Cases of Heterozygote Advantage",
+    "cards": [
+      {
+        "h": "CFTR & typhoid/cholera",
+        "p": "A single copy of certain cystic fibrosis-causing CFTR mutations may reduce susceptibility to typhoid fever or cholera-related fluid loss, paralleling the sickle-cell logic (evidence more mixed than for HbS)."
+      },
+      {
+        "h": "MHC / HLA diversity",
+        "p": "Major histocompatibility complex genes, central to pathogen recognition, are among the most polymorphic loci known in vertebrates — heterozygotes can recognize a broader range of pathogen antigens."
+      },
+      {
+        "h": "Thalassemia & malaria",
+        "p": "Similar to HbS, heterozygous carriers of certain thalassemia mutations show reduced malaria severity while avoiding the severe homozygous anemia."
+      },
+      {
+        "h": "Plant self-incompatibility loci (S-alleles)",
+        "p": "Extreme allelic diversity at self-incompatibility loci in plants is maintained because rare alleles have a mating advantage — a link to frequency-dependent selection, next section."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 2 OF 3",
+    "title": "Frequency-Dependent Selection",
+    "term": "Frequency-dependent selection",
+    "def": "A form of selection in which the fitness of a phenotype or genotype depends on how common it is in the population — fitness changes as frequency changes.",
+    "bullets": [
+      "Negative frequency-dependent selection: rare types have the fitness advantage — this maintains polymorphism (a self-correcting, balancing force)",
+      "Positive frequency-dependent selection: common types have the advantage — this erodes polymorphism (drives one type to fixation, the opposite of balancing selection)",
+      "Only the negative form counts as a balancing mechanism; distinguishing the two is essential",
+      "Mechanistically often arises from predator search images, host-parasite coevolution, or mating advantages of rare morphs"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "NEGATIVE FDS IN ACTION",
+    "title": "Examples of Negative Frequency-Dependent Selection",
+    "left": {
+      "h": "Predator search images",
+      "body": "<p>Predators form a 'search image' for the most common prey morph and preferentially target it.</p><ul><li>Rare color morphs of prey (e.g., scale-eating cichlid fish, land snails) are attacked less often simply because they are unfamiliar/uncommon</li><li>As the rare morph increases in frequency, it becomes the new common target — frequency oscillates around an equilibrium</li></ul>"
+    },
+    "right": {
+      "h": "Host-parasite 'Red Queen' dynamics",
+      "body": "<p>Parasites adapt to attack the most common host genotype (e.g., common MHC or resistance alleles).</p><ul><li>Rare host genotypes are less recognized by locally adapted parasites and gain a survival advantage</li><li>As that genotype becomes common, parasites catch up, and the advantage shifts to whichever genotype is now rare</li><li>Produces perpetual allele cycling — a major hypothesis for why sex and recombination are maintained</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE OTHER DIRECTION",
+    "title": "Positive Frequency Dependence: Not a Balancing Force",
+    "items": [
+      "In Batesian mimicry, a palatable species mimics a toxic model — the mimicry only works if mimics stay rarer than the toxic model, or predators lose their aversion",
+      "When a mimetic form becomes too common relative to the model, predators learn it is often not toxic — fitness of that morph drops, illustrating frequency dependence can cut both ways depending on ecological detail",
+      "In many social and coordination contexts (e.g., a common signal or display that predators/mates already recognize), common morphs are favored, driving loss of variation, not maintenance of it",
+      "Takeaway: 'frequency-dependent' alone doesn't guarantee balancing selection — you must ask whether rare or common types are favored"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "MECHANISM 3",
+    "title": "Selection That Varies in Space and Time",
+    "sub": "When the fitness landscape itself is not constant"
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 3 OF 3 (PART A)",
+    "title": "Spatially Varying Selection",
+    "term": "Spatially varying selection",
+    "def": "Selection that favors different alleles or phenotypes in different locations across a species' range, such that gene flow between habitats maintains multiple alleles in the metapopulation as a whole.",
+    "bullets": [
+      "Different microhabitats or patches impose different optimal phenotypes",
+      "Requires enough gene flow to continually reintroduce 'wrong-habitat' alleles into each patch, but not so much that local adaptation is swamped",
+      "At the species level, both alleles persist even though each local population may be nearly fixed for its locally favored allele",
+      "This is balancing selection acting on the whole species even without heterozygote advantage in any single deme"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EXAMPLES OF SPATIAL VARIATION",
+    "title": "Spatially Varying Selection: Field Examples",
+    "items": [
+      "Timema stick insects: green and striped color morphs are cryptic on different host plants; each morph is favored on its matching plant, maintaining both morphs across a patchy landscape",
+      "Peppered moth (Biston betularia): dark and light morphs were favored in industrial vs. unpolluted regions respectively — a geographic mosaic maintained variation across England before and after industrial melanism shifts",
+      "Coat color in beach mice (Peromyscus polionotus): pale morphs favored on white sand dunes, darker morphs favored on darker inland soils, with gene flow connecting populations",
+      "In each case, removing gene flow (isolating patches completely) would let each patch fix its local optimum — variation is only maintained because migration keeps mixing alleles across environments"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "MECHANISM 3 OF 3 (PART B)",
+    "title": "Temporally Varying Selection",
+    "term": "Temporally varying selection",
+    "def": "Selection whose direction or strength changes over time (seasonally or across years), so that no single allele or phenotype is always optimal — different variants are favored in different periods.",
+    "bullets": [
+      "If fitness reversals happen fast enough relative to generation time, no allele is ever purged completely before conditions favor it again",
+      "Especially effective at maintaining variation when generations overlap, allowing 'losing' genotypes from one period to survive into a period when they win again",
+      "Differs from spatial variation in that it operates within a single population through time rather than across separate patches"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EXAMPLES OF TEMPORAL VARIATION",
+    "title": "Temporally Varying Selection: Field Examples",
+    "items": [
+      "Darwin's finches (Geospiza fortis) on Daphne Major: drought years favor larger, deeper beaks (access to hard seeds); wet years favor smaller beaks (access to abundant small seeds) — Grant & Grant's long-term study documented reversing selection across decades",
+      "Seasonal fluctuation in Drosophila chromosomal inversion frequencies: certain inversions rise in summer and fall in winter, tracking temperature and resource cycles year after year",
+      "Fluctuating selection on flowering time in annual plants, driven by year-to-year variation in rainfall timing",
+      "Long-term persistence of variation under temporal fluctuation depends on the geometric mean fitness across years, not just the fitness in any one year"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS TABLE",
+    "title": "Three Mechanisms That Maintain Genetic Variation",
+    "headers": [
+      "Mechanism",
+      "How it works",
+      "Classic example"
+    ],
+    "rows": [
+      [
+        "Heterozygote advantage (overdominance)",
+        "Aa fitness exceeds both AA and aa; stable internal equilibrium q̂ = s/(s+t)",
+        "Sickle-cell allele (HbS) and malaria resistance"
+      ],
+      [
+        "Negative frequency-dependent selection",
+        "Rare alleles/phenotypes have the fitness advantage; advantage disappears as they become common",
+        "Host-parasite Red Queen cycling; rare-morph predator avoidance"
+      ],
+      [
+        "Spatially/temporally varying selection",
+        "Different alleles favored in different places or times; gene flow or overlapping generations preserve both",
+        "Beach mouse coat color across habitats; finch beak size across drought/wet cycles"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DETECTING IT IN GENOMES",
+    "title": "How Do We Detect Balancing Selection in Real Data?",
+    "items": [
+      "Elevated polymorphism: loci under long-term balancing selection retain more nucleotide diversity than neutral expectation, since multiple allelic lineages persist for extended periods",
+      "Tajima's D statistic: compares two estimators of genetic diversity; a significantly positive value at a locus is a classic signature consistent with balancing selection (contrasted with negative values expected under a recent selective sweep)",
+      "Trans-species polymorphism: in extreme cases (e.g., some MHC alleles), the same allelic lineages are shared across closely related species, implying the polymorphism predates speciation — strong evidence variation has been balanced for millions of years",
+      "These genomic signatures let researchers find balancing selection even without knowing the underlying ecology in advance, then go looking for the mechanism (heterozygote advantage, FDS, spatial variation) afterward"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "When Selection Meets Drift",
+    "sub": "Selection does not act alone — population size determines whether it can act at all"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "QUICK RECAP FROM L19",
+    "title": "Genetic Drift, Revisited",
+    "items": [
+      "Genetic drift is random change in allele frequency due to chance sampling of gametes each generation",
+      "Its magnitude scales inversely with effective population size (Ne): drift is powerful in small populations, negligible in large ones",
+      "Drift can fix or lose alleles regardless of whether they are beneficial, neutral, or even mildly harmful",
+      "The question for today: at what point does selection's 'signal' get drowned out by drift's 'noise'?"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY QUANTITY",
+    "title": "The Selection Coefficient, s",
+    "term": "Selection coefficient (s)",
+    "def": "A measure of the strength of selection against (or for) a genotype, expressed as the proportional reduction (or increase) in relative fitness compared to the fittest genotype, ranging conceptually from 0 (neutral) to 1 (lethal/sterile).",
+    "bullets": [
+      "If the fittest genotype has relative fitness w = 1, a genotype with fitness w = 1 − s is disfavored by strength s",
+      "Larger s means selection removes or promotes the allele faster, generation over generation",
+      "s is a per-generation deterministic force — but its actual effectiveness in a real population depends on being able to 'outrun' the random noise of drift",
+      "This sets up the central comparison of Part 2: s versus 1/Ne"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE CENTRAL COMPARISON",
+    "title": "s vs. 1/Ne: When Does Selection 'Win'?",
+    "left": {
+      "h": "The rule of thumb",
+      "body": "<p>Population genetics theory (Kimura, and later Ohta's nearly neutral theory) gives a simple threshold:</p><ul><li>If |s| &gt;&gt; 1/Ne &mdash; selection dominates. The allele's fate is essentially deterministic; drift is negligible noise around a predictable trajectory.</li><li>If |s| &lt;&lt; 1/Ne &mdash; drift dominates. The allele behaves as if effectively neutral, regardless of whether it is truly beneficial or mildly deleterious.</li><li>If |s| ≈ 1/Ne &mdash; the 'nearly neutral zone.' Outcome is a genuine toss-up between selection and chance.</li></ul>"
+    },
+    "right": {
+      "h": "Why 1/Ne is the yardstick",
+      "body": "<p>1/Ne represents the characteristic magnitude of random allele-frequency change from drift each generation in a population of effective size Ne.</p><ul><li>Small Ne → large 1/Ne → only strongly selected alleles (large |s|) can reliably escape drift's influence</li><li>Large Ne → small 1/Ne → even very weak selection (tiny s) can act efficiently, because drift's noise is small</li><li>This means the exact same mutation, with the exact same fitness effect, can be effectively selected in one population and effectively neutral in another, based purely on population size</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NEARLY NEUTRAL THEORY",
+    "title": "The Nearly Neutral Theory Intuition",
+    "items": [
+      "Proposed by Tomoko Ohta as an extension of Kimura's neutral theory of molecular evolution",
+      "Most new mutations are neither strongly beneficial nor strongly deleterious — they cluster near neutrality with small fitness effects (small |s|)",
+      "Whether such a mutation behaves as 'selected' or 'neutral' depends on Ne, not on s alone — the same mutation can be purged in a large population but drift to fixation in a small one",
+      "Predicts that small populations (or species with small long-term Ne) accumulate more mildly deleterious mutations — a genomic signature testable across species",
+      "Explains why slightly deleterious substitutions are more common in species with historically small population sizes (e.g., some island endemics, some primates relative to Drosophila)"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "PRACTICAL CONSEQUENCES",
+    "title": "Large Ne vs. Small Ne: Contrasting Outcomes",
+    "headers": [
+      "Feature",
+      "Large effective population (large Ne)",
+      "Small effective population (small Ne)"
+    ],
+    "rows": [
+      [
+        "Threshold for selection to dominate",
+        "Very small |s| still selected efficiently (1/Ne is tiny)",
+        "Only large |s| escapes drift (1/Ne is large)"
+      ],
+      [
+        "Fate of mildly deleterious mutations",
+        "Purged reliably by purifying selection",
+        "Can drift to fixation despite being harmful"
+      ],
+      [
+        "Fate of mildly beneficial mutations",
+        "Can be favored and spread even if only slightly advantageous",
+        "Often lost by chance before selection can act"
+      ],
+      [
+        "Genomic signature over time",
+        "Lower genetic load; more efficient codon usage/adaptation",
+        "Higher genetic load; more nearly-neutral substitutions accumulate"
+      ],
+      [
+        "Relevance to conservation",
+        "Large wild populations retain adaptive potential",
+        "Small/bottlenecked populations (endangered species) are vulnerable to drift-driven fitness decline"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "APPLIED CASE",
+    "title": "Why This Matters for Conservation Biology",
+    "left": {
+      "h": "The problem",
+      "body": "<p>Endangered species are, almost by definition, living with small Ne — often after a bottleneck.</p><ul><li>Weakly deleterious mutations that a large ancestral population would have purged can drift to fixation</li><li>This raises genetic load and can reduce fitness even without any new external threat</li><li>Inbreeding further reduces heterozygosity, compounding loss of the very variation balancing selection would otherwise protect</li></ul>"
+    },
+    "right": {
+      "h": "Real-world illustration",
+      "body": "<p>Species with well-documented small-Ne genetic decline include:</p><ul><li>Florida panthers: severe bottleneck led to fixation of deleterious traits (kinked tails, cardiac defects) before genetic rescue via Texas cougar introduction</li><li>Island fox populations: reduced MHC diversity linked to disease vulnerability</li><li>Cheetahs: famously low genome-wide diversity, consistent with an ancient/historical bottleneck</li><li>These cases show s vs. 1/Ne is not just abstract theory — it predicts real fitness consequences for management</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "IN THEIR WORDS",
+    "quote": "In a finite population, no mutant gene is entirely 'neutral' or entirely 'selected' — what matters is the relationship between the strength of selection and the strength of random drift.",
+    "attrib": "paraphrasing Motoo Kimura's neutral theory framework, extended by Tomoko Ohta's nearly neutral theory"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BRIDGING BACK",
+    "title": "Selection-Drift Interaction and Balancing Selection Together",
+    "items": [
+      "Balancing selection mechanisms (heterozygote advantage, FDS, spatial/temporal variation) can maintain polymorphism only if selection is strong enough relative to drift in the population's Ne",
+      "In very small populations, even balancing selection can fail — drift can still fix or lose an allele despite an underlying heterozygote advantage, especially if s (=t) is small",
+      "This is why balancing selection is easiest to detect and most durable in large, well-connected populations",
+      "Sets up a unifying theme for the chapter synthesis: evolution is always the outcome of multiple forces acting together, not any one force in isolation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3 — CHAPTER 6 SYNTHESIS",
+    "title": "The Five Ways of Change",
+    "sub": "Pulling together Lectures 18 through 22 into one coherent framework"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE ARC OF CHAPTER 6",
+    "title": "What We Have Covered, Lecture by Lecture",
+    "items": [
+      "L18 — Hardy-Weinberg equilibrium: the null model. No evolution occurs without violating its five assumptions",
+      "L19 — Genetic drift: random change in allele frequency from finite sampling; strongest in small populations",
+      "L20 — Modes of natural selection: directional, stabilizing, and disruptive selection acting on phenotypic variation",
+      "L21 — Sexual selection: intrasexual competition and intersexual mate choice as a special, often variation-reducing but sometimes variation-generating force",
+      "L22 (today) — Balancing selection and the selection-drift interaction: how variation is actively preserved, and when selection's effects are overridden by chance"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "THE BIG PICTURE",
+    "title": "The Five Ways of Change: Full Comparison",
+    "headers": [
+      "Mechanism",
+      "Direction of change",
+      "Effect on genetic variation",
+      "Requires selection?"
+    ],
+    "rows": [
+      [
+        "Hardy-Weinberg equilibrium",
+        "None (baseline, no change)",
+        "Preserves variation exactly, generation to generation",
+        "No — this is the non-evolving null model"
+      ],
+      [
+        "Genetic drift",
+        "Random, no consistent direction",
+        "Reduces variation over time (loses/fixes alleles by chance); effect scales with 1/Ne",
+        "No — driven purely by finite population sampling"
+      ],
+      [
+        "Directional / stabilizing / disruptive selection",
+        "Directional: shifts mean. Stabilizing: favors mean, purges extremes. Disruptive: favors extremes, purges mean",
+        "Directional & stabilizing reduce variation; disruptive can increase/maintain it (can seed speciation)",
+        "Yes — differential survival/reproduction based on phenotype"
+      ],
+      [
+        "Sexual selection",
+        "Shifts traits related to mating success, sometimes independent of survival",
+        "Often reduces variation in favored traits; can drive extreme elaboration and sexual dimorphism",
+        "Yes — differential mating success (intra- and intersexual)"
+      ],
+      [
+        "Balancing selection",
+        "Maintains multiple alleles/phenotypes at stable frequencies",
+        "Actively preserves and can even increase variation over long timescales",
+        "Yes — but favors heterozygotes, rare types, or context-dependent optima"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "CONCEPTUAL HIERARCHY",
+    "title": "From Baseline to Active Forces of Change",
+    "levels": [
+      {
+        "label": "Hardy-Weinberg: the non-evolving baseline",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Drift: random change from finite Ne",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Directional / stabilizing / disruptive selection",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Sexual selection",
+        "color": "#a85a68",
+        "width": "380px"
+      },
+      {
+        "label": "Balancing selection: variation actively maintained",
+        "color": "#c47b87",
+        "width": "300px"
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RECAP 1 OF 5",
+    "title": "Hardy-Weinberg Equilibrium",
+    "term": "Hardy-Weinberg equilibrium",
+    "def": "The null model predicting constant allele and genotype frequencies (p^2, 2pq, q^2) across generations when a population is infinitely large, randomly mating, and free of mutation, migration, and selection.",
+    "bullets": [
+      "Functions as evolution's 'control group' — deviations from HWE proportions signal that one or more evolutionary forces are acting",
+      "Established the five conditions whose violation defines each subsequent mechanism we studied"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RECAP 2 OF 5",
+    "title": "Genetic Drift",
+    "term": "Genetic drift",
+    "def": "Random fluctuation in allele frequencies due to chance sampling of gametes/individuals each generation, strongest in small populations and capable of fixing or eliminating alleles regardless of fitness.",
+    "bullets": [
+      "Effective population size (Ne), not census size, governs drift's strength",
+      "Bottlenecks and founder effects are drift acting in extreme, easily observed form"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "RECAP 3 OF 5",
+    "title": "The Three Modes of Selection on Phenotypes",
+    "cards": [
+      {
+        "h": "Directional selection",
+        "p": "Favors one phenotypic extreme; shifts the population mean over time. Reduces variation at the selected trait as the distribution shifts."
+      },
+      {
+        "h": "Stabilizing selection",
+        "p": "Favors the intermediate phenotype and disfavors both extremes; reduces variance without shifting the mean. The most common mode observed in nature for many traits."
+      },
+      {
+        "h": "Disruptive selection",
+        "p": "Favors both extremes and disfavors the intermediate; can increase or maintain variation, and under some conditions contributes to sympatric speciation."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RECAP 4 OF 5",
+    "title": "Sexual Selection",
+    "term": "Sexual selection",
+    "def": "Selection arising from differential mating success rather than differential survival, operating through intrasexual competition (e.g., male-male combat) and intersexual mate choice (e.g., female preference for elaborate traits).",
+    "bullets": [
+      "Can produce traits that appear to reduce survival fitness (e.g., peacock trains) because mating benefits outweigh survival costs",
+      "Explains sexual dimorphism and can, in some models, interact with speciation via divergent mate-choice signals"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RECAP 5 OF 5",
+    "title": "Balancing Selection",
+    "term": "Balancing selection",
+    "def": "Selection that actively maintains multiple alleles or phenotypes in a population through heterozygote advantage, frequency-dependent selection, or spatially/temporally varying selective pressures.",
+    "bullets": [
+      "The only one of the five mechanisms whose defining outcome is preservation (or generation) of standing variation rather than its reduction",
+      "Its efficacy still depends on the selection-drift balance (|s| vs. 1/Ne) covered earlier in this lecture"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PUTTING IT ALL TOGETHER",
+    "title": "How These Five Forces Interact in Real Populations",
+    "left": {
+      "h": "They rarely act alone",
+      "body": "<p>In any real population, multiple forces act simultaneously on the same locus:</p><ul><li>A locus under mild directional selection in a large population may still show detectable drift 'noise' around the expected trajectory</li><li>A trait under sexual selection may simultaneously experience stabilizing natural selection, producing a fitness trade-off (as in L21's peacock train example)</li><li>Balancing selection can be locally overridden by strong drift in a small, isolated subpopulation</li></ul>"
+    },
+    "right": {
+      "h": "A general framework",
+      "body": "<p>To predict evolutionary outcome at any locus, ask:</p><ul><li>Is there consistent directional, stabilizing, or disruptive selection on the phenotype it affects?</li><li>Is there a mating-success component (sexual selection)?</li><li>Could heterozygote advantage, frequency dependence, or spatial/temporal variation be maintaining polymorphism?</li><li>Given the population's Ne, is selection (of whatever kind) strong enough to overcome drift, or does drift dominate?</li><li>The answer is almost always: 'some mixture of several of these, weighted by local circumstances'</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "What to Remember From Chapter 6",
+    "cards": [
+      {
+        "h": "HWE is the ruler, not the reality",
+        "p": "Every mechanism of evolutionary change is defined by which HWE assumption it violates — always start analysis from that baseline."
+      },
+      {
+        "h": "Not all selection reduces variation",
+        "p": "Directional and stabilizing selection erode variation; disruptive and balancing selection can maintain or increase it — mode matters as much as presence of selection."
+      },
+      {
+        "h": "Population size gates selection's power",
+        "p": "The same allele, same fitness effect, can be efficiently selected in a large population and effectively neutral in a small one — via |s| vs. 1/Ne."
+      },
+      {
+        "h": "Real populations are multi-force systems",
+        "p": "Drift, multiple modes of natural selection, sexual selection, and balancing selection typically act together, not in isolation, on any given trait or locus."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "Misconceptions to Avoid on the Exam",
+    "items": [
+      "'Heterozygote advantage' does not mean heterozygotes are always healthier in an absolute sense — it means their relative fitness in the local environment exceeds both homozygotes' (context-dependent, as with HbS outside malaria zones)",
+      "Frequency-dependent selection is not automatically a balancing mechanism — only the negative (rare-type-favored) form maintains variation; positive frequency dependence erodes it",
+      "'Nearly neutral' does not mean 'truly neutral' — nearly neutral mutations have real fitness effects, but their fate is dominated by drift because |s| is small relative to 1/Ne",
+      "Balancing selection is not the same as 'no selection' — it is selection, just structured so no single allele wins outright",
+      "Small effective population size, not small census size, is what determines the strength of drift relative to selection"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY GUIDE",
+    "title": "Concepts You Should Be Able To Explain",
+    "items": [
+      "Derive and interpret the overdominance equilibrium formula q̂ = s/(s+t) and explain why it is stable",
+      "Explain, with the sickle-cell/malaria example, how a genotype that is deleterious in isolation can be maintained by heterozygote advantage",
+      "Distinguish negative from positive frequency-dependent selection and predict which one maintains polymorphism",
+      "Explain how spatial gene flow and temporal generation overlap can each maintain variation without heterozygote advantage",
+      "Apply the |s| vs. 1/Ne comparison to predict whether a given mutation will behave as selected or effectively neutral in a population of specified size",
+      "Compare and contrast all five 'ways of change' from Chapter 6 in terms of mechanism, direction, and effect on variation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "END OF CHAPTER 6",
+    "title": "Lecture 22 Summary",
+    "sub": "Balancing selection maintains variation; drift can override weak selection in small populations; five forces together explain allele-frequency change"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CLOSING SUMMARY",
+    "title": "Lecture 22 in Five Sentences",
+    "items": [
+      "Balancing selection — via heterozygote advantage, negative frequency-dependent selection, and spatially/temporally varying selection — actively maintains genetic polymorphism rather than eroding it",
+      "The sickle-cell allele persists at high frequency in malaria-endemic regions because heterozygotes are fitter than either homozygote — a textbook case of overdominance",
+      "Whether selection can act effectively at all depends on population size: |s| must exceed roughly 1/Ne, or drift will dominate the allele's fate (nearly neutral theory)",
+      "Small, bottlenecked populations accumulate mildly deleterious mutations that a larger population would have purged — with direct relevance to conservation genetics",
+      "Chapter 6 as a whole establishes five 'ways of change' — Hardy-Weinberg baseline, drift, the three modes of natural selection, sexual selection, and balancing selection — that together explain how allele frequencies shift (or don't) in real populations"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING AHEAD — LECTURE 23",
+    "title": "Beyond Alleles: Quantitative Genetics",
+    "sub": "Chapter 7 begins — how evolution acts on complex, continuously varying traits controlled by many genes"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMING UP IN L23",
+    "title": "Preview: Chapter 7, \"Beyond Alleles\"",
+    "items": [
+      "Moving from single-locus allele frequency models to polygenic, continuously distributed traits (height, beak depth, flowering time)",
+      "Introducing heritability (h²): how much phenotypic variance is attributable to additive genetic variance",
+      "The breeder's equation: predicting response to selection (R = h²S) from selection differential and heritability",
+      "Why quantitative genetics is essential for understanding traits shaped by many genes of small effect — most traits selection actually acts on in the wild",
+      "Connecting back to today: quantitative traits are still built from individual alleles subject to drift, selection, and the same s vs. 1/Ne logic — just summed across many loci"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 22</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

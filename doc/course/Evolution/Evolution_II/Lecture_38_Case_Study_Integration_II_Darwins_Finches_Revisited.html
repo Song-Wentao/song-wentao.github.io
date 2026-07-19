@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 38: Case Study Integration II: Darwin's Finches Through a Macroevolutionary and Coevolutionary Lens</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 38",
+    "title": "Case Study Integration II: Darwin's Finches Through a Macroevolutionary and Coevolutionary Lens",
+    "sub": "A second look at the Galápagos finches — now through the lens of adaptive radiation, character displacement, and speciation-in-progress",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 4 of 11)"
+  },
+  {
+    "type": "section",
+    "tag": "REVISITING A CLASSIC",
+    "title": "Same Finches, Different Questions",
+    "sub": "Evolution I, Lecture 39 asked: what mechanisms built these beaks? Today we ask: what patterns and processes do these finches reveal about macroevolution, coevolution, and the boundary of species itself?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "ORIENTATION",
+    "title": "Why Come Back to the Finches?",
+    "items": [
+      "In Evolution I (L39), we used the finches as an integration case study for mechanisms: mutation supplying variation, selection on beak depth during drought, heritability estimates from the Grants' pedigrees, and genetic drift on small islands.",
+      "That was a mechanisms-level story — showing natural selection and drift acting in real time, generation to generation.",
+      "This lecture uses the same organisms to ask pattern-level questions: How does an adaptive radiation unfold over hundreds of thousands of years? Why do coexisting species diverge in resource use? Where exactly is the line between 'population' and 'species' when lineages still hybridize?",
+      "We will explicitly connect back to three units from this semester: adaptive radiation and ecological opportunity (L18), coevolution among competitors (L21-24), and speciation as a process rather than an event (L13-16).",
+      "The throughline: the finches are not just a story about beaks — they are a working laboratory for testing macroevolutionary theory against 40+ years of direct field data."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "Roadmap for Lecture 38",
+    "items": [
+      "1. The finches as adaptive radiation — comparing the Galápagos radiation to the cichlid radiation from Lecture 37",
+      "2. Character displacement and diffuse coevolution among competing finch species",
+      "3. The 'Big Bird' lineage — hybridization, homoploid hybrid speciation, and speciation-in-progress",
+      "4. What 40+ years of the Grants' data tell us about tempo, stasis, and extinction risk",
+      "5. Mapping finch phenomena onto Evolution II's conceptual toolkit — and how that mapping differs from the Evolution I mechanisms-level version",
+      "6. Synthesis: what this 'second look' adds that the first pass could not show"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "BACKGROUND TIMELINE",
+    "title": "The Galápagos Finch Radiation at a Glance",
+    "items": [
+      {
+        "y": "~1-2 Mya",
+        "t": "A tanager-like ancestor from South America colonizes the Galápagos"
+      },
+      {
+        "y": "~1835",
+        "t": "Darwin collects finch specimens during the voyage of the Beagle"
+      },
+      {
+        "y": "1947",
+        "t": "David Lack publishes the first major evolutionary interpretation of the finches"
+      },
+      {
+        "y": "1973",
+        "t": "Peter and Rosemary Grant begin continuous field study on Daphne Major"
+      },
+      {
+        "y": "1977",
+        "t": "Severe drought drives strong selection for larger beak depth in G. fortis"
+      },
+      {
+        "y": "1981",
+        "t": "Immigrant male founds the hybrid lineage later called 'Big Bird'"
+      },
+      {
+        "y": "2004-05",
+        "t": "Drought and interspecific competition drive character displacement in G. fortis"
+      },
+      {
+        "y": "2015-18",
+        "t": "Whole-genome sequencing confirms Big Bird's hybrid origin and traces radiation-wide gene flow"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "ADAPTIVE RADIATION",
+    "title": "Fourteen Species, One Ancestor, Ecological Opportunity",
+    "sub": "Placing the finches beside the cichlids of Lecture 37"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE CONCEPT REVIEW",
+    "title": "Adaptive Radiation",
+    "term": "Adaptive Radiation",
+    "def": "The rapid diversification of a single ancestral lineage into many descendant species, each adapted to a different ecological niche, typically triggered by access to underused resources — ecological opportunity.",
+    "bullets": [
+      "Diagnostic features: a monophyletic clade, rapid branching (relative to background diversification rates), and a correlation between phenotypic divergence and ecological/niche divergence.",
+      "The Galápagos finches (subfamily Geospizinae) descend from a single South American tanager-like ancestor that colonized the archipelago roughly 1-2 million years ago.",
+      "That ancestor arrived on islands with no resident seed-eating or insect-eating land birds — an ecological vacuum, exactly the setup L18 identified as a trigger for radiation."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK TO LECTURE 18 AND LECTURE 37",
+    "title": "Darwin's Finches vs. the Cichlid Radiation — Same Process, Different Stage",
+    "left": {
+      "h": "Galápagos Finches",
+      "body": "<p>18 islands, ~1-2 million years, 14-18 recognized species.</p><ul><li>Ecological opportunity: empty niche space for seed- and insect-eating land birds.</li><li>Key innovation: a versatile, genetically tunable beak (ALX1, HMGA2 loci) that can be reshaped for cracking seeds, probing flowers, or catching insects.</li><li>Radiation axis: primarily trophic (diet and beak morphology), secondarily habitat (ground vs. tree finches).</li><li>Diversification is comparatively modest in species number but extremely well resolved genetically and ecologically.</li></ul>"
+    },
+    "right": {
+      "h": "East African Cichlids (Lecture 37)",
+      "body": "<p>Lake Victoria/Malawi/Tanganyika, hundreds of thousands of years, 500-1000+ species.</p><ul><li>Ecological opportunity: vacant, structurally complex lake basins after refilling.</li><li>Key innovation: a modular second set of jaws (pharyngeal jaws) that decouples prey capture from prey processing.</li><li>Radiation axis: trophic AND strongly sexual/visual (male nuptial coloration under female mate choice), producing far higher species numbers.</li><li>One of the fastest vertebrate radiations known — orders of magnitude more species than the finches in comparable or shorter time.</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "RADIATION COMPARISON",
+    "title": "Two Radiations, Same Recipe, Different Yield",
+    "headers": [
+      "Feature",
+      "Darwin's Finches",
+      "Lake Victoria Cichlids"
+    ],
+    "rows": [
+      [
+        "Time since founding",
+        "~1-2 million years",
+        "~15,000-100,000 years (younger!)"
+      ],
+      [
+        "Species produced",
+        "~14-18",
+        "500-1000+"
+      ],
+      [
+        "Key innovation",
+        "Tunable beak morphology (ALX1/HMGA2)",
+        "Modular pharyngeal jaw apparatus"
+      ],
+      [
+        "Primary axis of divergence",
+        "Diet / trophic niche",
+        "Diet AND mate choice (sexual selection)"
+      ],
+      [
+        "Role of hybridization",
+        "Ongoing gene flow, occasional hybrid lineages",
+        "Massive ancestral hybrid swarms fuel diversity"
+      ],
+      [
+        "Best-documented mechanism",
+        "Natural selection on beak depth (drought/flood cycles)",
+        "Sexual selection + trophic selection combined"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY THE CONTRAST MATTERS",
+    "title": "The Lesson of Comparing Radiations",
+    "items": [
+      "Ecological opportunity plus a flexible key innovation is necessary for radiation, but the SPEED and SCALE of diversification depend on additional factors — especially whether sexual selection is also acting as a diversifying force.",
+      "Cichlids diversified faster and further partly because male coloration and female preference create a second, independent axis of divergence layered on top of trophic divergence; the finches diversify mainly along one axis (diet).",
+      "Both radiations show that standing genetic variation, recruited repeatedly from ancient hybridization or shared ancestral polymorphism, is often the raw material for rapid radiation — not new mutation arising fresh each time.",
+      "Comparing radiations across taxa (birds vs. fish, islands vs. lakes) is exactly how macroevolutionary biologists test whether 'ecological opportunity triggers radiation' is a general rule or a coincidence."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY INNOVATION, REVISITED",
+    "title": "The Finch Beak as a Key Innovation",
+    "term": "Key Innovation",
+    "def": "A novel trait that opens access to new resources or adaptive zones, thereby increasing a lineage's rate of diversification.",
+    "bullets": [
+      "The ancestral finch beak was not itself unusual — what mattered was its developmental flexibility: subtle regulatory changes in a small number of genes can produce large, discrete shifts in beak depth, width, and length.",
+      "ALX1 variants are associated with beak shape (blunt vs. pointed); HMGA2 variants are associated with beak size; these loci show classic signatures of repeated selective sweeps across different finch species.",
+      "Because small genetic changes yield large phenotypic effects on a trait directly tied to fitness (feeding efficiency), the beak functioned as an evolvability engine — the mechanistic reason ecological opportunity could actually be exploited."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "MEET THE RADIATION",
+    "title": "A Sampler of Geospizinae Niches",
+    "headers": [
+      "Species Group",
+      "Representative Species",
+      "Primary Niche"
+    ],
+    "rows": [
+      [
+        "Ground finches",
+        "Geospiza fortis (medium ground finch)",
+        "Small-to-medium seeds; the primary subject of the Grants' selection studies"
+      ],
+      [
+        "Ground finches",
+        "Geospiza magnirostris (large ground finch)",
+        "Large, hard seeds (e.g., Tribulus); strongest beak, competitive dominant"
+      ],
+      [
+        "Ground finches",
+        "Geospiza fuliginosa (small ground finch)",
+        "Small, soft seeds; character-displaces against G. fortis in sympatry"
+      ],
+      [
+        "Cactus finches",
+        "Geospiza scandens",
+        "Opuntia cactus flowers, pollen, and seeds; elongated probing beak"
+      ],
+      [
+        "Tree finches",
+        "Camarhynchus species",
+        "Insects and larvae gleaned from bark and foliage"
+      ],
+      [
+        "Warbler finch",
+        "Certhidea olivacea",
+        "Small insects; most warbler-like body plan and behavior, an example of convergent resemblance to an unrelated lineage"
+      ],
+      [
+        "Vampire ground finch",
+        "Geospiza septentrionalis",
+        "Seabird blood and eggs on Wolf/Darwin islands; the most extreme dietary specialist in the radiation"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NICHE BREADTH ACROSS THE RADIATION",
+    "title": "How Wide Is the Adaptive Zone the Finches Filled?",
+    "items": [
+      "The niches listed above span granivory (seed-eating), nectarivory/florivory (cactus flower use), insectivory, and even hematophagy (blood-feeding) — an extraordinary ecological breadth for a single recent radiation.",
+      "This breadth is direct evidence for how completely the ancestral colonizers filled the available ecological opportunity once competing land bird lineages were absent.",
+      "Contrast with the cichlids (L37): cichlid trophic breadth is arguably even wider (algae scrapers, snail crushers, scale-eating specialists, piscivores), consistent with their larger clade size and longer list of independently evolved trophic innovations.",
+      "The vampire ground finch is a useful teaching extreme: it shows that once a lineage possesses a flexible key innovation and faces open ecological opportunity, even a behavior as unusual as blood-feeding can evolve and persist as a viable niche."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "COEXISTENCE AND COMPETITION",
+    "title": "When Neighbors Diverge: Character Displacement",
+    "sub": "Callback to Lectures 21-24 — coevolution is not only about pairwise partners, it also shapes whole guilds of competitors"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE CONCEPT REVIEW",
+    "title": "Character Displacement",
+    "term": "Character Displacement",
+    "def": "The evolutionary divergence of traits (often resource-use traits) in sympatric populations of related, competing species, driven by selection to reduce niche overlap and interspecific competition; typically inferred from the pattern that traits differ more where species co-occur than where they occur alone.",
+    "bullets": [
+      "Classic test: compare beak depth in Geospiza fortis and G. fuliginosa on islands where both occur (sympatry) versus islands where only one occurs (allopatry).",
+      "Prediction confirmed by Peter Grant's early studies: on Daphne Major and other islands with only G. fortis, its beak size is intermediate; where both species co-occur, G. fortis beaks are larger and G. fuliginosa beaks are smaller than the allopatric intermediate — divergence reduces dietary overlap.",
+      "This is 'ecological character displacement,' distinct from 'reproductive character displacement' (divergence in mate-recognition traits to avoid hybridization), though both operate in the finch system simultaneously."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "DIFFUSE COEVOLUTION AMONG COMPETITORS",
+    "title": "Not Just Two Species — A Whole Competitive Guild",
+    "left": {
+      "h": "Pairwise Coevolution (L21-22 review)",
+      "body": "<p>Reciprocal selection between two specific, tightly linked species.</p><ul><li>Example templates from earlier lectures: predator-prey arms races, host-parasite Red Queen dynamics, plant-pollinator trait matching.</li><li>Selection pressure on species A comes overwhelmingly from species B, and vice versa.</li><li>Produces tight trait matching (e.g., toxin resistance vs. toxin potency).</li></ul>"
+    },
+    "right": {
+      "h": "Diffuse Coevolution Among Finches (L23-24 extension)",
+      "body": "<p>Selection on any one finch species' beak comes from MULTIPLE co-occurring competitor species simultaneously, plus the shared seed-resource base.</p><ul><li>On islands with 3-6 sympatric ground/tree finch species, each species' optimal beak size depends on the whole community's composition, not one rival.</li><li>Character displacement in this system is a community-wide, many-species process — the textbook example of diffuse coevolution.</li><li>Outcomes shift when a competitor species goes locally extinct or a new one colonizes, showing the coevolutionary 'landscape' is dynamic, not fixed.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE 2004-05 DROUGHT: A NATURAL EXPERIMENT",
+    "title": "Character Displacement Caught in the Act",
+    "items": [
+      "In 2004, a severe drought on Daphne Major hit both G. fortis and the recently arrived, larger-beaked G. magnirostris, which compete for the same large, hard seeds (Tribulus).",
+      "G. magnirostris was competitively superior at cracking the largest seeds, depleting that resource and intensifying selection against large-beaked G. fortis individuals.",
+      "The result: strong natural selection favored smaller-beaked G. fortis, producing a measurable evolutionary shift toward smaller average beak size in a single generation — a directly observed instance of character displacement driven by interspecific competition, not just drought alone.",
+      "This is one of the few documented cases in any wild vertebrate where character displacement has been watched happening in real time, with a known mechanism (differential seed depletion) and measured heritability translating selection into a genetic response."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "WHY THIS IS A COEVOLUTION STORY, NOT JUST AN ECOLOGY STORY",
+    "title": "Three Reasons Character Displacement Belongs in the Coevolution Unit",
+    "cards": [
+      {
+        "h": "Reciprocal Selection",
+        "p": "G. magnirostris' presence changes the fitness landscape for G. fortis (favoring smaller beaks), and reduced G. fortis density in turn changes resource pressure back on G. magnirostris — selection runs in both directions, the defining feature of coevolution."
+      },
+      {
+        "h": "Trait-Mediated, Not Just Density-Mediated",
+        "p": "Competition here is not just 'fewer resources for everyone' — it specifically targets a heritable morphological trait (beak depth), so the outcome is evolutionary divergence, not merely population decline."
+      },
+      {
+        "h": "Community Context Matters",
+        "p": "As in diffuse coevolution generally, the selective outcome for any one species depends on which other competitor species are present — exactly the 'many interacting partners' signature that distinguishes diffuse from pairwise coevolution."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FROM THE LITERATURE",
+    "quote": "Character displacement is competition's fingerprint left on morphology — you can read the history of who competed with whom directly off the shape of a beak.",
+    "attrib": "paraphrased summary of Peter Grant's character-displacement findings, Genetics and Origin of Species Differences (1999)"
+  },
+  {
+    "type": "term",
+    "eyebrow": "RELATED CONCEPT",
+    "title": "Resource Partitioning",
+    "term": "Resource Partitioning",
+    "def": "The differential use of a shared resource by coexisting species, such that niche overlap is reduced enough to permit stable coexistence rather than competitive exclusion of one species by another.",
+    "bullets": [
+      "Character displacement is the evolutionary MECHANISM that produces resource partitioning; resource partitioning is the ecological OUTCOME (the pattern of who eats what) that results.",
+      "In the finches, seed size and hardness form a continuous resource axis; beak depth evolution along that axis is what allows multiple ground-finch species to coexist on the same small islands.",
+      "This is the same logic behind classical competitive exclusion theory (Gause's principle) — two species cannot indefinitely occupy an identical niche; either divergence, exclusion, or extinction results."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SPECIATION IN PROGRESS",
+    "title": "The 'Big Bird' Lineage",
+    "sub": "Callback to Lectures 13-16 — what actually counts as a new species, and how would we know one when we see it forming?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CORE CONCEPT REVIEW",
+    "title": "Homoploid Hybrid Speciation",
+    "term": "Homoploid Hybrid Speciation",
+    "def": "The formation of a new species through hybridization between two existing species WITHOUT a change in chromosome number (contrast with polyploid hybrid speciation, common in plants) — the hybrid lineage becomes reproductively isolated from both parent species while retaining the same ploidy.",
+    "bullets": [
+      "Long considered rare and hard to document in animals because homoploid hybrids usually just re-merge with a parent species via backcrossing rather than persisting as a distinct lineage.",
+      "The 'Big Bird' lineage on Daphne Major is one of the best-documented real-time examples in any vertebrate.",
+      "Documenting it required the Grants' unmatched resource: pedigrees and genotypes tracked across essentially every individual bird on a small island for four decades."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE BIG BIRD STORY",
+    "title": "How a New Lineage Began With One Immigrant Male",
+    "left": {
+      "h": "The Founding Event (1981)",
+      "body": "<p>A male large cactus finch (Geospiza conirostris) arrived on Daphne Major, blown or flown in from Española, ~100 km away.</p><ul><li>He was too different in song and morphology to be recognized as a mate by resident conirostris-type females, but he successfully paired with a resident female G. fortis.</li><li>Their hybrid offspring were fertile and, critically, inherited their father's song — used by Darwin's finches as a key mate-recognition cue learned early in life.</li><li>Because the hybrids sang the immigrant's unusual song, they mated preferentially with each other rather than backcrossing into either parent species — an accidental but effective reproductive barrier.</li></ul>"
+    },
+    "right": {
+      "h": "Six Generations of Tracking",
+      "body": "<p>Over ~36 years and six generations, the 'Big Bird' lineage remained genetically and morphologically distinct — larger body and beak than either parent species, and reproductively isolated by song and, later, by beak-based mate choice.</p><ul><li>Whole-genome sequencing (2017-18) confirmed the lineage's hybrid ancestry and its distinctiveness from all resident species.</li><li>This is speciation observed essentially from its founding event, not reconstructed after the fact from a phylogeny — an extraordinarily rare opportunity.</li><li>It directly illustrates the Biological Species Concept's stress point: reproductive isolation was strong (song-based assortative mating) but not absolute or ancient.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY 'SPECIATION-IN-PROGRESS' IS THE RIGHT FRAME",
+    "title": "Not Yet a 'Textbook Species' — And That Is the Point",
+    "items": [
+      "Speciation is a process with a continuum of outcomes, not an instantaneous event — L13-16 established that reproductive isolating mechanisms accumulate gradually and can be partial, asymmetric, or reversible.",
+      "The Big Bird lineage shows near-complete premating isolation (song, and correlated beak/body size affecting mate choice) but arose from, and remains genomically nested within, existing species — it has not yet accumulated the genome-wide divergence typical of 'old' species.",
+      "Ongoing low-level hybridization among several Geospiza species on the Galápagos (documented via genomic data) shows that species boundaries in this radiation are genuinely porous — a live demonstration that the finches are not 14-18 fully closed gene pools but a network of populations at varying stages of divergence.",
+      "This matches a broader pattern increasingly recognized across many young radiations (also true of the cichlids, L37): incomplete lineage sorting and introgression are the RULE during rapid diversification, not rare exceptions."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RELATED CONCEPT",
+    "title": "Assortative Mating by Song",
+    "term": "Song-Based Assortative Mating",
+    "def": "Preferential mating between individuals with similar acoustic signals; because finch song is learned (culturally transmitted from the father, typically in the nest and shortly after fledging) rather than purely genetically fixed, it can create rapid, non-genetic premating isolation between lineages.",
+    "bullets": [
+      "This is a striking case where a LEARNED trait, not a genetically hardwired one, does the work of reproductive isolation — relevant to debates about the role of behavior and culture in speciation.",
+      "Because song is learned early and then used lifelong for mate recognition, a single immigrant with a distinctive song can seed a new mating pool almost immediately, without waiting for genetic divergence in isolation.",
+      "This helps explain how homoploid hybrid speciation, usually expected to be rare, could nonetheless occur within a handful of generations in this system."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WHICH SPECIES CONCEPT FITS?",
+    "title": "Big Bird and the Species Concept Debate",
+    "left": {
+      "h": "Biological Species Concept (BSC)",
+      "body": "<p>Defines species by reproductive isolation between populations.</p><ul><li>Big Bird satisfies this reasonably well: strong assortative mating by song keeps it distinct from both parent species in practice.</li><li>But BSC struggles with the fact that isolation is behavioral and recent, not an ancient, fixed, genome-wide barrier — and occasional hybridization with parent species is still possible.</li></ul>"
+    },
+    "right": {
+      "h": "Phylogenetic / Genomic Species Concepts",
+      "body": "<p>Define species by diagnosable, monophyletic genetic distinctiveness.</p><ul><li>Genomic data show Big Bird is a distinguishable, monophyletic cluster after six generations — satisfying a phylogenetic criterion sooner than a strict BSC reading might expect.</li><li>Different species concepts can disagree about whether Big Bird 'is' a species yet — a genuinely open, actively debated case, not a settled textbook example.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION PROMPT",
+    "title": "Is Big Bird a Species? Arguing Both Sides",
+    "items": [
+      "Case FOR calling it a species now: reproductively isolated by song and mate choice in practice; genomically diagnosable as a distinct monophyletic cluster; morphologically distinct (larger body and beak than either parent).",
+      "Case AGAINST calling it a species yet: only six generations old; founded by a single male, so genetic diversity is limited; isolation depends on a learned trait (song) that could in principle break down if a hybrid bird were raised near a different song model; no fixed genetic incompatibilities (postzygotic isolation) have evolved.",
+      "This is exactly the kind of boundary case that species concepts were built to handle — and exactly why L13-16 emphasized that 'species' is best understood as a process-based, not a threshold-based, concept in actively radiating groups.",
+      "Your task in discussion section: decide which species concept you find most defensible for classifying Big Bird, and justify your choice using specific evidence from today's lecture."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE LONG VIEW",
+    "title": "Forty Years of Data, Macroevolutionary Questions",
+    "sub": "What can a multi-decade microevolutionary study tell us about processes that normally play out over millions of years?"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "FROM MICROEVOLUTION TO MACROEVOLUTIONARY INFERENCE",
+    "title": "What the Grants' Long-Term Dataset Actually Tests",
+    "left": {
+      "h": "The Dataset",
+      "body": "<p>Peter and Rosemary Grant, and collaborators, have individually marked, measured, and genotyped finches on Daphne Major continuously since 1973 — over 40 field seasons.</p><ul><li>Multiple documented episodes of natural selection reversing direction (drought favoring large beaks in 1977; a wet El Niño year favoring smaller beaks shortly after).</li><li>Selection coefficients, heritabilities, and realized evolutionary responses measured directly, generation by generation — a resolution normally impossible for macroevolution.</li><li>Full pedigrees allow reconstruction of gene flow, hybridization rates, and lineage founding events (like Big Bird) with genomic precision.</li></ul>"
+    },
+    "right": {
+      "h": "The Macroevolutionary Payoff",
+      "body": "<p>Fluctuating selection (opposing directions in different years) can, over many cycles, look like STASIS at the macroevolutionary timescale — resolving a long-standing puzzle about why fossil lineages often show little net change despite strong selection being measurable within populations.</p><ul><li>The tempo of diversification is not constant: bursts of divergence (character displacement events, hybrid lineage founding) are punctuated by long periods of fluctuating but non-directional selection.</li><li>Speciation can be fast (Big Bird: essentially instantaneous by geological standards) yet species boundaries can also be slow to complete, given ongoing introgression.</li><li>The data support an 'early burst then slowdown' pattern of lineage and disparity accumulation broadly consistent with adaptive radiation theory (L18) — most trophic niche space was filled relatively early in the radiation's history.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STASIS RECONCILED",
+    "title": "Solving the 'Paradox' of Stasis Under Strong Selection",
+    "items": [
+      "Paleontologists have long noted that many fossil lineages show remarkably little net morphological change over long intervals despite theoretical expectations that selection should drive rapid change — this is 'stasis,' a classic macroevolutionary puzzle.",
+      "The finch data supply a mechanism: selection is strong in any given year or short interval, but its DIRECTION fluctuates with environmental conditions (wet years vs. dry years, competitor presence vs. absence).",
+      "Averaged over many generations, opposing selective pulses largely cancel out, producing a NET pattern that looks like stasis in the fossil or long-term record even though nothing about the underlying population was evolutionarily inert.",
+      "This is a direct, empirically grounded bridge between microevolutionary process (measured selection differentials) and a macroevolutionary pattern (long-term morphological stasis) — exactly the kind of link the Applied & Synthesis unit is built to make explicit."
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "TEMPO OF THE RADIATION",
+    "title": "Diversification Slows as Niche Space Fills",
+    "levels": [
+      {
+        "label": "Founding colonization (~1-2 Mya)",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Early rapid niche-filling burst",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Character displacement refines boundaries",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Occasional new lineages (e.g., Big Bird)",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Present-day fluctuating selection, near-stasis",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "EXTINCTION RISK: THE OTHER HALF OF MACROEVOLUTION",
+    "title": "Is the Big Bird Lineage Actually a Success Story?",
+    "items": [
+      "Macroevolution is not only about the origin of lineages but also their persistence or loss — extinction is as fundamental an evolutionary force at this scale as speciation.",
+      "The Big Bird lineage began from a single immigrant and a tiny founding population, making it acutely vulnerable to genetic drift, inbreeding depression, and demographic stochasticity — all forces studied at the population-genetics level in Evolution II's mechanisms unit, now visible at a lineage-founding scale.",
+      "Small effective population size (Ne) in a nascent lineage means genetic drift can be a dominant force relative to selection, potentially fixing deleterious variants or simply driving the lineage extinct by chance before it ever accumulates full reproductive isolation.",
+      "The lineage's long-term fate is genuinely uncertain: it may persist and complete speciation, it may be absorbed back into a parent species through renewed hybridization, or it may go extinct — all three are plausible outcomes under current evolutionary theory, and only continued monitoring will resolve which occurs.",
+      "This uncertainty is itself the lesson: most incipient lineages in nature probably fail to become 'good species,' and the finches let us watch that filtering process happen rather than only see its rare successes preserved in a phylogeny."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FROM THE LITERATURE",
+    "quote": "Evolution in this system is not a single arrow pointing toward ever-better adaptation, but a population being pushed back and forth by shifting selection pressures — with speciation, hybridization, and extinction all live possibilities at once.",
+    "attrib": "paraphrased from Peter R. Grant & B. Rosemary Grant, on four decades of study on Daphne Major"
+  },
+  {
+    "type": "term",
+    "eyebrow": "RELATED CONCEPT",
+    "title": "Fitness Landscape",
+    "term": "Adaptive (Fitness) Landscape",
+    "def": "A conceptual mapping of phenotype (or genotype) to fitness, often visualized as peaks (high-fitness combinations) separated by valleys (low-fitness combinations); populations evolve toward nearby peaks under selection.",
+    "bullets": [
+      "Fluctuating selection on finch beak depth is well described as the fitness peak for beak size shifting back and forth across years with rainfall and seed availability, rather than the population sitting at one fixed optimum.",
+      "Character displacement can be understood as the finch's local fitness peak shifting position whenever a new competitor species colonizes or a resident one disappears.",
+      "Adaptive radiation, more broadly, can be pictured as an ancestral lineage encountering a landscape with several previously inaccessible peaks (empty niches) and different descendant populations climbing different peaks — a useful bridge between this case study and the abstract fitness-landscape models covered earlier in the mechanisms unit."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "REMAPPING THE CASE STUDY",
+    "title": "Same Organisms, A Different Conceptual Map",
+    "sub": "How the Evolution II lens changes which chapter each finch phenomenon illustrates"
+  },
+  {
+    "type": "compare",
+    "eyebrow": "MECHANISMS (EVOLUTION I, L39) VS. PATTERNS/PROCESSES (EVOLUTION II, L38)",
+    "title": "Two Different Maps of the Same Case Study",
+    "headers": [
+      "Finch Phenomenon",
+      "Evolution I (L39) Mechanisms Lens",
+      "Evolution II (L38) Patterns/Processes Lens"
+    ],
+    "rows": [
+      [
+        "1977 & 1983 selection episodes",
+        "Natural selection: measured selection differentials, response to selection, heritability of beak depth",
+        "One data point within a longer record of fluctuating selection producing apparent macroevolutionary stasis"
+      ],
+      [
+        "Small island population sizes",
+        "Genetic drift: founder effects, small Ne, allele frequency fluctuation",
+        "Extinction risk and drift's role in the fate of incipient lineages (Big Bird's uncertain future)"
+      ],
+      [
+        "ALX1 / HMGA2 beak-shape loci",
+        "Mutation and standing variation as raw material for selection to act on",
+        "Key innovation enabling a radiation — the developmental-genetic basis of an adaptive zone shift"
+      ],
+      [
+        "G. fortis / G. fuliginosa beak divergence",
+        "Selection differentials measured within a single generation",
+        "Character displacement — a community-level, diffuse coevolutionary outcome"
+      ],
+      [
+        "Big Bird lineage origin",
+        "Not covered in L39 (focus was single-species selection dynamics)",
+        "Homoploid hybrid speciation and the empirical boundary of the Biological Species Concept"
+      ],
+      [
+        "14-18 finch species overall",
+        "Background context only — the 'stage' for the mechanisms story",
+        "The primary subject: an adaptive radiation compared directly to the cichlid radiation (L37)"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SYNTHESIS",
+    "title": "What This Second Look Adds Beyond Lecture 39",
+    "cards": [
+      {
+        "h": "From Snapshot to Trajectory",
+        "p": "L39 showed selection acting within single generations; L38 shows how repeated, fluctuating selection episodes aggregate into macroevolutionary patterns like stasis and bursts of diversification over the full radiation's history."
+      },
+      {
+        "h": "From Single Species to Community",
+        "p": "L39 largely treated G. fortis as an isolated population responding to its environment; L38 shows that fitness is community-dependent — character displacement and diffuse coevolution mean a species' optimal phenotype shifts with its competitors."
+      },
+      {
+        "h": "From 'Species' as a Given to Species as a Process",
+        "p": "L39 used species identities (G. fortis, G. scandens, etc.) as fixed labels for a selection study; L38 shows those very boundaries are actively forming, blurring, and occasionally being founded anew, as with Big Bird."
+      },
+      {
+        "h": "From One Radiation to a General Theory",
+        "p": "L39 treated the finches as a unique case; L38 places them in comparative context against the cichlids, testing whether 'ecological opportunity + key innovation = radiation' is a general macroevolutionary rule."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHODOLOGICAL NOTE",
+    "title": "Why This Case Study Rewards Revisiting",
+    "left": {
+      "h": "What Made L39 Possible",
+      "body": "<p>Fine-grained, generation-by-generation demographic and morphological data on a tractable island population.</p><ul><li>Individually marked birds, known pedigrees, precise environmental records (rainfall, seed hardness/abundance).</li><li>Ideal for isolating and measuring a single evolutionary mechanism (selection) with statistical rigor.</li></ul>"
+    },
+    "right": {
+      "h": "What Makes L38 Possible",
+      "body": "<p>The SAME dataset, extended across 40+ years and paired with modern whole-genome sequencing.</p><ul><li>Long duration reveals tempo and pattern (bursts, stasis, lineage founding) invisible in any single field season.</li><li>Genomic data reveal hybridization history and lineage relationships that morphology and demography alone could not resolve.</li><li>Together, mechanism-level and pattern-level views of the same system are mutually reinforcing, not competing explanations.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS TO AVOID",
+    "title": "Checking Your Understanding",
+    "items": [
+      "Misconception: 'Darwin's finches diversified because each island simply forced a different beak shape.' Correction: ecological opportunity set the stage, but character displacement among CO-OCCURRING species, not just island-by-island isolation alone, sharpened much of the trophic divergence.",
+      "Misconception: 'The Big Bird lineage proves hybridization always creates new species.' Correction: this outcome is unusual precisely because it required a rare combination — a distinctive learned song, effective assortative mating, and fertile viable hybrids; most hybridization events instead cause genetic swamping or simply dissipate.",
+      "Misconception: 'Stasis means evolution stopped.' Correction: the finch data show strong selection can be present in every generation while still producing net stasis over the long run, because direction fluctuates.",
+      "Misconception: 'Adaptive radiation means faster, better, more.' Correction: the cichlid/finch comparison shows radiations vary enormously in scale even under similar triggers — ecological opportunity is necessary but not sufficient to predict radiation size."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "SYNTHESIS CONCEPT",
+    "title": "Ecological Opportunity, Revisited",
+    "term": "Ecological Release + Ecological Opportunity",
+    "def": "Ecological release describes reduced competition allowing a population to expand its resource use; ecological opportunity describes the broader availability of underused niche space that can trigger radiation. Together they explain why founder populations on islands or in new lake basins diversify so readily.",
+    "bullets": [
+      "The Galápagos and the East African lakes both offered near-total ecological opportunity to their respective colonizing lineages — few or no competitors, few predators, open niche space.",
+      "Character displacement (finches) and analogous processes (cichlid trophic and habitat partitioning) are the mechanisms by which that opportunity gets converted into realized, multi-species diversity rather than one generalist species.",
+      "This concept links directly back to L18's framework and forward to any future radiation you might analyze — it is a general, testable hypothesis, not a finch- or cichlid-specific story."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "BROADER MACROEVOLUTIONARY QUESTIONS RAISED",
+    "title": "What the Finches Still Cannot Tell Us — And Why That Matters",
+    "left": {
+      "h": "Limits of a 40-Year Window",
+      "body": "<p>Even four decades is a blink relative to the ~1-2 million year history of the radiation.</p><ul><li>We have observed only a handful of selection reversals and exactly one well-documented hybrid lineage founding — a small sample from which to infer general macroevolutionary rates.</li><li>Long-term fate of Big Bird (persistence, fusion, or extinction) remains unresolved and may take many more decades to determine.</li></ul>"
+    },
+    "right": {
+      "h": "Why We Still Extrapolate Carefully",
+      "body": "<p>Combining direct observation with phylogenetic and genomic reconstruction of the WHOLE radiation's history lets researchers cross-check real-time process against inferred long-term pattern.</p><ul><li>Genomic dating of speciation events across all Geospizinae species allows estimated divergence times to be compared against observed rates of phenotypic change.</li><li>This two-pronged approach (direct field observation + genomic reconstruction) is now the standard method for connecting microevolution to macroevolution in any well-studied radiation, finch or otherwise.</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "METHODS SPOTLIGHT",
+    "title": "Why Long-Term Individual-Based Field Studies Matter",
+    "term": "Long-Term Individual-Based Study",
+    "def": "A research design in which every (or nearly every) individual in a population is uniquely marked, measured, and tracked across its lifetime and across generations, enabling direct measurement of selection, heritability, and pedigree-based relatedness rather than inference from snapshots.",
+    "bullets": [
+      "Daphne Major's small size (~0.34 km²) and small finch population made near-total individual marking feasible — a rare combination of tractability and wild, natural selection pressures.",
+      "This design is what allowed detection of single-generation selection events, the Big Bird founding event, and fine-scale character displacement — none of which could be resolved from museum specimens or short-term studies alone.",
+      "Comparable long-term individual-based studies (e.g., Soay sheep on Hirta, Trinidadian guppies, great tits in Wytham Woods) are prized precisely because they let researchers test macroevolutionary hypotheses against real, generation-by-generation data rather than only against reconstructed history."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "INTEGRATING GENOMICS WITH FIELD DATA",
+    "title": "What Whole-Genome Sequencing Added After 2015",
+    "items": [
+      "Sequencing of nearly all sampled Galápagos finch species and populations revealed a single large genomic region containing ALX1 that explains much of the variation in beak shape across essentially the ENTIRE radiation — one locus reused repeatedly.",
+      "Genomic data revealed that shared variation at such loci is often ancestral (present in the founding population or introduced by early hybridization) and has been sorted differently into different descendant species — 'sorting of standing variation' rather than each species evolving its beak shape via new independent mutations.",
+      "This finding directly supports the diffuse coevolution/character-displacement picture: the same genetic toolkit gets deployed differently depending on which competitors are present in a given community.",
+      "Genomic evidence for widespread, low-level introgression across nearly all Geospiza species pairs confirms that Big Bird is not a bizarre outlier but an unusually well-documented instance of a process happening at low frequency throughout the radiation's history."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BIG PICTURE TAKEAWAYS",
+    "title": "Four Ideas to Carry Forward",
+    "cards": [
+      {
+        "h": "Radiations Are Comparable",
+        "p": "Placing the finches beside the cichlids shows ecological opportunity + key innovation is a general, testable macroevolutionary hypothesis — not a one-off story unique to any single clade."
+      },
+      {
+        "h": "Competition Shapes Communities, Not Just Populations",
+        "p": "Character displacement demonstrates that coevolution operates diffusely across whole guilds of competing species, continuously reshaping the community's trait distribution."
+      },
+      {
+        "h": "Species Boundaries Are Processes",
+        "p": "The Big Bird lineage shows reproductive isolation accumulating in real time, and that porous, incomplete species boundaries are normal during active radiation, not an anomaly."
+      },
+      {
+        "h": "Tempo Varies and Extinction Is Real",
+        "p": "Long-term data reveal bursts, stasis, and genuine extinction risk for new lineages — macroevolution is not simply 'more of microevolution,' it is microevolutionary process integrated, and sometimes reversed, over deep time."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "LOOKING SIDEWAYS: OTHER ISLAND RADIATIONS",
+    "title": "Is This Pattern General Beyond Finches and Cichlids?",
+    "left": {
+      "h": "Hawaiian Silverswords and Honeycreepers",
+      "body": "<p>Plant (silversword alliance) and bird (honeycreeper) radiations on the Hawaiian archipelago show the same ecological-opportunity/key-innovation signature as the finches.</p><ul><li>Honeycreepers radiated bill shapes for nectar, seeds, and insects from a single finch-like ancestor — a strikingly close parallel to Geospizinae.</li><li>Both Hawaiian radiations show comparable hybridization and introgression dynamics to the Galápagos and cichlid systems.</li></ul>"
+    },
+    "right": {
+      "h": "Anolis Lizards of the Caribbean",
+      "body": "<p>Independent, repeated 'ecomorph' radiations on different Caribbean islands (Cuba, Hispaniola, Puerto Rico, Jamaica) converge on the same small set of habitat-specialist body forms each time.</p><ul><li>This is one of the strongest cases of replicated adaptive radiation — the same ecological opportunities produce strikingly similar outcomes independently on each island.</li><li>Comparing finches, cichlids, honeycreepers, and Anolis together is how macroevolutionary biologists build genuinely general theory rather than relying on any single case study.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "What We Established Today",
+    "items": [
+      "Darwin's finches, revisited through Evolution II's lens, illustrate adaptive radiation as a general macroevolutionary phenomenon — directly comparable to the cichlid radiation of Lecture 37 despite very different scale and outcome.",
+      "Character displacement between G. fortis and its competitors is a documented, real-time case of ecological/diffuse coevolution among competing species, extending the coevolution framework from Lectures 21-24 beyond pairwise partner relationships.",
+      "The Big Bird lineage demonstrates homoploid hybrid speciation and shows that species boundaries in an actively radiating clade are graded and permeable, reinforcing Lectures 13-16's treatment of speciation as a continuum rather than a discrete event.",
+      "Forty-plus years of the Grants' data connect microevolutionary process (measured selection, drift, heritability) to macroevolutionary pattern (stasis, tempo, and extinction risk), resolving the long-standing paradox of apparent stasis under strong selection.",
+      "The same case study, remapped, teaches an entirely different set of lessons than it did in Evolution I — a model for how you should expect to revisit and reinterpret prior case studies throughout this Applied & Synthesis unit."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PREPARING FOR LECTURE 39",
+    "title": "Questions to Carry Into the Next Case Study",
+    "items": [
+      "As you move into human evolution as the next integration case study, ask which finch concepts transfer directly: Does our own lineage show evidence of past hybridization events comparable to Big Bird (consider Neanderthal and Denisovan introgression into modern humans)?",
+      "Does human evolutionary history show evidence of character displacement or diffuse competitive dynamics among hominin species that once coexisted?",
+      "Where in the hominin fossil and genomic record might we expect to see the same signature of fluctuating selection producing apparent long-term stasis that we identified in the finch beak-depth data?",
+      "Keep the mechanisms-vs-patterns distinction from today in mind: Lecture 39 will again ask you to view a single, familiar case study through multiple conceptual lenses simultaneously."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "LOOKING AHEAD",
+    "title": "Lecture 39: Case Study Integration III",
+    "sub": "Human evolution as a case study in every mechanism — from mutation and drift to selection, coevolution, and speciation, all acting on our own lineage"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 38</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 37: Case Study Integration I: The Cichlid Radiations of the African Great Lakes</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 37",
+    "title": "Case Study Integration I: The Cichlid Radiations of the African Great Lakes",
+    "sub": "One system, many mechanisms — adaptive radiation, speciation, sexual selection, and genomics converge",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 3 of 11)"
+  },
+  {
+    "type": "section",
+    "tag": "FRAMING",
+    "title": "One System, Many Mechanisms",
+    "sub": "Why African cichlids are the closest thing evolutionary biology has to a real-time laboratory for speciation and macroevolution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "AGENDA",
+    "title": "What We'll Cover Today",
+    "items": [
+      "Background: the scale and speed of cichlid diversification in Lakes Victoria, Malawi, and Tanganyika",
+      "Ecological opportunity and adaptive radiation — revisiting L18 with the pharyngeal jaw as key innovation",
+      "The speciation-mode debate: can cichlids speciate without geographic isolation? (callback L14-15)",
+      "Sexual selection and mate choice as an engine of diversification (callback Evolution I Ch6, Evolution II L5-8)",
+      "The genomic toolkit: regulatory evolution, standing variation, and the 'hybrid swarm' origin hypothesis (callback Evolution I Ch9)",
+      "Synthesis: mapping cichlid phenomena onto the mechanisms you've learned all year",
+      "Why this system matters for the next case study — Darwin's finches (L38)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BACKGROUND",
+    "title": "An Explosion of Diversity in Three Lakes",
+    "items": [
+      "Lake Victoria, Lake Malawi, and Lake Tanganyika together host an estimated 1,500+ described and undescribed cichlid species — roughly 10% of all freshwater fish species on Earth, in three lakes",
+      "Lake Malawi: ~500-800 endemic species, essentially all descended from a single common ancestor within the lake",
+      "Lake Victoria: ~500 endemic species, astonishing because the lake itself may be as young as 15,000-100,000 years old (it dried out almost completely during the last glacial maximum)",
+      "Lake Tanganyika: the oldest lake (9-12 million years) and most phylogenetically diverse, harboring the deepest splits and serving as the likely source lineage for many Victoria/Malawi radiations",
+      "Diversification rates: Lake Victoria's ~500 species arose in as little as 15,000-16,000 years — among the fastest documented vertebrate radiations, rivaling or exceeding Darwin's finches and Hawaiian silverswords",
+      "This is not just species richness — it is staggering phenotypic and ecological disparity: algae scrapers, snail crushers, piscivores, zooplanktivores, scale-eaters, and paedophages, all cichlids"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "AT A GLANCE",
+    "title": "Three Lakes, Three Natural Experiments",
+    "headers": [
+      "Feature",
+      "Lake Victoria",
+      "Lake Malawi",
+      "Lake Tanganyika"
+    ],
+    "rows": [
+      [
+        "Approximate age",
+        "15,000-400,000 yr (repeatedly desiccated)",
+        "2-4.5 Myr",
+        "9-12 Myr"
+      ],
+      [
+        "Endemic cichlid species",
+        "~500",
+        "~500-800",
+        "~250 (but deepest lineage diversity)"
+      ],
+      [
+        "Radiation age (species-level)",
+        "~15,000 yr",
+        "~1-2 Myr",
+        "Several Myr, staggered over the lake's history"
+      ],
+      [
+        "Dominant clade",
+        "Haplochromines (single superflock)",
+        "Haplochromines (single superflock)",
+        "Multiple ancient tribes, not a single flock"
+      ],
+      [
+        "Best-known feature",
+        "Fastest vertebrate radiation on record",
+        "Rock-dwelling 'mbuna' vs. sand-dwelling diversity",
+        "Deepest phylogenetic splits; likely source of Victoria/Malawi lineages"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "GEOLOGY",
+    "title": "Rift Valley Tectonics Set the Stage",
+    "items": [
+      "All three lakes sit within the East African Rift System, where the African and Somali tectonic plates are pulling apart",
+      "Tanganyika and Malawi occupy deep rift-valley grabens — steep-sided, ancient, and geologically stable for millions of years, allowing long, continuous in-situ radiation",
+      "Victoria sits in a shallow depression between the rift arms rather than in a rift valley proper — shallower, younger, and far more sensitive to climate-driven water-level fluctuations",
+      "Repeated Pleistocene aridification cycles caused Lake Victoria to shrink, fragment into satellite lakes, or dry out almost entirely multiple times — a recurring cycle of isolation, secondary contact, and hybridization that likely primed the system for rapid radiation",
+      "This geological contrast is why Victoria and Malawi/Tanganyika are used as complementary, not redundant, test cases in the mode-of-speciation debate"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK — L18",
+    "title": "Ecological Opportunity Revisited",
+    "left": {
+      "h": "The adaptive radiation recipe (L18)",
+      "body": "<p>Recall the three ingredients for adaptive radiation:</p><ul><li>Ecological opportunity — vacant niche space</li><li>Genetic/phenotypic variation to exploit it</li><li>Some trigger for rapid diversification (colonization, key innovation, mass extinction)</li></ul><p>The Rift Lakes provided opportunity on a massive scale: newly formed or refilled basins, empty of competitors, with heterogeneous habitats (rocky shores, sandy flats, open water, swamp margins).</p>"
+    },
+    "right": {
+      "h": "Why cichlids exploited it so well",
+      "body": "<p>Cichlids arrived pre-equipped with a developmental toolkit that let a single lineage radiate into dozens of ecological guilds:</p><ul><li>A modular, evolvable jaw system (next slides)</li><li>Brood care (mouthbrooding) buffering offspring, permitting small founding populations to persist</li><li>Strong, visually mediated mate choice that could translate ecological divergence into reproductive isolation</li></ul><p>Ecological opportunity alone doesn't explain cichlids — it had to combine with the right internal toolkit.</p>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY INNOVATION",
+    "title": "Pharyngeal Jaw Apparatus",
+    "term": "Pharyngeal jaw apparatus",
+    "def": "A second set of jaws, derived from modified gill arch bones, located in the cichlid throat and used for processing food, functionally decoupled from the oral jaws used for prey capture.",
+    "bullets": [
+      "Oral jaws (mouth) specialize for capturing/collecting food: biting algae, sucking prey, crushing snails at the point of contact",
+      "Pharyngeal jaws (throat) specialize for processing that food: grinding, crushing, or shredding once it is in the mouth",
+      "Because the two jaw systems are functionally and developmentally decoupled, they can evolve independently — a classic case of evolutionary innovation via developmental modularity"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM",
+    "title": "Why Decoupled Jaws Matter for Radiation",
+    "left": {
+      "h": "The functional decoupling hypothesis (Liem 1973)",
+      "body": "<p>Karel Liem proposed that freeing the oral jaws from the demands of food processing allowed them to specialize purely for prey capture and habitat use.</p><ul><li>Oral jaws diversify for capture mode: scraping, biting, sucking, snail-shell entry</li><li>Pharyngeal jaws diversify in parallel for processing: molariform crushing teeth vs. slender shredding teeth</li></ul><p>This is a 'key innovation' in the textbook sense — a trait that opens access to new adaptive zones and is statistically associated with elevated diversification rates.</p>"
+    },
+    "right": {
+      "h": "Evidence and caveats",
+      "body": "<p>Pharyngeal jaw morphology tracks diet across independent lineages in all three lakes — a strong case of convergent evolution and ecological sorting.</p><ul><li>Molariform (crushing) morphs associate with mollusk/hard-prey diets</li><li>Papilliform (fine, shredding) morphs associate with fish/soft-invertebrate diets</li><li>Caveat: comparative analyses show the key-innovation effect is real but modest — pharyngeal jaws enable ecological diversification, they do not guarantee speciation by themselves</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Ecomorph",
+    "term": "Ecomorph",
+    "def": "A group of species or populations that have independently converged on a similar body form and trophic specialization in response to similar ecological demands, regardless of close phylogenetic relationship.",
+    "bullets": [
+      "Cichlid ecomorphs recur across all three lakes: elongate open-water piscivores, deep-bodied algae scrapers, robust-jawed mollusk crushers, slender zooplanktivores",
+      "The same ecomorph often evolves independently in Victoria, Malawi, and Tanganyika from different ancestral lineages — a textbook case of convergent evolution",
+      "Ecomorph classification is based on function (what the fish eats and how), not taxonomy — closely related species can be different ecomorphs, and distantly related species can be the same ecomorph"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "TROPHIC DIVERSITY",
+    "title": "Major Cichlid Ecomorph Guilds",
+    "cards": [
+      {
+        "h": "Algae scrapers / grazers",
+        "p": "Broad, often tricuspid oral teeth for scraping epilithic algae off rocks; molariform pharyngeal teeth for grinding plant material. Dominate rocky-shore 'mbuna' communities in Lake Malawi."
+      },
+      {
+        "h": "Molluscivores (snail/shell crushers)",
+        "p": "Robust oral jaws for extracting snails, paired with heavily molariform pharyngeal jaws capable of crushing shells — a direct product of the decoupled jaw system."
+      },
+      {
+        "h": "Piscivores",
+        "p": "Elongate bodies, large gape, sharp recurved teeth for capturing other fish; pharyngeal jaws remain gracile since prey requires little processing."
+      },
+      {
+        "h": "Zooplanktivores",
+        "p": "Small upturned mouths, fine gill rakers and slender pharyngeal teeth for filtering or picking zooplankton from open water."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "LAKE PROFILE",
+    "title": "Lake Malawi: Mbuna and the Sand-Dweller Divide",
+    "left": {
+      "h": "The 'mbuna' rock-dwellers",
+      "body": "<p>Mbuna are rock-restricted cichlids that rarely cross open sand — habitat itself acts as a barrier to gene flow even within a single lake.</p><ul><li>Territorial, highly colorful, often algae-grazing</li><li>Rocky outcrops function almost like islands, promoting fine-scale allopatric/parapatric divergence around the lake's rocky shoreline</li></ul>"
+    },
+    "right": {
+      "h": "Sand-dwelling and open-water lineages",
+      "body": "<p>A separate, roughly equally diverse radiation occupies sandy and open-water habitats.</p><ul><li>Includes substrate-spawning and mouthbrooding lineages with different courtship and lekking behaviors</li><li>Illustrates how habitat structure itself — not just ecology or color — can partition a single lake into many semi-isolated 'neighborhoods' where independent lineages diversify in parallel</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "SPECIATION MODE",
+    "title": "Can Cichlids Speciate Without Geography?",
+    "sub": "Revisiting the allopatric/parapatric/sympatric framework from L14-15 in the hardest test case biology has to offer"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK — L14-15",
+    "title": "Sympatric Speciation",
+    "term": "Sympatric speciation",
+    "def": "The evolution of reproductive isolation between populations without any extrinsic geographic barrier — divergence occurs within a single, continuously interbreeding population's range.",
+    "bullets": [
+      "L14-15 established that sympatric speciation is theoretically possible but requires strong disruptive selection plus a mechanism (often assortative mating) that couples divergence in ecology with divergence in mate choice",
+      "Cichlids in small, isolated crater lakes became the leading real-world test bed for this once-controversial idea",
+      "The debate is not settled by consensus — it is settled case-by-case using genomic and geographic evidence"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "EVIDENCE",
+    "title": "Crater Lake Cichlids: The Sympatric Speciation Test Cases",
+    "left": {
+      "h": "The strongest cases",
+      "body": "<p>Small, round, isolated volcanic crater lakes remove the confound of hidden geographic structure that plagues sympatry claims in large lakes:</p><ul><li><b>Lake Apoyo, Nicaragua (Midas cichlid complex):</b> <i>Amphilophus zaliosus</i> split from the generalist <i>A. citrinellus</i> within a single ~23,000-year-old crater lake with no internal barriers</li><li><b>Lake Barombi Mbo, Cameroon:</b> 11 endemic cichlid species in one small crater lake, phylogenetically nested (monophyletic), implying in-situ diversification</li></ul>"
+    },
+    "right": {
+      "h": "Why these cases are compelling — and contested",
+      "body": "<p>Support: genomic phylogenies show these species are each other's closest relatives (monophyly within the lake), the lakes lack internal barriers, and body-shape/diet divergence closely tracks distinct micro-habitats (benthic vs. limnetic) within the same water body.</p><ul><li>Critics note 'sympatric' at the scale of a lake can still involve fine-scale spatial or depth segregation acting as a soft barrier</li><li>Best interpretation: a continuum from strict sympatry to micro-allopatry/parapatry, not a binary</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Mouthbrooding",
+    "term": "Mouthbrooding (oral incubation)",
+    "def": "A form of parental care, common in African cichlids, in which a parent (usually the female) holds fertilized eggs and later free-swimming fry in the mouth for protection through early development.",
+    "bullets": [
+      "Mouthbrooding dramatically increases offspring survival relative to open substrate spawning, allowing very small founding populations to establish viable colonies after colonizing a new habitat or lake",
+      "Because mouthbrooding females delay further mating until brooding is complete, it also intensifies sexual selection — males must be highly attractive to secure the limited mating opportunities, amplifying color-based mate choice",
+      "This single trait therefore contributes to both the ecological-opportunity side (colonization success) and the sexual-selection side (mate choice intensity) of the radiation"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES",
+    "title": "Three Natural Experiments in Speciation Mode",
+    "cards": [
+      {
+        "h": "Lake Apoyo, Nicaragua",
+        "p": "Midas cichlid (Amphilophus) benthic-limnetic pair diverged within one crater lake in under 23,000 years; genomic data show ongoing but reduced gene flow — sympatric speciation with a whiff of continued introgression."
+      },
+      {
+        "h": "Lake Barombi Mbo, Cameroon",
+        "p": "11 endemic species, monophyletic, in a small crater lake with no obvious internal geographic barriers — one of the cleanest textbook cases for in-situ, non-allopatric divergence."
+      },
+      {
+        "h": "Lake Victoria basin",
+        "p": "By contrast, Victoria's radiation likely involved a mosaic: satellite lakes, seasonal connections, and rapid post-desiccation recolonization — parapatric and micro-allopatric processes are harder to rule out at this scale."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THEORY REVIEW",
+    "title": "Allopatric Speciation as the Baseline Expectation",
+    "left": {
+      "h": "The classical model (L14)",
+      "body": "<p>Before L14-15 introduced sympatric and parapatric alternatives, the course established allopatric speciation — divergence following geographic separation — as the default, least-controversial mode.</p><ul><li>Vicariance or dispersal separates populations</li><li>Independent drift and selection accumulate reproductive isolating barriers</li><li>Secondary contact tests whether isolation is complete</li></ul>"
+    },
+    "right": {
+      "h": "Why cichlids pushed the field beyond it",
+      "body": "<p>Cichlid crater lake radiations were among the first systems where biologists could rule out hidden geographic barriers with confidence, because the entire habitat is visible and mappable.</p><ul><li>This turned a largely theoretical debate (can sympatric speciation happen at all?) into an empirically testable one</li><li>Cichlids, alongside a handful of other systems (e.g., some insect host races), were central to shifting the field's consensus from 'sympatric speciation is rare/impossible' to 'sympatric speciation is possible under specific conditions'</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Assortative Mating",
+    "term": "Assortative mating",
+    "def": "A mating pattern in which individuals preferentially mate with others that resemble them in some phenotype, increasing the correlation between parental phenotypes above random expectation.",
+    "bullets": [
+      "Positive assortative mating is the mechanistic glue that links ecological or color divergence to actual reproductive isolation — without it, disruptive selection alone cannot produce speciation",
+      "In cichlids, assortative mating is most often mediated by visual cues (male color, size) recognized during female mate choice",
+      "The strength of assortative mating in the wild — not just in aquarium trials — is central to evaluating how much any given cichlid case truly represents completed or ongoing speciation"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "SEXUAL SELECTION",
+    "title": "Color, Choice, and Speciation",
+    "sub": "How mate preference alone can build reproductive isolation — even when ecology has not yet diverged"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK — EVOLUTION I CH6 / EVOLUTION II L5-8",
+    "title": "Mate-Choice-Driven Speciation",
+    "term": "Mate-choice-driven (sexual selection) speciation",
+    "def": "Reproductive isolation that arises primarily through divergent female mating preferences for male sexual signals (color, courtship display), rather than through divergent natural selection on ecological traits.",
+    "bullets": [
+      "This is a direct extension of the sexual selection theory built in Evolution I (Ch6: Fisherian runaway, good genes, sensory bias) and expanded in Evolution II L5-8 on sexual conflict and signal evolution",
+      "In cichlids, male nuptial coloration is extraordinarily labile and diverges rapidly even between populations that are ecologically almost identical",
+      "Female preference for particular colors, combined with assortative mating, can generate premating isolation before — or even without — ecological divergence"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM",
+    "title": "Color Pattern Divergence in Lake Victoria Cichlids",
+    "left": {
+      "h": "The classic experiment (Seehausen & van Alphen)",
+      "body": "<p>Closely related <i>Pundamilia</i> species pairs differ mainly in male color: red-dorsum vs. blue males, with females preferring the color of their own population.</p><ul><li>Under normal white light, females discriminate sharply and mate assortatively</li><li>Under monochromatic (orange) lighting that erases the color difference, females lose their preference and hybridize freely in the lab</li></ul><p>This is a rare, direct experimental demonstration that a single sensory/signal axis can maintain isolation between otherwise interbreedable species.</p>"
+    },
+    "right": {
+      "h": "The turbidity connection",
+      "body": "<p>Anthropogenic eutrophication of Lake Victoria has increased water turbidity, altering the ambient light spectrum available for color-based mate choice.</p><ul><li>In turbid, human-disturbed areas of the lake, color-based species pairs show increased hybridization</li><li>This is a natural 'undoing' of speciation — a cautionary case connecting sexual selection theory to real conservation stakes</li><li>Implication: the same visual system that drives divergence can drive its collapse if the environmental conditions enabling discrimination disappear</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SENSORY ECOLOGY",
+    "title": "Light Environment and the Geography of Color Divergence",
+    "headers": [
+      "Habitat depth/turbidity",
+      "Dominant light wavelengths",
+      "Typical male coloration",
+      "Speciation implication"
+    ],
+    "rows": [
+      [
+        "Shallow, clear water",
+        "Full spectrum, blue-rich",
+        "Blue, UV-reflecting patterns",
+        "Strong color discrimination; high potential for color-based isolation"
+      ],
+      [
+        "Intermediate depth",
+        "Blue-green shifted",
+        "Red/orange and blue polymorphisms",
+        "Sharpest species boundaries; classic red/blue sister pairs occur here"
+      ],
+      [
+        "Deep or turbid water",
+        "Red/orange shifted, narrow spectrum",
+        "Dull, red-shifted, or reduced color",
+        "Weaker discrimination; color-based barriers erode, hybridization rises"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Sensory Drive",
+    "term": "Sensory drive",
+    "def": "The hypothesis that the local sensory (perceptual) environment shapes the evolution of signaling traits and the perceptual systems that detect them, coupling signal divergence to habitat divergence.",
+    "bullets": [
+      "In cichlids, sensory drive links visual pigment (opsin) gene evolution, ambient light environment, and male color pattern into a single coevolving system",
+      "Populations in different light environments evolve different visual sensitivities (via opsin gene expression shifts), which in turn favors different male color signals that are maximally detectable in that light",
+      "This provides a mechanistic bridge between ecology (light environment varies with depth/turbidity) and sexual selection (color preferences), explaining why color-based species pairs map so precisely onto habitat depth"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CALLBACK — EVOLUTION I CH6",
+    "title": "Which Sexual Selection Model Fits Cichlids?",
+    "items": [
+      "Fisherian runaway: female preference and male trait become genetically correlated and co-amplify even without any direct fitness benefit — plausible for some of the most exaggerated, seemingly arbitrary color patterns",
+      "Good genes / indicator models: male color could honestly signal condition, parasite resistance, or foraging success — some evidence that color intensity correlates with male condition in certain species",
+      "Sensory bias / sensory drive: preference is a byproduct of the visual system's pre-existing sensitivity (or one shaped by the light environment), and males evolve to exploit it — the best-supported model for the depth-structured red/blue color pairs",
+      "These models are not mutually exclusive — sensory drive can set the initial bias that a Fisherian process then exaggerates",
+      "The synthesis: cichlids show that multiple sexual selection mechanisms studied separately in Evolution I Ch6 can operate together in a single natural system"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "GENOMICS",
+    "title": "The Genomic Basis of Rapid Diversification",
+    "sub": "How can hundreds of species arise in 15,000 years? Callback to Evolution I Ch9 (evo-devo) and the genetics of adaptation"
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK — EVOLUTION I CH9",
+    "title": "Regulatory Evolution",
+    "term": "Regulatory (cis-regulatory) evolution",
+    "def": "Evolutionary change in the DNA sequences that control when, where, and how much a gene is expressed, rather than changes to the protein-coding sequence itself.",
+    "bullets": [
+      "Evolution I Ch9 established that changes in gene regulation, not just protein structure, are a major source of morphological novelty (evo-devo)",
+      "Cichlid jaw shape, tooth type, and color pattern are strongly influenced by regulatory changes in a re-used, ancestral genetic toolkit rather than by the evolution of many new genes",
+      "This matters because regulatory changes can be modular and fast-acting — well suited to generating rapid, repeated phenotypic divergence across many lake lineages"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MECHANISM",
+    "title": "Standing Variation and the 'Hybrid Swarm' Hypothesis",
+    "left": {
+      "h": "Standing genetic variation",
+      "body": "<p>Rapid radiations cannot wait for new mutations to arise and sweep to high frequency one at a time — there isn't enough time.</p><ul><li>Cichlid radiations draw heavily on <b>standing variation</b>: genetic variants already segregating in ancestral or founder populations</li><li>Because this variation is already present, selection can act on it immediately upon colonizing a new lake or habitat, producing rapid parallel adaptation</li><li>Same alleles/loci are frequently reused across independent lake radiations — a genomic signature of a shared ancestral toolkit</li></ul>"
+    },
+    "right": {
+      "h": "The hybrid swarm origin hypothesis",
+      "body": "<p>Genomic studies (e.g., Meier et al.) show that Lake Victoria's radiation was seeded by <b>hybridization</b> between two distinct riverine/lake lineages that met when the lake refilled.</p><ul><li>Hybridization instantly combined divergent genomes, creating a burst of novel trait combinations and elevated genetic variation — a 'hybrid swarm'</li><li>This transgressive variation gave selection abundant raw material to sort through rapidly, jump-starting adaptive radiation without waiting on new mutation</li><li>Reframes hybridization from an evolutionary dead end (a common assumption) into a potential engine of diversification</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "GENOMIC EVIDENCE",
+    "title": "Genomic Signatures Behind the Cichlid Radiations",
+    "headers": [
+      "Genomic signature",
+      "What it shows",
+      "Example / lake"
+    ],
+    "rows": [
+      [
+        "Shared ancestral polymorphism across species",
+        "Many species differences predate the species themselves — sorted from standing variation, not new mutation",
+        "Lake Malawi haplochromines"
+      ],
+      [
+        "Admixture / hybrid ancestry at genome-wide scale",
+        "Two divergent lineages merged before the radiation began, generating a genetically diverse founding population",
+        "Lake Victoria superflock origin"
+      ],
+      [
+        "Parallel reuse of the same loci in independent lakes",
+        "Convergent phenotypes (e.g., jaw or color traits) map to homologous genomic regions across Victoria, Malawi, Tanganyika",
+        "Cross-lake comparative genomics"
+      ],
+      [
+        "Rapid linkage disequilibrium decay / large effective population size",
+        "Consistent with very young species boundaries and incomplete lineage sorting",
+        "Lake Victoria (~15,000 yr radiation)"
+      ]
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SPECIFIC LOCI",
+    "title": "Genes Implicated in Cichlid Diversification",
+    "headers": [
+      "Gene / pathway",
+      "Trait affected",
+      "Type of change"
+    ],
+    "rows": [
+      [
+        "bmp4 (bone morphogenetic protein 4)",
+        "Oral jaw depth and robustness, tied to diet",
+        "Regulatory (expression level) evolution"
+      ],
+      [
+        "lws / sws opsin genes",
+        "Long- and short-wavelength color vision sensitivity",
+        "Coding and regulatory changes; expression tuning to light environment"
+      ],
+      [
+        "Pax7 and pigmentation pathway genes",
+        "Melanic vs. non-melanic color pattern (e.g., blotch patterns)",
+        "Regulatory evolution, standing variation"
+      ],
+      [
+        "EDA pathway",
+        "Scale and pigment pattern variation",
+        "Regulatory evolution, reused across radiations"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Incomplete Lineage Sorting",
+    "term": "Incomplete lineage sorting (ILS)",
+    "def": "A pattern in which ancestral genetic polymorphisms fail to sort into reciprocally monophyletic lineages by the time descendant species diverge, so that gene trees for different loci disagree with each other and with the species tree.",
+    "bullets": [
+      "Cichlid radiations show extremely high levels of ILS because speciation happened so recently and so fast that ancestral variation has not had time to sort out by drift",
+      "ILS makes it genuinely difficult to reconstruct a single resolved species tree for many cichlid radiations — different genes tell different phylogenetic stories",
+      "This is direct genomic evidence for just how young and rapid these radiations are, reinforcing the timeline data from the earlier slides"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHODS",
+    "title": "How We Know: The Genomic Toolkit",
+    "left": {
+      "h": "Whole-genome sequencing and phylogenomics",
+      "body": "<p>Large comparative genomics projects (e.g., the cichlid genome consortium) sequenced representative species across all three lakes plus outgroups.</p><ul><li>Enabled genome-wide scans for regions under selection, introgression, and shared ancestral variation</li><li>Allowed direct tests of the hybrid-swarm hypothesis by detecting admixture signatures between riverine and lake lineages</li></ul>"
+    },
+    "right": {
+      "h": "Common-garden and hybridization experiments",
+      "body": "<p>Laboratory crosses and common-garden rearing separate genetic from environmental/plastic effects on phenotype.</p><ul><li>Seehausen & van Alphen's light-manipulation mate-choice trials are a prime example — a genetic preference tested under controlled sensory conditions</li><li>F1/F2 hybrid crosses map the genetic basis of jaw shape and color traits to specific chromosomal regions (QTL mapping)</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "How These Threads Interlock",
+    "items": [
+      "Ecological opportunity (empty niches in new/refilled lakes) provided the stage",
+      "The pharyngeal jaw key innovation provided the ecological versatility to fill that stage with dozens of trophic specialists",
+      "Sexual selection on color provided a fast, ecology-independent route to premating reproductive isolation",
+      "Standing variation and hybrid ancestry provided the raw genetic material for all of the above to happen fast enough to matter",
+      "None of these mechanisms alone explains 500 species in 15,000 years — the radiation is the product of their combination"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "BIG PICTURE",
+    "title": "Cichlid Phenomena Mapped to Course Concepts",
+    "headers": [
+      "Cichlid phenomenon",
+      "Course mechanism / chapter",
+      "Where we covered it"
+    ],
+    "rows": [
+      [
+        "Rift Lake colonization and empty niche space",
+        "Ecological opportunity / adaptive radiation",
+        "L18"
+      ],
+      [
+        "Pharyngeal jaw functional decoupling",
+        "Key innovation, evolutionary novelty, modularity",
+        "L18; Evolution I Ch9 (evo-devo)"
+      ],
+      [
+        "Crater lake benthic-limnetic divergence (Apoyo, Barombi Mbo)",
+        "Sympatric speciation, disruptive selection",
+        "L14-15"
+      ],
+      [
+        "Lake Victoria satellite-lake mosaic colonization",
+        "Parapatric / micro-allopatric speciation",
+        "L14-15"
+      ],
+      [
+        "Male color pattern divergence, female preference",
+        "Sexual selection, Fisherian/good-genes models",
+        "Evolution I Ch6; Evolution II L5-8"
+      ],
+      [
+        "Turbidity-driven hybridization of color morphs",
+        "Reinforcement breakdown, speciation reversal",
+        "Evolution II L14-15, L5-8"
+      ],
+      [
+        "Cis-regulatory control of jaw/tooth/color phenotypes",
+        "Regulatory evolution, evo-devo toolkit reuse",
+        "Evolution I Ch9"
+      ],
+      [
+        "Standing variation fueling rapid parallel adaptation",
+        "Genetics of adaptation, soft/hard sweeps",
+        "Evolution I Ch7-9"
+      ],
+      [
+        "Hybrid swarm origin of Lake Victoria radiation",
+        "Hybridization as a creative evolutionary force",
+        "Evolution I Ch9; today's synthesis"
+      ],
+      [
+        "500+ species, <100,000 years, three lakes",
+        "Tempo of macroevolution, diversification rate estimation",
+        "L18; Evolution II macroevolution unit"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "VISUAL SYNTHESIS",
+    "title": "Building a Cichlid Radiation, Layer by Layer",
+    "levels": [
+      {
+        "label": "500+ species in 3 lakes",
+        "color": "#4a1620",
+        "width": "280px"
+      },
+      {
+        "label": "Reproductive isolation (color + ecology)",
+        "color": "#6b2c39",
+        "width": "360px"
+      },
+      {
+        "label": "Rapid parallel adaptation from standing variation",
+        "color": "#8a3f4d",
+        "width": "440px"
+      },
+      {
+        "label": "Key innovation: decoupled pharyngeal jaws",
+        "color": "#a85a68",
+        "width": "520px"
+      },
+      {
+        "label": "Ecological opportunity + hybrid-swarm founding variation",
+        "color": "#c47b87",
+        "width": "600px"
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "CHRONOLOGY",
+    "title": "A Timeline of the Great Lakes Radiations",
+    "items": [
+      {
+        "y": "~9-12 Mya",
+        "t": "Lake Tanganyika forms; earliest and most phylogenetically deep cichlid lineages established"
+      },
+      {
+        "y": "~2-4.5 Mya",
+        "t": "Lake Malawi basin forms; haplochromine cichlids begin radiating in the new lake"
+      },
+      {
+        "y": "~400 kya",
+        "t": "Lake Victoria basin first forms via tectonic damming of the Kagera river system"
+      },
+      {
+        "y": "~18,000-14,700 ya",
+        "t": "Lake Victoria nearly or completely desiccates during the last glacial maximum arid period"
+      },
+      {
+        "y": "~14,700-15,000 ya",
+        "t": "Lake refills; hybrid swarm forms from surviving riverine/refugial lineages meeting in the new lake"
+      },
+      {
+        "y": "Following ~15,000 yr",
+        "t": "Explosive radiation to ~500 endemic Victoria species — one of the fastest vertebrate radiations on record"
+      },
+      {
+        "y": "1980s-1990s",
+        "t": "Nile perch introduction and eutrophication drive mass extinction and hybridization events in Lake Victoria, providing a real-time test of speciation reversal"
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CONSERVATION LINK",
+    "title": "A Radiation Under Threat — and Under Study in Real Time",
+    "left": {
+      "h": "The Nile perch story",
+      "body": "<p>The introduction of the predatory Nile perch (<i>Lates niloticus</i>) into Lake Victoria in the mid-20th century triggered the extinction or near-extinction of an estimated 200+ endemic cichlid species — one of the fastest documented vertebrate extinction events.</p><ul><li>Eutrophication from agricultural runoff simultaneously increased turbidity</li><li>Combined pressures allow direct observation of both radiation and its reversal within a human lifetime</li></ul>"
+    },
+    "right": {
+      "h": "Why this matters scientifically",
+      "body": "<p>Few systems let us watch speciation and its reversal on timescales of decades rather than millions of years.</p><ul><li>Turbidity-driven hybridization (seen a few slides ago) is a live case of reinforcement failing</li><li>Recovering populations post-perch-decline are being used to test whether reproductive isolation, once eroded, can re-establish</li><li>Directly connects macroevolutionary theory to applied conservation genetics</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "PERSPECTIVE",
+    "quote": "Cichlid fishes have done in a geological instant what it took other vertebrate lineages tens of millions of years to accomplish — and they are still doing it, in lakes we can visit and sample today.",
+    "attrib": "Paraphrased from the cichlid evolutionary genomics literature (Kocher, Salzburger, and colleagues)"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "MACROEVOLUTION",
+    "title": "What Cichlids Tell Us About the Tempo of Diversification",
+    "left": {
+      "h": "Measuring diversification rate",
+      "body": "<p>Diversification rate = speciation rate minus extinction rate, typically measured in new lineages per lineage per million years.</p><ul><li>Lake Victoria's rate is among the highest ever estimated for vertebrates — comparable to or exceeding rates estimated for Darwin's finches and East African rift lake fishes generally</li><li>High rates in young systems raise the methodological question of how reliably we can date very recent splits using molecular clocks (relevant to techniques from earlier in the course)</li></ul>"
+    },
+    "right": {
+      "h": "Punctuated bursts vs. gradual accumulation",
+      "body": "<p>Cichlid radiations are a strong real-world illustration of punctuated, burst-like diversification rather than a slow, constant accumulation of species.</p><ul><li>Rate is highest immediately after ecological opportunity opens (lake refilling, colonization) and slows as niche space fills — a pattern known as 'early burst' diversification</li><li>This connects directly to macroevolutionary models of adaptive radiation you will see formalized with diversity-dependent diversification models later in the Applied &amp; Synthesis unit</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY CICHLIDS?",
+    "title": "The Case for Cichlids as a Model System",
+    "items": [
+      "Replication: three lakes, largely independent radiations, convergent outcomes — a natural experiment run in triplicate",
+      "Speed: radiations young enough that speciation is observable in progress, not just inferred from old fossils or deep phylogenies",
+      "Tractability: high-quality genome assemblies for dozens of species enable direct genotype-phenotype-fitness studies",
+      "Behavioral accessibility: mate choice, aggression, and parental care can be studied directly in lab aquaria as well as in the field",
+      "Integration: no other single system lets you teach ecological opportunity, key innovation, speciation genetics, sexual selection, and regulatory evolution with one shared cast of species"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Superflock",
+    "term": "Species flock (superflock)",
+    "def": "A monophyletic group of many closely related, often morphologically and ecologically diverse species confined to a single, relatively small geographic area — most classically, a single lake.",
+    "bullets": [
+      "The Lake Victoria haplochromine radiation is frequently cited as the largest and fastest vertebrate species flock known",
+      "Species flock status (monophyly + endemism + high diversity in a confined area) is itself part of the evidence used to argue for in-situ, rather than repeated-colonization, diversification",
+      "Not all lake cichlid assemblages are single species flocks — Lake Tanganyika's cichlids instead comprise multiple older, independently radiating tribes, reflecting its much longer and more complex geological history"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK — L18",
+    "title": "Comparing Cichlids to Other Adaptive Radiations",
+    "left": {
+      "h": "Shared features with Darwin's finches and Hawaiian silverswords",
+      "body": "<p>All three classic radiations (L18) share the core recipe: island-like ecological opportunity, a versatile ancestral toolkit, and rapid ecological diversification.</p><ul><li>Character displacement in resource-use traits (finch beaks, cichlid jaws, silversword leaf form)</li><li>Repeated, convergent evolution of similar ecomorphs from different starting lineages</li></ul>"
+    },
+    "right": {
+      "h": "What makes cichlids distinctive",
+      "body": "<p>Cichlids add two ingredients less prominent in the classic terrestrial examples:</p><ul><li>An unusually direct, experimentally testable role for sexual selection in generating reproductive isolation independent of ecology</li><li>Strong genomic evidence for hybridization as a creative force at the radiation's origin, rather than purely divergence from a single ancestral population</li></ul><p>This is exactly why cichlids and finches make a productive back-to-back pair of case studies (today and L38).</p>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "OPEN QUESTIONS",
+    "title": "What Remains Unresolved",
+    "cards": [
+      {
+        "h": "How much is truly sympatric?",
+        "p": "Even the best crater lake cases face lingering questions about fine-scale spatial structure acting as a hidden geographic barrier."
+      },
+      {
+        "h": "What triggers speciation vs. stasis?",
+        "p": "Not every cichlid lineage radiates — most haplochromine lineages outside the great lakes remain species-poor. Why some populations explode and others don't is still debated."
+      },
+      {
+        "h": "Can reversed speciation re-diverge?",
+        "p": "Whether hybridizing color morphs in disturbed habitats can re-establish isolation if water clarity improves is an active, unresolved empirical question."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "ALTERNATIVE VIEWS",
+    "title": "Is the Hybrid Swarm Hypothesis the Whole Story?",
+    "left": {
+      "h": "Support for hybrid origin",
+      "body": "<p>Genome-wide admixture signals in Lake Victoria cichlids are robust and replicated across independent studies, and the timing of admixture aligns with the lake's post-desiccation refilling.</p><ul><li>Transgressive segregation in hybrids (trait combinations outside either parent's range) has been demonstrated experimentally in cichlid crosses, supporting the plausibility of hybridization fueling novel phenotypes</li></ul>"
+    },
+    "right": {
+      "h": "Remaining uncertainty",
+      "body": "<p>Not every lake radiation shows the same strong hybrid-swarm signature — Lake Malawi's radiation, though also extremely fast, has a less clear admixture origin and may rely more heavily on standing variation within a single lineage.</p><ul><li>Hybridization may be necessary but not sufficient — it must still be followed by ecological and sexual selection sorting the resulting variation into distinct species</li><li>An active area of research: how general is the hybrid-swarm model across other adaptive radiations beyond cichlids?</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "BROADER LESSONS",
+    "title": "What Cichlids Teach Us About Macroevolution Generally",
+    "cards": [
+      {
+        "h": "Mechanisms rarely act alone",
+        "p": "Real radiations combine ecological opportunity, key innovation, sexual selection, and genomic architecture — textbook chapters that treat these mechanisms separately are pedagogical conveniences, not descriptions of how evolution actually partitions itself in nature."
+      },
+      {
+        "h": "Hybridization is not always a dead end",
+        "p": "Cichlids join a growing list of systems (including some finch and butterfly examples) where hybridization supplies raw material for adaptive radiation rather than erasing species boundaries."
+      },
+      {
+        "h": "Speciation and its reversal are two sides of one process",
+        "p": "The same visual system and habitat structure that build reproductive isolation in cichlids can dismantle it under environmental change — a reminder that speciation is not always a one-way, irreversible process."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION",
+    "title": "Questions for Section",
+    "items": [
+      "If color-based mate choice alone can isolate two cichlid populations, does that count as a 'true' species under the biological species concept if the two still hybridize occasionally under altered light conditions?",
+      "How would you experimentally distinguish sympatric speciation from micro-allopatric speciation within a single crater lake?",
+      "Why might a hybrid swarm origin make a lineage more likely to radiate rapidly, rather than simply blending into a single intermediate population?",
+      "Given what you know about key innovations from L18, would you expect the pharyngeal jaw alone to be sufficient to produce a radiation of this scale without the sexual selection component? Why or why not?",
+      "What would falsify the hybrid-swarm hypothesis for Lake Victoria, given the genomic tools described today?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "African Great Lakes cichlids produced 1,500+ species in three lakes, some radiations completing in as little as 15,000 years",
+      "Ecological opportunity in newly formed/refilled lakes, combined with the pharyngeal jaw key innovation, enabled trophic diversification (callback L18)",
+      "Crater lake systems (Apoyo, Barombi Mbo) provide some of the strongest real-world evidence for sympatric speciation, while larger lakes likely involve a mix of modes (callback L14-15)",
+      "Sexual selection on male color and female preference can generate reproductive isolation largely independent of ecology — and can be undone by environmental change like turbidity (callback Evolution I Ch6, Evolution II L5-8)",
+      "Standing genetic variation and a hybrid-swarm founding event gave Lake Victoria's radiation the raw material to diversify explosively fast (callback Evolution I Ch9)",
+      "The system as a whole demonstrates that major evolutionary patterns rarely act alone — cichlids show adaptive radiation, speciation, sexual selection, and genomic innovation as a single interacting process"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Case Study Integration II: Darwin's Finches",
+    "sub": "Lecture 38 turns to the Galápagos finches through a macroevolutionary and coevolutionary lens — beak evolution, character displacement, and decades of real-time natural selection data"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 37</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

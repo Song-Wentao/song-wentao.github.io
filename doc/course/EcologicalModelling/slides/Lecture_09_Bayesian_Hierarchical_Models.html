@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 9: Bayesian Hierarchical Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 9",
+    "title": "Bayesian Hierarchical Models",
+    "sub": "Same ticks, same nested structure -- now with full posterior distributions and honest uncertainty",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "09.1",
+    "title": "Picking Up the Thread",
+    "sub": "\"glmer() was already doing partial pooling -- it just never showed you the uncertainty in how much.\""
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "From Lecture 7",
+    "title": "Mixed Models Already Do Partial Pooling",
+    "items": [
+      "Lecture 7 fit glmer(TICKS ~ YEAR + cHEIGHT + (1|LOCATION/BROOD), family=poisson) to the grouse tick data",
+      "Its random effects (BLUPs) already shrink small-sample brood and location estimates toward the population mean -- a broods-with-2-chicks estimate is pulled harder toward zero than a broods-with-20-chicks estimate",
+      "That shrinkage IS partial pooling: a compromise between 'every brood gets its own independent mean' (no pooling) and 'every brood shares exactly one mean' (complete pooling)",
+      "But glmer treats the amount of shrinkage -- the variance components -- as single point estimates, and propagates almost none of their uncertainty into the fixed-effect standard errors",
+      "This lecture fits the exact same model structure fully Bayesian: partial pooling becomes explicit, and uncertainty in every parameter -- including the variance components -- flows through to every other parameter"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Same Data, New Lens",
+    "title": "What Doesn't Change, What Does",
+    "items": [
+      "Same dataset: 403 grouse chicks, 118 broods, 63 locations (Elston, Moss, Boulinier, Arrowsmith & Lambin 2001, Parasitology)",
+      "Same model formula: TICKS ~ YEAR + cHEIGHT + (1|LOCATION/BROOD), Poisson family",
+      "What changes is the machinery: instead of maximizing a likelihood to get one 'best' estimate per parameter, we compute a full probability distribution over every parameter given the data and our prior beliefs",
+      "What changes is the payoff: correct, propagated uncertainty; no singular-fit or boundary warnings; and the ability to ask richer probabilistic questions of the fitted model"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.2",
+    "title": "Bayes' Theorem, Refreshed",
+    "sub": "The one equation everything in this lecture builds on"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Bayes' Theorem",
+    "term": "Posterior ∝ Prior × Likelihood",
+    "def": "The posterior distribution of the parameters, given the observed data, is proportional to the prior distribution of the parameters times the likelihood of the data given the parameters: p(θ | data) ∝ p(θ) × p(data | θ).",
+    "bullets": [
+      "p(θ): the prior -- what we believed about the parameters before seeing this data",
+      "p(data | θ): the likelihood -- how probable the observed data are, for each candidate value of θ (the same likelihood a GLM already maximizes)",
+      "p(θ | data): the posterior -- the updated, full probability distribution over θ after combining prior belief with observed evidence",
+      "A GLM/GLMM finds the single θ that maximizes the likelihood alone; a Bayesian model returns the entire posterior distribution, weighted by both the prior and the likelihood"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Recipe",
+    "title": "Why This Isn't as Exotic as It Looks",
+    "items": [
+      "The likelihood term is identical to the one glmer() already maximizes -- Poisson probability of the observed TICKS counts given the linear predictor",
+      "The prior term is new: an explicit probability distribution over each parameter BEFORE the data are seen (Normal(0,5) for a log-scale coefficient, for example)",
+      "The normalizing constant (the 'evidence', p(data)) makes the posterior integrate to 1, but is rarely needed in practice -- MCMC samples from the posterior without ever computing it directly",
+      "In the limit of a very flat (uninformative) prior and a lot of data, the Bayesian posterior mode and the frequentist MLE converge to the same point -- Bayesian and frequentist Poisson GLMMs are not opposed methods, they are the same likelihood viewed through two different lenses"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.3",
+    "title": "Why Go Bayesian for Hierarchical Ecological Data?",
+    "sub": "Three practical reasons, beyond philosophy"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Three Practical Reasons",
+    "title": "What You Actually Gain",
+    "items": [
+      "Uncertainty propagates correctly: the posterior for a fixed effect (e.g. YEAR97) automatically reflects uncertainty in the LOCATION and BROOD variance components, instead of treating those as known constants the way glmer's Wald/profile intervals implicitly do",
+      "No boundary or singular-fit pathologies: glmer can report a variance component pinned exactly at zero ('singular fit') when a grouping factor has few levels or little between-group variance; a Bayesian model instead returns a full posterior for that variance, including its uncertainty near zero, without ever needing to declare the fit degenerate",
+      "Genuine prior knowledge can be encoded: if a previous study (or Lecture 7 itself!) already estimated the LOCATION variance component, that knowledge can be built into the prior for a new, smaller dataset rather than discarded",
+      "None of this requires a different model structure -- the SAME formula, TICKS ~ YEAR + cHEIGHT + (1|LOCATION/BROOD), is used in both lectures"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Method Comparison",
+    "title": "Frequentist GLMM vs. Bayesian Hierarchical Model",
+    "headers": [
+      "",
+      "Frequentist GLMM (glmer, Lecture 7)",
+      "Bayesian Hierarchical Model (Lecture 9)"
+    ],
+    "rows": [
+      [
+        "Output",
+        "Point estimates + standard errors / Wald CIs",
+        "Full posterior distribution for every parameter"
+      ],
+      [
+        "Variance components",
+        "Point estimate; can hit a 'singular fit' boundary at zero",
+        "Full posterior; naturally supports near-zero without collapsing"
+      ],
+      [
+        "Uncertainty propagation",
+        "Approximate; fixed effects often treat variance components as known",
+        "Exact (up to MCMC error); every parameter's uncertainty flows through every other"
+      ],
+      [
+        "Prior information",
+        "Not used -- purely data-driven maximum likelihood",
+        "Explicitly encoded via priors, from weakly informative to strongly informative"
+      ],
+      [
+        "Small-sample / few-group behavior",
+        "Can be unstable, non-convergent, or singular with few groups",
+        "Degrades gracefully -- posteriors just get wider"
+      ],
+      [
+        "Computation",
+        "Fast: numerical optimization (seconds)",
+        "Slower: MCMC sampling (tens of seconds to minutes)"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.4",
+    "title": "Priors",
+    "sub": "Encoding what counts as a 'reasonable' effect size before seeing the data"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Weakly Informative Prior",
+    "term": "Weakly Informative Prior",
+    "def": "A prior distribution wide enough to let the data dominate the posterior for any biologically plausible effect size, but narrow enough to rule out absurd values and stabilize computation -- the sensible default for ecological regression coefficients and variance components.",
+    "bullets": [
+      "For log-scale regression coefficients (intercepts, YEAR effects, cHEIGHT slope): Normal(0, 5) is a common ecological default -- a coefficient of ±5 already implies an e^5 ≈ 148-fold change, far beyond anything plausible for tick counts",
+      "For variance-component standard deviations (SD(LOCATION), SD(BROOD)): a half-Cauchy or Exponential(1) prior restricts to positive values, concentrates mass at small-to-moderate SDs, but keeps a long right tail for surprises",
+      "Weakly informative is NOT the same as uninformative -- a flat/improper prior on a variance component can actually cause computational and inferential problems that a weakly informative prior avoids",
+      "The goal is a prior that a skeptical reviewer would call 'reasonable' without needing to defend a specific numeric choice"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Prior Comparison",
+    "title": "Common Prior Choices for Hierarchical Ecological Models",
+    "headers": [
+      "Prior type",
+      "Typical use",
+      "Example"
+    ],
+    "rows": [
+      [
+        "Normal(0, σ large)",
+        "Fixed-effect coefficients on the log/logit scale",
+        "Normal(0, 5) on YEAR, cHEIGHT coefficients"
+      ],
+      [
+        "Half-Cauchy",
+        "Random-effect standard deviations",
+        "half-Cauchy(0, 2) on SD(LOCATION)"
+      ],
+      [
+        "Exponential",
+        "Random-effect standard deviations (lighter tail than half-Cauchy)",
+        "Exponential(1) on SD(BROOD)"
+      ],
+      [
+        "Student-t (low df)",
+        "Coefficients where occasional large effects are plausible",
+        "Student-t(3, 0, 5) as a robust alternative to Normal"
+      ],
+      [
+        "Informative Normal/Beta",
+        "When genuine prior knowledge exists (e.g. a previous study's estimate)",
+        "Normal(0.5, 0.1) if Lecture 7's glmer estimate is treated as prior information"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "This Lecture's Choices",
+    "title": "Priors Used in the Grouse Tick Model",
+    "items": [
+      "Intercept, YEAR96, YEAR97, cHEIGHT coefficients: Normal(0, 5) on the log scale -- weakly informative, lets the Poisson likelihood dominate",
+      "SD(LOCATION), SD(BROOD:LOCATION): rstanarm's default weakly informative prior in R (analogous to a half-Cauchy/Exponential choice); explicit half-Cauchy(0, 2) in the Python PyMC model; Exponential(1) in the Julia Turing.jl model -- all three encode 'small-to-moderate variance is likely, huge variance is not impossible'",
+      "None of these priors were tuned to produce a particular answer -- they were chosen before looking at the posterior, which is the whole point of calling them 'weakly informative'",
+      "A numerical detail, not a modelling one: cHEIGHT was standardized (z-scored) before fitting in all three languages, purely because its raw scale (–59 to +71) made the sampler's step size badly calibrated -- the coefficient is converted back to the original scale for reporting"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.5",
+    "title": "MCMC Intuition",
+    "sub": "How you actually get a posterior distribution out of a computer"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Problem MCMC Solves",
+    "title": "Why Not Just Compute the Posterior Directly?",
+    "items": [
+      "Bayes' theorem gives the posterior only up to a normalizing constant -- computing that constant exactly means integrating over every possible combination of every parameter, which is intractable for a model with dozens of random effects",
+      "Markov Chain Monte Carlo (MCMC) sidesteps this: instead of computing the posterior's shape analytically, it DRAWS a large sample of parameter values whose long-run frequency matches the posterior distribution",
+      "Given enough draws, summarizing the sample (mean, quantiles, histograms) is equivalent to summarizing the true posterior -- no explicit integral required",
+      "brms/rstanarm (R), PyMC (Python), and Turing.jl (Julia) all use a specific, highly efficient MCMC algorithm for this: Hamiltonian Monte Carlo, tuned automatically by the No-U-Turn Sampler (NUTS)"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Markov Chain",
+    "term": "Markov Chain",
+    "def": "A sequence of random draws where each new draw depends only on the current value, not on the full history before it -- 'memoryless' in the sense that matters for sampling. MCMC constructs a Markov chain whose long-run distribution of visited values IS the posterior distribution we want to summarize.",
+    "bullets": [
+      "The 'Monte Carlo' half of MCMC just means: approximate a quantity (here, the posterior) using random simulation rather than exact calculation",
+      "Early iterations of a chain depend heavily on its (essentially arbitrary) starting point -- this is why the first block of draws (warmup/burn-in) is discarded before summarizing",
+      "After warmup, if the chain is mixing well, it visits each region of the posterior in proportion to that region's true posterior probability -- which is exactly what makes histogram-style summaries of the draws valid"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Hamiltonian Monte Carlo (HMC) / NUTS",
+    "term": "HMC / NUTS",
+    "def": "An MCMC algorithm that uses the gradient of the posterior (how probability changes as parameters change) to propose long, efficient jumps through parameter space, guided by simulated physics -- as if a particle were rolling around the posterior's probability landscape. NUTS automatically tunes how far each jump should travel.",
+    "bullets": [
+      "No equations required to use it -- brm(), stan_glmer(), pm.sample(), and NUTS() in Turing.jl all run HMC/NUTS by default",
+      "Far more efficient than naive random-walk Metropolis sampling, especially in the many-dimensional parameter spaces that hierarchical models create (one parameter per LOCATION, one per BROOD, plus fixed effects and variance components)",
+      "Diagnostic warnings like 'divergent transitions' are HMC-specific signals that the sampler hit a region of the posterior its step size couldn't navigate -- worth taking seriously, not ignoring"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Step by Step",
+    "title": "What NUTS Is Doing at Every Iteration",
+    "cards": [
+      {
+        "h": "1. Propose",
+        "p": "Starting from the current parameter values, simulate a short trajectory through the posterior landscape using the gradient -- like giving a ball a push and watching physics carry it to a new point."
+      },
+      {
+        "h": "2. Evaluate",
+        "p": "Compute how probable the proposed new parameter values are under the posterior (prior × likelihood), compared to the current values."
+      },
+      {
+        "h": "3. Accept / Reject",
+        "p": "Accept the proposed move with a probability that favors higher-probability regions but still allows occasional moves to lower-probability regions -- this is what lets the sampler explore the whole posterior, not just its peak."
+      },
+      {
+        "h": "4. Repeat",
+        "p": "Do this thousands of times per chain. The resulting sequence of accepted parameter values -- the 'chain' -- is, after discarding an initial warm-up period, a sample from the true posterior distribution."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters Here",
+    "title": "HMC and Hierarchical Models Are a Good Match",
+    "items": [
+      "A model with 63 LOCATION effects + 118 BROOD effects + 4 fixed effects + 2 variance components has ~187 parameters -- naive Metropolis sampling would need an enormous number of iterations to explore a space this large efficiently",
+      "HMC's use of the gradient lets it take large, informed steps even in high dimensions, making it practical to fit models of this size in tens of seconds rather than hours",
+      "The 'warmup' or 'tuning' phase (500 iterations in this lecture's scripts) is where NUTS calibrates its step size and trajectory length automatically -- those draws are discarded before summarizing the posterior",
+      "This is also why the R, Python, and Julia scripts in this lecture keep chains and iterations modest: enough to demonstrate real convergence, without demanding a large compute budget"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.6",
+    "title": "Posterior Summaries",
+    "sub": "Turning thousands of posterior draws into a number you can report"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Summarizing a Posterior",
+    "title": "From Draws to Numbers",
+    "items": [
+      "Posterior mean or median: a single 'best guess' point estimate, computed by averaging (or taking the median of) all the MCMC draws for a parameter -- directly comparable to glmer's fixed-effect estimate",
+      "Posterior standard deviation: the spread of the draws, directly comparable to a frequentist standard error",
+      "Credible interval: a range that contains a specified proportion (typically 95%) of the posterior draws -- e.g. the 2.5th and 97.5th percentiles of the sampled values for a parameter",
+      "Because the posterior is a full distribution, ANY probability question about the parameter can be answered directly from the draws -- e.g. 'what is the probability the YEAR97 effect is negative?' is just the proportion of draws below zero"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Classic Confusion, Worth Getting Right",
+    "title": "95% Credible Interval ≠ 95% Confidence Interval",
+    "term": "Credible Interval vs. Confidence Interval",
+    "def": "A 95% credible interval means: given the observed data and the prior, there is a 95% probability the true parameter value lies in this interval. A 95% confidence interval means something entirely different: if this study were repeated infinitely many times, 95% of the intervals so constructed would contain the true parameter -- it says nothing about the probability for THIS particular interval.",
+    "bullets": [
+      "The credible interval is a direct probability statement about the parameter, conditional on the data actually observed -- which is what most people INTEND to say when they report an interval",
+      "The confidence interval is a statement about the long-run behavior of the procedure across many hypothetical repeated studies -- it is technically incorrect to say 'there is a 95% probability the true value is in this specific confidence interval'",
+      "In practice, for models with weakly informative priors and reasonable sample sizes, the two intervals are often numerically close (as this lecture's comparison will show) -- but their INTERPRETATION is genuinely different, and only the Bayesian interval supports the probability statement people actually want to make",
+      "This is one of the most common statistical misinterpretations in the applied literature -- getting it right is a small habit with an outsized payoff in how confidently and correctly you can describe your own results"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.7",
+    "title": "Convergence Diagnostics",
+    "sub": "How do you know the MCMC chains actually explored the posterior?"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Did It Work?",
+    "title": "Three Checks Before Trusting Any MCMC Fit",
+    "cards": [
+      {
+        "h": "R-hat (ṝ)",
+        "p": "Compares variance within each chain to variance across chains. R-hat near 1.00 (conventionally < 1.01, or a more lenient < 1.05 for exploratory work) means the chains agree with each other; R-hat well above 1 means they have not converged to the same distribution."
+      },
+      {
+        "h": "Effective Sample Size (ESS)",
+        "p": "MCMC draws are autocorrelated -- consecutive draws are similar -- so the 'effective' number of independent samples is usually smaller than the raw draw count. Low ESS (rule of thumb: below ~400) means posterior summaries, especially tail quantiles, are unreliable."
+      },
+      {
+        "h": "Trace Plots",
+        "p": "A plot of parameter value vs. iteration, one line per chain. Well-mixed chains look like overlapping 'fuzzy caterpillars' with no trend; poorly mixed chains show drift, long flat stretches (stuck sampler), or chains exploring different regions entirely."
+      },
+      {
+        "h": "Divergent Transitions",
+        "p": "HMC-specific warnings that the sampler's step size failed to navigate a sharp region of the posterior (often near a variance component close to zero) -- a small number is common with modest tuning; a large number signals the fit should not be trusted as-is."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Convergence Diagnostics in Practice",
+    "title": "What the Grouse Tick Model's Diagnostics Actually Showed",
+    "items": [
+      "R (rstanarm, stan_glmer): all four fixed effects had R-hat between 0.998 and 1.000 and effective sample sizes between roughly 600 and 1100 out of 2000 post-warmup draws -- clean convergence with no warnings on the fixed effects",
+      "Python (PyMC): fixed effects again showed R-hat of 1.00 with ESS in the 800-1100 range; the two variance components, SD(LOCATION) and SD(BROOD), showed slightly higher R-hat (1.01-1.02) and lower ESS (around 50-100) -- variance components are consistently the slowest-mixing parameters in a hierarchical model, especially with a modest sampling budget",
+      "This pattern -- fixed effects converge quickly, variance components converge more slowly -- is typical and is exactly why a real analysis would run more iterations (or more chains) before finalizing variance-component estimates, even when the fixed effects already look solid",
+      "None of the R-hat values crossed the danger threshold of 1.05, so the posterior means reported here are trustworthy for teaching purposes; a submitted analysis would still increase the sampling budget and re-check before publication"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "A Useful Bonus Concept",
+    "title": "Posterior Predictive Check",
+    "term": "Posterior Predictive Check",
+    "def": "Simulate new datasets from the fitted model by drawing from the posterior predictive distribution -- plug each posterior draw of the parameters back into the model's data-generating process -- and compare the simulated data to the real, observed data.",
+    "bullets": [
+      "If the model is a good description of the data-generating process, simulated TICKS counts should look like the real TICKS counts: similar mean, similar spread, similar proportion of zeros",
+      "Available directly from the fitted object: pp_check() in R (bayesplot/rstanarm), pm.sample_posterior_predictive() + az.plot_ppc() in Python, predict() over posterior draws in Turing.jl",
+      "A systematic mismatch (e.g. the model consistently under-predicts the proportion of zero-tick chicks) is a concrete, visual diagnostic of model misspecification that a Poisson-vs-Negative-Binomial comparison in Lecture 6 already hinted at for this exact dataset"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.8",
+    "title": "Fitting the Model",
+    "sub": "TICKS ~ YEAR + cHEIGHT + (1|LOCATION/BROOD) -- Bayesian, in three languages"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "One Model, Three Languages",
+    "title": "The Model Being Fit",
+    "items": [
+      "TICKS ~ YEAR + cHEIGHT + (1|LOCATION/BROOD), Poisson likelihood, log link -- identical structure to Lecture 7's glmer() model",
+      "Weakly informative priors: Normal(0, 5) on all fixed-effect coefficients; half-Cauchy/Exponential-family priors on the LOCATION and BROOD:LOCATION standard deviations",
+      "Sampled with NUTS, 2 chains, modest draw counts (500-1000 post-warmup per chain) to keep runtime reasonable in a teaching environment",
+      "R uses rstanarm::stan_glmer() (brms::brm() was attempted first, as the more idiomatic modern choice, but on-the-fly Stan compilation was not viable in this sandboxed environment -- rstanarm ships pre-compiled Stan models and fits the identical model); Python uses PyMC with an explicit pm.Model(); Julia uses Turing.jl's @model macro with NUTS()"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R -- rstanarm",
+    "title": "Fitting the Bayesian GLMM in R",
+    "left": {
+      "h": "Model + weakly informative priors",
+      "body": "<pre><code>library(rstanarm)\n\ndat$cHEIGHT_s &lt;- scale(dat$cHEIGHT)[, 1]\n\nfit_bayes &lt;- stan_glmer(\n  TICKS ~ YEAR + cHEIGHT_s +\n    (1 | LOCATION/BROOD),\n  data   = dat,\n  family = poisson(),\n  prior           = normal(0, 5),\n  prior_intercept = normal(0, 5),\n  chains = 2, iter = 2000,\n  warmup = 1000, seed = 42\n)</code></pre>"
+    },
+    "right": {
+      "h": "Posterior summary + diagnostics",
+      "body": "<pre><code>print(summary(fit_bayes), digits = 3)\n\nfixef(fit_bayes)\n#  (Intercept)   YEAR96   YEAR97 cHEIGHT_s\n#        0.469    1.158   -0.988    -0.850\n\ns &lt;- summary(fit_bayes)\ns[c(\"(Intercept)\",\"YEAR96\",\n    \"YEAR97\",\"cHEIGHT_s\"),\n  c(\"Rhat\",\"n_eff\")]\n# all Rhat approx 1.00, n_eff &gt; 700</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python -- PyMC",
+    "title": "Fitting the Bayesian GLMM in Python",
+    "left": {
+      "h": "Model + weakly informative priors",
+      "body": "<pre><code>import pymc as pm\n\nwith pm.Model() as hier_model:\n    intercept = pm.Normal(\"Intercept\", 0, 5)\n    b_year96  = pm.Normal(\"YEAR96\", 0, 5)\n    b_year97  = pm.Normal(\"YEAR97\", 0, 5)\n    b_cheight = pm.Normal(\"cHEIGHT_s\", 0, 5)\n\n    sigma_loc   = pm.HalfCauchy(\"sigma_LOCATION\", 2)\n    sigma_brood = pm.HalfCauchy(\"sigma_BROOD\", 2)\n\n    z_loc = pm.Normal(\"z_LOCATION\", 0, 1, shape=n_loc)\n    u_loc = pm.Deterministic(\"u_LOCATION\",\n                              z_loc * sigma_loc)\n    # ... z_brood / u_brood analogous ...\n\n    mu = pm.math.exp(intercept + b_year96*year96\n         + b_year97*year97 + b_cheight*cheight_s\n         + u_loc[loc_idx] + u_brood[brood_idx])\n    pm.Poisson(\"TICKS\", mu=mu, observed=y)\n    idata = pm.sample(draws=500, tune=500,\n                       chains=2, target_accept=0.9)</code></pre>"
+    },
+    "right": {
+      "h": "Posterior summary + diagnostics (arviz)",
+      "body": "<pre><code>import arviz as az\n\naz.summary(idata,\n  var_names=[\"Intercept\",\"YEAR96\",\"YEAR97\",\n             \"cHEIGHT_s\",\"sigma_LOCATION\",\n             \"sigma_BROOD\"], hdi_prob=0.95)\n#                 mean    sd  r_hat\n# Intercept      0.440 0.206   1.00\n# YEAR96         1.189 0.249   1.00\n# YEAR97        -0.970 0.270   1.00\n# cHEIGHT_s     -0.851 0.124   1.00\n# sigma_LOCATION 0.533 0.257   1.02\n# sigma_BROOD    0.838 0.135   1.01</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia -- Turing.jl",
+    "title": "Fitting the Bayesian GLMM in Julia",
+    "left": {
+      "h": "@model definition",
+      "body": "<pre><code>using Turing\n\n@model function grouseticks_hier(\n    y, year96, year97, cheight_s,\n    loc_idx, brood_idx, n_loc, n_brood)\n\n  intercept ~ Normal(0, 5)\n  b_year96  ~ Normal(0, 5)\n  b_year97  ~ Normal(0, 5)\n  b_cheight ~ Normal(0, 5)\n\n  sigma_loc   ~ Exponential(1)\n  sigma_brood ~ Exponential(1)\n\n  z_loc   ~ filldist(Normal(0,1), n_loc)\n  z_brood ~ filldist(Normal(0,1), n_brood)\n  u_loc   = z_loc .* sigma_loc\n  u_brood = z_brood .* sigma_brood\n\n  for i in 1:length(y)\n    eta_i = intercept + b_year96*year96[i] +\n      b_year97*year97[i] + b_cheight*cheight_s[i] +\n      u_loc[loc_idx[i]] + u_brood[brood_idx[i]]\n    y[i] ~ Poisson(exp(eta_i))\n  end\nend</code></pre>"
+    },
+    "right": {
+      "h": "Sampling with NUTS",
+      "body": "<pre><code>model = grouseticks_hier(y, year96, year97,\n    cheight_s, loc_idx, brood_idx,\n    n_loc, n_brood)\n\nchain = sample(model, NUTS(500, 0.9),\n               MCMCThreads(), 500, 2)\n\nsummarystats(chain[[:intercept, :b_year96,\n  :b_year97, :b_cheight,\n  :sigma_loc, :sigma_brood]])\n\n# Not executed in this sandbox (Turing.jl not\n# installed) -- written from the documented\n# Turing.jl API; see the R/Python scripts for\n# the executed, verified posterior numbers.</code></pre>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Same Model, Different Philosophy",
+    "title": "Lecture 7 (glmer) vs. Lecture 9 (Bayesian Posterior)",
+    "headers": [
+      "Parameter",
+      "glmer estimate (L7)",
+      "Bayesian posterior mean (L9)"
+    ],
+    "rows": [
+      [
+        "Intercept (log scale)",
+        "0.467",
+        "0.440 -- 0.469"
+      ],
+      [
+        "YEAR96 (vs. 95)",
+        "1.166",
+        "1.158 -- 1.189"
+      ],
+      [
+        "YEAR97 (vs. 95)",
+        "-0.978",
+        "-0.970 -- -0.988"
+      ],
+      [
+        "cHEIGHT slope",
+        "-0.024",
+        "-0.024"
+      ],
+      [
+        "SD(LOCATION)",
+        "0.574",
+        "0.53 -- 0.55"
+      ],
+      [
+        "SD(BROOD:LOCATION)",
+        "0.770",
+        "0.83 -- 0.85"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Comparison",
+    "title": "Same Model, Different Philosophy -- and the Numbers Show It",
+    "items": [
+      "Fixed-effect posterior means (Intercept, YEAR96, YEAR97, cHEIGHT) land within a few hundredths of glmer's maximum-likelihood estimates in both the R and Python fits -- exactly what theory predicts when weakly informative priors meet a reasonably sized dataset",
+      "Variance components (SD(LOCATION), SD(BROOD:LOCATION)) also line up closely, though with a bit more spread across languages/priors than the fixed effects -- variance components are consistently the hardest parameters to pin down precisely with only 63 and 118 groups respectively",
+      "What differs is NOT the point estimate -- it's what you get for free: a full posterior for every parameter, correct propagation of variance-component uncertainty into the fixed effects, and a credible interval that supports the probability statement most people actually want to make",
+      "This is the payoff promised at the start of the lecture: the same scientific conclusion, reached by two philosophically different paths, with the Bayesian path additionally quantifying its own uncertainty honestly"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "09.9",
+    "title": "Why This Matters",
+    "sub": "What a full posterior buys you beyond a point estimate"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the Point Estimate",
+    "title": "What a Full Posterior Lets You Do",
+    "items": [
+      "Ask direct probability questions: 'what is the probability the LOCATION-level standard deviation exceeds 0.5?' is just the proportion of posterior draws above 0.5 -- no such statement is available from a frequentist point estimate and SE alone",
+      "Propagate uncertainty into predictions: simulate new TICKS counts for a new chick by drawing from the full posterior predictive distribution, which automatically reflects uncertainty in every fixed effect, every variance component, and every random effect simultaneously",
+      "Compare models on genuinely probabilistic grounds: leave-one-out cross-validation (LOO) and WAIC, computed directly from posterior draws, extend naturally to hierarchical models where AIC-style comparisons can be ambiguous",
+      "Build in real prior knowledge as ecological studies accumulate: Lecture 7's glmer() variance-component estimates could themselves become next season's informative priors, letting each new study benefit from what came before"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exercises",
+    "title": "This Week's Practice",
+    "items": [
+      "Exercise 1: Refit with a tighter and a looser prior on the LOCATION standard deviation and compare the posterior's sensitivity to that choice",
+      "Exercise 2: Inspect R-hat and ESS for every parameter in your fitted model and produce trace plots for at least one fixed effect and one variance component",
+      "Exercise 3: Add a random slope for cHEIGHT by LOCATION and compare the extended model to the random-intercept-only model with LOO",
+      "Exercise 4: Compute the 95% credible interval for the YEAR97 rate ratio and compare its interpretation, in your own words, to glmer's 95% confidence interval for the same coefficient",
+      "Full instructions are in exercises/lecture_09_exercises.md"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Look Ahead",
+    "title": "From Independent Groups to Correlated Time",
+    "items": [
+      "This lecture's hierarchical model still assumed observations were exchangeable within each group -- BROOD and LOCATION structure the data, but there was no notion of ORDER or TIME",
+      "Lecture 10 moves to time series and state-space models: population counts, phenology dates, or environmental indices observed sequentially, where today's value depends on yesterday's",
+      "Many of the same Bayesian tools return -- priors, MCMC, posterior summaries, R-hat/ESS diagnostics -- but now applied to latent states that evolve step by step through time, hidden behind noisy observations",
+      "The core question shifts from 'how much do groups differ?' to 'how does the true underlying state change, and how well can we observe it as it does?'"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Lecture 10: Time Series & State-Space Models",
+    "sub": "From nested groups to sequential dependence, in R, Python, and Julia"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 9</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

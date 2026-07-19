@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 11: Building Trees from Data: Parsimony, Distance, and Likelihood Methods</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 11",
+    "title": "Building Trees from Data: Parsimony, Distance, and Likelihood Methods",
+    "sub": "How biologists reconstruct evolutionary history from characters and molecules",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 4, \"The Tree of Life\" (lecture 2 of 4)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHERE WE LEFT OFF",
+    "title": "Recap: Lecture 10",
+    "items": [
+      "Phylogenetic trees represent hypotheses of evolutionary relationship, not certainties",
+      "Homology (shared ancestry) must be distinguished from homoplasy (independent similarity)",
+      "Characters and character states are the raw data of phylogenetics: morphological, developmental, behavioral, molecular",
+      "Tree-thinking: clades are monophyletic groups (ancestor + all descendants); trees can be rotated at nodes without changing meaning",
+      "Reading a tree tells you nested patterns of common ancestry — but where do the trees themselves come from?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "From Data to Diagram: Three Ways to Build a Tree",
+    "items": [
+      "How character data are organized into a matrix for analysis",
+      "Cladistic parsimony: finding the tree that requires the fewest evolutionary changes",
+      "Distance-based methods: UPGMA and neighbor-joining",
+      "Model-based methods: maximum likelihood and Bayesian inference (conceptually)",
+      "Molecular clocks: using mutation rates and fossil calibration to date divergences",
+      "Real-world challenges: long-branch attraction, incomplete lineage sorting, conflicting gene trees"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 1",
+    "title": "The Raw Material: Character Matrices",
+    "sub": "Turning observations into data a computer (or a biologist) can compare"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Character Matrix",
+    "term": "Character Matrix",
+    "def": "A table in which rows represent taxa (species, populations, or genes) and columns represent characters, with each cell coded for that taxon's character state.",
+    "bullets": [
+      "Morphological matrices: presence/absence of a trait, or a coded state (0, 1, 2…)",
+      "Molecular matrices: an aligned nucleotide or amino acid at each site (position) in a gene",
+      "Every tree-building method starts from some version of this matrix",
+      "Alignment of molecular sequences must be done carefully before analysis — insertions/deletions can mislead comparisons"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DATA TYPES",
+    "title": "What Kinds of Characters Go Into the Matrix?",
+    "items": [
+      "Morphological: bone shapes, presence of feathers, number of chambers in the heart, wing venation patterns",
+      "Developmental: timing and pattern of embryonic gene expression",
+      "Behavioral: courtship displays, nest-building patterns (used cautiously — prone to convergence)",
+      "Molecular: DNA sequences (nuclear, mitochondrial, chloroplast), protein sequences, gene presence/absence, rare genomic changes (insertions, gene duplications)",
+      "Modern phylogenetics is dominated by molecular data because it yields many independent characters and an explicit mutation model"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WORKED EXAMPLE",
+    "title": "A Small Character Matrix",
+    "left": {
+      "h": "Taxa and Characters",
+      "body": "<p>Four taxa scored for three characters (0 = absent, 1 = present):</p><ul><li>Taxon A: 0, 0, 0</li><li>Taxon B: 1, 0, 0</li><li>Taxon C: 1, 1, 0</li><li>Taxon D: 1, 1, 1</li></ul>"
+    },
+    "right": {
+      "h": "What the Pattern Suggests",
+      "body": "<p>Character 1 evolved once, shared by B, C, D. Character 2 evolved once within that group, shared by C, D. Character 3 is unique to D.</p><p>This nested pattern of shared derived states (synapomorphies) is exactly what parsimony analysis looks for when building a tree.</p>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "PART 2",
+    "title": "Cladistic Parsimony",
+    "sub": "The simplest explanation that fits the data"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Maximum Parsimony",
+    "term": "Maximum Parsimony",
+    "def": "A tree-building criterion that selects, among all possible trees, the one(s) requiring the fewest total evolutionary changes (character state transitions) to explain the observed data.",
+    "bullets": [
+      "Rooted in the principle of Occam's razor: prefer the simplest hypothesis consistent with the evidence",
+      "Does not assume evolution literally proceeds by the fewest possible steps — it is a method for choosing among competing hypotheses, not a claim about mechanism",
+      "Was the dominant method in cladistics from the 1960s–1990s and remains useful, especially for morphological data"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE LOGIC",
+    "title": "Why Minimize Changes?",
+    "items": [
+      "Shared derived characters (synapomorphies) are evidence of common ancestry only if they arose once and were inherited",
+      "If a trait evolved independently multiple times, using it to group species creates a false clade",
+      "Because we cannot observe the past directly, parsimony treats the tree requiring the fewest independent origins of each character as the best-supported hypothesis",
+      "More changes required = more coincidences needed to explain the data = less parsimonious explanation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COUNTING STEPS",
+    "title": "Comparing Two Candidate Trees",
+    "left": {
+      "h": "Tree 1: 3 steps",
+      "body": "<p>Groups taxa so that each derived character state appears exactly once on the tree and is inherited by all descendants.</p><ul><li>Character 1 changes once</li><li>Character 2 changes once</li><li>Character 3 changes once</li></ul><p>Total tree length = 3</p>"
+    },
+    "right": {
+      "h": "Tree 2: 5 steps",
+      "body": "<p>An alternative arrangement forces some characters to arise twice independently, or to be lost after being gained.</p><ul><li>Character 1 changes twice</li><li>Character 2 changes twice</li><li>Character 3 changes once</li></ul><p>Total tree length = 5 — less parsimonious, rejected in favor of Tree 1</p>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Homoplasy",
+    "term": "Homoplasy",
+    "def": "Similarity between taxa that is not due to shared ancestry — the character arose independently rather than being inherited from a common ancestor.",
+    "bullets": [
+      "Convergent evolution: similar traits evolve independently in unrelated lineages facing similar selective pressures (e.g., wings in birds, bats, insects)",
+      "Parallel evolution: closely related lineages independently evolve similar traits from similar starting points",
+      "Reversal: a lineage re-evolves an ancestral state after having lost it",
+      "Homoplasy is the main obstacle parsimony methods must overcome — it creates misleading similarity"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW PARSIMONY FINDS THE TREE",
+    "title": "Steps in a Parsimony Analysis",
+    "items": [
+      "Assemble the character matrix, ideally including an outgroup (a taxon known to branch outside the group of interest) to establish which states are ancestral",
+      "Generate candidate tree topologies (for even modest numbers of taxa, the number of possible trees is astronomically large)",
+      "For each candidate tree, calculate the minimum number of character-state changes required (tree length)",
+      "Select the tree(s) with the smallest tree length as the most parsimonious tree(s)",
+      "If multiple equally parsimonious trees exist, summarize their shared relationships in a consensus tree"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LIMITATIONS",
+    "title": "Problems with Parsimony",
+    "items": [
+      "Searching all possible trees is computationally explosive: the number of unrooted trees for n taxa grows factorially — for just 20 taxa there are over 2 × 10^20 possible trees",
+      "In practice, heuristic search algorithms (e.g., branch-swapping) explore only a subset of tree space and may miss the true optimum",
+      "Parsimony can be actively misled by high rates of change or unequal rates across lineages (see long-branch attraction, later in lecture)",
+      "Parsimony treats all character changes as equally probable, which is unrealistic for molecular data where some substitutions are far more likely than others"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 3",
+    "title": "Distance-Based Methods",
+    "sub": "Building trees from overall similarity rather than individual characters"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Genetic Distance",
+    "term": "Genetic Distance",
+    "def": "A numerical measure of the overall dissimilarity between two taxa's sequences (or character sets), typically expressed as the proportion of sites that differ, often corrected for multiple substitutions at the same site.",
+    "bullets": [
+      "Distance methods condense an entire alignment into a single pairwise distance value for every pair of taxa",
+      "The result is a distance matrix — an n × n table of pairwise distances used as input for tree building",
+      "Because information is compressed into distances, some detail from the original characters is lost compared to character-based methods like parsimony"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BUILDING THE INPUT",
+    "title": "How a Distance Matrix Is Constructed",
+    "items": [
+      "Align homologous sequences across all taxa so that comparable positions line up",
+      "For each pair of taxa, count the proportion of differing sites",
+      "Apply a correction model to account for the possibility of multiple, unseen substitutions at the same site over long time spans (raw differences underestimate true divergence)",
+      "Arrange all pairwise distances into a symmetric matrix; this matrix, not the original sequences, becomes the input for the tree-building algorithm"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "UPGMA",
+    "term": "UPGMA (Unweighted Pair Group Method with Arithmetic Mean)",
+    "def": "A simple clustering algorithm that builds a tree by repeatedly joining the two closest taxa or clusters and averaging their distances to all remaining taxa, continuing until all taxa are joined.",
+    "bullets": [
+      "Produces an ultrametric tree — one where all tips line up at the same distance from the root, as if a molecular clock held perfectly",
+      "Fast and easy to compute, historically important, but its core assumption is frequently violated"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CATCH",
+    "title": "UPGMA's Key Assumption: The Molecular Clock",
+    "items": [
+      "UPGMA assumes that the rate of evolutionary change has been constant across all lineages since they diverged",
+      "If one lineage evolved faster than another (a very common situation), UPGMA can place taxa incorrectly, because it interprets greater distance as necessarily meaning deeper divergence",
+      "For this reason, UPGMA is now mostly used for quick, preliminary trees or for data where a clock-like rate is well supported, rather than as a primary method for rigorous phylogenetics"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Neighbor-Joining",
+    "term": "Neighbor-Joining (NJ)",
+    "def": "A distance-based tree-building algorithm that does not assume a molecular clock; it corrects for unequal rates of change across lineages by minimizing total branch length across the whole tree at each step.",
+    "bullets": [
+      "Widely used because it is fast even for large data sets and more robust than UPGMA to rate variation among lineages",
+      "Produces an unrooted tree; rooting requires an outgroup or other external information",
+      "Still a distance method — some information from the original character-by-character data is lost in the compression to pairwise distances"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW IT WORKS (CONCEPTUALLY)",
+    "title": "Neighbor-Joining Algorithm, Step by Step",
+    "items": [
+      "Start with a starburst (unresolved) tree connecting all taxa to a central node",
+      "At each step, identify the pair of taxa whose joining minimizes the total length of the tree, accounting for their average distance from all other taxa",
+      "Join that pair, replace them with a single new composite node, and recalculate distances from that node to all remaining taxa",
+      "Repeat until all taxa have been joined into a fully resolved, unrooted tree",
+      "Because it corrects for varying rates, NJ trees are usually more accurate than UPGMA trees for real biological data"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COMPARISON",
+    "title": "UPGMA vs. Neighbor-Joining",
+    "left": {
+      "h": "UPGMA",
+      "body": "<p>Assumes a constant molecular clock across all lineages.</p><ul><li>Produces ultrametric (clock-like) trees</li><li>Simple, fast, historically important</li><li>Easily misled by unequal evolutionary rates</li></ul>"
+    },
+    "right": {
+      "h": "Neighbor-Joining",
+      "body": "<p>Does not assume a constant clock.</p><ul><li>Produces unrooted trees with variable branch lengths</li><li>More robust to rate variation among lineages</li><li>Still widely used for large molecular data sets today</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "METHODS SIDE BY SIDE",
+    "title": "Parsimony vs. Distance vs. Likelihood/Bayesian Methods",
+    "headers": [
+      "Feature",
+      "Parsimony",
+      "Distance (UPGMA/NJ)",
+      "Likelihood / Bayesian"
+    ],
+    "rows": [
+      [
+        "Input data",
+        "Character matrix",
+        "Pairwise distance matrix",
+        "Character matrix + explicit model"
+      ],
+      [
+        "Optimality criterion",
+        "Fewest total changes",
+        "Shortest/best-fit branch lengths",
+        "Highest probability of data given tree"
+      ],
+      [
+        "Handles unequal rates?",
+        "Poorly (assumes equal weight per change)",
+        "UPGMA: no; NJ: yes",
+        "Yes, explicitly modeled"
+      ],
+      [
+        "Computational cost",
+        "Very high for many taxa",
+        "Low, fast",
+        "Very high (especially Bayesian MCMC)"
+      ],
+      [
+        "Statistical framework",
+        "Non-statistical (optimality only)",
+        "Non-statistical (optimality only)",
+        "Explicit probabilistic model"
+      ],
+      [
+        "Best suited for",
+        "Morphological data, small data sets",
+        "Quick exploratory trees, large data sets",
+        "Rigorous molecular phylogenetics"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 4",
+    "title": "Likelihood and Bayesian Approaches",
+    "sub": "Using explicit models of how DNA evolves"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Maximum Likelihood (ML)",
+    "term": "Maximum Likelihood",
+    "def": "A statistical method that evaluates each candidate tree by calculating the probability of observing the actual data if that tree (and an explicit model of sequence evolution) were true, then selects the tree with the highest such probability.",
+    "bullets": [
+      "Requires a model of molecular evolution: rates of transition vs. transversion, unequal base frequencies, rate variation across sites, and so on",
+      "Unlike parsimony, ML can accommodate the reality that not all substitutions are equally likely",
+      "Computationally intensive, but far more statistically grounded than parsimony or simple distance methods"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY MODELS MATTER",
+    "title": "The Role of Substitution Models in ML",
+    "items": [
+      "Molecular evolution is not random noise — transitions (purine-to-purine or pyrimidine-to-pyrimidine changes) occur more often than transversions",
+      "Some sites in a gene are under strong functional constraint and change slowly; others are free to vary",
+      "A substitution model specifies these parameters mathematically, allowing the likelihood of any given tree to be calculated precisely",
+      "Better-fitting models (chosen via statistical model-selection tools) generally produce more accurate trees",
+      "This is a conceptual overview — the underlying probability mathematics is covered in specialized bioinformatics courses, not here"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Bayesian Phylogenetic Inference",
+    "term": "Bayesian Inference",
+    "def": "A model-based method that combines the likelihood of the data with prior probabilities (existing expectations) to estimate the posterior probability — the probability that each candidate tree is correct, given the data.",
+    "bullets": [
+      "Rather than returning one \"best\" tree, Bayesian analysis returns a distribution of probable trees, summarized as posterior probabilities on each node",
+      "Uses computational sampling procedures (Markov chain Monte Carlo, or MCMC) to explore tree space efficiently and estimate these probabilities",
+      "Increasingly the standard for large-scale molecular phylogenetics because it yields a direct, intuitive measure of confidence for each part of the tree"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "HOW BAYESIAN MCMC WORKS (CONCEPTUALLY)",
+    "title": "Sampling Tree Space with MCMC",
+    "items": [
+      "The algorithm starts with a tree and proposes small random changes to its topology or branch lengths",
+      "Each proposed tree is accepted or rejected based on how much it improves (or worsens) the fit to the data, with some randomness built in",
+      "Over millions of iterations, the chain spends more time exploring trees that fit the data well",
+      "The proportion of sampled trees containing a given clade becomes that clade's posterior probability — a direct statement of confidence",
+      "Multiple independent chains are run and compared to check that the analysis has converged on a stable answer"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TWO MODEL-BASED APPROACHES",
+    "title": "Maximum Likelihood vs. Bayesian Inference",
+    "left": {
+      "h": "Maximum Likelihood",
+      "body": "<p>Finds the single tree that maximizes the probability of the observed data.</p><ul><li>Produces one optimal tree (plus bootstrap support values)</li><li>Well-established, widely trusted statistical framework</li><li>Can be very slow for large data sets</li></ul>"
+    },
+    "right": {
+      "h": "Bayesian Inference",
+      "body": "<p>Estimates the probability distribution over many possible trees.</p><ul><li>Produces posterior probabilities directly on the tree</li><li>Requires specifying prior probabilities, which can influence results</li><li>Computationally demanding (MCMC sampling) but efficient at exploring huge tree spaces</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MEASURING CONFIDENCE",
+    "title": "Bootstrap Support: How Sure Are We?",
+    "items": [
+      "Bootstrapping resamples the original character matrix (with replacement) many times, generating hundreds or thousands of pseudo-replicate data sets",
+      "A tree is built from each pseudo-replicate, and the results are compared to the original tree",
+      "A bootstrap value on a node reports the percentage of replicate analyses that recovered that same clade",
+      "High bootstrap support (typically ≥ 95%) indicates a well-supported clade; low support flags a relationship that should be treated with caution",
+      "Bootstrap support is commonly used with parsimony and ML trees; Bayesian analyses instead report posterior probabilities, which are interpreted similarly but are not numerically equivalent"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "BUILDING CONFIDENCE",
+    "title": "From Raw Data to a Trusted Tree",
+    "levels": [
+      {
+        "label": "Single gene, parsimony only",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Multiple genes, distance methods",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Genome-scale data, maximum likelihood",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "ML/Bayesian + high bootstrap/posterior support",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Congruent across independent data sets",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 5",
+    "title": "Molecular Clocks",
+    "sub": "Turning genetic distance into geologic time"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Molecular Clock",
+    "term": "Molecular Clock",
+    "def": "The hypothesis that neutral genetic mutations accumulate at a roughly constant rate over time, allowing the amount of genetic difference between two lineages to be used as an estimate of the time since they diverged.",
+    "bullets": [
+      "First proposed in the 1960s by Emile Zuckerkandl and Linus Pauling, based on observed regularities in protein sequence divergence",
+      "Rooted in the neutral theory of molecular evolution: most substitutions are neutral and fixed by genetic drift at a rate related to the mutation rate",
+      "Provides a way to estimate divergence times even for events with a poor or absent fossil record"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MAKING THE CLOCK TELL TIME",
+    "title": "Calibrating the Molecular Clock with Fossils",
+    "items": [
+      "A molecular clock alone tells you relative divergence, not absolute dates — it must be calibrated",
+      "Fossils with well-constrained ages, placed onto the tree at known nodes, provide calibration points",
+      "By comparing the genetic distance corresponding to a fossil-dated node to genetic distances elsewhere on the tree, an approximate substitution rate (changes per site per million years) can be estimated",
+      "That rate can then be applied to other nodes lacking direct fossil evidence to estimate their divergence times",
+      "Multiple, independent calibration points improve accuracy and let researchers test whether the clock is behaving consistently across the tree"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CLOCK ISN'T PERFECT",
+    "title": "Rate Variation and Relaxed Clocks",
+    "items": [
+      "Mutation and substitution rates vary across lineages due to differences in generation time, metabolic rate, DNA repair efficiency, and population size",
+      "A strict molecular clock (constant rate everywhere) is often statistically rejected when tested against real data",
+      "Relaxed clock models allow substitution rates to vary among branches, either drawn from a statistical distribution or correlated with lineage-specific traits",
+      "Relaxed clocks, implemented in a Bayesian framework, are now the standard tool for divergence-time estimation in modern phylogenetics",
+      "Different genes within the same genome can even show different clock rates, requiring careful gene selection for dating studies"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL DEVELOPMENT",
+    "title": "A Brief History of Tree-Building Methods",
+    "items": [
+      {
+        "y": "1735",
+        "t": "Linnaeus's Systema Naturae establishes hierarchical classification, without an evolutionary interpretation"
+      },
+      {
+        "y": "1859",
+        "t": "Darwin's Origin of Species proposes that classification should reflect actual genealogical descent — \"one great Tree of Life\""
+      },
+      {
+        "y": "1950",
+        "t": "Willi Hennig formalizes cladistics, introducing the distinction between shared derived (synapomorphy) and ancestral (symplesiomorphy) traits"
+      },
+      {
+        "y": "1960s",
+        "t": "Zuckerkandl and Pauling propose the molecular clock hypothesis based on protein sequence comparisons"
+      },
+      {
+        "y": "1960s–70s",
+        "t": "Computerized parsimony algorithms emerge as computing power allows systematic search of tree space"
+      },
+      {
+        "y": "1987",
+        "t": "Saitou and Nei introduce the neighbor-joining method for distance-based tree building"
+      },
+      {
+        "y": "1990s",
+        "t": "Maximum likelihood methods become computationally feasible for phylogenetics"
+      },
+      {
+        "y": "2000s",
+        "t": "Bayesian MCMC methods (e.g., MrBayes) become widely adopted, offering direct probability estimates for trees"
+      },
+      {
+        "y": "2010s–present",
+        "t": "Genome-scale, multi-gene \"phylogenomic\" data sets and relaxed molecular clocks refine both topology and divergence-time estimates"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "PART 6",
+    "title": "When Trees Get Complicated",
+    "sub": "Real data rarely cooperate perfectly"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "COMMON PITFALLS",
+    "title": "Four Challenges in Building Accurate Trees",
+    "cards": [
+      {
+        "h": "Long-Branch Attraction",
+        "p": "Fast-evolving lineages can be incorrectly grouped together simply because they have accumulated many independent changes, not because they share recent ancestry."
+      },
+      {
+        "h": "Incomplete Lineage Sorting",
+        "p": "Ancestral genetic variation can persist through rapid speciation events, causing individual gene trees to differ from the true species tree."
+      },
+      {
+        "h": "Horizontal Gene Transfer",
+        "p": "Genes moving between unrelated lineages (common in bacteria, and known in eukaryotes too) create a history that a single bifurcating tree cannot fully capture."
+      },
+      {
+        "h": "Convergent Evolution",
+        "p": "Independent evolution of similar traits or even similar molecular sequences under similar selective pressures can mimic the signal of common ancestry."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Long-Branch Attraction",
+    "term": "Long-Branch Attraction (LBA)",
+    "def": "A systematic error in which two or more lineages that have evolved rapidly (long branches) are incorrectly grouped together in a tree, because they have independently accumulated so many changes that they appear more similar to each other than to their true closer relatives.",
+    "bullets": [
+      "Especially problematic for parsimony, which does not account for the possibility of multiple independent changes at the same site",
+      "Named and extensively analyzed by Joseph Felsenstein in the 1970s–80s",
+      "Can produce a strongly, even confidently, supported tree that is nonetheless wrong"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MITIGATING LBA",
+    "title": "Strategies to Combat Long-Branch Attraction",
+    "items": [
+      "Add taxa that break up long branches — including additional, more slowly evolving relatives reduces the apparent length of problematic branches",
+      "Use likelihood or Bayesian methods with realistic substitution models, which explicitly account for multiple hits at the same site",
+      "Remove or downweight fast-evolving, saturated sites or genes that carry more noise than signal",
+      "Compare results across multiple independent data sets (different genes, different character types) to see whether the same grouping is consistently recovered"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Incomplete Lineage Sorting",
+    "term": "Incomplete Lineage Sorting (ILS)",
+    "def": "A phenomenon in which ancestral genetic polymorphisms fail to sort into separate lineages before subsequent speciation events occur, producing a gene tree topology that differs from the true species tree.",
+    "bullets": [
+      "Most likely when speciation events happen in rapid succession and ancestral population sizes are large",
+      "A classic case: for many gene regions, humans and chimpanzees are each other's closest relatives, but for a meaningful fraction of the genome the gene tree instead groups human with gorilla, or chimp with gorilla",
+      "This is expected under population genetics theory, not evidence against the true human-chimpanzee species relationship"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A CRUCIAL DISTINCTION",
+    "title": "Gene Trees vs. Species Trees",
+    "items": [
+      "A gene tree describes the history of one specific stretch of DNA; a species tree describes the history of the populations/lineages themselves",
+      "When speciation is rapid, individual gene trees can legitimately disagree with each other and with the true species tree, purely due to the random sorting of ancestral variation (ILS)",
+      "Modern phylogenomics addresses this by analyzing many independent genes and using species-tree methods that explicitly model ILS, rather than trusting any single gene tree",
+      "Discordance among gene trees is not automatically a methodological failure — it can be a real, informative signature of rapid past speciation"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WHY GENE TREES CONFLICT",
+    "title": "Sources of Gene Tree / Species Tree Discordance",
+    "left": {
+      "h": "Biological Causes",
+      "body": "<p>Real evolutionary processes that generate genuine conflict:</p><ul><li>Incomplete lineage sorting during rapid speciation</li><li>Horizontal gene transfer or introgression (hybridization) between lineages</li><li>Gene duplication and loss, which can be mistaken for speciation events</li></ul>"
+    },
+    "right": {
+      "h": "Methodological Causes",
+      "body": "<p>Artifacts of the data or analysis, not real history:</p><ul><li>Long-branch attraction and model misspecification</li><li>Alignment errors in the underlying sequence data</li><li>Insufficient data (short genes) giving poorly resolved, noisy gene trees</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND THE STRICT TREE MODEL",
+    "title": "Horizontal Gene Transfer and the Limits of Tree-Thinking",
+    "items": [
+      "Horizontal (lateral) gene transfer moves genetic material between organisms outside of parent-to-offspring inheritance",
+      "Extremely common in bacteria and archaea (e.g., transfer of antibiotic-resistance genes between unrelated species), and documented in some eukaryotes",
+      "When HGT is extensive, no single bifurcating tree can represent the full history of a genome — different genes may have genuinely different, incompatible histories",
+      "This has led some biologists to represent deep evolutionary history as a reticulated network rather than a strictly branching tree, at least for microbes",
+      "We will return to this directly in Lecture 12 when discussing the universal tree of life and the origin of the three domains"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEST PRACTICE",
+    "title": "Why Modern Phylogenetics Uses Multiple, Independent Lines of Evidence",
+    "items": [
+      "No single gene, single method, or single character type is immune to error or bias",
+      "Congruence — agreement among trees built from independent genes, independent methods, and independent character types (e.g., morphology and molecules) — is the strongest evidence for a robust phylogenetic hypothesis",
+      "Total-evidence approaches combine multiple data types into a single, simultaneous analysis",
+      "Species-tree methods (e.g., coalescent-based approaches) explicitly model ILS by analyzing many gene trees jointly, rather than concatenating genes as if they shared one history",
+      "A strongly supported, congruent tree is a well-tested scientific hypothesis, not an unquestionable fact — new data or better methods can, and sometimes do, revise it"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "IN THEIR WORDS",
+    "quote": "A phylogenetic tree is not a discovery in the way a fossil is a discovery. It is an inference — the best-supported hypothesis that current data and methods can produce.",
+    "attrib": "Paraphrased summary of the epistemology underlying modern systematics"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Trees are built from character matrices using three broad strategies: parsimony (fewest changes), distance methods (UPGMA, neighbor-joining), and model-based likelihood/Bayesian methods",
+      "Parsimony minimizes homoplasy but scales poorly and is vulnerable to long-branch attraction",
+      "Distance methods are fast; UPGMA assumes a molecular clock, neighbor-joining does not",
+      "Likelihood and Bayesian methods use explicit models of sequence evolution and provide statistically grounded measures of support (bootstrap values, posterior probabilities)",
+      "Molecular clocks, calibrated with fossils, allow divergence times to be estimated — but rates vary, so relaxed-clock models are now standard",
+      "Long-branch attraction, incomplete lineage sorting, and horizontal gene transfer all complicate the simple picture of a single bifurcating tree of life"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Questions to Consider Before Next Class",
+    "items": [
+      "Why does adding more taxa often help resolve long-branch attraction?",
+      "Why might a gene tree legitimately disagree with the true species tree even when the data and methods are both flawless?",
+      "What is the practical difference between a bootstrap value and a Bayesian posterior probability, and why can't they be compared numerically?",
+      "Why is a strict molecular clock rarely realistic across an entire phylogeny of diverse organisms?",
+      "How does horizontal gene transfer challenge the assumption that life's history is a single branching tree?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Looking Ahead: Lecture 12",
+    "sub": "The universal tree of life, LUCA, and the challenge of horizontal gene transfer"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 11</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

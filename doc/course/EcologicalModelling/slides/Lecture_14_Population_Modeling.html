@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 14: Population Modeling</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 14",
+    "title": "Population Modeling",
+    "sub": "From dN/dt = rN to stage-structured matrices -- the loggerhead sea turtle model that redirected conservation policy",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "From Process Noise to Population Structure",
+    "title": "Lecture 10 Modelled the Population as a Single Number",
+    "sub": "Gompertz and Ricker state-space models tracked total abundance N(t) -- but a population is not one number, it is a mix of individuals in very different states"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Quick Refresher",
+    "title": "Unstructured Growth: dN/dt = rN and the Logistic",
+    "items": [
+      "Exponential growth dN/dt = rN: constant per-capita growth rate r, population grows (or shrinks) geometrically forever -- N(t) = N(0) e^(rt)",
+      "Logistic growth dN/dt = rN(1 - N/K): growth rate declines as N approaches carrying capacity K, producing an S-shaped trajectory",
+      "Both models treat the population as a single undifferentiated count -- every individual is assumed identical and equally likely to reproduce or die",
+      "Most students have already met these in an introductory ecology course; today we go one level deeper"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Structure Matters",
+    "title": "A Population of All Juveniles Behaves Nothing Like a Population of All Adults",
+    "items": [
+      "Real populations are mixtures of individuals differing in age, size, or developmental stage -- and these classes differ enormously in survival and reproduction",
+      "A population dominated by newborns will grow differently over the next year than one dominated by breeding adults, even if total N is identical today",
+      "Ignoring structure hides exactly the information conservation and management decisions need: which life stage is the population's weak link?",
+      "Structured population models track a vector of stage- or age-specific abundances, not a single scalar N"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Age-Structured Case",
+    "title": "The Leslie Matrix",
+    "term": "Leslie matrix",
+    "def": "A square projection matrix that advances a population vector classified by discrete AGE classes one time step forward: survival probabilities on the subdiagonal move individuals from age class i to age class i+1, and a top row of age-specific fecundities produces new age-0 individuals.",
+    "bullets": [
+      "Assumes age is the right way to classify individuals -- appropriate when age closely determines survival and reproduction",
+      "Named for P.H. Leslie (1945), who formalized the age-structured matrix approach",
+      "Every individual that survives an age class moves to exactly the next age class -- a rigid, deterministic bookkeeping structure"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Stage-Structured Generalization",
+    "title": "The Lefkovitch Matrix",
+    "term": "Lefkovitch matrix",
+    "def": "A generalization of the Leslie matrix that classifies individuals by developmental STAGE (e.g. hatchling, juvenile, subadult, adult) rather than strict chronological age, allowing individuals to remain in the same stage for more than one time step (stasis) as well as advance to the next stage (growth).",
+    "bullets": [
+      "Appropriate whenever growth rate to the next stage varies among individuals -- e.g. a sea turtle's time as a 'juvenile' depends on food and temperature, not a fixed number of birthdays",
+      "Diagonal entries = probability of surviving AND remaining in the same stage; subdiagonal entries = probability of surviving AND growing into the next stage",
+      "The loggerhead sea turtle model used throughout this lecture is a Lefkovitch matrix, not a Leslie matrix"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Choosing a Structure",
+    "title": "Leslie vs. Lefkovitch: Which Classification Fits Your Species?",
+    "headers": [
+      "",
+      "Leslie (age-structured)",
+      "Lefkovitch (stage-structured)"
+    ],
+    "rows": [
+      [
+        "Classification",
+        "Discrete age classes (0,1,2,... years)",
+        "Life-history stages (egg, juvenile, adult, ...)"
+      ],
+      [
+        "Individuals per class",
+        "Everyone moves up exactly one age each step",
+        "Individuals can stay (stasis) or advance (growth)"
+      ],
+      [
+        "Good fit when",
+        "Age tightly predicts survival/fecundity",
+        "Growth rate to maturity varies among individuals"
+      ],
+      [
+        "Classic example",
+        "Human demography, birds with fixed breeding age",
+        "Sea turtles, trees, corals, many plants"
+      ],
+      [
+        "Matrix structure",
+        "Subdiagonal survival + top-row fecundity",
+        "Diagonal stasis + subdiagonal growth + top-row fecundity"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Textbook Case Study",
+    "title": "Loggerhead Sea Turtles and a Paper That Changed Policy",
+    "sub": "Crouse, Crowder & Caswell (1987), Ecology 68(5):1412-1423 -- the most widely taught matrix population model in ecology"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Background",
+    "title": "Why Loggerheads? Why This Paper?",
+    "items": [
+      "Loggerhead sea turtles (Caretta caretta) nest on beaches but spend most of their multi-decade life cycle at sea, passing through pelagic and benthic juvenile stages before reaching sexual maturity",
+      "By the 1980s, loggerhead populations were declining and conservation dollars were overwhelmingly spent protecting nests and hatchlings on beaches",
+      "Crouse, Crowder & Caswell (1987) built a 5-stage Lefkovitch matrix model and asked a sharper question: which life stage, if protected, would do the most good for lambda?",
+      "The answer surprised policymakers -- and this lecture reconstructs the model to show exactly how that answer was reached"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Read This Before Trusting Any Number on the Next 20 Slides",
+    "title": "Where These Matrix Values Actually Come From",
+    "term": "Data provenance",
+    "def": "The 5-stage matrix used in this lecture is a RECONSTRUCTION built from memory to be representative of Crouse, Crowder & Caswell (1987)'s stage structure and qualitative conclusions (a declining population dominated by juvenile bycatch mortality) -- it is NOT claimed to reproduce the exact published matrix entries.",
+    "bullets": [
+      "Hatchling survival is set low (~0.6-0.7), survival increases through larger juvenile stages (~0.7-0.8), and adult survival is highest (~0.8), matching the qualitative pattern in real sea turtle demography",
+      "Adult fecundity is discounted by egg-to-hatchling survival to keep numbers biologically plausible rather than reporting raw eggs-laid",
+      "The resulting lambda (~0.95) is deliberately in the same regime the original paper reported: slightly below 1, i.e. a declining population under status-quo bycatch",
+      "For the precise published numbers, consult Crouse, Crowder & Caswell (1987), Ecology 68(5):1412-1423, or Caswell's textbook 'Matrix Population Models', which reproduces this example in full"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Life Cycle",
+    "title": "Five Stages, Five Very Different Survival Regimes",
+    "items": [
+      "Stage 1 -- Eggs/Hatchlings: laid on beaches, extremely vulnerable to predation and nest disturbance; the stage everyone historically focused on protecting",
+      "Stage 2 -- Small juveniles: pelagic, drifting with ocean currents for years, cryptic and hard to study or protect directly",
+      "Stage 3 -- Large juveniles: benthic, coastal foraging grounds -- this and the next stage overlap heavily with shrimp-trawling grounds",
+      "Stage 4 -- Subadults: still growing toward maturity, still vulnerable to trawl bycatch, not yet reproducing",
+      "Stage 5 -- Adults: breeding females returning to natal beaches to nest; highest survival of any stage, the only stage producing eggs"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Building the Model",
+    "title": "The Lefkovitch Matrix in Base R",
+    "left": {
+      "h": "R -- matrix() with named dimnames",
+      "body": "<pre><code>stage_names &lt;- c(&quot;Eggs/Hatchlings&quot;, &quot;Small Juv&quot;,\n  &quot;Large Juv&quot;, &quot;Subadult&quot;, &quot;Adult&quot;)\n\nA &lt;- matrix(c(\n  0.000, 0.000, 0.000, 1.000, 3.200,\n  0.675, 0.643, 0.000, 0.000, 0.000,\n  0.000, 0.107, 0.656, 0.000, 0.000,\n  0.000, 0.000, 0.094, 0.667, 0.000,\n  0.000, 0.000, 0.000, 0.133, 0.800\n), nrow = 5, ncol = 5, byrow = TRUE,\n   dimnames = list(stage_names, stage_names))</code></pre>"
+    },
+    "right": {
+      "h": "Reading the Matrix",
+      "body": "<p>Column j = stage at time t, row i = stage at time t+1. The diagonal holds stasis probabilities (survive and stay in the same stage); the subdiagonal holds growth probabilities (survive and advance to the next stage).</p><p>Row 1 holds fecundities: only Subadults and Adults contribute new hatchlings, with Adults (3.2) contributing far more than Subadults (1.0) per capita.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Building the Model",
+    "title": "The Same Matrix in NumPy",
+    "left": {
+      "h": "Python -- numpy.array",
+      "body": "<pre><code>import numpy as np\n\nstage_names = [&quot;Eggs/Hatchlings&quot;, &quot;Small Juv&quot;,\n    &quot;Large Juv&quot;, &quot;Subadult&quot;, &quot;Adult&quot;]\n\nA = np.array([\n    [0.000, 0.000, 0.000, 1.000, 3.200],\n    [0.675, 0.643, 0.000, 0.000, 0.000],\n    [0.000, 0.107, 0.656, 0.000, 0.000],\n    [0.000, 0.000, 0.094, 0.667, 0.000],\n    [0.000, 0.000, 0.000, 0.133, 0.800],\n])</code></pre>"
+    },
+    "right": {
+      "h": "Same Numbers, Same Structure",
+      "body": "<p>Deliberately identical matrix entries across R, Python, and Julia so results (lambda, stable stage distribution, elasticities) can be cross-checked line by line between languages.</p><p>Zero-indexing shifts row/column labels by one relative to R, but the biology and the matrix layout are unchanged.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Building the Model",
+    "title": "The Same Matrix in Julia",
+    "left": {
+      "h": "Julia -- a literal Matrix{Float64}",
+      "body": "<pre><code>stage_names = [&quot;Eggs/Hatchlings&quot;, &quot;Small Juv&quot;,\n    &quot;Large Juv&quot;, &quot;Subadult&quot;, &quot;Adult&quot;]\n\nA = [\n    0.000  0.000  0.000  1.000  3.200;\n    0.675  0.643  0.000  0.000  0.000;\n    0.000  0.107  0.656  0.000  0.000;\n    0.000  0.000  0.094  0.667  0.000;\n    0.000  0.000  0.000  0.133  0.800\n]</code></pre>"
+    },
+    "right": {
+      "h": "Julia's Matrix Literal Syntax",
+      "body": "<p>Semicolons separate rows, spaces separate columns -- Julia's native matrix literal is compact and reads almost identically to the mathematical notation used on the board.</p><p>Julia was not executed in the environment this lecture was authored in; the script is written carefully from documented <code>LinearAlgebra</code> APIs and mirrors the R/Python versions line for line.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Operation",
+    "title": "Population Projection: n(t+1) = A n(t)",
+    "items": [
+      "n(t) is a vector of five numbers: how many individuals are in each stage right now",
+      "Multiplying the projection matrix A by n(t) produces n(t+1): every stage's survivors plus this year's new hatchlings, all in one matrix-vector product",
+      "Iterating n(t+1) = A n(t) repeatedly projects the population arbitrarily far into the future under constant vital rates -- exactly analogous to iterating dN/dt = rN, but now for a whole vector instead of a scalar",
+      "This is the same 'project forward with a fixed operator' idea as Lecture 10's Gompertz/Ricker state-space models, generalized from one number to a structured vector"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Long-Run Growth Rate",
+    "title": "The Dominant Eigenvalue, lambda",
+    "term": "Dominant eigenvalue (lambda)",
+    "def": "The largest-magnitude eigenvalue of the projection matrix A. Once a population projected by n(t+1) = A n(t) has run long enough to lose its initial-condition memory, total population size grows (or shrinks) asymptotically by a factor of lambda every time step, exactly like r in dN/dt = rN but derived from the full stage structure.",
+    "bullets": [
+      "lambda > 1: population growing; lambda = 1: population stationary; lambda < 1: population declining",
+      "For a matrix with nonnegative entries and the right connectivity (irreducible, primitive), the Perron-Frobenius theorem guarantees a single largest real, positive eigenvalue -- exactly the lambda used in population ecology",
+      "Computed numerically with eigen() / numpy.linalg.eig / LinearAlgebra.eigen -- no need to solve the characteristic polynomial by hand"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Long-Run Structure",
+    "title": "The Stable Stage Distribution",
+    "term": "Stable stage distribution",
+    "def": "The right eigenvector associated with the dominant eigenvalue lambda, normalized to sum to 1. It describes the proportion of individuals in each stage once the population has settled into its long-run structure -- regardless of the starting stage vector, repeated projection converges toward this same proportional mix.",
+    "bullets": [
+      "Two populations that start with very different stage structures but share the same projection matrix A converge to the SAME stable stage distribution, even though their starting sizes and mixes differ",
+      "Before convergence, growth can run faster or slower than lambda predicts -- these early deviations are called transient dynamics",
+      "For the loggerhead matrix, the stable stage distribution is heavily juvenile-weighted, reflecting high early mortality and long stage durations before maturity"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Computing Lambda",
+    "title": "eigen() in Base R",
+    "left": {
+      "h": "R -- eigen() and Re()",
+      "body": "<pre><code>ev &lt;- eigen(A)\ndom_idx &lt;- which.max(Re(ev$values))\nlambda &lt;- Re(ev$values[dom_idx])\n\nw &lt;- Re(ev$vectors[, dom_idx])\nw &lt;- w / sum(w)          # stable stage dist.\n\ncat(sprintf(&quot;lambda = %.4f&quot;, lambda))\n# lambda = 0.9544</code></pre>"
+    },
+    "right": {
+      "h": "Why Re() Matters",
+      "body": "<p>Numerical eigenvalue algorithms return complex numbers even for matrices whose true eigenvalues are real, because of tiny floating-point residues in the imaginary component. <code>Re()</code> strips those residues so downstream comparisons (e.g. <code>lambda &lt; 1</code>) behave as expected.</p><p>which.max(Re(ev$values)) picks out the Perron-Frobenius (dominant, largest real part) eigenvalue among the five returned.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Computing Lambda",
+    "title": "numpy.linalg.eig in Python",
+    "left": {
+      "h": "Python -- np.linalg.eig and np.real",
+      "body": "<pre><code>eigvals, eigvecs = np.linalg.eig(A)\ndom_idx = np.argmax(np.real(eigvals))\nlam = np.real(eigvals[dom_idx])\n\nw = np.real(eigvecs[:, dom_idx])\nw = w / w.sum()          # stable stage dist.\n\nprint(f&quot;lambda = {lam:.4f}&quot;)\n# lambda = 0.9544</code></pre>"
+    },
+    "right": {
+      "h": "Identical Logic, Different Syntax",
+      "body": "<p><code>np.linalg.eig</code> returns eigenvalues and eigenvectors as a tuple; <code>np.real</code> plays exactly the role that R's <code>Re()</code> plays, stripping numerical imaginary residue.</p><p>The lambda and stable stage distribution computed here are numerically identical (to rounding) to the R result -- both scripts operate on the same hard-coded matrix A.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Computing Lambda",
+    "title": "LinearAlgebra.eigen in Julia",
+    "left": {
+      "h": "Julia -- eigen() from LinearAlgebra",
+      "body": "<pre><code>using LinearAlgebra\n\nev = eigen(A)\ndom_idx = argmax(real.(ev.values))\nlambda = real(ev.values[dom_idx])\n\nw = real.(ev.vectors[:, dom_idx])\nw = w ./ sum(w)          # stable stage dist.\n\nprintln(&quot;lambda = &quot;, round(lambda; digits=4))</code></pre>"
+    },
+    "right": {
+      "h": "Julia's Eigen Object",
+      "body": "<p><code>eigen(A)</code> returns an <code>Eigen</code> object with <code>.values</code> and <code>.vectors</code> fields rather than a tuple or list -- otherwise the computation is line-for-line identical to R and Python.</p><p><code>argmax(real.(ev.values))</code> broadcasts <code>real</code> across the eigenvalue vector before finding the index of the largest real part, Julia's idiomatic equivalent of R's <code>which.max(Re(...))</code>.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Result",
+    "title": "lambda ~ 0.95: A Population in Decline",
+    "items": [
+      "All three languages agree: lambda ~ 0.9544 for the status-quo matrix -- the population loses about 4.5% of its size each year at the stable stage distribution",
+      "This matches the qualitative finding of Crouse, Crowder & Caswell (1987): under pre-conservation bycatch levels, loggerhead populations were projected to decline",
+      "A single scalar lambda summarizes the net effect of every fecundity, survival, and growth rate in the matrix -- but by itself it says nothing about WHICH rate to fix",
+      "That question -- where should conservation effort go? -- is exactly what elasticity analysis (later in this lecture) was built to answer"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Watching the Decline Unfold",
+    "title": "Projecting the Population Forward 30 Years",
+    "sub": "From an arbitrary starting stage vector to a visible, compounding decline"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Simulating the Trajectory",
+    "title": "A 30-Year Projection Loop in R",
+    "left": {
+      "h": "R -- iterating n(t+1) = A %*% n(t)",
+      "body": "<pre><code>n0 &lt;- c(5000, 1200, 600, 200, 100)\nn_mat &lt;- matrix(0, 5, 31)\nn_mat[, 1] &lt;- n0\nfor (t in 1:30) {\n  n_mat[, t + 1] &lt;- A %*% n_mat[, t]\n}\ntotal_n &lt;- colSums(n_mat)\n\nplot(0:30, total_n, type = &quot;o&quot;, log = &quot;y&quot;,\n     xlab = &quot;Year&quot;, ylab = &quot;Total N (log scale)&quot;)</code></pre>"
+    },
+    "right": {
+      "h": "figures/lecture_14_population_trajectory.png",
+      "body": "<p>Starting from a juvenile-heavy founder vector (5000 hatchlings down to 100 adults, 7100 total), total population falls from 7100 to about 999 individuals over 30 years -- a ratio of 0.141, consistent with compounding at lambda ~ 0.954 per year (0.954^30 ~ 0.235 once the transient settles).</p><p>Plotted on a log scale, the long-run decline appears as a straight line once the population reaches its stable stage distribution; the first few years show curvature from transient dynamics.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Trajectory",
+    "title": "Why a Log Scale, and What the Early Curvature Means",
+    "items": [
+      "On a log-scale y-axis, geometric decline (multiplying by lambda each year) plots as a straight line -- deviations from a straight line reveal transient dynamics",
+      "Early years show the population converging toward its stable stage distribution; the starting vector here (juvenile-heavy) is not itself stable, so short-term growth deviates from lambda until convergence",
+      "Once the population settles into the stable stage distribution, total N declines at essentially a constant proportional rate, matching lambda",
+      "This same log-linear-decline signature would show up in real bycatch/monitoring survey data on a declining loggerhead population"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Question That Changed Policy",
+    "title": "Sensitivity and Elasticity Analysis",
+    "sub": "Not just 'is the population declining' -- but 'which matrix entry matters most for lambda?'"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Two Related Questions",
+    "title": "Sensitivity vs. Elasticity: Absolute vs. Proportional Impact",
+    "items": [
+      "Sensitivity of lambda to entry a_ij: how much does lambda change for an absolute (additive) change in a_ij? Units differ across entries (a survival probability is bounded 0-1, a fecundity is not), making raw sensitivities hard to compare directly",
+      "Elasticity of lambda to entry a_ij: how much does lambda change, proportionally, for a proportional change in a_ij? Elasticities are unitless and sum to 1 across all nonzero entries, making them directly comparable",
+      "Elasticity answers the conservation-relevant question: 'if I could improve any single vital rate by, say, 10%, which one gives the biggest proportional boost to lambda?'",
+      "Both can be computed analytically from the eigenvectors, but a numerical finite-difference approach -- perturb one entry, recompute lambda -- is simpler, transparent, and exactly what this lecture's code does"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Key Definition",
+    "title": "Elasticity",
+    "term": "Elasticity",
+    "def": "The proportional sensitivity of lambda to a proportional change in a single matrix entry a_ij: elasticity_ij = (d(lambda)/lambda) / (d(a_ij)/a_ij), computed here by finite difference -- perturb a_ij by a small relative step, recompute lambda from the perturbed matrix, and divide the proportional change in lambda by the proportional change in a_ij.",
+    "bullets": [
+      "Elasticities of all nonzero matrix entries sum to exactly 1.0 -- a convenient check that the calculation was done correctly",
+      "A high elasticity means lambda is very responsive, proportionally, to that entry -- a small percentage improvement there yields a large percentage improvement in lambda",
+      "This is the single most consequential calculation in the loggerhead story: it is what let Crouse, Crowder & Caswell rank life stages by conservation leverage rather than by intuition"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Computing Elasticities",
+    "title": "Finite-Difference Elasticities in R",
+    "left": {
+      "h": "R -- perturb, recompute, compare",
+      "body": "<pre><code>lambda_of &lt;- function(mat) {\n  vals &lt;- eigen(mat, only.values = TRUE)$values\n  Re(vals[which.max(Re(vals))])\n}\nlambda0 &lt;- lambda_of(A)\nrel_step &lt;- 1e-4\nE &lt;- matrix(0, 5, 5)\nfor (i in 1:5) for (j in 1:5) {\n  aij &lt;- A[i, j]\n  if (aij != 0) {\n    Ap &lt;- A; da &lt;- rel_step * aij\n    Ap[i, j] &lt;- aij + da\n    E[i, j] &lt;- (lambda_of(Ap) - lambda0) /\n                lambda0 / (da / aij)\n  }\n}</code></pre>"
+    },
+    "right": {
+      "h": "No Eigenvector Shortcut Needed",
+      "body": "<p>This finite-difference approach is deliberately simple: for every nonzero matrix entry, nudge it up by 0.01% of its own value, recompute lambda from scratch with <code>eigen()</code>, and divide the proportional change in lambda by the proportional change in the entry.</p><p>It reproduces the same ranking of important entries as the closed-form analytical elasticity formula (which uses the dominant left and right eigenvectors), without requiring that extra derivation.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Computing Elasticities",
+    "title": "The Same Finite-Difference Approach in Python",
+    "left": {
+      "h": "Python -- identical logic, numpy arrays",
+      "body": "<pre><code>def lambda_of(mat):\n    vals = np.linalg.eigvals(mat)\n    return np.real(vals[np.argmax(np.real(vals))])\n\nlambda0 = lambda_of(A)\nrel_step = 1e-4\nE = np.zeros_like(A)\nfor i in range(5):\n    for j in range(5):\n        aij = A[i, j]\n        if aij != 0:\n            Ap = A.copy()\n            da = rel_step * aij\n            Ap[i, j] = aij + da\n            E[i, j] = (lambda_of(Ap) - lambda0) \\\n                / lambda0 / (da / aij)</code></pre>"
+    },
+    "right": {
+      "h": "Sanity Check: Elasticities Sum to ~1",
+      "body": "<p>Both the R and Python scripts print <code>sum(E)</code> after building the elasticity matrix -- it comes out to 1.0001 in both, the expected ~1.0 up to finite-difference and floating-point error.</p><p>That check is a good habit any time you compute elasticities: if they don't sum close to 1, something in the matrix or the perturbation loop is wrong.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Result That Mattered",
+    "title": "Juvenile and Subadult Survival Dominate the Elasticity Ranking",
+    "items": [
+      "Top single entries by elasticity: Adult stasis (0.252), Subadult stasis (0.154), Large-juvenile stasis (0.145), Small-juvenile stasis (0.137) -- survival-in-place terms dominate the top of the list",
+      "Summed across all fecundity entries (egg production from subadults and adults): elasticity ~0.066 -- about 6.6% of lambda's total proportional sensitivity",
+      "Summed across juvenile and subadult survival + growth entries alone: elasticity ~0.568 -- more than 8x the total fecundity elasticity",
+      "Conclusion: a 10% proportional improvement in juvenile/subadult survival moves lambda far more than a 10% proportional improvement in fecundity -- protecting nests helps, but protecting juveniles at sea matters more"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "The Headline Comparison",
+    "title": "Fecundity Elasticity vs. Juvenile Survival Elasticity",
+    "cards": [
+      {
+        "h": "Fecundity (eggs -> hatchlings)",
+        "p": "Total elasticity ~0.066. Nest protection, headstarting programs, and predator exclosures on beaches all act on this small slice of lambda's sensitivity."
+      },
+      {
+        "h": "Juvenile + subadult survival",
+        "p": "Total elasticity ~0.568. Shrimp-trawl bycatch kills exactly the large-juvenile and subadult turtles whose survival dominates this ranking."
+      },
+      {
+        "h": "Policy implication (1987)",
+        "p": "Reducing bycatch mortality in shrimp trawls should improve lambda far more, per unit conservation effort, than any feasible increase in nest protection alone."
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "From Elasticity Analysis to Federal Law",
+    "title": "The Real-World Impact of This Paper",
+    "items": [
+      {
+        "y": "1970s-80s",
+        "t": "Loggerhead and other sea turtle populations declining; conservation dollars concentrated on nest protection"
+      },
+      {
+        "y": "1987",
+        "t": "Crouse, Crowder & Caswell publish the stage-based matrix model; elasticity analysis shows juvenile/subadult survival, not fecundity, drives lambda"
+      },
+      {
+        "y": "1987-1989",
+        "t": "NOAA Fisheries and conservation groups cite the analysis in pushing for mandatory bycatch-reduction devices on shrimp trawlers"
+      },
+      {
+        "y": "1990",
+        "t": "U.S. regulations require Turtle Excluder Devices (TEDs) on shrimp trawls nationwide, directly reducing juvenile/subadult bycatch mortality"
+      },
+      {
+        "y": "2000s-present",
+        "t": "Long-term nesting trend data for several loggerhead subpopulations show recovery consistent with reduced bycatch mortality"
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Why This Example Is Taught Everywhere",
+    "quote": "The loggerhead elasticity analysis is the textbook demonstration that a demographic model is not just a forecasting tool -- it is a way of ranking where conservation effort actually pays off, and in this case it redirected U.S. federal policy toward gear modification rather than nest protection alone.",
+    "attrib": "paraphrased summary of the policy legacy of Crouse, Crowder & Caswell (1987)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Know the Limits",
+    "title": "What This Matrix Model Does Not Capture",
+    "items": [
+      "Density independence: vital rates in A are constant regardless of population size -- no carrying capacity, no crowding effects, unlike the logistic model from the start of this lecture",
+      "Deterministic rates: no year-to-year environmental variability in survival or fecundity -- real loggerhead vital rates fluctuate with ocean conditions, nesting success, and bycatch intensity",
+      "Discrete stages: individuals are lumped into 5 bins even though size and age vary continuously within each stage -- two 'large juveniles' at very different sizes are treated identically",
+      "Deterministic matrix models like this one are best read as answering 'what would happen under CURRENT average vital rates, held constant' -- not as a precise forecast"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Looking Ahead",
+    "title": "Integral Projection Models (IPMs)",
+    "term": "Integral Projection Model (IPM)",
+    "def": "A continuous-state generalization of stage-structured matrix models: instead of a small number of discrete stage bins, individuals are described by a continuous trait (usually body size), and a kernel function K(y, x) gives the contribution of an individual at size x this year to the distribution of sizes y next year, integrated (not summed) across the full size range.",
+    "bullets": [
+      "Removes the arbitrariness of choosing stage-bin boundaries -- growth, survival, and fecundity are fit as smooth functions of size rather than assigned per discrete stage",
+      "Especially natural for species like sea turtles, fish, or trees where size varies continuously and growth rate genuinely depends on current size, not a fixed stage label",
+      "Conceptually: a Lefkovitch matrix IS a coarse, discretized IPM -- shrinking the stage bins toward zero width recovers the continuous kernel formulation",
+      "Not fit in this lecture -- flagged here as the natural next step once you outgrow discrete stage classes"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Idea, Conceptually",
+    "title": "How an IPM Would Extend Today's Model",
+    "items": [
+      "Replace the 5-element stage vector n(t) with a continuous size-distribution function n(x, t)",
+      "Replace the 5x5 matrix A with a kernel K(y, x) = survival(x) x growth(y | x) + fecundity(x) x offspring-size(y), fit from size-structured survival/growth/fecundity data",
+      "Replace n(t+1) = A n(t) with the integral n(y, t+1) = Integral K(y, x) n(x, t) dx over all sizes x",
+      "In practice, IPMs are fit and solved numerically by discretizing size into a fine mesh (e.g. 100+ bins) -- the matrix formalism from this lecture returns as the computational engine underneath"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Bonus, Not Required",
+    "title": "A Minimal IPM Kernel Sketch (Conceptual, Not Fit Here)",
+    "left": {
+      "h": "Python -- a discretized IPM kernel (pseudocode-level)",
+      "body": "<pre><code># x = fine mesh of body sizes, e.g. 100 bins\n# survival(x), growth_mean(x), fecundity(x)\n# fit from real size-structured data (not here)\n\nimport numpy as np\nfrom scipy.stats import norm\n\ndef kernel(y, x, surv, g_mean, g_sd, fec):\n    growth = norm.pdf(y, g_mean(x), g_sd)\n    return surv(x) * growth + fec(x)\n\n# K = kernel(y_mesh[:,None], x_mesh[None,:], ...)\n# n_next = K @ n_current * mesh_width</code></pre>"
+    },
+    "right": {
+      "h": "Why This Is Only a Sketch",
+      "body": "<p>A real IPM fit requires size-structured survival, growth, and fecundity data (e.g. mark-recapture records with body-size measurements) that this lecture's reconstructed matrix does not provide.</p><p>The point of showing this sketch is structural: notice that discretizing the kernel K into a fine mesh and replacing the integral with a matrix-vector product recovers exactly the n(t+1) = A n(t) machinery from earlier in this lecture -- IPMs and matrix models are two views of the same idea at different resolutions.</p>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Where Structured Population Models Fit",
+    "title": "From a Single Number to a Continuous Kernel",
+    "levels": [
+      {
+        "label": "Unstructured growth: dN/dt = rN, logistic",
+        "color": "#93A9C6",
+        "width": 55
+      },
+      {
+        "label": "Leslie matrix (age-structured)",
+        "color": "#6E8CB0",
+        "width": 70
+      },
+      {
+        "label": "Lefkovitch matrix (stage-structured) -- today's focus",
+        "color": "#4A6D97",
+        "width": 85
+      },
+      {
+        "label": "Integral Projection Models (continuous state)",
+        "color": "#274C77",
+        "width": 100
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Tying the Threads Together",
+    "title": "State-Space Population Models and Matrix Models Are Complementary",
+    "items": [
+      "Lecture 10's Gompertz/Ricker state-space models separate true population dynamics from observation noise, but track total abundance as a single latent state",
+      "This lecture's matrix models add structure (which stage individuals are in) but assume deterministic, noise-free vital rates",
+      "Modern population ecology increasingly combines both: stage- or age-structured state-space models with process noise on vital rates, fit in a Bayesian hierarchical framework (Lecture 9) -- the two threads of this course converging",
+      "Every language pattern from today (eigen() / np.linalg.eig / LinearAlgebra.eigen for matrix algebra) also underlies the more elaborate structured state-space extensions you may meet beyond this course"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "This Week's Practice",
+    "title": "Exercises: TEDs, Stable Structure, Elasticity Ranking, Transients",
+    "items": [
+      "Exercise 1: simulate Turtle Excluder Device adoption by increasing juvenile/subadult survival 10% and compare the resulting lambda change to a 10% fecundity increase",
+      "Exercise 2: compare the model's stable stage distribution to a hypothetical observed survey distribution and reason about transient dynamics",
+      "Exercise 3: identify the single highest-elasticity matrix entry and explain, in your own words, why it matters so much to lambda",
+      "Exercise 4: compare 30-year trajectories from a juvenile-heavy vs. adult-heavy starting vector to see transient dynamics converge to the same lambda"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Time",
+    "title": "From One Population to a Whole Community",
+    "sub": "Population models track a single species' structure; community ecology models ask how many interacting species coexist, and why"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture 15 Preview",
+    "title": "Community Ecology Models",
+    "items": [
+      "Moving from a single structured population (this lecture) to multi-species assemblages: diversity indices, species-abundance distributions, and null models",
+      "Multi-species interaction models: competition, predator-prey dynamics, and food-web structure extending the projection-matrix machinery introduced today",
+      "Community-level questions that individual population models cannot answer alone: what maintains species coexistence, and what predicts which species will be present at a site?",
+      "Same three-language workflow continues: R, Python, and Julia implementations of every community model on real published data"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 14</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

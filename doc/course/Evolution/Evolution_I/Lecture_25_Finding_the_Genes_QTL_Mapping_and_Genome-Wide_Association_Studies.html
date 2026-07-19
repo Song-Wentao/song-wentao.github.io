@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 25: Finding the Genes: QTL Mapping and Genome-Wide Association Studies</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 25",
+    "title": "Finding the Genes: QTL Mapping and Genome-Wide Association Studies",
+    "sub": "From heritable variation to identified loci — locating the DNA that underlies quantitative traits",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 7, \"Beyond Alleles\" (lecture 3 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "RECAP",
+    "title": "Where We Left Off",
+    "sub": "Quantitative traits, the multifactorial model, and the breeder's equation"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "REVIEW",
+    "title": "The Story So Far (Lectures 23–24)",
+    "items": [
+      "Lecture 23: Most traits of evolutionary interest — height, beak depth, milk yield, disease risk — are quantitative, shaped by many genes plus environment (the multifactorial model).",
+      "We partitioned phenotypic variance: V_P = V_G + V_E, and further V_G = V_A + V_D + V_I.",
+      "Narrow-sense heritability (h^2 = V_A / V_P) tells us how much of the variation is due to additive genetic effects — and therefore how predictable a response to selection will be.",
+      "Lecture 24: The breeder's equation (R = h^2 S) lets us predict evolutionary response without knowing a single gene involved.",
+      "Artificial selection experiments confirm that heritable variation responds to selection — but they are silent on WHICH genes, WHERE in the genome, and HOW MANY loci are doing the work.",
+      "Today's question: can we actually find the genes underlying a quantitative trait — and how far can we get?"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE CHALLENGE",
+    "title": "Why Finding the Genes Is Hard",
+    "items": [
+      "Mendelian traits (e.g., pea shape, cystic fibrosis) are controlled by one or two genes with large, discrete effects — easy to map by tracking a single segregating locus.",
+      "Quantitative traits are controlled by many genes, each of typically small effect, plus environmental noise layered on top.",
+      "The phenotype gives no direct clue about genotype: two individuals with identical height may carry different combinations of alleles at different loci.",
+      "We need methods that can detect statistical associations between genetic markers and phenotypic variation — without needing to know in advance which genes are involved.",
+      "Two major toolkits have emerged: QTL mapping (in controlled experimental crosses) and genome-wide association studies, or GWAS (in natural or human populations).",
+      "Both exploit the same underlying logic: alleles that travel together with the trait, generation after generation, are probably physically linked to a causal gene."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Quantitative Trait Locus (QTL)",
+    "term": "Quantitative Trait Locus (QTL)",
+    "def": "A region of the genome that contains one or more genes influencing a quantitative (continuously varying) trait, identified statistically through its association with genetic markers that co-segregate with phenotypic variation in a mapping population.",
+    "bullets": [
+      "A QTL is a genomic INTERVAL, not necessarily a single gene — early QTL maps often span millions of base pairs and dozens of candidate genes.",
+      "QTLs are detected by linkage: markers located near a causal gene are inherited together with it more often than expected by chance.",
+      "Fine-mapping and functional studies are needed to narrow a QTL down to the actual causal gene and mutation."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHOD",
+    "title": "The Logic of QTL Mapping via Experimental Crosses",
+    "left": {
+      "h": "Setting Up the Cross",
+      "body": "<p>QTL mapping starts with two strains or populations that differ substantially in the trait of interest and are also genetically distinct (e.g., a large-bodied and a small-bodied strain).</p><ul><li>Cross the two parental (P) lines to produce an F1 generation, heterozygous at every locus that differed between the parents.</li><li>Cross F1 individuals to each other (or backcross to a parent) to generate an F2 or backcross population — here, recombination reshuffles parental chromosome segments.</li><li>Each F2 individual carries a unique mosaic of parental genomic blocks, generated by meiotic crossing-over.</li></ul>"
+    },
+    "right": {
+      "h": "Scoring and Mapping",
+      "body": "<p>Every F2 (or backcross) individual is genotyped at many marker loci spread across the genome and phenotyped for the trait.</p><ul><li>Statistical tests ask: at each marker, do individuals with the 'high strain' genotype have significantly higher trait values than those with the 'low strain' genotype?</li><li>Markers showing a strong genotype-phenotype association mark the location of a QTL.</li><li>Because recombination breaks up parental chromosomes at random points, the tighter the marker-QTL linkage, the more precisely the QTL's location is pinned down.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHOD, STEP BY STEP",
+    "title": "The QTL Mapping Workflow",
+    "items": [
+      "1. Choose divergent parental lines for the trait of interest (e.g., freshwater vs. marine stickleback, or tall vs. short tomato cultivars).",
+      "2. Cross to F1, then generate a large F2 or backcross mapping population (typically hundreds of individuals — statistical power scales with sample size).",
+      "3. Genotype each individual at a dense panel of molecular markers (historically RFLPs and microsatellites; today, SNPs from genome sequencing).",
+      "4. Measure the quantitative phenotype precisely and consistently across all individuals.",
+      "5. Use statistical methods (e.g., interval mapping, composite interval mapping) to test for association between marker genotype and phenotype along each chromosome.",
+      "6. Plot a LOD (logarithm of odds) score across the genome — peaks above a significance threshold indicate QTL locations.",
+      "7. Estimate each QTL's effect size — how much phenotypic variance it explains — and its approximate confidence interval (often still spanning many genes)."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WHY IT WORKS",
+    "title": "Linkage and Recombination Make Mapping Possible",
+    "left": {
+      "h": "Recombination as a Ruler",
+      "body": "<p>QTL mapping relies on the same principle as classical linkage mapping: the farther apart two loci are on a chromosome, the more likely a crossover will separate them during meiosis.</p><ul><li>Markers very close to the causal gene rarely get separated from it by recombination — they stay strongly associated with the phenotype.</li><li>Markers far from the causal gene are frequently separated by recombination, weakening the statistical association.</li><li>The pattern of association strength across markers traces out the QTL's approximate location.</li></ul>"
+    },
+    "right": {
+      "h": "Resolution Limits",
+      "body": "<p>The number of recombination events captured in an F2 population is limited by population size and the number of generations of recombination.</p><ul><li>A typical F2 mapping population resolves QTLs to intervals of several to tens of centimorgans — often megabases of DNA containing many genes.</li><li>Advanced designs (recombinant inbred lines, advanced intercross lines, near-isogenic lines) accumulate more recombination events over many generations, improving resolution.</li><li>Even with these tools, moving from 'QTL region' to 'the gene' typically requires additional fine-mapping and functional work.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STRENGTHS AND LIMITS",
+    "title": "What QTL Mapping Can and Cannot Do",
+    "items": [
+      "Strength: works extremely well for traits that differ strongly between two parental strains — captures large-effect loci efficiently.",
+      "Strength: controlled crosses mean the genetic background and environment can be standardized, reducing confounding.",
+      "Strength: applicable to any organism that can be crossed in the lab or greenhouse (plants, mice, flies, fish) — no need for a pre-existing natural population with known pedigree.",
+      "Limitation: only detects genetic variation that differs between the two parental lines chosen — variation segregating elsewhere in the species is invisible.",
+      "Limitation: mapping resolution is typically coarse (megabases), often implicating dozens of candidate genes per QTL.",
+      "Limitation: requires the ability to make controlled crosses — not feasible for long-generation-time species (e.g., humans, elephants, oak trees)."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "REQUIREMENTS",
+    "title": "What You Need to Run a QTL Mapping Study",
+    "cards": [
+      {
+        "h": "Two Divergent Strains",
+        "p": "Parental lines or populations that differ clearly in the trait and carry distinguishable genetic variants (e.g., wild vs. domesticated, or two ecotypes)."
+      },
+      {
+        "h": "A Mapping Population",
+        "p": "A large F2, backcross, or recombinant inbred line panel — recombination in these individuals is what allows genes to be localized."
+      },
+      {
+        "h": "Dense Genetic Markers",
+        "p": "A panel of molecular markers spanning the genome, dense enough to detect linkage between markers and the causal loci."
+      },
+      {
+        "h": "Careful Phenotyping",
+        "p": "Precise, repeatable measurement of the quantitative trait in every mapping individual — phenotyping error directly limits statistical power."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "TRANSITION",
+    "title": "From the Lab Cross to the Wild Population",
+    "sub": "What happens when you cannot design the cross yourself?"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Genome-Wide Association Study (GWAS)",
+    "term": "Genome-Wide Association Study (GWAS)",
+    "def": "A method that scans hundreds of thousands to millions of genetic markers (typically single nucleotide polymorphisms, or SNPs) across the genomes of many unrelated individuals from a natural or human population, testing each marker for statistical association with a trait of interest.",
+    "bullets": [
+      "Unlike QTL mapping, GWAS does not require an experimental cross — it exploits the recombination that has already occurred over many generations in a natural population's history.",
+      "GWAS is the method of choice when controlled crosses are impossible or unethical — most famously, in human genetics.",
+      "Because it uses pre-existing populations, GWAS can achieve much finer mapping resolution than a typical two-generation cross."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE MARKERS",
+    "title": "SNPs as the Workhorse of GWAS",
+    "items": [
+      "A single nucleotide polymorphism (SNP) is a position in the genome where individuals commonly differ by a single base pair (e.g., A vs. G).",
+      "SNPs are abundant (millions across most genomes), easy to genotype cheaply at scale with modern microarrays or sequencing, and dense enough to tile the entire genome.",
+      "Most SNPs used in GWAS are not themselves the causal variant — they serve as MARKERS that are statistically correlated with a nearby causal variant.",
+      "A typical human GWAS genotypes 500,000 to several million SNPs across many thousands of individuals.",
+      "The core statistical test, at each SNP, asks: does allele frequency differ between individuals with high vs. low trait values (or cases vs. controls for a disease)?"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THE KEY IDEA",
+    "title": "Linkage Disequilibrium: Why GWAS Works Without a Cross",
+    "left": {
+      "h": "What Linkage Disequilibrium (LD) Is",
+      "body": "<p>Linkage disequilibrium is the non-random association of alleles at two or more loci in a population — alleles at nearby loci tend to be inherited together more often than chance alone would predict.</p><ul><li>LD arises because recombination has not had enough generations (or opportunities) to fully shuffle nearby loci apart.</li><li>The closer two loci are physically, the less likely recombination has separated them across the population's history, and the stronger their LD tends to be.</li><li>A SNP marker in strong LD with a causal variant will show a statistical association with the trait, even though the SNP itself does nothing.</li></ul>"
+    },
+    "right": {
+      "h": "Why This Enables Mapping",
+      "body": "<p>Because natural populations have undergone many more generations of recombination than a two-generation lab cross, LD blocks are much smaller — often just kilobases in humans.</p><ul><li>This gives GWAS much finer mapping resolution than typical QTL crosses — sometimes pinpointing a handful of candidate genes rather than dozens.</li><li>However, LD patterns vary by population history: population bottlenecks, admixture, and demographic structure can create long-range LD that complicates interpretation.</li><li>Because no controlled cross exists, confounding factors (population structure, environment) must be statistically controlled rather than experimentally eliminated.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY DESIGN",
+    "title": "How a GWAS Is Run",
+    "items": [
+      "Recruit a large sample of unrelated individuals — often tens to hundreds of thousands for human studies, given the small effect sizes typically involved.",
+      "Measure the quantitative trait (e.g., height, cholesterol level) or classify individuals as cases (have the disease/trait) vs. controls (do not).",
+      "Genotype every individual at a dense panel of SNPs spanning the genome.",
+      "At each SNP, perform a statistical test (e.g., regression of trait on genotype, or a case-control association test) — this generates hundreds of thousands to millions of individual statistical tests.",
+      "Correct for multiple testing: because so many SNPs are tested simultaneously, a very stringent significance threshold is required (in human GWAS, commonly p < 5 x 10^-8) to avoid a flood of false positives.",
+      "Visualize results with a Manhattan plot — SNP position along the x-axis, -log10(p-value) on the y-axis — significant associations appear as tall 'peaks' or towers."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Manhattan Plot and Genome-Wide Significance",
+    "term": "Manhattan Plot",
+    "def": "A standard visualization of GWAS results plotting each tested SNP's chromosomal position on the x-axis against the negative log10 of its association p-value on the y-axis — so smaller p-values (stronger associations) appear as taller points, producing a skyline resembling city buildings.",
+    "bullets": [
+      "A horizontal significance threshold line marks the genome-wide significance cutoff; SNPs above it are declared 'hits.'",
+      "Because nearby SNPs are correlated through LD, significant hits cluster into towers spanning a shared LD block, not isolated single points.",
+      "The stringent threshold (commonly 5 x 10^-8 in human studies) reflects the enormous multiple-testing burden of examining a million-plus SNPs at once."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STRENGTHS AND LIMITS",
+    "title": "What GWAS Can and Cannot Do",
+    "items": [
+      "Strength: works in natural populations, including humans, where controlled crosses are impossible — leverages recombination that already occurred over evolutionary/demographic history.",
+      "Strength: because natural LD blocks are small, GWAS can achieve fine mapping resolution, sometimes implicating just one or a few candidate genes.",
+      "Strength: can detect variants across the full range of allele frequencies present in the sampled population, not just those differing between two chosen parental lines.",
+      "Limitation: requires very large sample sizes to detect the small effect sizes typical of complex traits — often tens of thousands of individuals.",
+      "Limitation: susceptible to confounding from population structure (systematic ancestry differences correlated with both genotype and phenotype) unless carefully controlled statistically.",
+      "Limitation: identifies statistical associations, not proven causal mechanisms — a 'hit' still requires follow-up functional work to confirm the causal gene and variant."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "TECHNOLOGY",
+    "title": "Genotyping Technologies Behind the Data",
+    "cards": [
+      {
+        "h": "RFLPs and Microsatellites",
+        "p": "Early linkage and QTL mapping relied on restriction fragment length polymorphisms and microsatellite repeats — sparse but sufficient for coarse mapping in crosses."
+      },
+      {
+        "h": "SNP Microarrays",
+        "p": "Chip-based genotyping of pre-selected SNPs (hundreds of thousands per chip) made large-scale human and agricultural GWAS economically feasible starting in the mid-2000s."
+      },
+      {
+        "h": "Whole-Genome Sequencing",
+        "p": "Sequencing every base of the genome captures rare variants and structural variation invisible to SNP chips, at steadily falling cost — increasingly used to chase missing heritability."
+      },
+      {
+        "h": "Imputation",
+        "p": "Statistical methods that infer ungenotyped SNPs from reference haplotype panels, effectively boosting the density of variants tested without sequencing every individual."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Effect Size",
+    "term": "Effect Size (in QTL/GWAS)",
+    "def": "The magnitude of phenotypic change, or the fraction of phenotypic variance, attributable to a single genetic variant or locus — a central quantity for judging both the biological importance and statistical detectability of a QTL or GWAS hit.",
+    "bullets": [
+      "Large-effect loci (like stickleback Eda, explaining over half the variance in some crosses) are far easier to detect with modest sample sizes.",
+      "Most GWAS hits for complex human traits have tiny effect sizes — a single height-associated SNP might shift average height by only 1–2 millimeters.",
+      "Detecting a locus requires statistical power that scales with sample size and inversely with effect size — this is precisely why complex-trait GWAS have needed to grow from thousands to millions of participants."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND HUMANS",
+    "title": "GWAS in Natural (Non-Human) Populations",
+    "items": [
+      "GWAS is not limited to humans — it is increasingly applied to wild populations with enough individuals and existing genomic resources.",
+      "Example: GWAS in wild Darwin's finches and other wild bird populations has linked beak-shape variation to loci including ALX1, corroborating and extending earlier QTL and candidate-gene work.",
+      "Example: Arabidopsis thaliana natural accessions have been used for GWAS on flowering time, drought tolerance, and disease resistance, benefiting from extensive existing genomic and environmental data.",
+      "Wild GWAS studies face the same core challenges as human studies — population structure, relatedness, and limited sample sizes relative to the small effects typical of polygenic traits — often compounded by fewer resources than large human biobanks.",
+      "Combining QTL mapping (in tractable crosses) with GWAS (in the wild population) for the same trait is a powerful strategy: QTL crosses can validate and fine-map candidate regions nominated by wild GWAS, and vice versa."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "NON-ADDITIVE EFFECTS",
+    "title": "Epistasis: When Genes Don't Act Alone",
+    "left": {
+      "h": "What Epistasis Means Here",
+      "body": "<p>In the quantitative genetics sense, epistasis refers to genetic variance arising from interactions BETWEEN loci, where the effect of an allele at one locus depends on the genotype at another locus.</p><ul><li>This differs from purely additive effects, where each locus contributes independently to the phenotype regardless of genotype elsewhere.</li><li>Epistatic variance is a component of V_G that is not captured by narrow-sense heritability (V_A) and does not reliably respond to selection in the simple, predictable way additive variance does.</li></ul>"
+    },
+    "right": {
+      "h": "Why It Complicates Mapping",
+      "body": "<p>Standard GWAS and QTL models typically test each locus independently and additively, which can miss or underestimate loci whose effects only appear in combination with specific alleles elsewhere.</p><ul><li>Detecting genome-wide interactions requires testing enormous numbers of locus pairs, imposing a severe multiple-testing burden that demands even larger sample sizes.</li><li>Some of the missing heritability may reflect epistatic variance that is real, heritable, and biologically important, but statistically invisible to standard single-locus association tests.</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SIDE BY SIDE",
+    "title": "QTL Mapping vs. GWAS",
+    "headers": [
+      "Feature",
+      "QTL Mapping",
+      "GWAS"
+    ],
+    "rows": [
+      [
+        "Population",
+        "Controlled experimental cross (F2, backcross, RILs)",
+        "Natural, unrelated individuals (wild or human population)"
+      ],
+      [
+        "Genetic variation sampled",
+        "Only differences between the two chosen parental lines",
+        "All variation segregating in the sampled population"
+      ],
+      [
+        "Basis of mapping",
+        "Recombination generated over 1–2 generations",
+        "Linkage disequilibrium accumulated over many generations"
+      ],
+      [
+        "Typical resolution",
+        "Coarse — megabases, many candidate genes",
+        "Fine — kilobases to a few genes, depending on LD structure"
+      ],
+      [
+        "Sample size needed",
+        "Hundreds of individuals often sufficient",
+        "Thousands to hundreds of thousands, due to small effect sizes"
+      ],
+      [
+        "Typical use case",
+        "Model organisms, crops, lab-tractable species",
+        "Humans and other species where crosses are impossible"
+      ],
+      [
+        "Main confound to control",
+        "Genetic background (usually well controlled by design)",
+        "Population structure and stratification"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "CASE STUDIES",
+    "title": "From Statistical Peaks to Real Genes",
+    "sub": "Three examples spanning fish, humans, and crops"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CASE STUDIES",
+    "title": "QTL and GWAS Success Stories",
+    "cards": [
+      {
+        "h": "Stickleback Armor Plates",
+        "p": "QTL mapping of crosses between armored marine and low-armor freshwater threespine stickleback identified a major-effect QTL on chromosome 4 later traced to the Eda (Ectodysplasin) gene."
+      },
+      {
+        "h": "Human Height GWAS",
+        "p": "Hundreds of GWAS studies involving over a million people have identified thousands of SNPs associated with height — the single largest, best-powered example of a highly polygenic trait."
+      },
+      {
+        "h": "Crop Domestication QTLs",
+        "p": "QTL mapping in maize, rice, and tomato has pinpointed genes controlling seed size, fruit size, and branching architecture that were targets of domestication selection (e.g., tb1 in maize)."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CASE STUDY",
+    "title": "Eda and Stickleback Armor Plates",
+    "term": "Eda (Ectodysplasin) Gene",
+    "def": "A gene identified through QTL mapping as the major-effect locus controlling lateral bony armor plate number in threespine stickleback fish, explaining a large fraction of the difference between heavily armored marine populations and low-armored freshwater populations.",
+    "bullets": [
+      "Marine stickleback typically have a full row of lateral bony plates; many freshwater populations, repeatedly and independently, have evolved reduced plating.",
+      "QTL mapping of marine x freshwater crosses located a large-effect QTL on chromosome 4; positional cloning narrowed this to the Eda gene, already known from vertebrate skeletal development studies.",
+      "This is a rare case where a QTL of large effect maps to a single, well-characterized gene — most quantitative traits are far more polygenic."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY, IN DEPTH",
+    "title": "Why the Stickleback Eda Story Is So Instructive",
+    "left": {
+      "h": "A Rare Large-Effect QTL",
+      "body": "<p>Most quantitative traits are controlled by many loci of small effect. Stickleback armor plating is unusual because a single QTL (Eda) explains a very large fraction (in some crosses, more than half) of the variance in plate number.</p><ul><li>This made Eda tractable for QTL mapping with modest sample sizes.</li><li>The low-armor Eda allele has been shown to be an ancient standing variant, repeatedly reused by natural selection whenever marine stickleback colonize freshwater — a classic case of repeated evolution from standing genetic variation.</li></ul>"
+    },
+    "right": {
+      "h": "From QTL to Mechanism",
+      "body": "<p>Identifying Eda was only the first step — researchers went on to confirm causation through functional work.</p><ul><li>Eda encodes a signaling protein involved in ectodermal organ development (also implicated in human ectodermal dysplasia).</li><li>Manipulating Eda expression in transgenic fish reproduces the plate-number differences, confirming a causal (not just correlational) role.</li><li>This QTL-to-gene-to-mechanism pipeline is the gold standard that most GWAS hits still have not achieved.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY",
+    "title": "Human Height: The Model Polygenic Trait",
+    "items": [
+      "Height is highly heritable (h^2 estimated around 0.7–0.8 from twin and family studies) and easy to measure precisely and cheaply — making it an ideal test case for GWAS methodology.",
+      "Early height GWAS in the mid-2000s, with thousands of participants, identified only a handful of significant loci, each explaining a tiny fraction of variance.",
+      "As sample sizes grew into the hundreds of thousands and then over a million individuals, the number of height-associated loci grew into the thousands.",
+      "Current large-scale height GWAS (Yengo et al. and successors) have identified more than 12,000 independent genetic variants associated with height, together explaining roughly 40–50% of the heritability.",
+      "No single variant has anywhere near a large effect — the largest-effect common variants each shift height by only a few millimeters on average.",
+      "Height demonstrates the 'omnigenic' extreme: an enormous number of loci scattered across essentially the entire genome each contribute a whisper-sized effect."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "REFLECTION",
+    "quote": "Height is not controlled by a few 'height genes' — it is influenced, in some small way, by an enormous swath of the genome. The genetic architecture of complex traits looks less like a blueprint and more like a chorus.",
+    "attrib": "Paraphrased summary of the polygenic / omnigenic view of complex trait architecture"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CASE STUDY",
+    "title": "QTL Mapping in Agriculture: Breeding by Design",
+    "items": [
+      "Crop QTL mapping has directly guided plant breeding for decades, well before GWAS became feasible in most crops.",
+      "Maize: the teosinte branched1 (tb1) gene, identified through QTL mapping of maize x teosinte crosses, controls apical dominance and branching architecture — a key domestication trait distinguishing bushy teosinte from single-stalked maize.",
+      "Tomato: QTL mapping identified fw2.2, a gene controlling fruit size, and helped explain much of the dramatic fruit-size increase during tomato domestication.",
+      "Rice: QTLs affecting grain number, plant height, and grain weight (e.g., the 'green revolution' semi-dwarfing loci) have been mapped and incorporated into high-yield breeding programs.",
+      "Unlike wild QTL studies aimed purely at understanding evolution, agricultural QTL mapping is directly actionable: once a QTL (or its underlying gene) is identified, marker-assisted selection can accelerate breeding for that trait.",
+      "These agricultural successes also illustrate the general lesson: QTL mapping works best when a trait is controlled by a modest number of large-effect loci — exactly the situation domestication often creates through strong, sustained artificial selection."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "THE PUZZLE",
+    "title": "The Missing Heritability Problem",
+    "sub": "Why identified loci usually explain only a fraction of what twin studies promised"
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Missing Heritability",
+    "term": "Missing Heritability",
+    "def": "The persistent gap between the heritability of a trait estimated from twin, family, or pedigree studies (broad-sense or narrow-sense heritability) and the much smaller fraction of that heritability explained by the specific genetic variants identified through GWAS or QTL mapping.",
+    "bullets": [
+      "Classic example: human height has an estimated heritability around 0.8 from twin studies, but even the largest GWAS to date explain less than half of that using identified common variants.",
+      "The gap is not evidence that the 'missing' heritability is not genetic — it means the responsible genetic variation has not yet been statistically captured or attributed to specific loci.",
+      "Understanding missing heritability has become one of the central open questions in the genetics of complex traits."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "WHY THE GAP EXISTS",
+    "title": "Two Different Ways of Measuring Heritability",
+    "left": {
+      "h": "Pedigree-Based Heritability",
+      "body": "<p>Twin and family studies estimate heritability by comparing phenotypic similarity between relatives of known genetic relatedness (e.g., identical vs. fraternal twins).</p><ul><li>This method captures the total effect of ALL genetic variation contributing to relatives' resemblance — common variants, rare variants, gene interactions, and any variant regardless of whether it has been identified.</li><li>It requires no knowledge of which genes or variants are actually involved.</li></ul>"
+    },
+    "right": {
+      "h": "GWAS/QTL-Based Heritability",
+      "body": "<p>GWAS estimates 'explained heritability' by summing the effects of only the specific variants that reached statistical significance (or, in newer approaches, all genotyped common SNPs together).</p><ul><li>This necessarily excludes any causal variation that is too rare, too small in effect, or not well tagged by the genotyping platform used.</li><li>As sample sizes grow, more of the gap can be closed — but a substantial portion has remained persistently 'missing' even in enormous studies.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PROPOSED EXPLANATIONS",
+    "title": "Where Might the Missing Heritability Be Hiding?",
+    "items": [
+      "Rare variants of larger effect: standard GWAS SNP chips are designed to capture COMMON variation (allele frequency typically above 1–5%); rare variants are poorly tagged and their effects are largely invisible to standard GWAS.",
+      "Many small effects below the detection threshold: some causal variants have effects too small to reach genome-wide significance even in large samples — they exist but cannot be individually confirmed with current sample sizes.",
+      "Gene-by-gene interactions (epistasis): if genetic effects are not simply additive but depend on combinations of alleles at multiple loci, standard additive GWAS models will underestimate their contribution.",
+      "Structural variation: copy-number variants, insertions, deletions, inversions, and other large structural changes are poorly captured by SNP-based genotyping arrays, yet can have substantial phenotypic effects.",
+      "Gene-by-environment interactions: some heritable variation may only manifest phenotypically under specific environmental conditions not represented in a given study sample.",
+      "Imperfect tagging (incomplete LD): even common causal variants may not be in perfect LD with any genotyped SNP, weakening the observed statistical association below what the true effect would produce."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "THE LEADING CANDIDATES",
+    "title": "Four Proposed Solutions to Missing Heritability",
+    "cards": [
+      {
+        "h": "Rare Variants",
+        "p": "Whole-genome sequencing studies (rather than SNP-chip genotyping) are beginning to reveal rare, larger-effect variants invisible to standard GWAS arrays."
+      },
+      {
+        "h": "Gene-Gene Interactions (Epistasis)",
+        "p": "Non-additive interactions among loci may hide substantial heritability from simple additive statistical models."
+      },
+      {
+        "h": "Structural Variation",
+        "p": "Copy-number variants and other structural changes contribute to phenotypic variance but are hard to detect with SNP arrays."
+      },
+      {
+        "h": "Better Statistical Models",
+        "p": "Methods like GREML/GCTA that estimate heritability from all common SNPs jointly (rather than only significant hits) recover much more of the 'missing' heritability, suggesting some was simply below the per-SNP detection threshold."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A PARTIAL RESOLUTION",
+    "title": "SNP-Based Heritability Narrows (but Doesn't Close) the Gap",
+    "items": [
+      "Methods such as GCTA/GREML estimate heritability using the combined effect of ALL genotyped common SNPs simultaneously, rather than summing only genome-wide-significant hits.",
+      "For height, SNP-based heritability estimates recover roughly 45–60% of the twin-study heritability — substantially more than counting significant hits alone (which explained under 10% in early studies), but still short of the full twin-based estimate.",
+      "This suggests a meaningful share of the 'missing' heritability is attributable to many common variants of effect too small to individually pass genome-wide significance — they are present in the data, just not detectable one at a time.",
+      "The remaining gap (twin heritability minus SNP-based heritability) is where rare variants, structural variation, epistasis, and gene-environment interactions are thought to reside.",
+      "This has motivated a shift toward much larger sample sizes, whole-genome sequencing (to capture rare variants), and new statistical frameworks (e.g., polygenic scores, mixed models) to squeeze more signal from available data."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "APPLICATION",
+    "title": "Polygenic Score (Polygenic Risk Score)",
+    "term": "Polygenic Score",
+    "def": "A single number summarizing an individual's estimated genetic predisposition for a trait, calculated by summing the effects of many (often thousands to millions of) genetic variants identified by GWAS, each weighted by its estimated effect size.",
+    "bullets": [
+      "Polygenic scores exploit the additive contributions of many small-effect variants, even when no single variant is individually very predictive.",
+      "For height, current polygenic scores can explain a substantial share of variance within a population of matched ancestry — approaching, though not yet matching, twin-based heritability estimates.",
+      "Polygenic scores are increasingly used in agriculture (genomic selection in livestock and crop breeding) and are being explored, with caution, in human disease risk prediction."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CAVEATS AND OPEN ISSUES",
+    "title": "Limitations of GWAS and Polygenic Scores",
+    "items": [
+      "Portability problem: polygenic scores trained in one population (historically, overwhelmingly of European ancestry) predict much less accurately in populations of different ancestry, because allele frequencies and LD patterns differ.",
+      "Population stratification: subtle ancestry differences between cases and controls can create spurious associations if not carefully statistically controlled — a famous cautionary tale involves a historical false 'chopstick gene' association driven purely by population structure correlated with ancestry, not causation.",
+      "Correlation vs. causation: a GWAS hit marks a statistical association, not proof that the tagged gene causes the trait — confirming causation requires functional follow-up.",
+      "Environmental and gene-environment effects are not captured by genotype alone, limiting how much any genetic score alone can predict.",
+      "Ethical and social concerns: applying polygenic scores to traits like intelligence or behavior raises serious concerns about misuse, oversimplification, and reinforcing biological essentialism — the underlying genetic architecture of such traits is far more complex than early headlines often suggest."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Population Stratification",
+    "term": "Population Stratification",
+    "def": "A form of confounding in association studies that arises when a study sample contains subgroups with different ancestral backgrounds, such that allele frequencies differ systematically between subgroups for reasons unrelated to the trait — creating spurious genotype-phenotype associations if not corrected for.",
+    "bullets": [
+      "Classic illustrative (if partly apocryphal) example: an association between a genetic marker and chopstick-use proficiency in a sample combining distinct ancestral groups, driven entirely by ancestry correlating with both allele frequency and culturally-driven chopstick use.",
+      "Modern GWAS correct for stratification using methods such as principal component analysis of genome-wide genotypes, or mixed linear models that account for genetic relatedness among all sampled individuals.",
+      "Failure to correct for stratification is one of the most common sources of false-positive associations in poorly designed studies."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHODOLOGICAL DEEP DIVE",
+    "title": "Controlling for Confounding in GWAS",
+    "left": {
+      "h": "The Problem",
+      "body": "<p>If cases and controls (or high- and low-trait individuals) differ not just in the trait but also in ancestry, any allele frequency that differs by ancestry will show a spurious association with the trait — regardless of true biological effect.</p><ul><li>This is especially dangerous in admixed or multi-ethnic samples if ancestry is not accounted for.</li><li>Even subtle, fine-scale population structure within an ostensibly homogeneous sample can generate false positives in very large studies.</li></ul>"
+    },
+    "right": {
+      "h": "Statistical Solutions",
+      "body": "<p>Modern GWAS pipelines routinely incorporate corrections:</p><ul><li>Principal component analysis (PCA) of genome-wide SNP data identifies major axes of ancestry variation, which are then included as covariates in the association test.</li><li>Linear mixed models incorporate a genetic relatedness matrix among all individuals, correcting for both coarse population structure and fine-scale relatedness simultaneously.</li><li>These corrections have become standard practice and are essential for any credible modern GWAS.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FROM HIT TO GENE",
+    "title": "Following Up a GWAS or QTL Signal",
+    "items": [
+      "A statistically significant association marks a genomic region, not necessarily the causal gene or variant — follow-up work is required to move from 'hit' to mechanism.",
+      "Fine-mapping: statistical methods that use patterns of LD to narrow a broad association signal down to the most likely causal variant(s) within a region.",
+      "Functional genomics: techniques such as expression QTL (eQTL) mapping ask whether a candidate variant affects the expression level of nearby genes, providing a mechanistic hypothesis.",
+      "Gene editing validation: CRISPR-based editing of candidate variants in model organisms or cell lines can directly test whether a specific variant causes the phenotype — the gold standard for confirming causation (as was eventually done for stickleback Eda).",
+      "Because this follow-up work is slow and resource-intensive, the vast majority of GWAS hits across all traits remain at the 'statistical association' stage, with only a small fraction functionally validated to date."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Fine-Mapping",
+    "term": "Fine-Mapping",
+    "def": "A set of statistical and experimental approaches used to narrow a broad genomic association signal down to the smallest possible set of candidate causal variants, by leveraging patterns of linkage disequilibrium, functional annotation, and cross-population comparisons.",
+    "bullets": [
+      "Because a single GWAS peak often reflects an entire LD block containing dozens of correlated SNPs, fine-mapping is essential to identify which variant(s) are most likely to be causal.",
+      "Comparing association signals across populations with different LD patterns (e.g., combining European and African ancestry samples) can sharpen fine-mapping resolution, since LD blocks differ in size and structure between populations.",
+      "Fine-mapped candidate variants are typically prioritized for downstream functional validation (e.g., eQTL analysis, reporter assays, gene editing)."
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "FRAMEWORK",
+    "title": "The Hierarchy of Genetic Architecture Knowledge",
+    "levels": [
+      {
+        "label": "Causal variant functionally validated",
+        "color": "#4a1620",
+        "width": "260px"
+      },
+      {
+        "label": "Candidate gene fine-mapped",
+        "color": "#6b2c39",
+        "width": "360px"
+      },
+      {
+        "label": "QTL / GWAS locus identified",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "SNP-based heritability estimated",
+        "color": "#a85a68",
+        "width": "540px"
+      },
+      {
+        "label": "Trait known to be heritable (twin/family studies)",
+        "color": "#c47b87",
+        "width": "620px"
+      }
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "title": "Milestones in Mapping the Genetics of Complex Traits",
+    "items": [
+      {
+        "y": "1980s",
+        "t": "RFLP markers enable the first genetic linkage maps in model organisms, laying groundwork for QTL mapping."
+      },
+      {
+        "y": "1988–1989",
+        "t": "Formal statistical methods for QTL interval mapping (Lander & Botstein) are developed, launching modern QTL analysis."
+      },
+      {
+        "y": "1990s",
+        "t": "QTL mapping becomes routine in crop and livestock breeding programs; first QTLs for domestication traits identified in maize and tomato."
+      },
+      {
+        "y": "2001",
+        "t": "Completion of the draft human genome sequence sets the stage for genome-scale association studies."
+      },
+      {
+        "y": "2005",
+        "t": "First genome-wide association studies published (e.g., age-related macular degeneration), enabled by SNP microarray technology."
+      },
+      {
+        "y": "2007",
+        "t": "The Wellcome Trust Case Control Consortium publishes large-scale GWAS across seven major diseases, establishing GWAS as a mainstream method."
+      },
+      {
+        "y": "2005–2012",
+        "t": "QTL mapping identifies the Eda gene as the major locus for stickleback armor plate variation."
+      },
+      {
+        "y": "2010s–2020s",
+        "t": "Height and other complex-trait GWAS scale to over a million participants; missing heritability and polygenic scores become central research topics."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "Two Complementary Toolkits, One Shared Goal",
+    "items": [
+      "QTL mapping and GWAS both exploit the same fundamental principle: markers physically near a causal gene tend to be co-inherited with it, whether through recombination in a controlled cross or accumulated linkage disequilibrium in a natural population.",
+      "QTL mapping trades population realism for statistical power and control — ideal when a controlled cross is feasible and the trait differs strongly between two lines.",
+      "GWAS trades experimental control for realism and resolution — essential when crosses are impossible (as in humans) and often capable of finer mapping thanks to naturally accumulated recombination.",
+      "Neither method, by itself, delivers a finished mechanistic story — both typically yield a list of candidate regions or genes requiring further fine-mapping and functional validation.",
+      "Both methods have revealed a common and important pattern: most quantitative traits are far more polygenic than early Mendelian genetics led biologists to expect, with effects distributed across many, sometimes hundreds or thousands, of loci.",
+      "The missing heritability problem reminds us that identifying statistically significant loci is not the same as fully explaining the genetic basis of a trait — much work remains even for well-studied traits like height."
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "BIG PICTURE",
+    "quote": "We are moving from asking 'is this trait heritable?' to asking 'which of the thousands of contributing variants can we actually name?' The second question turns out to be dramatically harder than the first.",
+    "attrib": "Framing summary of the shift from heritability estimation to variant identification in quantitative genetics"
+  },
+  {
+    "type": "section",
+    "tag": "WRAP-UP",
+    "title": "Summary and Looking Ahead",
+    "sub": "Consolidating today's methods before moving to genetic correlations and constraints"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TAKEAWAYS",
+    "title": "What You Should Walk Away With",
+    "items": [
+      "Quantitative traits are polygenic, and finding the specific genes involved requires methods beyond simple Mendelian crosses.",
+      "QTL mapping uses experimental crosses (F2 or backcross populations) and recombination to statistically localize genomic regions influencing a trait — powerful but coarse in resolution, and dependent on variation differing between chosen parental lines.",
+      "GWAS uses SNP markers and linkage disequilibrium accumulated in natural or human populations to localize trait-associated loci without requiring a controlled cross — finer resolution, but needing very large samples and careful control of confounders like population stratification.",
+      "Case studies (stickleback Eda, human height, crop domestication genes) show the full spectrum: from a single large-effect gene fully validated by functional work, to a trait so polygenic that thousands of loci each contribute a vanishingly small effect.",
+      "The missing heritability problem highlights that identifying statistically significant loci typically explains only part of a trait's known heritability — rare variants, gene interactions, structural variation, and undetected small effects likely account for the rest.",
+      "Both QTL mapping and GWAS identify statistical associations, not automatic proof of causation — fine-mapping and functional validation (e.g., gene editing) are needed to confirm a true causal gene and mechanism."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECK YOUR UNDERSTANDING",
+    "title": "Questions to Test Yourself",
+    "items": [
+      "Why does QTL mapping typically achieve much coarser resolution than GWAS, even though both rely on the same underlying logic of marker-trait linkage?",
+      "If a GWAS identifies a SNP significantly associated with a disease, what additional evidence would you want before concluding that SNP's nearby gene actually causes the disease?",
+      "Why might a trait have high heritability from twin studies but a much lower heritability explained by all currently identified GWAS hits?",
+      "Why does the Eda story represent an atypical (not typical) outcome for QTL mapping of a quantitative trait?",
+      "Why do polygenic scores trained in one human population tend to predict less accurately in a different population?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT TIME",
+    "title": "Lecture 26 Preview: Genetic Correlations, Constraints, and the Chapter 7 Synthesis",
+    "sub": "How traits are linked together genetically — and what that means for how evolution can (and cannot) proceed"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 25</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

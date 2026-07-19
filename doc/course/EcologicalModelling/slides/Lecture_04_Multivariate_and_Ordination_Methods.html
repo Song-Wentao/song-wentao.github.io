@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 4: Multivariate and Ordination Methods</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 4",
+    "title": "Multivariate and Ordination Methods",
+    "sub": "Reducing many correlated variables to interpretable patterns -- PCA, NMDS, PERMANOVA, and hierarchical clustering in R, Python, and Julia",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Why Ordination",
+    "title": "From Species Tables to Insight",
+    "sub": "Turning a sites-by-species matrix into something you can actually look at"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Problem",
+    "title": "Raw Community Data Is High-Dimensional",
+    "items": [
+      "A community survey with 30 species is a 30-dimensional dataset -- one axis per species",
+      "Soil chemistry data with 14 variables (N, P, K, Ca, Mg, pH, ...) is 14-dimensional and heavily correlated",
+      "You cannot plot 14 or 30 axes at once, and most of those axes carry redundant information",
+      "Dimension reduction finds a small number of new axes that capture most of the pattern in the data",
+      "Different questions call for different reduction methods -- that is the subject of this lecture"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Toolbox",
+    "title": "Four Complementary Methods",
+    "items": [
+      "PCA (Principal Component Analysis) -- linear axes of maximum variance, for continuous environmental data",
+      "NMDS (Non-metric Multidimensional Scaling) -- rank-based ordination for community abundance data",
+      "PERMANOVA (adonis2) -- a formal permutation test of whether groups differ in multivariate space",
+      "Hierarchical clustering -- an exploratory dendrogram of which sites resemble which",
+      "All four are routinely applied together in a single analysis, each answering a different question"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Ordination",
+    "term": "Ordination",
+    "def": "Any technique that arranges samples (or variables) along a small number of axes so that their similarity in the original high-dimensional space is reflected as proximity in the reduced space.",
+    "bullets": [
+      "Goal: replace many correlated columns with a handful of interpretable axes",
+      "\"Similar\" samples end up close together; \"different\" samples end up far apart",
+      "PCA and NMDS are both ordination methods -- they differ in what kind of similarity they preserve"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Method 1 -- PCA",
+    "title": "Principal Component Analysis",
+    "sub": "Linear axes of maximum variance, applied to soil chemistry (varechem)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PCA",
+    "title": "The Idea",
+    "items": [
+      "PCA finds new axes (principal components) that are linear combinations of the original variables",
+      "PC1 is the direction of maximum variance in the data; PC2 is the next direction, orthogonal to PC1; and so on",
+      "Mathematically: an eigen-decomposition of the covariance (or correlation) matrix of the variables",
+      "Each site gets a score on each PC; each variable gets a loading describing how much it contributes to that PC",
+      "Best suited to continuous, roughly linear, non-sparse data -- like soil chemistry, not raw species counts"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PCA",
+    "title": "Why Standardize First",
+    "items": [
+      "varechem variables span very different scales: Ca ranges to 500+ mg/kg, pH ranges from about 2.7 to 4.3",
+      "Unstandardized (covariance) PCA would be dominated entirely by whichever variable has the largest variance -- almost always Ca or Al here",
+      "Standardizing (z-scores: mean 0, sd 1) puts every variable on equal footing before extracting axes",
+      "R: prcomp(chem, scale. = TRUE); Python: StandardScaler().fit_transform() before PCA; Julia: manual (x - mean) / std"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PCA Code",
+    "title": "Standardized PCA on Soil Chemistry",
+    "left": {
+      "h": "R (vegan / base)",
+      "body": "<pre><code>varechem &lt;- read.csv(&quot;data/varechem.csv&quot;)\nchem &lt;- varechem[, setdiff(names(varechem), &quot;site&quot;)]\n\npca &lt;- prcomp(chem, scale. = TRUE)\n\nvar_explained &lt;- (pca$sdev^2) / sum(pca$sdev^2)\nround(var_explained[1:4] * 100, 1)\n#&gt; 37.1  22.8  12.0   7.6\n\nround(pca$rotation[, 1], 3)  # PC1 loadings</code></pre>"
+    },
+    "right": {
+      "h": "Python (scikit-learn)",
+      "body": "<pre><code>from sklearn.preprocessing import StandardScaler\nfrom sklearn.decomposition import PCA\n\nvarechem = pd.read_csv(&quot;data/varechem.csv&quot;)\nchem = varechem.drop(columns=[&quot;site&quot;])\n\nchem_scaled = StandardScaler().fit_transform(chem)\npca = PCA()\nscores = pca.fit_transform(chem_scaled)\n\nvar_explained = pca.explained_variance_ratio_ * 100\nprint(var_explained[:4].round(1))\n# [37.1 22.8 12.  7.6]\n\nloadings = pd.Series(pca.components_[0], index=chem.columns)</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PCA Code",
+    "title": "Julia PCA, and Reading the Output",
+    "left": {
+      "h": "Julia (MultivariateStats.jl)",
+      "body": "<pre><code>using MultivariateStats, Statistics\n\nvarechem = CSV.read(&quot;data/varechem.csv&quot;, DataFrame)\nchem_names = names(varechem)[names(varechem) .!= &quot;site&quot;]\nchem = Matrix{Float64}(varechem[:, chem_names])\n\nchem_std = (chem .- mean(chem, dims=1)) ./ std(chem, dims=1)\n\n# MultivariateStats expects variables-as-rows\npca_model = fit(PCA, permutedims(chem_std);\n                 maxoutdim = size(chem_std, 2))\n\nvar_explained = principalvars(pca_model) ./\n                sum(principalvars(pca_model)) .* 100\npc1_loadings = projection(pca_model)[:, 1]</code></pre>"
+    },
+    "right": {
+      "h": "Reading a PCA Biplot",
+      "body": "<p>Each site gets a score on PC1 and PC2 -- plot them and you have a biplot.</p><p>Loadings near +/-0.3 to 0.4 in magnitude (as here) indicate a variable contributes strongly to that axis; loadings near zero contribute little.</p><p>Variables with loadings of the same sign move together across sites; opposite signs mean they trade off.</p><p>A biplot overlays both the site scores (points) and variable loadings (arrows) on one plot.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PCA Results",
+    "title": "Variance Explained on varechem",
+    "items": [
+      "PC1 explains 37.1% of total variance -- the single largest gradient in soil chemistry across the 24 sites",
+      "PC2 explains an additional 22.8%; together PC1 + PC2 capture 59.9% of the total variance",
+      "PC3 adds 12.0% and PC4 adds 7.6% -- each additional axis explains progressively less",
+      "A 2-D plot of PC1 vs PC2 is a reasonable, honest summary of a 14-variable dataset, capturing roughly 60% of the total variation",
+      "Rule of thumb: report the % variance explained by any axes you plot -- never present an ordination without it"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "PCA Results",
+    "title": "Interpreting PC1 Loadings",
+    "cards": [
+      {
+        "h": "Fertile end (negative PC1)",
+        "p": "K, Ca, P, Mg, Zn, S, Mn load negatively (-0.29 to -0.36) -- sites high on these nutrients score low on PC1."
+      },
+      {
+        "h": "Rocky / acidic end (positive PC1)",
+        "p": "Fe, Al, pH load positively (0.12 to 0.20) -- sites with more iron, aluminum, and higher pH score high on PC1."
+      },
+      {
+        "h": "Ecological reading",
+        "p": "PC1 behaves like a soil fertility gradient, running from nutrient-rich sites to iron/aluminum-dominated, more acidic sites."
+      },
+      {
+        "h": "Near-zero loadings",
+        "p": "N and Mo load close to zero on PC1 (0.10 and -0.04) -- they contribute little to this particular axis."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Method 2 -- NMDS",
+    "title": "Non-metric Multidimensional Scaling",
+    "sub": "The standard community-ecology ordination, applied to the dune vegetation survey"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NMDS",
+    "title": "Why Not PCA for Community Data",
+    "items": [
+      "Species abundance matrices are sparse (many zeros) and species respond nonlinearly to underlying gradients",
+      "Linear methods like PCA applied to raw community data produce artifacts such as the 'horseshoe effect' -- a curved distortion of a real gradient",
+      "NMDS instead works on a dissimilarity matrix and only tries to preserve the *rank order* of dissimilarities, not their exact values",
+      "This makes NMDS robust to the nonlinear, zero-inflated nature of species abundance data",
+      "NMDS is the default ordination method in community ecology, almost always paired with Bray-Curtis dissimilarity"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Bray-Curtis Dissimilarity",
+    "term": "Bray-Curtis Dissimilarity",
+    "def": "A dissimilarity measure between two sites based on shared species abundances: 0 means identical composition, 1 means no species in common. It ignores joint absences and is not sensitive to the total scale of counts.",
+    "bullets": [
+      "Computed pairwise for every site, producing an n x n dissimilarity matrix",
+      "The standard distance measure for community abundance data in ecology",
+      "R: vegdist(mat, method='bray'); Python: scipy.spatial.distance.pdist(X, metric='braycurtis')"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NMDS",
+    "title": "How NMDS Works",
+    "items": [
+      "Start from a full dissimilarity matrix (here, Bray-Curtis distances between all pairs of the 20 dune sites)",
+      "Place sites randomly in k dimensions (usually k = 2), then iteratively move them to better match the *rank order* of the original dissimilarities",
+      "Convergence is measured by 'stress' -- the mismatch between ordination distances and dissimilarity ranks",
+      "Because NMDS uses random starts and gradient descent, results can differ run-to-run -- always set a seed and consider multiple random starts",
+      "R's metaMDS() automates multiple random starts and picks the best solution automatically"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "NMDS Code",
+    "title": "NMDS on Dune Community Data",
+    "left": {
+      "h": "R (vegan::metaMDS)",
+      "body": "<pre><code>library(vegan)\n\ndune_species &lt;- read.csv(&quot;data/dune_species.csv&quot;)\nsp_mat &lt;- as.matrix(\n  dune_species[, setdiff(names(dune_species), &quot;site&quot;)]\n)\n\nset.seed(42)\nnmds &lt;- metaMDS(sp_mat, distance = &quot;bray&quot;, k = 2,\n                trace = FALSE)\n\nnmds$stress\n#&gt; 0.1183\n\nplot(nmds, type = &quot;n&quot;)\npoints(nmds, display = &quot;sites&quot;, pch = 19)</code></pre>"
+    },
+    "right": {
+      "h": "Python (scikit-learn MDS)",
+      "body": "<pre><code>from scipy.spatial.distance import pdist, squareform\nfrom sklearn.manifold import MDS\n\ndune_species = pd.read_csv(&quot;data/dune_species.csv&quot;)\nsp_mat = dune_species.drop(columns=[&quot;site&quot;]).to_numpy(float)\n\nbc_square = squareform(pdist(sp_mat, metric=&quot;braycurtis&quot;))\n\nnmds = MDS(n_components=2, metric=False,\n           dissimilarity=&quot;precomputed&quot;, n_init=20,\n           max_iter=500, random_state=42,\n           normalized_stress=True, init=&quot;random&quot;)\nscores = nmds.fit_transform(bc_square)\n\nprint(nmds.stress_)\n# 0.1211</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "NMDS Code",
+    "title": "Julia NMDS, and a Cross-Language Check",
+    "left": {
+      "h": "Julia (hand-rolled gradient descent)",
+      "body": "<pre><code># Hand-rolled NMDS (no maintained Julia package):\n# gradient descent on a rank-based stress criterion\nusing Distances\n\nbc_dist = pairwise(BrayCurtis(),\n                    permutedims(sp_mat); dims = 2)\n\nX, stress = nmds_gradient_descent(\n    bc_dist; k = 2, n_iter = 800, lr = 0.03, seed = 42\n)\nprintln(stress)\n# Julia has no turnkey NMDS package, so this lecture\n# implements it directly -- transparent, if less\n# polished than metaMDS&#x27;s isotonic regression.</code></pre>"
+    },
+    "right": {
+      "h": "Consistency Across Languages",
+      "body": "<p>All three languages recover essentially the same solution: stress around 0.12 for this 20-site, 30-species dataset.</p><p>That stress level is discussed on the next slide -- it falls in the 'usable' range, meaning the 2-D plot is a reasonably faithful, if imperfect, summary.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting Stress",
+    "title": "Stress Rules of Thumb",
+    "items": [
+      "Stress quantifies how well the 2-D ordination distances match the rank order of the original Bray-Curtis dissimilarities",
+      "Stress < 0.10: excellent representation, safe to interpret distances on the plot at face value",
+      "Stress 0.10-0.20: usable, interpretable with some caution -- this is where our dune result falls (0.118 in R, 0.121 in Python)",
+      "Stress > 0.20: risky -- the ordination may be distorting the true pattern; consider more dimensions or a different method",
+      "Stress always decreases as you add dimensions -- it is not a p-value, just a goodness-of-fit diagnostic"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "NMDS Results",
+    "title": "Dune NMDS Ordination",
+    "items": [
+      "figures/lecture_04_dune_nmds.png plots the 20 dune sites in NMDS space, colored by Management (BF, HF, NM, SF)",
+      "Sites under the same management practice tend to cluster together, hinting at a real compositional difference between groups",
+      "NMDS axes themselves have no fixed meaning or units -- only the *relative distances* between points are interpretable",
+      "Visual clustering by Management is suggestive, not confirmatory -- PERMANOVA (next section) supplies the formal test"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Method 3 -- PERMANOVA",
+    "title": "Testing Group Differences in Multivariate Space",
+    "sub": "Does Management explain dune vegetation composition?"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PERMANOVA",
+    "title": "The Idea",
+    "items": [
+      "PERMANOVA (permutational multivariate ANOVA) is the multivariate analogue of ANOVA, but for a distance matrix instead of a single response variable",
+      "It partitions the total sum of squared distances into 'among group' and 'within group' components, exactly like ANOVA partitions variance",
+      "A pseudo-F statistic is computed from that partition: (among-group SS / df) / (within-group SS / df)",
+      "Because a distance-matrix response has no simple parametric null distribution, significance is assessed by permutation: shuffle group labels many times and see how extreme the observed F is",
+      "In R this is vegan::adonis2(); it is the standard tool for testing group or treatment effects on community composition"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PERMANOVA Code",
+    "title": "Testing Management Effects on Dune Composition",
+    "left": {
+      "h": "R (vegan::adonis2)",
+      "body": "<pre><code>library(vegan)\n\ndune_env &lt;- read.csv(&quot;data/dune_env.csv&quot;)\nbc_dist &lt;- vegdist(sp_mat, method = &quot;bray&quot;)\n\nset.seed(42)\nadonis2(bc_dist ~ Management, data = dune_env,\n        permutations = 999)\n#&gt;            Df SumOfSqs    R2     F Pr(&gt;F)\n#&gt; Management  3   1.469 0.342 2.767  0.003 **\n#&gt; Residual   16   2.830 0.658\n#&gt; Total      19   4.299 1.000</code></pre>"
+    },
+    "right": {
+      "h": "Python (scikit-bio, with fallback)",
+      "body": "<pre><code>from skbio.stats.distance import permanova, DistanceMatrix\n\ndune_env = pd.read_csv(&quot;data/dune_env.csv&quot;)\ndm = DistanceMatrix(bc_square, ids=sites)\n\nresult = permanova(dm, dune_env[&quot;Management&quot;],\n                    permutations=999)\nprint(result)\n# test statistic (pseudo-F)   2.767243\n# p-value                        0.003\n\n# Fallback if scikit-bio is unavailable: a hand-rolled\n# permutation test on pseudo-F (see script) gives an\n# identical result -- F = 2.7672, R2 = 0.3416, p = 0.002</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PERMANOVA Code",
+    "title": "Julia PERMANOVA, Built From Scratch",
+    "left": {
+      "h": "Julia (hand-rolled pseudo-F + permutation)",
+      "body": "<pre><code>function pseudo_f(D, groups)\n    n = size(D, 1)\n    ss_total = sum(D .^ 2) / (2n)\n    ss_within = 0.0\n    for lvl in unique(groups)\n        idx = findall(==(lvl), groups)\n        sub = D[idx, idx]\n        ss_within += sum(sub .^ 2) / (2 * length(idx))\n    end\n    ss_among = ss_total - ss_within\n    a = length(unique(groups))\n    F = (ss_among / (a - 1)) / (ss_within / (n - a))\n    return F, ss_among, ss_total\nend\n\n# permute group labels 999x, compare F_perm to F_obs\n# -&gt; pseudo-F = 2.7672, R2 = 0.3416, p = 0.0020</code></pre>"
+    },
+    "right": {
+      "h": "Why Build It By Hand Once",
+      "body": "<p>All three languages agree closely: pseudo-F approx 2.77, R2 approx 0.34, p approx 0.002-0.003.</p><p>Writing the permutation test by hand (as in Python's fallback and the Julia script) makes the logic transparent: it is literally 'compute F, shuffle labels, recompute F, count how often the shuffled F beats the real one.'</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Interpreting PERMANOVA",
+    "title": "Pseudo-F and p-value",
+    "items": [
+      "Pseudo-F compares among-group to within-group dissimilarity, just like ordinary ANOVA's F-ratio compares among-group to within-group variance",
+      "Larger pseudo-F means groups are more separated relative to their internal spread",
+      "R2 (here 0.342) is the proportion of total multivariate variance explained by the grouping variable -- an effect size, not just a test",
+      "The p-value comes from comparing the observed pseudo-F to the distribution of pseudo-F values under random relabeling (999 permutations) -- it is not from an F-table",
+      "A significant PERMANOVA does not tell you *which* groups differ or *which* species drive the difference -- follow-up analyses (e.g. SIMPER, pairwise comparisons) are needed for that"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "PERMANOVA Results",
+    "title": "Does Management Explain Dune Composition?",
+    "items": [
+      "Result: pseudo-F(3, 16) = 2.767, R2 = 0.342, p = 0.003 (999 permutations)",
+      "Management (BF = biological farming, HF = hobby farming, NM = nature reserve, SF = standard farming) explains about 34% of the variance in Bray-Curtis dissimilarity among the 20 dune sites",
+      "The result is statistically significant at alpha = 0.05: composition differs by management practice more than expected by chance",
+      "This matches the visual grouping seen in the NMDS plot -- the formal test confirms what the ordination suggested",
+      "Important caveat: PERMANOVA can also be significant due to differences in within-group dispersion, not just location -- always check with betadisper() before over-interpreting"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Method 4 -- Clustering",
+    "title": "Hierarchical Clustering",
+    "sub": "A complementary, exploratory view of the same dissimilarity matrix"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Clustering",
+    "title": "Average Linkage on the Same Dissimilarity",
+    "items": [
+      "Hierarchical clustering builds a dendrogram by iteratively merging the two closest sites or clusters",
+      "Average linkage defines cluster-to-cluster distance as the mean of all pairwise distances between their members -- a common, balanced default",
+      "Other linkage choices: single (nearest-neighbor, chain-prone), complete (farthest-neighbor, compact clusters), Ward (minimizes within-cluster variance)",
+      "Applied here to the same Bray-Curtis dissimilarity matrix used for NMDS and PERMANOVA -- same distances, different visualization",
+      "R: hclust(vegdist(mat), method='average'); Python: scipy.cluster.hierarchy.linkage(); Julia: Clustering.hclust()"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Clustering Code",
+    "title": "Dendrogram of Dune Sites",
+    "left": {
+      "h": "R (vegan + base hclust)",
+      "body": "<pre><code>bc_dist &lt;- vegdist(sp_mat, method = &quot;bray&quot;)\nhc &lt;- hclust(bc_dist, method = &quot;average&quot;)\n\nplot(hc, main = &quot;Average-linkage clustering&quot;,\n     xlab = &quot;Site&quot;, sub = &quot;&quot;)\n\n# Cut into 4 groups and compare to Management:\ngrp &lt;- cutree(hc, k = 4)\ntable(grp, dune_env$Management)</code></pre>"
+    },
+    "right": {
+      "h": "Python (scipy.cluster.hierarchy)",
+      "body": "<pre><code>from scipy.cluster.hierarchy import linkage, dendrogram, fcluster\n\nZ = linkage(bc_condensed, method=&quot;average&quot;)\n\nfig, ax = plt.subplots(figsize=(9.5, 5.5))\ndendrogram(Z, labels=sites, ax=ax, leaf_rotation=90)\n\n# Cut into 4 groups and compare to Management:\ngrp = fcluster(Z, t=4, criterion=&quot;maxclust&quot;)\npd.crosstab(grp, dune_env[&quot;Management&quot;])</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Clustering",
+    "title": "Complementary, Not Competing",
+    "items": [
+      "NMDS shows sites on a continuous gradient; clustering imposes discrete groups -- both are valid lenses on the same Bray-Curtis distances",
+      "Clustering is useful for generating hypotheses about natural groupings before you have a labeled grouping variable to test",
+      "When you do have a grouping variable (like Management here), compare the dendrogram's groups to it as an informal sanity check on the PERMANOVA result",
+      "Neither NMDS nor clustering is a substitute for PERMANOVA's formal permutation test -- they are exploratory, PERMANOVA is confirmatory"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Method Comparison",
+    "title": "PCA vs. NMDS vs. PERMANOVA",
+    "headers": [
+      "Method",
+      "Input Data",
+      "Distance Metric",
+      "Key Output",
+      "Best For"
+    ],
+    "rows": [
+      [
+        "PCA",
+        "Continuous variables (e.g. soil chemistry)",
+        "Euclidean, on standardized data",
+        "% variance explained per axis, loadings",
+        "Summarizing correlated continuous environmental variables"
+      ],
+      [
+        "NMDS",
+        "Community abundance matrix",
+        "Bray-Curtis (typically)",
+        "Stress, 2-D site ordination",
+        "Visualizing community composition patterns"
+      ],
+      [
+        "PERMANOVA",
+        "Distance matrix + grouping variable",
+        "Any (Bray-Curtis typically)",
+        "Pseudo-F, R2, permutation p-value",
+        "Formally testing whether groups differ in composition"
+      ],
+      [
+        "Hierarchical clustering",
+        "Distance matrix",
+        "Any",
+        "Dendrogram, cluster assignments",
+        "Exploratory grouping / sanity-checking other results"
+      ]
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Choosing a Method",
+    "title": "Decision Guide",
+    "cards": [
+      {
+        "h": "Few strong continuous gradients?",
+        "p": "Use PCA -- it is fast, linear, and gives clean % variance explained for environmental variables like soil chemistry."
+      },
+      {
+        "h": "Visualizing community composition?",
+        "p": "Use NMDS with Bray-Curtis -- it handles zero-inflated, nonlinear species data far better than PCA."
+      },
+      {
+        "h": "Need a formal group-difference test?",
+        "p": "Use PERMANOVA -- it gives a p-value and effect size (R2) for whether composition differs by treatment or category."
+      },
+      {
+        "h": "Want an exploratory grouping?",
+        "p": "Use hierarchical clustering -- helpful for generating hypotheses or as a sanity check alongside NMDS/PERMANOVA."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Caveats",
+    "title": "Common Pitfalls",
+    "items": [
+      "NMDS axis orientation and rotation are arbitrary -- do not interpret 'sites on the right' as meaningful without checking what actually varies along that axis",
+      "PERMANOVA assumes similar within-group dispersion (spread) across groups; if dispersions differ, a significant result may reflect dispersion, not location -- check with vegan::betadisper()",
+      "With small sample sizes (e.g. n = 20 across 4 groups), the number of possible distinct permutations is limited, which can inflate the smallest achievable p-value",
+      "PCA on raw, unstandardized species-abundance data (instead of NMDS on a proper dissimilarity) frequently produces the 'horseshoe effect' -- a well-known ordination artifact",
+      "Always report stress (NMDS), % variance explained (PCA), and pseudo-F/p/R2 (PERMANOVA) alongside any ordination plot -- a picture alone is not evidence"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Homogeneity of Multivariate Dispersion",
+    "term": "PERMDISP",
+    "def": "A test (vegan::betadisper) of whether groups have equal within-group spread (dispersion) around their multivariate centroid. It is the multivariate analogue of Levene's test, and should be checked before trusting a PERMANOVA result.",
+    "bullets": [
+      "PERMANOVA can reject the null due to differences in dispersion alone, even with identical group centroids",
+      "Run betadisper() on the same distance matrix and grouping variable, then anova() or permutest() on its result",
+      "If dispersions differ significantly, interpret the PERMANOVA result with caution and inspect the ordination visually"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Workflow",
+    "title": "A Typical Ordination Workflow",
+    "items": [
+      "1. Explore the raw data: check for missing values, skew, and appropriate transformations",
+      "2. Choose a distance/dissimilarity measure appropriate to the data type (Euclidean on standardized continuous data; Bray-Curtis on abundance data)",
+      "3. Ordinate: PCA for continuous variables, NMDS for community matrices",
+      "4. Test formally: PERMANOVA for group differences, with a betadisper() dispersion check",
+      "5. Cross-check with hierarchical clustering as an independent, exploratory view of the same distances"
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Workflow",
+    "title": "From Data to Inference",
+    "levels": [
+      {
+        "label": "Hypothesis test (PERMANOVA)",
+        "color": "#8E5AA8",
+        "width": 45
+      },
+      {
+        "label": "Ordination / clustering",
+        "color": "#2E6E8E",
+        "width": 65
+      },
+      {
+        "label": "Distance / dissimilarity matrix",
+        "color": "#3F8F5C",
+        "width": 85
+      },
+      {
+        "label": "Raw sites x species/variables table",
+        "color": "#C0562B",
+        "width": 100
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "On Ordination",
+    "quote": "All ordination methods are wrong, but some are useful -- the goal is never a perfect low-dimensional picture of reality, but a picture that reveals the pattern you actually need to see.",
+    "attrib": "paraphrasing George Box, as applied by community ecologists"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "R Ecosystem",
+    "title": "The vegan Package",
+    "items": [
+      "vegan is the field-standard R package for community ecology ordination and testing, maintained by Jari Oksanen and collaborators",
+      "decostand() -- data standardization/transformation (e.g. Hellinger, Wisconsin double standardization)",
+      "vegdist() -- computes dissimilarity matrices (Bray-Curtis and many others)",
+      "metaMDS() -- NMDS with automatic multiple random starts and convergence checking",
+      "adonis2() -- PERMANOVA; ordihull(), ordispider() -- ordination plot annotations"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Python & Julia",
+    "title": "Assembling the Toolkit",
+    "items": [
+      "Python has no single 'vegan equivalent' -- the workflow is assembled from sklearn.decomposition.PCA, sklearn.manifold.MDS, scipy.spatial.distance.pdist, and scipy.cluster.hierarchy",
+      "scikit-bio's permanova() gives a direct PERMANOVA implementation when it installs cleanly; a hand-rolled permutation test is a reliable fallback and a good teaching tool",
+      "Julia has MultivariateStats.jl for PCA and Clustering.jl for hierarchical clustering, but no maintained turnkey NMDS or PERMANOVA package",
+      "For NMDS and PERMANOVA in Julia, this lecture builds both from first principles -- useful for understanding exactly what the black-box R/Python functions are doing"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Dataset Recap",
+    "title": "Two Case Studies",
+    "items": [
+      "varechem.csv / varespec.csv -- Vare, Ohtonen & Oksanen (1995), 24 sites of lichen pasture soil chemistry under reindeer grazing; used here for standardized PCA",
+      "dune_species.csv / dune_env.csv -- Jongman, ter Braak & van Tongeren, 20 Dutch dune meadow sites x 30 plant species; used for NMDS, PERMANOVA (by Management), and clustering",
+      "Both are classic, widely taught datasets in the vegan documentation and community ecology courses worldwide",
+      "The same Bray-Curtis distance matrix on dune_species underlies the NMDS plot, the PERMANOVA test, and the dendrogram -- one distance matrix, three complementary analyses"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Ordination Milestones",
+    "title": "A Short History",
+    "items": [
+      {
+        "y": "1901",
+        "t": "Karl Pearson describes principal axes of a data cloud, the conceptual root of PCA"
+      },
+      {
+        "y": "1964",
+        "t": "Kruskal formalizes non-metric multidimensional scaling and defines stress"
+      },
+      {
+        "y": "1957",
+        "t": "Bray & Curtis introduce their dissimilarity coefficient for Wisconsin forest communities"
+      },
+      {
+        "y": "2001",
+        "t": "Anderson introduces PERMANOVA as a distance-based, permutation alternative to MANOVA"
+      },
+      {
+        "y": "2003",
+        "t": "Jari Oksanen's vegan package brings all of these tools into one consistent R workflow"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "What You Should Be Able To Do",
+    "items": [
+      "Run a standardized PCA on continuous environmental data and interpret % variance explained and loadings",
+      "Compute a Bray-Curtis dissimilarity matrix and run NMDS, interpreting stress correctly",
+      "Run a PERMANOVA to test whether a grouping variable explains multivariate community composition, and interpret pseudo-F, R2, and the permutation p-value",
+      "Build a hierarchical clustering dendrogram from the same dissimilarity matrix and use it as a complementary, exploratory check",
+      "Know which method answers which question -- and combine them, rather than picking just one"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Check Your Understanding",
+    "title": "Before You Move On",
+    "cards": [
+      {
+        "h": "Why standardize before PCA?",
+        "p": "Because variables on different scales would otherwise dominate the axes purely due to their units, not their ecological signal."
+      },
+      {
+        "h": "What does NMDS stress measure?",
+        "p": "How well the 2-D ordination distances preserve the rank order of the original dissimilarities -- lower is better, but it is not a p-value."
+      },
+      {
+        "h": "What does a significant PERMANOVA tell you?",
+        "p": "That groups differ in multivariate composition more than expected under random relabeling -- but check dispersion homogeneity first."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Exercises",
+    "title": "This Week's Practice",
+    "items": [
+      "Exercise 1: Run PCA on a subset of varechem variables (N, P, K, Ca, Mg, pH) and interpret the PC1 loadings",
+      "Exercise 2: Run a PERMANOVA testing whether Moisture (not Management) explains dune community composition",
+      "Exercise 3: Re-run NMDS with k = 3 dimensions and compare stress to the k = 2 solution from lecture",
+      "Exercise 4: Cut the hierarchical clustering dendrogram into 4 groups and cross-tabulate against Management",
+      "Full instructions are in exercises/lecture_04_exercises.md"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Look Ahead",
+    "title": "From Multivariate Patterns to Formal Models",
+    "items": [
+      "Ordination and PERMANOVA describe pattern in community composition, but they do not model a single response variable as a function of predictors",
+      "Lecture 5 moves to linear models: predicting a continuous response from one or more explanatory variables, with the diagnostics needed to trust the fit",
+      "Many of the same datasets return -- now used to build regression models rather than ordinations",
+      "The distinction matters: ordination summarizes multivariate structure; linear models test and quantify specific relationships"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Lecture 5: Linear Models",
+    "sub": "From ordination and pattern description to fitting and interpreting regression models in R, Python, and Julia"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 4</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 12: Machine Learning</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 12",
+    "title": "Machine Learning",
+    "sub": "Random forests and gradient boosting for prediction-focused ecology -- classifying dune meadow management regime from plant community composition",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Picking Up the Thread",
+    "title": "\"What If You Don't Know the Functional Form?\"",
+    "sub": "Lectures 5-11 all asked you to specify a model structure -- this lecture asks a machine to find one"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Shift",
+    "title": "Eleven Lectures of Specifying Structure",
+    "items": [
+      "Linear models (5), GLMs (6), mixed models (7), and GAMs (8) all require you to choose a linear predictor, a link function, a random-effects structure, or a smooth term -- you decide the shape",
+      "Bayesian hierarchical models (9), state-space models (10), and occupancy models (11) go further still, encoding an explicit generative story about the ecological process",
+      "That structure is exactly what buys you interpretable coefficients, confidence intervals, and causal-flavored inference statements",
+      "But structure is also a strong assumption -- and when you have dozens or hundreds of correlated predictors and no strong prior idea of their functional form, hand-specifying it becomes a guessing game"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "When to Reach for ML",
+    "title": "Prediction Over Inference, Interactions Over Hand-Specification",
+    "items": [
+      "Many predictors relative to sample size -- e.g. an entire species community matrix (20-300+ species) as predictors, where no GLM formula could sensibly include every species and its interactions",
+      "Unknown or highly nonlinear functional forms -- thresholds, interactions, and context-dependent effects that would require an unmanageable number of hand-built terms in a GLM/GAM",
+      "The goal is prediction accuracy on new data, not a p-value or an interpretable effect size for a specific covariate",
+      "You are willing to trade some interpretability for the ability to automatically capture interactions and nonlinearities you did not think to specify"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Concrete Ecological Case",
+    "title": "Predicting Site Type From Community Composition",
+    "items": [
+      "Dutch dune meadow survey (Jongman, ter Braak & van Tongeren): 20 sites, 30 plant species abundances, and a 4-class Management label (biological farming, hobby farming, nature conservation, standard farming)",
+      "Question: can the plant community alone -- 30 correlated, non-normally distributed count predictors -- predict which management regime a site is under?",
+      "A GLM would need you to pick a handful of species a priori; a random forest or boosted-tree model can use all 30 and let splits emerge from the data",
+      "This is the running example for the rest of the lecture, in R, Python, and Julia"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Validation, Not Just Fit",
+    "title": "Train/Test Splits and Cross-Validation",
+    "sub": "Flexible learners can memorize your data -- you need a fair way to ask how they do on data they have never seen"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Matters More Here",
+    "title": "Flexible Learners Overfit More Readily",
+    "items": [
+      "A linear model with 3 coefficients cannot memorize 20 data points; a decision tree with unlimited depth can fit every training point perfectly and generalize terribly",
+      "Random forests and boosted trees are exactly this kind of high-flexibility learner -- their whole appeal (capturing interactions and nonlinearities automatically) is also their overfitting risk",
+      "In Lectures 5-11, in-sample fit statistics (R-squared, AIC, deviance) were reasonably informative about generalization because the models were constrained by their structure",
+      "For ML models that constraint is gone, so an honest performance estimate MUST come from data the model did not see during fitting"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Basic Recipe",
+    "title": "Train/Test Split",
+    "items": [
+      "Randomly partition sites into a training set (fit the model) and a held-out test set (evaluate it) -- never let the model see test-set labels during fitting",
+      "Report accuracy, confusion matrix, or error on the TEST set only -- training-set performance for a flexible model is close to meaningless on its own",
+      "Works well with large sample sizes; with only 20 dune sites, a single train/test split would leave a test set of just a handful of points -- far too noisy to trust",
+      "This is exactly why cross-validation, not a single split, is the standard tool in small ecological datasets"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "k-Fold Cross-Validation",
+    "term": "cross-validation",
+    "def": "A resampling procedure that estimates out-of-sample performance by repeatedly holding out a different subset of the data as a test fold, fitting on the rest, and averaging performance across folds -- so every observation is used for both training and testing, just never in the same fold.",
+    "bullets": [
+      "Split the data into k roughly equal folds (commonly k = 5 or 10)",
+      "For each fold i: fit the model on the other k-1 folds, predict on fold i, record the error",
+      "Average the k error estimates -- this average is a much less noisy estimate of out-of-sample performance than a single train/test split, especially with small n",
+      "With only 20 dune sites and k = 5, each test fold has ~4 sites -- still noisy, but far better than a one-shot 80/20 split"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Small-Sample Honesty",
+    "title": "A Caveat Worth Stating Out Loud",
+    "items": [
+      "With 20 sites and 5-fold CV, per-fold accuracy in this lecture's dune example swings from 0.0 to 0.75 depending on which 4 sites land in the fold",
+      "That variance is not a bug in the code -- it is the honest signal that 20 observations cannot pin down a 4-class classifier's accuracy precisely",
+      "Report the mean AND the spread across folds; a single mean-accuracy number without its variability is misleading in small ecological datasets",
+      "Larger community datasets (e.g. BCI's 50 plots x 225 species) still benefit from the same logic, just with somewhat less fold-to-fold noise"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Workhorse",
+    "title": "Random Forest",
+    "sub": "Bagging many decorrelated decision trees -- the default ecological ML algorithm for good reason"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Random Forest",
+    "term": "random forest",
+    "def": "An ensemble of many decision trees, each grown on a bootstrap resample of the data (bagging) and each considering only a random subset of predictors at every split, whose predictions are combined by majority vote (classification) or averaging (regression).",
+    "bullets": [
+      "Bagging (bootstrap aggregating): each tree sees a different bootstrap sample of the sites, which reduces variance relative to a single deep tree",
+      "Random subset of predictors per split (mtry / max_features / n_subfeatures): decorrelates the trees from each other so averaging them helps more than averaging correlated trees would",
+      "Out-of-bag (OOB) error: each tree's bootstrap leaves out ~1/3 of sites -- predicting those left-out sites gives a built-in cross-validation-like error estimate for free, no separate holdout needed",
+      "Handles many correlated, non-normal predictors (like species counts) natively, with no need to transform or hand-select them"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Ecologists Reach For It First",
+    "title": "Random Forest Is the Default ML Tool in Ecology",
+    "items": [
+      "Requires almost no tuning to get a reasonable result -- default mtry and a few hundred trees already perform well on most ecological tabular data",
+      "Robust to irrelevant predictors, correlated predictors, and mixed variable types -- exactly the profile of a species-by-site matrix or an environmental covariate stack",
+      "Built-in OOB error estimate and variable importance come essentially for free from the fitting procedure itself",
+      "Widely used for species distribution models, community classification, and trait prediction throughout the ecological ML literature -- which is exactly why Lecture 13 reuses this toolkit"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Random Forest with randomForest::randomForest()",
+    "left": {
+      "h": "Fit and inspect OOB error",
+      "body": "<pre><code>library(randomForest)\n\ndat &lt;- merge(dune_env[, c(\"site\",\"Management\")],\n              dune_sp, by = \"site\")\ndat$Management &lt;- factor(dat$Management)\ndat$site &lt;- NULL\n\nrf_fit &lt;- randomForest(\n  Management ~ ., data = dat,\n  ntree = 500,\n  mtry = floor(sqrt(ncol(dat) - 1)),\n  importance = TRUE\n)\n\nprint(rf_fit)\nprint(rf_fit$confusion)\noob_acc &lt;- 1 - rf_fit$err.rate[\n  nrow(rf_fit$err.rate), \"OOB\"]</code></pre>"
+    },
+    "right": {
+      "h": "5-fold CV accuracy (independent of OOB)",
+      "body": "<pre><code>k &lt;- 5\nfolds &lt;- sample(rep(1:k, length.out = nrow(dat)))\ncv_acc &lt;- numeric(k)\n\nfor (i in 1:k) {\n  train_dat &lt;- dat[folds != i, ]\n  test_dat  &lt;- dat[folds == i, ]\n  fit_i &lt;- randomForest(Management ~ .,\n                         data = train_dat, ntree = 500)\n  pred_i &lt;- predict(fit_i, newdata = test_dat)\n  cv_acc[i] &lt;- mean(pred_i == test_dat$Management)\n}\n\nmean(cv_acc)  # out-of-sample accuracy estimate</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "Random Forest with sklearn.ensemble.RandomForestClassifier",
+    "left": {
+      "h": "Fit and inspect OOB score",
+      "body": "<pre><code>from sklearn.ensemble import (\n    RandomForestClassifier)\n\ndat = dune_env[[\"site\",\"Management\"]].merge(\n    dune_sp, on=\"site\")\nX = dat.drop(columns=[\"site\",\"Management\"]).values\ny = dat[\"Management\"].values\n\nrf = RandomForestClassifier(\n    n_estimators=500,\n    max_features=\"sqrt\",\n    oob_score=True,\n    random_state=12,\n)\nrf.fit(X, y)\nprint(rf.oob_score_)</code></pre>"
+    },
+    "right": {
+      "h": "5-fold CV with cross_val_score",
+      "body": "<pre><code>from sklearn.model_selection import (\n    cross_val_score, KFold)\n\ncv = KFold(n_splits=5, shuffle=True,\n           random_state=12)\n\nscores = cross_val_score(\n    RandomForestClassifier(\n        n_estimators=500,\n        max_features=\"sqrt\",\n        random_state=12),\n    X, y, cv=cv, scoring=\"accuracy\",\n)\n\nprint(scores.mean(), scores.std())</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "Random Forest with DecisionTree.jl",
+    "left": {
+      "h": "Fit a forest, get OOB-style CV error",
+      "body": "<pre><code>using DecisionTree\n# broader Julia ML framework:\n# using MLJ\n\nX = Matrix{Float64}(dat[:, species_cols])\ny = String.(dat.Management)\n\nn_subfeat = round(Int, sqrt(size(X, 2)))\nn_trees = 500\n\nrf_model = build_forest(\n    y, X, n_subfeat, n_trees,\n    0.7,   # partial_sampling (bagging fraction)\n    -1,    # max_depth, -1 = unlimited\n)</code></pre>"
+    },
+    "right": {
+      "h": "5-fold CV accuracy",
+      "body": "<pre><code>acc_per_fold = nfoldCV_forest(\n    y, X, 5,\n    n_subfeat, n_trees, 0.7, -1;\n    verbose = false,\n)\n\nusing Statistics\nmean(acc_per_fold), std(acc_per_fold)\n\n# MLJ.jl wraps this and dozens of other\n# packages behind one fit!/predict API</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the R Output",
+    "title": "What the Dune Random Forest Actually Says",
+    "items": [
+      "500 trees, mtry = 5 (sqrt of 30 species) yields an OOB error rate around 40% on this 4-class, 20-site problem -- OOB accuracy roughly 0.60",
+      "The OOB confusion matrix shows the model does best on NM (nature conservation) and worst on BF (biological farming, only 3 sites) -- class imbalance hurts small, rare classes hardest",
+      "5-fold CV accuracy averages lower and noisier (around 0.45, SD ~0.33 across folds) than the OOB estimate -- OOB tends to be optimistic in very small samples because bootstrap resampling still shares information across nearly-overlapping trees",
+      "Conclusion for this dataset: the model captures real signal (well above the 0.25 random-guessing baseline for 4 classes) but 20 sites is not enough to nail down a precise accuracy number"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "A Complementary Ensemble",
+    "title": "Gradient Boosted Trees",
+    "sub": "Sequentially correcting mistakes instead of averaging independent trees -- often higher accuracy, more tuning"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Gradient Boosting",
+    "term": "gradient boosting",
+    "def": "An ensemble method that builds decision trees sequentially, where each new tree is fit to the residual errors of the ensemble so far, so the model incrementally corrects its own mistakes rather than averaging independently-grown trees.",
+    "bullets": [
+      "Contrast with random forest: bagging grows trees independently and in parallel; boosting grows trees sequentially and each one depends on the trees before it",
+      "Key tuning knobs: number of trees, learning rate/shrinkage (how much each tree corrects), and tree depth/interaction depth (how complex each individual tree is allowed to be)",
+      "Because trees are shallow and sequential, boosting tends to need more careful tuning than random forest to avoid overfitting, but often reaches higher accuracy when tuned well",
+      "Implementations: R's gbm and xgboost, Python's GradientBoostingClassifier/XGBoost/LightGBM, Julia has no native gradient booster in DecisionTree.jl -- AdaBoost stumps serve as the boosting comparator there"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R",
+    "title": "Gradient Boosting via caret::train(method = \"gbm\")",
+    "left": {
+      "h": "Why caret here, not bare gbm::gbm()",
+      "body": "<pre><code># gbm::gbm()'s multinomial distribution\n# exists but is fiddly to tune/predict for\n# 4-class problems. caret::train wraps gbm\n# and handles multiclass classification,\n# CV-based tuning, and prediction cleanly.\n\nlibrary(caret)\n\nctrl &lt;- trainControl(method = \"cv\",\n                      number = 5)\n\ngrid &lt;- expand.grid(\n  n.trees = c(50, 100),\n  interaction.depth = c(1, 2),\n  shrinkage = 0.1,\n  n.minobsinnode = 2\n)</code></pre>"
+    },
+    "right": {
+      "h": "Fit with internal 5-fold CV tuning",
+      "body": "<pre><code>gbm_fit &lt;- train(\n  Management ~ ., data = dat,\n  method = \"gbm\", trControl = ctrl,\n  verbose = FALSE, tuneGrid = grid\n)\n\nprint(gbm_fit)\nmax(gbm_fit$results$Accuracy)\n\n# variable importance\nsummary(gbm_fit$finalModel,\n        plotit = FALSE)</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python",
+    "title": "Gradient Boosting with sklearn.ensemble.GradientBoostingClassifier",
+    "left": {
+      "h": "Fit the same 4-class task",
+      "body": "<pre><code>from sklearn.ensemble import (\n    GradientBoostingClassifier)\n\ngbm = GradientBoostingClassifier(\n    n_estimators=100,\n    max_depth=1,\n    learning_rate=0.1,\n    random_state=12,\n)\ngbm.fit(X, y)</code></pre>"
+    },
+    "right": {
+      "h": "5-fold CV, same splitter as the random forest",
+      "body": "<pre><code>gbm_scores = cross_val_score(\n    GradientBoostingClassifier(\n        n_estimators=100, max_depth=1,\n        learning_rate=0.1, random_state=12),\n    X, y, cv=cv, scoring=\"accuracy\",\n)\n\nprint(gbm_scores.mean(), gbm_scores.std())\n\n# importance:\ngbm.feature_importances_</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia",
+    "title": "The Boosting Comparator in DecisionTree.jl",
+    "left": {
+      "h": "AdaBoost stumps, one-vs-rest",
+      "body": "<pre><code># DecisionTree.jl has no native gradient\n# booster; AdaBoostStumpClassifier is its\n# boosting algorithm -- the classic method\n# that gbm/XGBoost generalize.\n\nclasses = sort(unique(y))\nn_iter = 100\n\nfor cls in classes\n    y_bin = ifelse.(y .== cls,\n                     \"yes\", \"no\")\n    acc = nfoldCV_stumps(\n        y_bin, X, 5, n_iter;\n        verbose = false)\n    println(cls, \": \", mean(acc))\nend</code></pre>"
+    },
+    "right": {
+      "h": "For native gradient boosting in Julia",
+      "body": "<pre><code># EvoTrees.jl provides native gradient-\n# boosted trees with an XGBoost-like API,\n# and is accessible through MLJ.jl:\n#\n#   using MLJ\n#   Booster = @load EvoTreeClassifier\n#     pkg=EvoTrees\n#   mach = machine(Booster(), X, y)\n#   fit!(mach)\n#\n# Not used here to keep this script runnable\n# against DecisionTree.jl alone.</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the R Output",
+    "title": "GBM Often Wins on Accuracy, at a Tuning Cost",
+    "items": [
+      "caret's 5-fold-CV-tuned gbm reaches roughly 0.84 CV accuracy on the dune task with n.trees = 100, interaction.depth = 1 -- noticeably higher than the random forest's ~0.45-0.60",
+      "That gap partly reflects real algorithmic strength and partly reflects caret having tuned 4 hyperparameter combinations via internal CV, versus the random forest run with one fixed, untuned setting -- an apples-to-apples comparison needs the same tuning effort on both sides (see Exercise 2)",
+      "Boosting's extra knobs (learning rate, tree depth, number of trees) are also extra ways to overfit if tuned only against training accuracy rather than cross-validated accuracy",
+      "Rule of thumb: start with a random forest as a low-effort baseline, then reach for tuned boosting if you need the last bit of accuracy and can afford the tuning time"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Choosing an Approach",
+    "title": "Random Forest vs. Gradient Boosting vs. GLM/GAM",
+    "headers": [
+      "Criterion",
+      "Random Forest",
+      "Gradient Boosting",
+      "GLM / GAM"
+    ],
+    "rows": [
+      [
+        "Interpretability",
+        "Moderate -- variable importance only, no signed effect sizes",
+        "Low-moderate -- importance plus partial dependence, more tuning obscures the story",
+        "High -- signed coefficients or smooth curves with confidence intervals"
+      ],
+      [
+        "Typical accuracy (many predictors, nonlinear)",
+        "Strong out-of-the-box baseline",
+        "Often the highest, once tuned",
+        "Lower if the true relationship is nonlinear/high-order interaction and unmodeled"
+      ],
+      [
+        "Tuning complexity",
+        "Low -- default mtry/ntree usually fine",
+        "High -- learning rate, depth, n.trees all interact",
+        "Low-moderate -- choose link, smooth basis, random effects"
+      ],
+      [
+        "When to prefer",
+        "Many correlated predictors, want a fast robust baseline with importance",
+        "Need maximum predictive accuracy and can afford CV-based tuning",
+        "Need interpretable, testable effects and can justify a functional form"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "What the Numbers Mean",
+    "title": "Variable Importance",
+    "sub": "A ranking of predictive usefulness -- not a ranking of causal effects"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "How It's Computed",
+    "title": "Two Common Importance Measures",
+    "items": [
+      "Mean decrease in impurity (Gini importance, R's MeanDecreaseGini, Python's feature_importances_): how much each variable's splits reduce node impurity, averaged across all trees -- fast, but biased toward variables with more possible split points (e.g. abundant, high-count species)",
+      "Permutation importance (R's MeanDecreaseAccuracy, and the Julia script's hand-built permutation function): shuffle one predictor at a time and measure the resulting drop in accuracy -- more computationally expensive but less biased by variable scale/cardinality",
+      "Boosting importance (R's summary.gbm relative influence, Python's gbm.feature_importances_): similar idea, tallied over how much each variable's splits reduced the loss across all boosting iterations",
+      "On the dune data, Poatriv (Poa trivialis), Scorautu, Lolipere, and Alopgeni consistently rank near the top across both random forest and GBM, and both importance measures -- a genuinely stable signal despite the noisy accuracy numbers"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Essential Caveat",
+    "title": "Importance Is Correlation, Not Causation",
+    "items": [
+      "A species ranking high in importance means the model finds it USEFUL FOR PREDICTING Management -- not that Management CAUSES that species' abundance, or vice versa",
+      "Ecological confounding is the obvious risk here: several dune species may simply track Moisture or A1 (soil organic matter), which happen to correlate with Management regime, rather than responding to management itself",
+      "Correlated predictors also split importance between themselves -- two species that respond to the same underlying gradient will each look moderately important individually, potentially understating how important that shared gradient actually is",
+      "If you need a causal or mechanistic claim about a specific species-management relationship, that calls for the design-based or mixed-model tools from earlier lectures, not a variable importance plot"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Figure",
+    "title": "figures/lecture_12_variable_importance.png",
+    "items": [
+      "Horizontal bar plot of the top 10 species by random forest importance (Mean Decrease Gini in R, feature_importances_ in Python, permutation importance in Julia)",
+      "Longer bars mean the species contributes more to the model's splits across the forest -- read this as 'useful for classification,' not 'strongly affected by management'",
+      "Cross-check any species you plan to highlight against both the random forest and GBM importance rankings -- species that appear near the top in both are the more robust signal",
+      "Generated by all three lecture scripts; identical in structure across R, Python, and Julia even though the underlying importance calculation differs slightly by language/package"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Honest Tradeoffs",
+    "title": "Interpretability vs. Predictive Power",
+    "sub": "Why this course spent 7 lectures on structured models before reaching for a black box"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What You Give Up",
+    "title": "ML Models Are Harder to Explain",
+    "items": [
+      "A GLM coefficient answers 'for a one-unit increase in x, the expected response changes by beta, holding other predictors constant' -- a random forest importance score cannot make that statement",
+      "No confidence interval on a specific effect, no p-value, no way to write 'management increased species X abundance by Y%, 95% CI [.., ..]' the way Lecture 6 or 7 would let you",
+      "Partial dependence plots and SHAP values can partially recover shape-of-relationship information from a fitted forest or booster, but they are approximations layered on top of a black box, not the model's native output",
+      "Reviewers and stakeholders in applied ecology (management agencies, conservation NGOs) often want the interpretable story a GLM/GAM/mixed-model gives -- factor that into which tool you reach for, not just accuracy"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What You Get In Return",
+    "title": "When the Tradeoff Is Worth It",
+    "items": [
+      "Automatic handling of interactions and nonlinearities across dozens of predictors that no one has the time (or prior knowledge) to hand-specify in a formula",
+      "Robustness to the exact distributional assumptions (normality, specific link functions) that GLMs and GAMs rely on",
+      "Often meaningfully better raw predictive accuracy when the true relationship is complex and the goal is prediction, not explanation -- e.g. forecasting occurrence or classifying unseen sites",
+      "A practical middle ground: use ML for prediction and as an exploratory tool to discover which predictors matter, then build a smaller, interpretable GLM/GAM/mixed model around the variables ML flags as important"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Decision Guide",
+    "title": "Which Tool for Which Ecological Question",
+    "cards": [
+      {
+        "h": "\"What is the effect of grazing on species richness, with a CI?\"",
+        "p": "GLM/GAM/mixed model (Lectures 5-8) -- you need a signed, testable effect estimate"
+      },
+      {
+        "h": "\"Can I predict site type from 30+ species abundances?\"",
+        "p": "Random forest -- many correlated predictors, no strong prior on functional form, prediction is the goal"
+      },
+      {
+        "h": "\"I need the single most accurate classifier I can get, and can afford tuning\"",
+        "p": "Gradient boosting, cross-validated over its hyperparameters"
+      },
+      {
+        "h": "\"I want to know which variables matter before building a smaller model\"",
+        "p": "Random forest variable importance as an exploratory screening step, followed by a GLM/GAM on the top candidates"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Practical Workflow",
+    "title": "Putting the Pieces Together",
+    "items": [
+      "1. Split or fold your data -- never evaluate a flexible ML model on the data it was trained on",
+      "2. Fit a random forest first as a fast, low-tuning baseline; check its OOB error and cross-validated accuracy against a majority-class baseline",
+      "3. If you need more accuracy and can afford tuning time, fit a gradient-boosted model and compare its cross-validated accuracy to the random forest's, using the SAME folds",
+      "4. Extract variable importance from whichever model you keep, cross-check it against ecological knowledge, and report it as a predictive ranking -- explicitly not a causal one"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Try It Yourself",
+    "title": "This Lecture's Exercises",
+    "items": [
+      "Exercise 1: tune ntree/n_estimators and mtry/max_features and observe the effect on OOB error / CV accuracy",
+      "Exercise 2: compare random forest vs. GBM accuracy via 5-fold CV, using identical folds for a fair comparison",
+      "Exercise 3: plot and interpret the top-5 most important species for classifying Management, connecting the ranking to known ecological indicator values",
+      "Exercise 4: repeat the workflow as a regression task on the BCI forest census data, comparing random forest R-squared to a linear model's",
+      "Full instructions in exercises/lecture_12_exercises.md"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "A Working Principle",
+    "quote": "All models are wrong, but some are useful -- a random forest with 45% cross-validated accuracy on 20 sites is not a finished product, it is a well-calibrated admission of how much a small community dataset can and cannot tell you.",
+    "attrib": "Adapted from George Box, framed for this lecture's dune example"
+  },
+  {
+    "type": "section",
+    "tag": "Looking Ahead",
+    "title": "Lecture 13: Species Distribution Models",
+    "sub": "The exact random-forest toolkit built here, applied to spatial presence data"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "What Carries Forward",
+    "title": "Same Toolkit, New Data, New Question",
+    "items": [
+      "Lecture 13 reuses this exact random-forest and gradient-boosting toolkit -- randomForest/sklearn/DecisionTree.jl, k-fold CV, variable importance -- on a spatial presence dataset to build a species distribution model",
+      "The classification target changes from 'which management regime' to 'presence vs. absence (or presence-only pseudo-absence) of a species across space'",
+      "The predictors change from a species community matrix to environmental/spatial covariates (climate, elevation, soil, land cover)",
+      "Everything about validation discipline learned here -- why OOB alone is not enough, why cross-validation matters, why importance is not causation -- applies directly and will not be re-derived from scratch"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "One New Wrinkle to Expect",
+    "title": "Spatial Data Breaks the Usual CV Assumption",
+    "items": [
+      "Ordinary k-fold CV assumes folds are independent -- nearby sites in space are often ecologically similar, so a random fold can leak information between train and test sets",
+      "Lecture 13 will introduce spatial cross-validation (blocking folds by geography rather than at random) as the fix, building directly on the k-fold CV machinery introduced today",
+      "Otherwise, the workflow is identical: fit, validate out-of-sample, extract importance, interpret cautiously",
+      "If today's random forest and CV code felt comfortable, Lecture 13 is largely a change of dataset and question, not a new toolkit"
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 12</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

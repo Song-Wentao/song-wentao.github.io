@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 21: Coevolution: Definitions and Types</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 21",
+    "title": "Coevolution: Definitions and Types",
+    "sub": "Opening Chapter 15, \"Intimate Partnerships\" — how species evolve in response to one another",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 15, \"Intimate Partnerships\" (lecture 1 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "CHAPTER 15 — INTIMATE PARTNERSHIPS",
+    "title": "From Macroevolution to Coevolution",
+    "sub": "Chapter 14 (Lectures 17–20) traced the large-scale patterns of life's history — speciation, extinction, and adaptive radiation over deep time. Chapter 15 zooms back in to ask how pairs and networks of interacting species reshape one another through reciprocal natural selection."
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We Will Cover",
+    "items": [
+      "Define coevolution precisely, distinguishing it from ordinary adaptation to a biotic environment",
+      "Establish the two-part criterion — reciprocity and specificity — required to demonstrate true coevolution",
+      "Survey the major types: pairwise (specific), diffuse, and escape-and-radiate coevolution",
+      "Reconnect escape-and-radiate coevolution to adaptive radiation, covered in Lecture 18",
+      "Preview the spectrum from antagonistic to mutualistic coevolutionary relationships (Lectures 22–23)",
+      "Introduce the comparative phylogenetic toolkit and the geographic mosaic theory of coevolution",
+      "Set up the next three lectures on arms races, cheating, and mutualism"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BRIDGE FROM CHAPTER 14",
+    "title": "Quick Recap: Macroevolution",
+    "items": [
+      "Macroevolutionary patterns — speciation rates, extinction, and long-term trends — emerge from processes operating within populations, scaled up over geological time",
+      "Adaptive radiation (Lecture 18) showed how a single lineage can diversify rapidly when it encounters ecological opportunity, such as an empty adaptive zone",
+      "That framework treated the abiotic and biotic environment largely as a static backdrop against which lineages diversify",
+      "Coevolution complicates this picture: the environment itself evolves, because interacting species are simultaneously selective agents on each other",
+      "This shifts the unit of interest from a single lineage adapting to its surroundings to two or more lineages locked in a dynamic, reciprocal process"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BACKGROUND REFRESHER",
+    "title": "Types of Species Interactions",
+    "items": [
+      "Predation and herbivory: one species benefits, the other is harmed (+/−)",
+      "Parasitism and pathogenesis: one species benefits at the host's expense, typically without killing it outright (+/−)",
+      "Competition: both species are harmed by shared, limiting resource use (−/−)",
+      "Mutualism: both species benefit from the interaction (+/+)",
+      "Commensalism: one species benefits while the other is largely unaffected (+/0)",
+      "Coevolution can, in principle, arise from any interaction type that imposes reciprocal, specific selection — not just close mutualisms"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "KEY CONCEPT",
+    "title": "Coevolution",
+    "term": "Coevolution",
+    "def": "A process of reciprocal evolutionary change between two or more interacting species, in which each species acts as an agent of natural selection on the other, and evolutionary change in one lineage prompts a response in the other.",
+    "bullets": [
+      "Coined and formalized by Ehrlich and Raven (1964) in their study of butterflies and their host plants",
+      "Requires genetic change on both sides — not merely a behavioral or physiological response",
+      "Distinguished from simple adaptation, where a species evolves in response to a static feature of its environment"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "DEMONSTRATING COEVOLUTION",
+    "title": "The Two-Part Criterion: Reciprocity and Specificity",
+    "left": {
+      "h": "Reciprocity",
+      "body": "<p>Each species must impose selection on the other, and each must evolve in response.</p><ul><li>A trait in species A evolves because of species B</li><li>A trait in species B evolves, in turn, because of species A's evolved trait</li><li>Change must flow in both directions, not just one</li><li>One-way adaptation (A evolves to B, but B is unaffected) is <em>not</em> coevolution</li></ul>"
+    },
+    "right": {
+      "h": "Specificity",
+      "body": "<p>The selective effect of one species on the other must be attributable to that particular interaction, not to the broader community.</p><ul><li>Traits should be traceable to the specific interacting partner</li><li>Rules out cases where a trait evolves in response to many unrelated species at once</li><li>Highly specific interactions make reciprocity easiest to test</li><li>Diffuse interactions (below) require relaxing strict specificity</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "FORMALIZING THE CRITERIA",
+    "title": "Janzen's (1980) Operational Definition",
+    "items": [
+      "Daniel Janzen argued the term \"coevolution\" was being used too loosely for any case where species merely affected each other ecologically",
+      "He proposed a strict operational definition: coevolution requires (1) a genetically based change in a trait of one population in response to a trait of a second population, followed by (2) a genetically based response in the second population to the change in the first",
+      "This tightened definition excludes cases of simple, one-sided adaptation to a biotic feature of the environment",
+      "It also excludes cases where the trait change is driven by the physical environment rather than by the interacting species",
+      "Janzen's criteria remain the working standard biologists use to separate true coevolution from superficially similar patterns"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "A CRITICAL DISTINCTION",
+    "title": "Coevolution vs. Simple Sequential Adaptation",
+    "left": {
+      "h": "Sequential (one-sided) adaptation",
+      "body": "<p>Species A evolves a trait in response to species B, but species B does not evolve in response to A.</p><ul><li>Example: a moth evolves camouflage matching bark color, but the tree is unaffected by the moth</li><li>Only one lineage experiences selection from the interaction</li><li>Common, but does not meet the reciprocity criterion</li></ul>"
+    },
+    "right": {
+      "h": "True coevolution",
+      "body": "<p>Both species impose selection on each other and both evolve in response.</p><ul><li>Example: a toxic prey species evolves higher toxin levels, and its specific predator evolves higher resistance in tandem</li><li>Selection pressure flows in both directions across generations</li><li>Meets both reciprocity and specificity</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "COMMON PITFALLS",
+    "title": "Patterns Often Mistaken for Coevolution",
+    "cards": [
+      {
+        "h": "Convergent adaptation",
+        "p": "Two unrelated species independently evolve similar traits in response to similar, but not shared, environmental pressures — no reciprocal interaction is involved."
+      },
+      {
+        "h": "Ecological fitting",
+        "p": "A species uses a resource or partner it did not coevolve with, simply because its pre-existing traits happen to work — no history of reciprocal selection."
+      },
+      {
+        "h": "Diffuse ecological pressure",
+        "p": "A trait evolves in response to an entire community of antagonists rather than any single specific partner, weakening the specificity criterion."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "TYPE 1 OF 3",
+    "title": "Pairwise (Specific) Coevolution",
+    "term": "Pairwise coevolution",
+    "def": "A tight, reciprocal evolutionary relationship between exactly two species, in which each is the dominant selective agent shaping specific traits of the other.",
+    "bullets": [
+      "Also called specific coevolution",
+      "Easiest type in which to satisfy both reciprocity and specificity",
+      "Often involves highly specialized, one-to-one ecological relationships (a single pollinator and a single plant, a single parasite and a single host)",
+      "Produces some of the most dramatic examples of trait matching between species"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CLASSIC EXAMPLES",
+    "title": "Pairwise Coevolution in Nature",
+    "cards": [
+      {
+        "h": "Yuccas and yucca moths",
+        "p": "Yucca plants rely exclusively on yucca moths for pollination, and the moths' larvae feed only on yucca seeds — an obligate, reciprocal specialization matched at the species level."
+      },
+      {
+        "h": "Crossbills and conifers",
+        "p": "Red crossbill bill shape tracks the cone structure of local conifer populations, and conifers in some regions have evolved thicker cone scales in response to crossbill predation on seeds."
+      },
+      {
+        "h": "Garter snakes and toxic newts",
+        "p": "Rough-skinned newts produce tetrodotoxin (TTX); their garter snake predators have evolved TTX-resistant sodium channels in a geographically matched, escalating arms race."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CASE STUDY IN DETAIL",
+    "title": "The Newt–Garter Snake Arms Race",
+    "left": {
+      "h": "The newt's weapon",
+      "body": "<p>Rough-skinned newts (<em>Taricha granulosa</em>) synthesize tetrodotoxin, one of the most potent neurotoxins known, in their skin.</p><ul><li>Toxin levels vary enormously among populations</li><li>Populations with the most resistant snake predators tend to carry the highest toxin loads</li></ul>"
+    },
+    "right": {
+      "h": "The snake's countermeasure",
+      "body": "<p>Garter snakes (<em>Thamnophis sirtalis</em>) have evolved amino acid substitutions in sodium channel genes that block TTX binding.</p><ul><li>Resistance is costly, reducing locomotor performance</li><li>Toxin and resistance levels are matched population by population — a geographic signature of reciprocal selection</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "TYPE 2 OF 3",
+    "title": "Diffuse Coevolution",
+    "term": "Diffuse coevolution",
+    "def": "Reciprocal evolutionary change involving multiple interacting species on one or both sides of the interaction, such that a trait evolves in response to, and exerts selection on, an entire guild of partners or antagonists rather than a single species.",
+    "bullets": [
+      "Selection is distributed across many species rather than concentrated in one pairwise relationship",
+      "Far more common in nature than strict pairwise coevolution, because most species interact with many partners",
+      "Harder to demonstrate rigorously, since the specificity criterion must be relaxed to a guild or community level"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "COMPARING THE TWO MODES",
+    "title": "Diffuse vs. Pairwise Coevolution",
+    "left": {
+      "h": "Pairwise",
+      "body": "<p>One species, one partner.</p><ul><li>Strong, clean reciprocal selection</li><li>Traits closely track a single partner's traits</li><li>Easier to test with the reciprocity + specificity criteria</li><li>Vulnerable to extinction of the single partner (obligate dependency)</li></ul>"
+    },
+    "right": {
+      "h": "Diffuse",
+      "body": "<p>One species, many partners (or many species, many partners).</p><ul><li>Selection pressure is averaged across a guild of interactors</li><li>Traits reflect a compromise shaped by multiple species simultaneously</li><li>Reciprocity still applies, but specificity is relaxed to the guild level</li><li>More resilient to loss of any single partner species</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "EXAMPLES OF DIFFUSE COEVOLUTION",
+    "title": "Guild-Level Reciprocal Selection",
+    "cards": [
+      {
+        "h": "Generalist flowers and pollinator guilds",
+        "p": "Many flowering plants are visited by dozens of bee, fly, and moth species; floral traits evolve in response to the whole pollinator assemblage, and pollinator mouthpart traits evolve in response to the local flower community."
+      },
+      {
+        "h": "Plant chemical defenses and herbivore communities",
+        "p": "A plant's cocktail of defensive compounds is shaped by selection from an entire community of herbivorous insects, not any single species, while herbivores evolve tolerance to the shared chemical profile."
+      },
+      {
+        "h": "Fruit traits and disperser assemblages",
+        "p": "Fruit size, color, and nutrient content often reflect selection imposed by a whole community of frugivorous birds and mammals rather than a single dispersal specialist."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "TYPE 3 OF 3",
+    "title": "Escape-and-Radiate Coevolution",
+    "term": "Escape-and-radiate coevolution",
+    "def": "A dynamic in which a lineage evolves a novel adaptation — often a defense — that allows it to escape a major selective constraint from its antagonists, triggering ecological release and adaptive radiation; the antagonist lineage may later evolve a counter-adaptation that allows it to overcome the defense, triggering its own radiation.",
+    "bullets": [
+      "Introduced by Ehrlich and Raven (1964) in their landmark study of plant chemical defenses and butterfly host use",
+      "Operates on longer timescales and produces asymmetric bursts of diversification rather than tight trait matching",
+      "Directly links coevolutionary dynamics to macroevolutionary patterns of diversification"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK TO LECTURE 18",
+    "title": "Escape-and-Radiate as a Driver of Adaptive Radiation",
+    "left": {
+      "h": "Recall from Lecture 18",
+      "body": "<p>Adaptive radiation occurs when a lineage rapidly diversifies to fill many available ecological niches, typically after reaching a new adaptive zone via ecological opportunity — for example, colonizing an empty island or surviving a mass extinction.</p>"
+    },
+    "right": {
+      "h": "The coevolutionary twist",
+      "body": "<p>Escape-and-radiate coevolution shows that ecological opportunity can be <em>created</em> by an evolutionary innovation rather than an external event.</p><ul><li>A novel defensive trait removes a major source of mortality</li><li>This functions exactly like the ecological release seen in Lecture 18's radiation examples</li><li>The freed lineage diversifies into the newly accessible niche space</li></ul>"
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "CASE STUDY",
+    "title": "Ehrlich and Raven's Plants and Butterflies",
+    "items": [
+      {
+        "y": "Step 1",
+        "t": "A plant lineage evolves a novel secondary chemical defense (e.g., a new class of toxin) that deters most herbivorous insects"
+      },
+      {
+        "y": "Step 2",
+        "t": "Free of most herbivory, the plant lineage undergoes ecological release and adaptive radiation into new species and habitats"
+      },
+      {
+        "y": "Step 3",
+        "t": "A butterfly lineage evolves a detoxification mechanism or behavioral tolerance that allows it to feed on the previously defended plants"
+      },
+      {
+        "y": "Step 4",
+        "t": "With access to an underused host-plant resource and reduced competition, the butterfly lineage itself radiates, tracking the plant's diversification"
+      },
+      {
+        "y": "Step 5",
+        "t": "The result is a pattern of matched, staggered diversification between plant and insect clades across evolutionary time"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "MECHANISM SUMMARY",
+    "title": "Why Escape-and-Radiate Differs from Pairwise Coevolution",
+    "items": [
+      "Escape-and-radiate operates over macroevolutionary timescales (millions of years) and across whole clades, not single populations over a few generations",
+      "The reciprocity is asynchronous: the plant radiates first, and only later does an insect lineage evolve the counter-adaptation and radiate in response",
+      "Specificity is at the clade level: the interaction is between lineages of plants and lineages of insects, not necessarily individual species pairs",
+      "The signature evidence is phylogenetic — clades of chemically defended plants and their specialist herbivores show correlated, staggered branching patterns",
+      "Because it links defense evolution directly to diversification rate, this is one of the strongest bridges between coevolution and the macroevolutionary patterns from Chapter 14"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS",
+    "title": "Three Types of Coevolution Compared",
+    "headers": [
+      "Feature",
+      "Pairwise",
+      "Diffuse",
+      "Escape-and-radiate"
+    ],
+    "rows": [
+      [
+        "Specificity",
+        "Very high — one species pair",
+        "Low — guild or community level",
+        "Clade level, asynchronous"
+      ],
+      [
+        "Number of species involved",
+        "Exactly two",
+        "Many, on one or both sides",
+        "Two clades, each diversifying"
+      ],
+      [
+        "Timescale",
+        "Population-level, generational",
+        "Population to community level",
+        "Macroevolutionary, millions of years"
+      ],
+      [
+        "Signature evidence",
+        "Matched trait escalation (e.g., toxin/resistance levels)",
+        "Trait shaped by whole guild's selective pressure",
+        "Correlated bursts of diversification in phylogenies"
+      ],
+      [
+        "Example",
+        "Garter snake and toxic newt",
+        "Flowers and generalist pollinator guild",
+        "Defended plants and specialist herbivorous insects"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "PREVIEW OF LECTURES 22–23",
+    "title": "A Spectrum from Antagonism to Mutualism",
+    "left": {
+      "h": "Antagonistic coevolution",
+      "body": "<p>Interacting species impose costs on each other — each partner's gain comes at the other's expense.</p><ul><li>Predator–prey arms races</li><li>Host–parasite arms races</li><li>Selection favors escalating offense and defense on both sides</li><li>Topic of Lecture 22</li></ul>"
+    },
+    "right": {
+      "h": "Mutualistic coevolution",
+      "body": "<p>Interacting species confer reciprocal net benefits, even though conflicts of interest can persist within the relationship.</p><ul><li>Pollination mutualisms</li><li>Nutritional and defensive symbioses</li><li>Selection can still produce cheating and countermeasures against cheating</li><li>Topic of Lecture 23</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "UNDERLYING LOGIC",
+    "title": "Fitness Sign Matrix and the Spectrum",
+    "left": {
+      "h": "Sign of the fitness effect",
+      "body": "<p>Each interaction can be described by the sign of its fitness effect on each partner: +, −, or 0.</p><ul><li><strong>−/−:</strong> antagonistic, e.g., predator-prey, host-parasite</li><li><strong>+/−:</strong> exploitative, one side benefits at the other's cost</li><li><strong>+/+:</strong> mutualistic, both sides benefit</li></ul>"
+    },
+    "right": {
+      "h": "Why the spectrum is not fixed",
+      "body": "<p>The sign of an interaction can shift with ecological context, life stage, or resource availability.</p><ul><li>A mutualist can behave as a parasite under certain conditions (context-dependent mutualism)</li><li>This fluidity is why Lectures 22 and 23 treat antagonism and mutualism as ends of a continuum rather than fixed categories</li></ul>"
+    }
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "VISUALIZING THE SPECTRUM",
+    "title": "Degree of Reciprocal Benefit",
+    "levels": [
+      {
+        "label": "Antagonistic: predator–prey, host–parasite",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Exploitative / one-sided cheating",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Commensal-leaning interactions",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Facultative mutualism",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Obligate mutualism",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TEASER FOR LECTURE 22",
+    "title": "Antagonistic Coevolution, Coming Up",
+    "items": [
+      "Predator-prey arms races, extending the garter snake/newt example already introduced today",
+      "Host-parasite arms races, including immune system evolution and parasite counter-evolution",
+      "The Red Queen hypothesis: lineages must constantly evolve just to maintain fitness relative to evolving antagonists",
+      "Why antagonistic coevolution tends to produce escalation rather than stable equilibria"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TEASER FOR LECTURE 23",
+    "title": "Mutualistic Coevolution, Coming Up",
+    "items": [
+      "Pollination syndromes and trait matching between flowers and pollinators",
+      "Nutritional mutualisms, such as gut microbiomes and mycorrhizal fungi",
+      "Defensive mutualisms, such as ants that protect host plants in exchange for food rewards",
+      "The problem of cheating: why mutualisms are evolutionarily stable despite the temptation to defect"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "HISTORICAL CONTEXT",
+    "quote": "I have come to the conclusion that Angraecum sesquipedale must be fertilised by a large moth, with a wonderfully long proboscis... [But] the pollen-masses were not attached... Ithink, however, that Dr. Cruger... will succeed in shewing that this Angraecum is fertilised by some huge moth, with a wonderfully long proboscis.",
+    "attrib": "Charles Darwin, on the Madagascar star orchid and its predicted moth pollinator (1862) — a prediction confirmed decades later with the discovery of Xanthopan moths bearing proboscises over 20 cm long"
+  },
+  {
+    "type": "cards",
+    "eyebrow": "MORE COEVOLVED SYSTEMS",
+    "title": "Additional Cases Across the Spectrum",
+    "cards": [
+      {
+        "h": "Figs and fig wasps",
+        "p": "Each fig species is typically pollinated by one or a few highly specific wasp species that also lay eggs inside the fig's flowers — an obligate pairwise mutualism with strict reciprocal specificity."
+      },
+      {
+        "h": "Cuckoos and host songbirds",
+        "p": "Brood-parasitic cuckoos evolve egg mimicry to fool host parents, while hosts evolve improved egg-pattern recognition to reject foreign eggs — an antagonistic arms race previewing Lecture 22."
+      },
+      {
+        "h": "Joshua trees and yucca moths",
+        "p": "A geographically structured pairwise mutualism in which moth ovipositor length and Joshua tree fruit and flower morphology covary across the species' range, illustrating geographic mosaic dynamics."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODOLOGICAL CAUTION",
+    "title": "Limitations of Coevolution Research",
+    "items": [
+      "Correlation between traits across populations or species is not sufficient evidence of coevolution — shared ancestry or a common environmental gradient can mimic reciprocal selection",
+      "Cophylogenetic congruence can result from simple co-dispersal (partners simply move together) rather than genuine reciprocal selection",
+      "Long generation times and cryptic historical selection make it difficult to observe reciprocity directly as it happens",
+      "Museum and fossil specimens rarely preserve the behavioral or physiological traits most relevant to an interaction, limiting historical reconstruction",
+      "Because of these challenges, the strongest cases for coevolution combine several independent lines of evidence: trait matching, phylogenetic congruence, geographic variation, and where possible, experimental manipulation"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "PREVIEW CONCEPT",
+    "title": "Geographic Mosaic Theory of Coevolution",
+    "term": "Geographic mosaic theory of coevolution",
+    "def": "A framework, developed principally by John Thompson, proposing that coevolution does not proceed uniformly across a species' range but instead varies geographically, producing a mosaic of populations that differ in the intensity, direction, and even presence of coevolutionary selection.",
+    "bullets": [
+      "Explains why traits like newt toxin levels and snake resistance vary so much from population to population",
+      "Three core components: selection mosaics, coevolutionary hotspots and coldspots, and trait remixing",
+      "Will be developed further as a methodological tool throughout Lectures 22–23"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "THREE COMPONENTS",
+    "title": "Hotspots, Coldspots, and Trait Remixing",
+    "left": {
+      "h": "Selection mosaics and hotspots/coldspots",
+      "body": "<p>Local ecological conditions cause coevolutionary selection to vary across a species' geographic range.</p><ul><li><strong>Hotspots:</strong> populations where reciprocal selection is strong (e.g., high-toxin newts with high-resistance snakes)</li><li><strong>Coldspots:</strong> populations where one or both partners are absent, or selection is weak or one-sided</li></ul>"
+    },
+    "right": {
+      "h": "Trait remixing",
+      "body": "<p>Gene flow, genetic drift, local extinction, and colonization continually mix coevolved and non-coevolved genotypes among populations.</p><ul><li>Prevents any single, universal outcome of the interaction across the whole species range</li><li>Produces the geographic mismatch often observed between partner populations</li><li>Makes coevolution a dynamic, spatially structured process rather than a fixed endpoint</li></ul>"
+    }
+  },
+  {
+    "type": "cards",
+    "eyebrow": "STUDYING GEOGRAPHIC VARIATION",
+    "title": "Evidence for the Geographic Mosaic",
+    "cards": [
+      {
+        "h": "Trait matching surveys",
+        "p": "Comparing toxin and resistance levels (or analogous trait pairs) across many populations reveals hotspots of tight matching and coldspots of mismatch."
+      },
+      {
+        "h": "Reciprocal transplant experiments",
+        "p": "Moving individuals between populations tests whether local adaptation to a specific partner population is present."
+      },
+      {
+        "h": "Population genetic structure",
+        "p": "Comparing gene flow patterns in both interacting species helps identify where trait remixing is disrupting local coevolutionary trajectories."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "THE COMPARATIVE TOOLKIT",
+    "title": "Comparative Phylogenetic Methods for Studying Coevolution",
+    "items": [
+      "Because coevolution unfolds over evolutionary time, much of the evidence comes from comparing the phylogenies (evolutionary trees) of interacting lineages",
+      "Cophylogenetic analysis overlays the phylogeny of one interacting group (e.g., a host clade) with that of its partner (e.g., a parasite clade) to test for congruence",
+      "Congruent, mirror-image trees are consistent with, though not sufficient proof of, coevolutionary history — they can also result from simple co-dispersal",
+      "Divergence-time estimates from molecular clocks let researchers test whether diversification bursts in one clade are staggered just after bursts in the partner clade, as predicted by escape-and-radiate dynamics",
+      "Ancestral state reconstruction can trace when key traits (a toxin pathway, a resistance mutation, a chemical defense) originated relative to the partner's traits"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "COPHYLOGENY: FOUR POSSIBLE EVENTS",
+    "title": "Reading a Host–Parasite Tree Comparison",
+    "cards": [
+      {
+        "h": "Cospeciation",
+        "p": "Host and partner lineages speciate together, producing matching branching patterns — the classic signature of tight, long-term coevolution."
+      },
+      {
+        "h": "Host-switching",
+        "p": "A partner lineage jumps to a different host lineage, breaking tree congruence and introducing new specificity relationships."
+      },
+      {
+        "h": "Duplication / extinction",
+        "p": "A partner lineage speciates without a matching host split (duplication), or a lineage on one side goes extinct, leaving detectable gaps in the matched pattern."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "APPLIED EXAMPLE",
+    "title": "Pocket Gophers and Their Chewing Lice",
+    "left": {
+      "h": "The system",
+      "body": "<p>Pocket gophers (rodents) host species-specific chewing lice that live permanently on the host's body and are transmitted primarily between individuals in physical contact.</p><ul><li>Close physical association favors cospeciation</li><li>Classic model system for testing cophylogenetic congruence</li></ul>"
+    },
+    "right": {
+      "h": "The finding",
+      "body": "<p>Gopher and louse phylogenies show substantial, though imperfect, congruence.</p><ul><li>Most branching events match between the two trees, supporting cospeciation</li><li>Some mismatches reflect occasional host-switching events</li><li>Illustrates that real coevolutionary histories are rarely perfectly clean</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BEYOND PHYLOGENY",
+    "title": "Experimental and Population-Level Approaches",
+    "items": [
+      "Reciprocal transplant experiments: swap interacting individuals between populations to test for local adaptation to a specific partner population",
+      "Common garden experiments: rear individuals from different populations under identical conditions to separate genetic differences from environmental plasticity",
+      "Selection experiments: manipulate the presence or intensity of one species' selective pressure and track evolutionary response in the other over multiple generations",
+      "Quantitative trait matching: statistically test whether trait values in interacting species covary across populations more than expected by chance",
+      "These approaches complement phylogenetic methods by directly testing for ongoing, contemporary reciprocal selection rather than inferring it from historical branching patterns"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "PREVIEW LINK TO LECTURE 22",
+    "title": "Coevolutionary Arms Race",
+    "term": "Coevolutionary arms race",
+    "def": "A pattern of antagonistic coevolution in which reciprocal selection drives the escalation of offensive and defensive traits in two interacting lineages, analogous to a military arms race between rival powers.",
+    "bullets": [
+      "Classic examples include predator toxin and prey resistance (or the reverse), and host immune defenses versus parasite countermeasures",
+      "Arms races can be symmetric (both partners escalate a matched trait, as with newts and snakes) or asymmetric (different trait types on each side)",
+      "Conceptually linked to the Red Queen hypothesis, which will be developed fully in Lecture 22"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CHECKLIST",
+    "title": "How to Recognize True Coevolution: A Recap",
+    "items": [
+      "Is there evidence of a genetically based trait change in species A that is plausibly caused by species B? (first half of reciprocity)",
+      "Is there evidence of a genetically based trait change in species B that is plausibly caused by the change in species A? (second half of reciprocity)",
+      "Can the selective effect be attributed specifically to this partner (or, for diffuse coevolution, this guild) rather than the broader environment? (specificity)",
+      "Does the geographic or phylogenetic pattern of trait matching support a shared evolutionary history rather than independent, unrelated adaptation?",
+      "If any of these fail, the pattern may still be biologically interesting — but it does not meet the operational definition of coevolution"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "TERMINOLOGY CHECK",
+    "title": "Coevolution vs. Coadaptation vs. Convergent Evolution",
+    "left": {
+      "h": "Coadaptation",
+      "body": "<p>Refers to traits within a single organism (or between genes) that function well together, such as complementary alleles at interacting loci.</p><ul><li>Does not require two separate interacting species</li><li>Often confused with coevolution because of the similar name</li></ul>"
+    },
+    "right": {
+      "h": "Convergent evolution",
+      "body": "<p>Independent evolution of similar traits in unrelated lineages facing similar selective pressures.</p><ul><li>No reciprocal interaction between the converging lineages is required</li><li>Distinct from coevolution, which requires the lineages to be interacting with and selecting on each other</li></ul>"
+    }
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORY OF THE IDEA",
+    "title": "Milestones in Coevolutionary Theory",
+    "items": [
+      {
+        "y": "1859",
+        "t": "Darwin's Origin of Species discusses reciprocal adaptations between flowers and insects, laying informal groundwork"
+      },
+      {
+        "y": "1862",
+        "t": "Darwin predicts a long-tongued moth pollinator for the Madagascar star orchid, based on floral spur length"
+      },
+      {
+        "y": "1964",
+        "t": "Ehrlich and Raven formally define coevolution and propose the escape-and-radiate model using plants and butterflies"
+      },
+      {
+        "y": "1980",
+        "t": "Janzen publishes a strict operational definition, tightening criteria to reciprocity and specificity"
+      },
+      {
+        "y": "1994",
+        "t": "Thompson introduces the geographic mosaic theory of coevolution, emphasizing spatial variation in coevolutionary dynamics"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHY IT MATTERS",
+    "title": "The Broader Significance of Coevolution",
+    "items": [
+      "Coevolution is a major generator of biodiversity: escape-and-radiate dynamics link antagonistic interactions directly to diversification rates",
+      "It structures ecological communities, shaping which species can coexist, specialize, or depend on one another",
+      "It provides some of the clearest empirical demonstrations of natural selection in action, because reciprocal, matched trait escalation is difficult to explain by any process other than selection",
+      "It connects microevolutionary mechanisms (Evolution I, Chapters 1–9) to macroevolutionary outcomes (Chapter 14) within a single, unified framework",
+      "Understanding coevolution has direct applied relevance: host-pathogen coevolution underlies the evolution of virulence and antibiotic and antiviral resistance"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "METHODS OVERVIEW",
+    "title": "Studying Coevolution: A Methods Comparison",
+    "headers": [
+      "Method",
+      "What it tests",
+      "Key limitation"
+    ],
+    "rows": [
+      [
+        "Comparative phylogenetics / cophylogeny",
+        "Whether host and partner lineages share a correlated branching history",
+        "Congruent trees can also arise from co-dispersal without reciprocal selection"
+      ],
+      [
+        "Reciprocal transplant / common garden",
+        "Whether local populations show genetically based adaptation to their specific local partner",
+        "Logistically difficult for long-lived or hard-to-manipulate species"
+      ],
+      [
+        "Geographic mosaic surveys",
+        "How trait matching varies across many populations (hotspots vs. coldspots)",
+        "Requires large-scale sampling across the full range of both species"
+      ]
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "SUPPORTING CONCEPT",
+    "title": "Trait Matching",
+    "term": "Trait matching",
+    "def": "A quantitative correspondence between a trait in one interacting species and a related trait in its partner species, such that the two traits covary in a way predicted by reciprocal selection (e.g., proboscis length and floral spur depth, or toxin dose and resistance threshold).",
+    "bullets": [
+      "The most direct, measurable signature biologists look for when testing for coevolution",
+      "Tight trait matching across many independent populations or species pairs is strong evidence of reciprocal selection",
+      "Mismatch (a trait exceeding its partner's corresponding trait) is common and often reflects geographic mosaic dynamics or an ongoing, unresolved arms race"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LEARNING OBJECTIVES CHECK",
+    "title": "By the End of This Lecture, You Should Be Able To…",
+    "items": [
+      "State the formal definition of coevolution and explain why both reciprocity and specificity are required to demonstrate it",
+      "Distinguish true coevolution from sequential adaptation, convergent evolution, coadaptation, and ecological fitting",
+      "Compare and contrast pairwise, diffuse, and escape-and-radiate coevolution using specific examples",
+      "Explain how escape-and-radiate coevolution links antagonistic interactions to adaptive radiation and diversification rate",
+      "Describe the geographic mosaic theory of coevolution and its three components: selection mosaics, hotspots/coldspots, and trait remixing",
+      "Identify at least two methodological approaches — one phylogenetic, one experimental — used to test for coevolution"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "DISCUSSION PROMPTS",
+    "title": "Questions to Consider Before Next Lecture",
+    "items": [
+      "Can you think of an interaction you assumed was coevolved that might actually be one-sided sequential adaptation? What evidence would distinguish the two?",
+      "Why might diffuse coevolution be more common in nature than strict pairwise coevolution, given how most species interact with many partners?",
+      "How does the geographic mosaic theory complicate the idea that a species has a single, fixed 'coevolved' trait value?",
+      "What kind of phylogenetic pattern would you expect to see if escape-and-radiate coevolution had occurred between a plant clade and an herbivorous insect clade?"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "CHAPTER 15 ROADMAP",
+    "title": "Where This Chapter Is Headed",
+    "cards": [
+      {
+        "h": "Lecture 21 (today)",
+        "p": "Definitions, criteria, and types of coevolution: pairwise, diffuse, and escape-and-radiate, plus the comparative and geographic-mosaic toolkit."
+      },
+      {
+        "h": "Lecture 22",
+        "p": "Antagonistic coevolution: predator-prey and host-parasite arms races, and the Red Queen hypothesis."
+      },
+      {
+        "h": "Lecture 23",
+        "p": "Mutualistic coevolution: pollination, nutritional and defensive symbioses, and the evolutionary stability of cooperation."
+      },
+      {
+        "h": "Lecture 24",
+        "p": "Synthesis and case studies integrating antagonistic and mutualistic coevolution within single ecological systems."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "KEY TERMS RECAP",
+    "title": "Vocabulary from Today",
+    "items": [
+      "Coevolution — reciprocal evolutionary change between interacting species",
+      "Reciprocity and specificity — the two criteria required to demonstrate true coevolution",
+      "Pairwise (specific) coevolution — tight, reciprocal evolution between exactly two species",
+      "Diffuse coevolution — reciprocal evolution involving a guild or community of interacting species",
+      "Escape-and-radiate coevolution — a defense innovation triggers ecological release and radiation, later followed by a counter-adaptation and radiation in the antagonist",
+      "Geographic mosaic theory of coevolution — spatial variation in coevolutionary selection across a species' range, comprising hotspots, coldspots, and trait remixing",
+      "Cophylogeny — the comparative analysis of host and partner phylogenies to detect coevolutionary signatures"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "END-OF-LECTURE SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Coevolution is reciprocal evolutionary change between interacting species, each acting as a selective agent on the other",
+      "True coevolution must satisfy both reciprocity (change flows both ways) and specificity (the effect is attributable to the specific partner or guild)",
+      "Three major types differ in how many species are involved and over what timescale they operate: pairwise, diffuse, and escape-and-radiate",
+      "Escape-and-radiate coevolution directly connects antagonistic interactions to the adaptive radiation dynamics covered in Lecture 18",
+      "Coevolutionary relationships span a spectrum from antagonistic to mutualistic, which will structure Lectures 22 and 23",
+      "The geographic mosaic theory reminds us that coevolution is not uniform across a species' range, but a dynamic, spatially variable process",
+      "Comparative phylogenetics, experimental transplants, and geographic surveys together form the empirical toolkit for studying coevolution"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE — LECTURE 22",
+    "title": "Antagonistic Coevolution: Arms Races",
+    "sub": "We return to the garter snake and toxic newt system in depth, extend it to host-parasite interactions, and introduce the Red Queen hypothesis — the idea that lineages must keep evolving just to maintain their current fitness against ever-adapting antagonists."
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 21</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

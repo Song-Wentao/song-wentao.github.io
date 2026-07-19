@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 15: Community Ecology Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 15",
+    "title": "Community Ecology Models",
+    "sub": "Species co-occurrence, null models, networks, and joint species distribution models -- in R, Python, and Julia",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "From Groups to Species",
+    "title": "A Different Question About the Same Data",
+    "sub": "Lecture 4 asked whether groups differ in composition -- today we ask how species relate to each other"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Where We Left Off",
+    "title": "Lecture 4 Answered a Group-Level Question",
+    "items": [
+      "PCA, NMDS, and PERMANOVA (Lecture 4) all treat the community matrix as sites x species and ask: do SITES (or groups of sites) differ in composition?",
+      "PERMANOVA on dune_species.csv: Management explained a significant share of Bray-Curtis dissimilarity among sites",
+      "That machinery is about GROUPS OF SITES -- it never asks whether two individual species are found together more or less often than chance",
+      "Today's question is the transpose: hold sites fixed, and ask how SPECIES co-vary with each other across those sites",
+      "Same dune_species.csv and BCI_species.csv datasets, a completely different analytical lens"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Core Question",
+    "title": "Do Species Occur Together More (or Less) Than Chance?",
+    "items": [
+      "Two species sharing many sites could mean: shared habitat preference, facilitation, or pure chance given how common each species is",
+      "Two species rarely sharing sites could mean: competitive exclusion, divergent niches, or again -- pure chance",
+      "Raw correlation alone cannot distinguish 'chance' from 'signal' -- a common species and another common species will co-occur a lot no matter what",
+      "We need: (1) pairwise association, (2) a null model that accounts for how common each species is, (3) a way to visualize the resulting structure, (4) a way to separate environment from residual biotic signal"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Co-occurrence Null Model",
+    "term": "co-occurrence null model",
+    "def": "A randomization procedure that generates many 'random' community matrices constrained to preserve each species' total occurrence frequency and each site's total richness, against which an observed co-occurrence statistic (e.g. the C-score) is compared to ask whether the real pattern is more segregated or more aggregated than chance.",
+    "bullets": [
+      "Preserving row AND column sums ('fixed-fixed') is the standard, most defensible constraint -- it compares apples to apples",
+      "Implemented in R as vegan::oecosimu() with method = \"quasiswap\"",
+      "Output is a standardized effect size (SES / z-score) and an empirical p-value, exactly like a permutation test"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Toolbox",
+    "title": "Four Tools, One Underlying Question",
+    "items": [
+      "1. Pairwise Spearman correlation among species abundances across sites -- descriptive, fast, but ignores multiple testing and marginal frequencies",
+      "2. Null-model C-score test (Gotelli 2000) -- formally tests observed co-occurrence against a randomized null distribution",
+      "3. Co-occurrence NETWORK -- threshold significant associations into a graph you can actually look at and summarize",
+      "4. Joint species distribution model (JSDM) -- the modern extension: fit all species together, model the residual correlation that's left after accounting for environment"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Step 1",
+    "title": "Pairwise Species Correlation",
+    "sub": "A descriptive first look at the dune_species.csv community matrix (20 sites x 30 species)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Method",
+    "title": "Spearman Correlation Across Sites, Species by Species",
+    "items": [
+      "For every pair of species, correlate their abundance vectors across the 20 dune sites using Spearman's rank correlation (robust to the many zeros and skew typical of abundance data)",
+      "435 = choose(30, 2) pairwise tests for the 30-species dune matrix",
+      "Flag pairs with uncorrected p < 0.05 AND positive r as candidate positive associations",
+      "CAVEAT: at alpha = 0.05 across 435 tests we expect ~22 false positives by chance alone -- a real analysis should use FDR correction (p.adjust) or lean on the null-model test in Step 2 instead"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Correlation Code",
+    "title": "Pairwise Spearman Correlation",
+    "left": {
+      "h": "R (base)",
+      "body": "<pre><code>comm &lt;- as.matrix(dune[, -1])  # drop site col\n\nfor (i in 1:(n_sp-1)) for (j in (i+1):n_sp) {\n  ct &lt;- cor.test(comm[,i], comm[,j],\n                  method = &quot;spearman&quot;)\n  cor_mat[i,j] &lt;- ct$estimate\n  p_mat[i,j]   &lt;- ct$p.value\n}\n\nsig_pos &lt;- (p_mat &lt; 0.05) &amp; (cor_mat &gt; 0)\nsum(sig_pos) / 2\n#&gt; 43 significant positive pairs / 435</code></pre>"
+    },
+    "right": {
+      "h": "Python (scipy)",
+      "body": "<pre><code>from scipy.stats import spearmanr\n\nfor i in range(n_sp - 1):\n    for j in range(i + 1, n_sp):\n        r, p = spearmanr(comm[:, i],\n                          comm[:, j])\n        cor_mat[i, j] = cor_mat[j, i] = r\n        p_mat[i, j]   = p_mat[j, i]   = p\n\nsig_pos = (p_mat &lt; 0.05) &amp; (cor_mat &gt; 0)\nsig_pos.sum() // 2\n# 43 significant positive pairs / 435</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "A Necessary Caveat",
+    "title": "435 Tests Means False Positives Are Guaranteed",
+    "items": [
+      "Dune result: 43 of 435 pairs significant at uncorrected p < 0.05 (9.9%)",
+      "Expected false positives under a true global null: 0.05 x 435 ~ 22",
+      "So roughly half of the 43 'significant' pairs could be noise -- this is exactly why co-occurrence analysis moved toward formal null models instead of raw pairwise testing",
+      "Options: Benjamini-Hochberg FDR correction on the p-values, OR replace pairwise testing entirely with a matrix-level null model (next section)"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Step 2",
+    "title": "Null-Model Co-occurrence Testing",
+    "sub": "The C-score: comparing observed co-occurrence to a randomized null distribution"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Methodological Reference",
+    "title": "Gotelli (2000): Null Model Analysis of Species Co-occurrence Patterns",
+    "items": [
+      "Gotelli, N.J. (2000). \"Null model analysis of species co-occurrence patterns.\" Ecology, 81(9), 2606-2621.",
+      "Formalized the C-score (checkerboard score) of Stone & Roberts (1990) as a test statistic and systematically compared randomization algorithms for generating the null distribution",
+      "Key recommendation: the 'fixed-fixed' null model (preserve BOTH species occurrence totals AND site richness totals) is the most defensible default -- looser constraints inflate false positives",
+      "This is the standard reference cited whenever ecologists report a null-model co-occurrence test -- know it, cite it"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "How It Works",
+    "title": "The C-score and the Fixed-Fixed Randomization",
+    "items": [
+      "C-score for a species pair = (sites with species A only) x (sites with species B only) -- averaged across all pairs, it is the 'checkerboard units' statistic",
+      "High C-score = species rarely share sites (segregation); low C-score = species share sites more than expected (aggregation)",
+      "Null distribution: reshuffle the presence-absence matrix thousands of times, preserving each species' total occurrences AND each site's total richness exactly (checkerboard swaps: [[1,0],[0,1]] <-> [[0,1],[1,0]])",
+      "Compare observed C-score to this null distribution -> standardized effect size (SES) and empirical p-value"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Null Model Code",
+    "title": "C-score Null Model -- vegan::oecosimu()",
+    "left": {
+      "h": "R (vegan)",
+      "body": "<pre><code>pa &lt;- (comm &gt; 0) * 1\n\nset.seed(42)\nnull_test &lt;- oecosimu(\n  pa, nestedchecker,\n  method = &quot;quasiswap&quot;, nsimul = 999)\n\nnull_test$statistic$statistic\n#&gt; checkerboards: 5274\nnull_test$oecosimu$z\n#&gt; SES: 6.18\nnull_test$oecosimu$pval\n#&gt; p = 0.001</code></pre>"
+    },
+    "right": {
+      "h": "Interpretation",
+      "body": "<p>SES = 6.18, p = 0.001: the observed checkerboard score is far higher than the fixed-fixed null distribution predicts.</p><p>Conclusion: the dune plant community shows significant <strong>segregation</strong> -- species pairs share fewer sites than random co-occurrence would produce, consistent with competitive exclusion or divergent niche/moisture requirements.</p><p><code>method=\"quasiswap\"</code> is vegan's fixed-fixed algorithm -- the Gotelli-recommended default.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Null Model Code",
+    "title": "Hand-Rolled Fixed-Fixed Null Model (Python)",
+    "left": {
+      "h": "Python (hand-rolled swap algorithm)",
+      "body": "<pre><code>def swap_null(pa, n_swaps, rng):\n    m = pa.copy()\n    done = 0\n    while done &lt; n_swaps:\n        r1, r2 = rng.choice(n_site, 2,\n                             replace=False)\n        c1, c2 = rng.choice(n_sp, 2,\n                             replace=False)\n        block = m[[r1,r2]][:,[c1,c2]]\n        if (block == [[1,0],[0,1]]).all():\n            m[r1,c1],m[r1,c2] = 0,1\n            m[r2,c1],m[r2,c2] = 1,0\n            done += 1\n        elif (block == [[0,1],[1,0]]).all():\n            m[r1,c1],m[r1,c2] = 1,0\n            m[r2,c1],m[r2,c2] = 0,1\n            done += 1\n    return m</code></pre>"
+    },
+    "right": {
+      "h": "Result (cross-checks R)",
+      "body": "<pre><code>obs_c = cscore(pa)\nnull_c = [cscore(swap_null(mat, 200, rng))\n          for _ in range(999)]\n\nz = (obs_c - mean(null_c)) / std(null_c)\np = (sum(null_c &gt;= obs_c)+1)/1000\n\n# Observed C-score:  12.124\n# Null mean C-score: 11.511\n# SES (z) = 5.96, p = 0.001\n# matches R vegan::oecosimu (SES=6.18)</code></pre>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Choosing a Null Model",
+    "title": "Randomization Algorithms Are Not Interchangeable",
+    "headers": [
+      "Algorithm",
+      "Row sums (site richness)",
+      "Column sums (species freq.)",
+      "False-positive behavior"
+    ],
+    "rows": [
+      [
+        "Fixed-fixed (quasiswap)",
+        "Preserved exactly",
+        "Preserved exactly",
+        "Conservative -- Gotelli's recommended default"
+      ],
+      [
+        "Fixed-equiprobable (r1)",
+        "Preserved exactly",
+        "Not preserved (equiprobable)",
+        "Can inflate false positives"
+      ],
+      [
+        "Equiprobable-equiprobable (r00)",
+        "Not preserved",
+        "Not preserved",
+        "Anti-conservative -- generally avoid"
+      ],
+      [
+        "Column shuffle only",
+        "Not preserved",
+        "Preserved exactly",
+        "Ignores site richness gradient -- biased"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "The Dune Community Is Significantly Segregated",
+    "items": [
+      "Observed C-score (checkerboard units): 5274; null mean: ~5004-5012 depending on the exact 999-permutation draw",
+      "SES ~ 6, p = 0.001 in both R (vegan::oecosimu) and the hand-rolled Python swap algorithm -- strong agreement across independent implementations",
+      "This single matrix-wide statistic is far more defensible than the 43 raw significant pairwise correlations from Step 1 -- it correctly accounts for how common each species is",
+      "Next: convert the pairwise-correlation view (not the matrix-wide C-score) into a visual, interpretable NETWORK"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Step 3",
+    "title": "The Co-occurrence Network",
+    "sub": "Species as nodes, significant positive associations as edges"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Construction",
+    "title": "From a Correlation Matrix to a Graph",
+    "items": [
+      "Adjacency rule: connect species i and j with an edge if their pairwise Spearman correlation is positive AND significant at uncorrected p < 0.05 (from Step 1)",
+      "This is a threshold network -- a deliberately simple, transparent choice; more sophisticated approaches threshold on the null-model z-score per pair instead of raw p-value",
+      "Nodes with zero edges (no significant positive partner) are dropped from the plot for legibility, but noted in the summary stats",
+      "Undirected, unweighted graph: an edge either exists or it doesn't"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Network Code",
+    "title": "Building and Plotting the Network -- igraph",
+    "left": {
+      "h": "R (igraph)",
+      "body": "<pre><code>adj &lt;- sig_pos * 1\ndiag(adj) &lt;- 0\n\ng &lt;- graph_from_adjacency_matrix(\n  adj, mode = &quot;undirected&quot;, diag = FALSE)\ng &lt;- delete_vertices(g,\n                      which(degree(g) == 0))\n\ndeg  &lt;- degree(g)\ndens &lt;- edge_density(g)\nsort(deg, decreasing = TRUE)[1:3]\n#&gt; Planlanc Agrostol Eleopalu\n#&gt;        6        5        5</code></pre>"
+    },
+    "right": {
+      "h": "Plot",
+      "body": "<pre><code>png(&quot;figures/lecture_15_cooccurrence_network.png&quot;,\n    width = 1500, height = 1300, res = 150)\nplot(g, layout = layout_with_fr(g),\n     vertex.size = 6 + 2 * deg,\n     vertex.color = &quot;#8E5AA8&quot;,\n     edge.color = &quot;#2E6E8E&quot;,\n     main = &quot;Dune Species Co-occurrence\\n(edges = significant positive association)&quot;)\ndev.off()</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Network Code",
+    "title": "Building and Plotting the Network -- networkx",
+    "left": {
+      "h": "Python (networkx)",
+      "body": "<pre><code>G = nx.Graph()\nG.add_nodes_from(sp_names)\nfor i in range(n_sp - 1):\n    for j in range(i + 1, n_sp):\n        if sig_pos[i, j]:\n            G.add_edge(sp_names[i],\n                        sp_names[j])\n\nG.remove_nodes_from(list(nx.isolates(G)))\ndegrees = dict(G.degree())\nnx.density(G)\n#&gt; 0.114</code></pre>"
+    },
+    "right": {
+      "h": "Plot",
+      "body": "<pre><code>pos = nx.spring_layout(G, seed=42)\nsizes = [180 + 60*degrees[n]\n         for n in G.nodes()]\n\nnx.draw_networkx_edges(G, pos,\n    edge_color=&quot;#2E6E8E&quot;, alpha=0.6)\nnx.draw_networkx_nodes(G, pos,\n    node_size=sizes, node_color=&quot;#8E5AA8&quot;)\nnx.draw_networkx_labels(G, pos,\n    font_size=7)\n\nplt.savefig(\n  &quot;figures/lecture_15_cooccurrence_network.png&quot;)</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Network Code",
+    "title": "Building and Plotting the Network -- Graphs.jl",
+    "left": {
+      "h": "Julia (Graphs.jl)",
+      "body": "<pre><code>g = SimpleGraph(n_sp)\nfor i in 1:(n_sp-1), j in (i+1):n_sp\n    sig_pos[i,j] &amp;&amp; add_edge!(g, i, j)\nend\n\nkeep = findall(degree(g) .&gt; 0)\ng_conn, _ = induced_subgraph(g, keep)\n\ndensity(g_conn)          # 0.114\nmean(degree(g_conn))     # 3.07</code></pre>"
+    },
+    "right": {
+      "h": "Plot (GraphPlot.jl)",
+      "body": "<pre><code>using GraphPlot, Compose\n\ndraw(PNG(\n  &quot;figures/lecture_15_cooccurrence_network.png&quot;,\n  15cm, 13cm),\n  gplot(g_conn,\n    nodelabel = labels_conn,\n    nodesize = 4 .+ 1.5 .* degree(g_conn),\n    nodefillc = RGBA(0.56,0.35,0.66,0.9)))</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "The Dune Co-occurrence Network's Structure",
+    "items": [
+      "28 of 30 species retain at least one significant positive partner; 2 species are fully isolated in the co-occurrence network",
+      "43 edges among 28 connected nodes -> network density = 0.114 (11.4% of all possible connected-species pairs are linked)",
+      "Mean degree = 3.07 -- a typical connected species has about 3 significant positive co-occurrence partners",
+      "Top-3 hub species by degree: Planlanc (6), Agrostol (5), Eleopalu (5) -- these three species anchor the densest part of the network",
+      "R (igraph) and Python (networkx) built from the same adjacency matrix agree exactly on all of these numbers -- a useful cross-language sanity check"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Ecological Interpretation",
+    "title": "What Hub Species Tell You (and What They Don't)",
+    "cards": [
+      {
+        "h": "Generalist habitat use",
+        "p": "A high-degree hub is often simply a widespread generalist that co-occurs with many specialists sharing only part of its niche -- degree reflects breadth, not necessarily interaction strength."
+      },
+      {
+        "h": "Not proof of interaction",
+        "p": "A network edge means 'occurs together more than chance,' not 'interacts with.' Facilitation, shared habitat, and shared dispersal vector all produce the same statistical signature."
+      },
+      {
+        "h": "Isolated nodes matter too",
+        "p": "Species with degree 0 are not 'unimportant' -- they may be habitat specialists whose co-occurrence pattern is real but just not statistically distinguishable from chance at this sample size (20 sites)."
+      },
+      {
+        "h": "Density is a whole-community summary",
+        "p": "Network density (0.114 here) is a single number you can compare across communities, treatments, or time points -- e.g. does grazing management change how tightly co-structured the community is?"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Step 4",
+    "title": "Joint Species Distribution Models",
+    "sub": "The modern statistical extension: model all species together, and let the residuals tell you about biotic structure"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Joint Species Distribution Model",
+    "term": "joint species distribution model (JSDM)",
+    "def": "A multi-species regression framework that models all species' responses to the environment simultaneously and explicitly estimates the residual correlation structure among species after the shared environmental response is removed -- that residual covariance is interpreted as the signature of biotic interactions, unmeasured environment, or shared dispersal.",
+    "bullets": [
+      "Standard R implementations: Hmsc (fully Bayesian, most complete), boral (Bayesian latent-variable), gllvm (fast frequentist/Laplace-approximation latent-variable models)",
+      "Core logic: correlation(raw abundances) = correlation(shared environmental response) + correlation(residuals) -- JSDMs formally separate the two terms",
+      "Not installed in this sandbox -- today's hands-on version approximates the idea with a stacked-species GLM + residual correlation matrix"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why This Matters",
+    "title": "Environment vs. Biotic Signal: A Confound Co-occurrence Nulls Don't Resolve",
+    "items": [
+      "Steps 1-3 tested raw co-occurrence against a null model that shuffles the community matrix -- but two species can co-occur simply because they both like the same soil moisture, with zero direct interaction",
+      "A JSDM asks a sharper question: after each species' individual response to the environment is accounted for, is there STILL correlation left over among species?",
+      "That leftover (residual) correlation is much harder to explain by shared habitat preference alone -- it is the closer analogue of a 'biotic interaction' signal",
+      "Full JSDMs (Hmsc/boral/gllvm) estimate this jointly, with proper uncertainty and (in Hmsc's case) trait and phylogenetic structure -- today's stacked-GLM version is a simplified, transparent stand-in"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Simplified JSDM Code",
+    "title": "Stacked-Species GLM + Residual Correlation",
+    "left": {
+      "h": "R (base glm)",
+      "body": "<pre><code>dune_env &lt;- read.csv(&quot;data/dune_env.csv&quot;)\nA1 &lt;- dune_env$A1\n\nresid_mat &lt;- matrix(NA, n_site, n_sp)\nfor (j in 1:n_sp) {\n  fit &lt;- glm(comm[, j] ~ A1,\n             family = poisson())\n  resid_mat[, j] &lt;-\n    residuals(fit, type = &quot;pearson&quot;)\n}\n\nresid_cor &lt;- cor(resid_mat,\n                  method = &quot;spearman&quot;)</code></pre>"
+    },
+    "right": {
+      "h": "Python (statsmodels)",
+      "body": "<pre><code>A1 = dune_env[&quot;A1&quot;].to_numpy()\nX = sm.add_constant(A1)\n\nresid_mat = np.empty((n_site, n_sp))\nfor j in range(n_sp):\n    fit = sm.GLM(\n        comm[:, j], X,\n        family=sm.families.Poisson()\n    ).fit()\n    resid_mat[:, j] = fit.resid_pearson\n\nresid_cor = spearman_corr(resid_mat)</code></pre>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Result",
+    "title": "What the Dune Residual Correlations Show",
+    "items": [
+      "Mean |raw Spearman correlation| among species (Step 1): 0.260",
+      "Mean |residual correlation| after controlling for A1 (soil organic matter): 0.305 -- essentially unchanged, not smaller",
+      "This is a real, honest result: A1 alone does not explain much of the raw co-occurrence signal in this dataset",
+      "Two possible readings: (1) the true environmental driver is a different variable (e.g. Moisture -- try Exercise 3), or (2) a genuine biotic/unmeasured-covariate signal dominates and single-covariate GLMs can't absorb it",
+      "This is exactly the situation a full JSDM (Hmsc/gllvm) would probe further with latent factors capturing multiple unmeasured axes at once, rather than one covariate at a time"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Method Comparison",
+    "title": "Three Levels of Rigor for the Same Question",
+    "headers": [
+      "Approach",
+      "Accounts for species frequency?",
+      "Accounts for environment?",
+      "Tooling used today"
+    ],
+    "rows": [
+      [
+        "Raw pairwise correlation",
+        "No",
+        "No",
+        "cor.test() / scipy.stats.spearmanr"
+      ],
+      [
+        "Null-model C-score",
+        "Yes (fixed-fixed swap)",
+        "No",
+        "vegan::oecosimu / hand-rolled swap"
+      ],
+      [
+        "Stacked-GLM residual correlation",
+        "Partially (via Poisson mean)",
+        "Yes (one covariate)",
+        "glm() / statsmodels.GLM per species"
+      ],
+      [
+        "Full JSDM (Hmsc/boral/gllvm)",
+        "Yes",
+        "Yes (multiple covariates + latent factors)",
+        "Not installed -- described conceptually"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Honest Limitations",
+    "title": "What the Simplified Pipeline Does NOT Do",
+    "items": [
+      "Per-species GLMs fit independently ignore shared uncertainty -- a true JSDM estimates the residual covariance matrix jointly with the environmental coefficients, propagating uncertainty correctly",
+      "No correction for multiple testing anywhere in today's pipeline except the null-model C-score -- treat the 43 'significant' pairs as a hypothesis-generating list, not a confirmed set",
+      "20 sites is a small sample for 30 species -- co-occurrence patterns here should be read as illustrative of the method, not as a definitive ecological conclusion about this dune system",
+      "A real JSDM workflow would use Hmsc or gllvm with proper cross-validation, multiple environmental covariates simultaneously, and (ideally) more sites"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Putting It Together",
+    "title": "Four Tools for One Question, Increasing Rigor",
+    "cards": [
+      {
+        "h": "1. Pairwise correlation",
+        "p": "Fast, descriptive, but blind to multiple testing and marginal frequencies."
+      },
+      {
+        "h": "2. Null-model C-score",
+        "p": "Gotelli (2000)'s answer to 'is this more structured than chance, correctly accounting for how common each species is?'"
+      },
+      {
+        "h": "3. Co-occurrence network",
+        "p": "Turns the pairwise table into an interpretable structure: density, hubs, isolated species."
+      },
+      {
+        "h": "4. JSDM (or its stand-in)",
+        "p": "Separates 'shared environment' from 'everything else' -- the residual correlation is the closest thing to a biotic-interaction signal."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "Community Ecology Models: What to Remember",
+    "items": [
+      "Co-occurrence is not causation -- always pair a raw correlation with a proper null model before claiming 'species X and Y are associated'",
+      "Gotelli (2000)'s fixed-fixed null model (preserve both row and column sums) is the field standard -- vegan::oecosimu(method=\"quasiswap\") implements it directly in R",
+      "Networks are a genuinely useful communication tool: density, degree, and hub identification summarize community-wide structure in numbers a non-specialist audience can grasp",
+      "JSDMs formalize the environment-vs-biotic-signal split that a stacked-GLM + residual-correlation approach only approximates -- reach for Hmsc/boral/gllvm when the real analysis matters",
+      "Everything shown today reproduces across R, Python, and Julia from the same dune_species.csv matrix -- SES ~6 and hub species Planlanc/Agrostol/Eleopalu agree across implementations"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "From the Source",
+    "quote": "Patterns of species co-occurrence... have been used to test hypotheses about assembly rules and community structure, but without a proper null model, apparent patterns of segregation or aggregation cannot be distinguished from the effects of differences in species prevalence.",
+    "attrib": "Gotelli, N.J. (2000), Ecology 81(9): 2606-2621, paraphrased summary of the paper's central argument"
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Method History",
+    "title": "From Checkerboards to Joint Models",
+    "items": [
+      {
+        "y": "1975",
+        "t": "Diamond proposes 'assembly rules' -- species combinations that look non-random on islands, sparking the co-occurrence debate"
+      },
+      {
+        "y": "1990",
+        "t": "Stone & Roberts formalize the C-score as a community-wide co-occurrence statistic"
+      },
+      {
+        "y": "2000",
+        "t": "Gotelli (Ecology) systematically compares null-model algorithms and establishes fixed-fixed as the recommended default -- today's methodological anchor"
+      },
+      {
+        "y": "2010s",
+        "t": "boral and Hmsc bring joint species distribution models into routine ecological practice, explicitly separating environment from residual co-variation"
+      },
+      {
+        "y": "Today",
+        "t": "gllvm offers fast frequentist JSDM fitting; network methods (igraph/networkx/Graphs.jl) make co-occurrence structure directly visualizable"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Scaling Up",
+    "title": "BCI: The Same Pipeline at 225 Species",
+    "items": [
+      "data/BCI_species.csv: 50 plots x 225 tree species from Barro Colorado Island (Condit, Hubbell & Foster 2002, Science) -- far too large for a live 30-species demo",
+      "choose(225, 2) = 25,200 pairwise tests -- multiple-testing correction stops being optional and becomes essential",
+      "The exercises ask you to subset to the ~30 most abundant BCI species and rerun today's exact pipeline -- same code, bigger (but still tractable) community",
+      "Watch for a different network signature: tropical tree co-occurrence at 50 plots may show very different density than the 20-site dune meadow survey"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Wrapping Up",
+    "title": "From Communities to Space",
+    "sub": "Every model this semester has treated sites as exchangeable points -- next lecture asks what happens when location itself matters"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Next Lecture",
+    "title": "Lecture 16: Spatial Modeling",
+    "items": [
+      "Today's co-occurrence network ignored WHERE sites are located relative to each other -- spatial modeling puts location back into the model",
+      "Spatial autocorrelation: near things tend to be more similar than far things (Tobler's First Law) -- and ignoring it can produce misleadingly confident p-values, the same caution as pseudoreplication in Lecture 7",
+      "Methods: variograms and kriging, spatial GLMMs/GAMs with explicit spatial random effects, point-pattern analysis for the BCI tree census data",
+      "Bring the same dune and BCI datasets -- BCI in particular has real x-y coordinates (bei_points.csv) perfect for a spatial point-pattern demonstration"
+    ]
+  },
+  {
+    "type": "title",
+    "eyebrow": "End of Lecture 15",
+    "title": "Community Ecology Models",
+    "sub": "Co-occurrence correlation -> null-model testing (Gotelli 2000) -> network structure -> simplified JSDM residual correlation, in R, Python, and Julia",
+    "footnote": "Next: Lecture 16 -- Spatial Modeling"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 15</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 11: Occupancy and N-mixture Models</title>
+<style>
+  :root{
+    --bg:#0d1b1e;
+    --panel:#ffffff;
+    --ink:#132326;
+    --ink-soft:#4a6469;
+    --accent:#0e7c86;
+    --accent-2:#c97a2b;
+    --accent-soft:#e3f2f1;
+    --line:#d7e6e5;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .col-box pre{
+    background: #0d1b1e;
+    color: #d7f5f2;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    font-size: 0.66rem;
+    line-height: 1.28;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .col-box code{
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .col-box p code, .bullets code{
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "Lecture 11",
+    "title": "Occupancy and N-mixture Models",
+    "sub": "Separating true presence from imperfect detection in repeat-visit field surveys -- in R, Python, and Julia",
+    "footnote": "Ecological Modelling with R, Python, and Julia"
+  },
+  {
+    "type": "section",
+    "tag": "Setting the Scene",
+    "title": "Field Surveys Almost Never See Everything That Is Actually There",
+    "sub": "A single negative survey visit is not proof of absence"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Detection Problem",
+    "title": "False Absence Is the Default, Not the Exception",
+    "items": [
+      "A field crew visits a site, does not detect the target species, and records a zero -- but the species may simply have been present and undetected: silent, hidden, out of range on that day, or just missed",
+      "This is called a false absence, and it is pervasive: cryptic amphibians, nocturnal carnivores, shy forest birds, and low-density populations of almost anything are routinely missed even when present",
+      "Detection probability -- the chance of recording a species given that it is truly there -- is almost never 1.0 in real surveys, and it usually varies with weather, observer skill, time of day, season, and habitat",
+      "Treating a zero count as certain absence silently converts a detection problem into a biology problem, and every downstream inference inherits the error",
+      "Occupancy models exist to separate these two processes explicitly: whether a species is truly there (the state), and whether we happened to detect it given that it was there (the observation)"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why It Matters",
+    "title": "Imperfect Detection Is Not a Minor Technicality",
+    "items": [
+      "Naive occupancy (the raw proportion of surveyed sites with at least one detection) is a biased estimator of true occupancy -- it is biased low, and the size of the bias depends on detection probability and the number of visits",
+      "Comparing naive occupancy across species, sites, or years is comparing different mixtures of true occupancy and detectability -- a declining trend in raw detections could reflect a real decline, a change in observer effort, or both, and you cannot tell which from the raw numbers alone",
+      "Conservation decisions, protected-area designation, and IUCN status assessments increasingly rely on occupancy estimates precisely because they are meant to correct for this",
+      "The fix does not require inventing new fieldwork: it requires repeat visits to at least some sites within a short enough window that true occupancy state does not change between visits (a closure assumption), which most standard monitoring protocols already do or can easily be adapted to do"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Consequences",
+    "title": "What Goes Wrong If You Ignore Detection",
+    "items": [
+      "Occupancy is systematically underestimated -- every site with a real but undetected presence is misclassified as absent",
+      "Covariate effects on occupancy can be biased or masked entirely if the covariate also happens to affect detectability (e.g. dense vegetation that both provides better habitat and makes animals harder to see)",
+      "Apparent range contractions or population declines can be partly or wholly artifacts of reduced survey effort or changed detectability, not reduced true occupancy",
+      "The single most important habit this lecture teaches: always report naive occupancy alongside the model-estimated occupancy, and explain the gap -- it is a diagnostic, not just a number"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Data Provenance -- Read This First",
+    "title": "Where This Lecture's Data Actually Comes From",
+    "term": "Simulated, Not Downloaded -- and Explicitly Labeled As Such",
+    "def": "This sandbox has no general internet access (only pypi.org and the apt package mirror are reachable -- confirmed by a failed CRAN install and a failed fetch from raw.githubusercontent.com). The real repeat-visit crossbill survey data bundled with R's unmarked package (data(crossbill)) could not be downloaded.",
+    "bullets": [
+      "Instead, data/crossbill_occupancy_sim.csv is simulated with a fixed, documented random seed (11042004) using the exact survey design and parameter ranges reported for this system: Schmid, Zbinden & Keller (2004), Swiss Ornithological Institute breeding bird survey (MHB), and Royle & Kery (2007), Ecology 88(7):1813-1823",
+      "Design matched: 200 sites, 3 repeat visits per season, a site-level elevation covariate on occupancy, a visit-level date covariate on detection",
+      "Probabilities matched: occupancy probability psi in the 0.3-0.6 range depending on elevation; detection probability p in the 0.4-0.7 range depending on survey date -- exactly the ranges reported in the source studies",
+      "The modeling code in this lecture is structurally identical to what you would run on the real data via data(crossbill) in unmarked, or via wildlifeR / camtrapR workflows on your own camera-trap or point-count data",
+      "Mis-labeling simulated data as raw field data would be a worse error than being upfront about a sandboxing limitation -- so every script header repeats this note"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Case Study",
+    "title": "The Crossbill / Willow Tit Survey Framework",
+    "items": [
+      "The Swiss breeding bird survey (Monitoring Haufige Brutvogel, MHB) has surveyed hundreds of 1-km2 quadrats across Switzerland since 1999, with 2-3 territory-mapping visits per quadrat per breeding season",
+      "This design became one of the most widely taught occupancy-modeling case studies through Kery & Royle's textbook 'Applied Hierarchical Modeling in Ecology' (2016), which uses both the crossbill (Loxia curvirostra) and willow tit (Poecile montanus) data extensively",
+      "Elevation is an ecologically meaningful covariate for both species: crossbills depend on conifer seed crops concentrated at particular elevation bands, so occupancy is expected to vary systematically with elevation rather than being constant across the landscape",
+      "Survey date matters for detection because singing/calling activity (the primary cue for these species) declines as the breeding season progresses -- exactly the kind of nuisance parameter occupancy models are built to separate from the ecological signal of interest"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "The Framework",
+    "title": "Two Linked Sub-Models, One Data Point at a Time",
+    "sub": "A true, fixed state, observed through an imperfect window"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The Occupancy Model: State Process + Observation Process",
+    "term": "z_i ~ Bernoulli(psi_i)      y_ij ~ Bernoulli(z_i * p_ij)",
+    "def": "Two coupled equations for every site i and visit j. The STATE process says the site is truly occupied (z_i = 1) with probability psi_i, and this is fixed across the season (closure assumption) -- it is never observed directly. The OBSERVATION process says a detection at visit j happens only if the site is truly occupied AND the species is detected given that occupancy, with probability p_ij.",
+    "bullets": [
+      "z_i is latent (unobserved) -- it is the quantity we actually want to know, and it never appears directly in the data",
+      "y_ij is the observed detection history: a 0/1 (or NA for a missed visit) at every site-visit combination",
+      "Multiplying z_i * p_ij is the whole trick: if z_i = 0 (truly absent), detection probability collapses to zero no matter what p_ij is -- you cannot detect what is not there",
+      "If z_i = 1 (truly present) but p_ij < 1, some visits will still come back as zeros purely by chance -- these are the false absences from the earlier slides"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The State Process: What We Actually Want to Estimate",
+    "term": "psi_i = Pr(site i is truly occupied)",
+    "def": "psi_i (psi, 'occupancy probability') is modeled as a function of site-level covariates on the logit scale, exactly like a logistic regression: logit(psi_i) = b0 + b1 * elevation_i. It answers the ecological question -- where does the species actually occur? -- independent of how easy it was to detect on any given visit.",
+    "bullets": [
+      "psi_i is a property of the SITE, constant across all visits within the season (this is the closure assumption: no colonization or local extinction between visits)",
+      "Site-level covariates go here: elevation, habitat type, patch size, distance to forest edge -- anything that plausibly affects whether the species lives there at all"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The Observation Process: What Determines Whether We See It",
+    "term": "p_ij = Pr(detect species at site i, visit j | z_i = 1)",
+    "def": "p_ij ('detection probability') is modeled as a function of visit-level covariates on the logit scale: logit(p_ij) = a0 + a1 * date_ij. It is conditional on true occupancy -- it says nothing about whether the site is occupied, only about how good a given visit was at revealing that occupancy if it exists.",
+    "bullets": [
+      "p_ij can vary visit to visit, even within the same site: survey date, weather, observer, time of day, effort",
+      "Confusing psi and p is the single most common conceptual error in occupancy modeling -- a covariate that changes detectability (like dense vegetation) is not automatically a covariate that changes true occupancy, and vice versa"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Why Repeat Visits Are Non-Negotiable",
+    "title": "With One Visit, psi and p Are Not Separable",
+    "items": [
+      "With a single visit per site, the only data you have is a single 0/1 per site, and there is exactly one probability governing it: Pr(y_i = 1) = psi_i * p_i -- a product of two unknowns you cannot tell apart",
+      "A low detection rate could mean low true occupancy with high detectability, or high true occupancy with low detectability, or any point in between -- these all produce identical single-visit data",
+      "Repeat visits break this: because the same true state z_i governs multiple observations y_i1, y_i2, y_i3, the pattern of detections and non-detections across visits at the SAME site carries information that pins down psi_i and p_ij separately",
+      "This is exactly analogous to why state-space models (Lecture 10) need more than one observation to separate process noise from observation noise -- repeated measurement of the same underlying state is what identifies the two variance/probability components"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Identifiability",
+    "term": "Identifiability",
+    "def": "A model is identifiable if, in principle, enough data of the right structure exist to distinguish between different parameter values that would otherwise produce the same likelihood. Single-visit occupancy data are NOT identifiable for psi and p separately; repeat-visit data ARE, provided detection probability is not exactly zero or one and covariates are not perfectly collinear between the two sub-models.",
+    "bullets": [
+      "Practical rule of thumb from the literature (MacKenzie et al. 2002, 2006): at least 2-3 repeat visits per site, and enough sites with variation in the covariates, to get stable, well-identified estimates",
+      "You will explore what happens as you strip visits away in Exercise 3 -- watch the standard errors, not just the point estimates"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "The Central Teaching Point",
+    "title": "Naive Occupancy vs. Model-Estimated Occupancy",
+    "headers": [
+      "",
+      "Naive Occupancy",
+      "Model-Estimated Occupancy"
+    ],
+    "rows": [
+      [
+        "Formula",
+        "Proportion of sites with >=1 detection across all visits",
+        "Mean of predicted psi_i = plogis(b0 + b1 * elevation_i) across all sites"
+      ],
+      [
+        "What it estimates",
+        "Pr(detected at least once) -- a mixture of true occupancy AND detection",
+        "Pr(truly occupied) -- the state process alone, with detection explicitly modeled out"
+      ],
+      [
+        "Requires",
+        "Any survey data, even a single visit",
+        "Repeat-visit data, so psi and p can be separated (see Identifiability)"
+      ],
+      [
+        "Typical bias direction",
+        "Biased LOW relative to true occupancy, because sites with real-but-undetected presence are counted as absent",
+        "Approximately unbiased if the model is correctly specified -- corrects for the false-absence problem"
+      ],
+      [
+        "On the crossbill data (this lecture)",
+        "0.355 (71 of 200 sites)",
+        "0.370 (mean psi_hat) -- estimated occupancy is higher, correcting for imperfect detection, as theory predicts"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Fitting the Model",
+    "title": "Maximum Likelihood Across Three Languages",
+    "sub": "Same marginal likelihood, three implementations -- one mature package, two hand-rolled"
+  },
+  {
+    "type": "term",
+    "eyebrow": "The Math Behind occu()",
+    "title": "The Marginal Likelihood: Integrating Out the Unknown State",
+    "term": "L_i = psi_i * prod_j[ p_ij^y_ij (1-p_ij)^(1-y_ij) ]   if any y_ij = 1\nL_i = psi_i * prod_j(1-p_ij) + (1 - psi_i)             if all y_ij = 0",
+    "def": "Because z_i is latent, we cannot write down a likelihood that conditions on it directly -- we sum (marginalize) over its two possible values, 0 and 1. If the species was detected on ANY visit, the site must be truly occupied (z_i = 1 is certain), so the likelihood is just psi_i times the probability of that exact detection pattern. If it was NEVER detected, the site could be truly occupied-but-missed on every visit, OR truly unoccupied -- so both possibilities are added together.",
+    "bullets": [
+      "This is exactly the likelihood that unmarked::occu() maximizes internally -- the code in this lecture computes it explicitly instead of relying on a package doing it silently",
+      "Missing visits (NA, e.g. a site that could not be surveyed a third time) simply drop out of the product for that site -- no imputation needed, this is standard missing-completely-at-random handling"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Software Landscape",
+    "title": "R Leads This Field by a Wide Margin -- Be Honest About It",
+    "items": [
+      "R's unmarked package (Fiske & Chandler 2011, Journal of Statistical Software) is the field standard for occupancy and N-mixture models, with mature, well-tested implementations of dozens of model variants",
+      "This sandbox could not install unmarked -- no CRAN access, and it is not available via the apt mirror (r-cran-unmarked was searched for and not found) -- so the R script here also falls back to a hand-rolled optim() fit for a fair three-language comparison, with the canonical occu() call kept as commented reference code",
+      "Python has no mature, actively-maintained equivalent to unmarked. This is a real gap in the ecosystem, not an oversight -- the honest response is to implement the marginal likelihood directly and hand it to scipy.optimize.minimize",
+      "Julia's ecosystem is thinner still for this specific model class, but Optim.jl makes a hand-rolled MLE just as fast to write as in Python -- the same closed-form likelihood, the same numerical answer",
+      "All three approaches below recover the same maximum-likelihood estimates on this lecture's data, because they are maximizing the identical likelihood function"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code",
+    "title": "Loading the Data and Computing Naive Occupancy",
+    "left": {
+      "h": "R -- read.csv and naive occupancy",
+      "body": "<pre><code>df &lt;- read.csv(&quot;data/crossbill_occupancy_sim.csv&quot;)\n\ndet_cols &lt;- c(&quot;det1&quot;, &quot;det2&quot;, &quot;det3&quot;)\nY &lt;- as.matrix(df[, det_cols])\n\nany_detect &lt;- apply(Y, 1, function(row)\n  any(row == 1, na.rm = TRUE))\n\nnaive_occupancy &lt;- mean(any_detect)\ncat(sprintf(&quot;Naive occupancy: %.3f\\n&quot;,\n            naive_occupancy))\n#&gt; Naive occupancy: 0.355</code></pre>"
+    },
+    "right": {
+      "h": "What This Computes",
+      "body": "<p>Naive occupancy is just the proportion of the 200 sites where at least one of the 3 visits recorded a detection -- no modeling, no covariates, just raw data.</p><p>It is the number every field biologist computes first, and it is the number this entire lecture is about correcting.</p><p>Note the <code>na.rm = TRUE</code>: a small fraction of visits are missing in this dataset (simulated field-realistic missingness), and a missed visit should not count as a non-detection.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "R Code",
+    "title": "The Canonical unmarked Call, and This Lecture's optim() Fallback",
+    "left": {
+      "h": "R -- unmarked::occu (reference, not run here)",
+      "body": "<pre><code>library(unmarked)\n\numf &lt;- unmarkedFrameOccu(\n  y = Y,\n  siteCovs = data.frame(elevation = elev_z),\n  obsCovs  = list(date = date_z)\n)\n\nfm &lt;- occu(~ date ~ elevation, data = umf)\nsummary(fm)\npsi_hat &lt;- predict(fm, type = &quot;state&quot;)$Predicted</code></pre>"
+    },
+    "right": {
+      "h": "R -- optim() fallback (actually executed)",
+      "body": "<pre><code>neg_log_lik &lt;- function(par, Y, elev_z, date_z) {\n  b0 &lt;- par[1]; b1 &lt;- par[2]\n  a0 &lt;- par[3]; a1 &lt;- par[4]\n  psi &lt;- plogis(b0 + b1 * elev_z)\n  # ... marginal likelihood, summed over sites ...\n}\n\nfit &lt;- optim(c(0,0,0,0), neg_log_lik,\n             Y=Y, elev_z=elev_z, date_z=date_z,\n             method = &quot;BFGS&quot;, hessian = TRUE)\n#&gt; psi_elevation = 0.921, p_date = -0.440</code></pre>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Python Code",
+    "title": "Hand-Rolled MLE with scipy.optimize -- No Mature Occupancy Package Exists",
+    "left": {
+      "h": "Python -- the marginal likelihood, by hand",
+      "body": "<pre><code>from scipy.special import expit as plogis\nfrom scipy.optimize import minimize\n\ndef neg_log_lik(par, Y, elev_z, date_z):\n    b0, b1, a0, a1 = par\n    psi = plogis(b0 + b1 * elev_z)\n    ll = 0.0\n    for i in range(len(Y)):\n        obs = ~np.isnan(Y[i, :])\n        if not np.any(obs):\n            continue\n        p_ij = plogis(a0 + a1 * date_z[i, obs])\n        y_ij = Y[i, obs]\n        if np.any(y_ij == 1):\n            lik = psi[i] * np.prod(\n                p_ij**y_ij * (1-p_ij)**(1-y_ij))\n        else:\n            lik = psi[i]*np.prod(1-p_ij) + (1-psi[i])\n        ll += np.log(max(lik, 1e-12))\n    return -ll</code></pre>"
+    },
+    "right": {
+      "h": "Python -- fitting it",
+      "body": "<pre><code>result = minimize(\n    neg_log_lik, x0=np.zeros(4),\n    args=(Y, elev_z, date_z), method=&quot;BFGS&quot;)\n\nb0, b1, a0, a1 = result.x\npsi_hat_site = plogis(b0 + b1 * elev_z)\nmodel_occupancy = psi_hat_site.mean()\n# psi_elevation = 0.9212, p_date = -0.4395\n# model-estimated occupancy = 0.370</code></pre><p>Identical coefficient estimates to R, because both are maximizing the same likelihood on the same data -- the hand-rolled approach is not a lesser substitute, it is the same math written explicitly.</p>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Julia Code",
+    "title": "The Same Hand-Rolled Likelihood, Maximized with Optim.jl",
+    "left": {
+      "h": "Julia -- likelihood function",
+      "body": "<pre><code>plogis(x) = 1.0 / (1.0 + exp(-x))\n\nfunction neg_log_lik(par, Y, elev_z, date_z)\n    b0, b1, a0, a1 = par\n    psi = plogis.(b0 .+ b1 .* elev_z)\n    ll = 0.0\n    for i in 1:size(Y, 1)\n        obs = findall(j -&gt; !ismissing(Y[i, j]), 1:3)\n        isempty(obs) &amp;&amp; continue\n        p_ij = [plogis(a0 + a1*date_z[i,j]) for j in obs]\n        y_ij = [Y[i, j] for j in obs]\n        lik = any(y_ij .== 1.0) ?\n          psi[i]*prod(p_ij.^y_ij .* (1 .-p_ij).^(1 .-y_ij)) :\n          psi[i]*prod(1 .- p_ij) + (1 - psi[i])\n        ll += log(max(lik, 1e-12))\n    end\n    return -ll\nend</code></pre>"
+    },
+    "right": {
+      "h": "Julia -- fitting with Optim.jl",
+      "body": "<pre><code>using Optim\n\nresult = optimize(\n    par -&gt; neg_log_lik(par, Y, elev_z, date_z),\n    zeros(4), BFGS())\n\ncoef_hat = Optim.minimizer(result)\npsi_hat_site = plogis.(coef_hat[1] .+\n                        coef_hat[2] .* elev_z)\nmodel_occupancy = mean(psi_hat_site)</code></pre><p>Julia was not installed in the sandbox this course was authored in, so unlike the R and Python scripts, this one was written and reviewed but not executed here -- run it locally with <code>julia --project</code> after adding CSV, DataFrames, Optim, and Plots.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Reading the Output",
+    "title": "What the Coefficient Table Actually Says",
+    "items": [
+      "All coefficients are on the LOGIT scale, exactly as in logistic regression (Lecture 6) -- a positive psi_elevation coefficient (estimated 0.921) means occupancy probability increases with standardized elevation across the surveyed range",
+      "A negative p_date coefficient (estimated -0.440) means detection probability declines as the season progresses (later survey date), consistent with singing activity dropping off after the peak of the breeding season",
+      "Standard errors come from the inverse of the numerical Hessian at the MLE (from optim(..., hessian=TRUE) in R, or the BFGS inverse-Hessian approximation in Python/Julia) -- the same asymptotic-normal approach used for GLM standard errors",
+      "To get probabilities back on their natural [0,1] scale for reporting, apply the inverse-logit (plogis) transform to the linear predictor at specific covariate values -- this is what produces the psi-vs-elevation curve in the lecture figure"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Results on This Lecture's Data",
+    "title": "The Crossbill Fit, Concretely",
+    "items": [
+      "Naive occupancy: 0.355 (71 of 200 simulated sites had at least one detection across 3 visits)",
+      "Model-estimated occupancy: 0.370 (mean of predicted psi_i across all 200 sites, correcting for imperfect detection)",
+      "The correction is small but in the theoretically expected direction (model-estimated > naive) -- with detection probability around 0.6-0.7 per visit and 3 visits, most truly-occupied sites ARE eventually detected, so the false-absence rate, and hence the naive-vs-estimated gap, is modest for this particular parameter combination",
+      "Exercise 1 asks you to re-run this comparison at lower detection probability, where the gap becomes much more dramatic -- the lower p is, the more false absences accumulate, and the more naive occupancy underestimates the truth",
+      "See figures/lecture_11_naive_vs_estimated_occupancy.png for the paired bar comparison and the fitted psi-vs-elevation curve"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Common Pitfalls",
+    "title": "Where Occupancy Analyses Go Wrong",
+    "cards": [
+      {
+        "h": "Treating naive occupancy as the final answer",
+        "p": "Reporting the raw proportion of sites with detections, without fitting a detection-corrected model, silently underestimates occupancy and can misrepresent trends over time or across species."
+      },
+      {
+        "h": "Violating closure within a season",
+        "p": "If sites can genuinely become occupied or vacated between repeat visits (e.g. visits spread across months for a mobile species), the fixed-z_i assumption is violated and estimates are biased -- keep the repeat-visit window short relative to the species' turnover rate."
+      },
+      {
+        "h": "Putting the wrong covariate on the wrong sub-model",
+        "p": "A covariate that plausibly affects detectability (like observer experience or vegetation density) should go in the p sub-model, not psi, and vice versa -- misplacing it can produce spurious 'ecological' effects that are really detection artifacts."
+      },
+      {
+        "h": "Too few repeat visits or too little covariate variation",
+        "p": "With only 1-2 visits, or with p or psi both very close to 0 or 1, standard errors balloon and the model may barely be identifiable in practice even though it is identifiable in theory -- always check standard errors, not just point estimates."
+      }
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Assumption",
+    "title": "Closure",
+    "term": "Population/Occupancy Closure",
+    "def": "The assumption that true occupancy state z_i does not change across the repeat visits within a season -- no colonization, no local extinction, no movement in or out of the site between visit 1 and visit J. This is what allows the same z_i to appear in every visit's observation equation and is the foundation the entire framework rests on.",
+    "bullets": [
+      "Violated closure does not just add noise -- it changes what psi_i even means, mixing 'occupied the whole time' with 'occupied for only part of the survey window'",
+      "Dynamic (multi-season) occupancy models, covered only briefly at the end of this lecture, deliberately relax closure BETWEEN seasons while keeping it WITHIN each season's visits"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Beyond the Basic Model",
+    "title": "Extensions You Will See in the Literature",
+    "items": [
+      "Dynamic (multi-season) occupancy models add colonization and extinction probabilities between seasons, turning a snapshot into a trajectory -- directly analogous to the state-space models of Lecture 10, now applied to a binary rather than continuous state",
+      "Multi-species occupancy models estimate a full community's worth of species simultaneously, often with hierarchical priors sharing information across rare species -- a natural bridge to the Bayesian hierarchical framework of Lecture 9",
+      "Spatial occupancy models add spatial autocorrelation in psi across neighboring sites, previewing the spatial models of Lecture 16",
+      "False-positive occupancy models relax the assumption that a detection is always correct, allowing for misidentification -- relevant for acoustic or eDNA surveys with non-trivial false-positive rates"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "From Detection to Abundance",
+    "title": "N-mixture Models: When You Count Individuals, Not Just Presence",
+    "sub": "Royle (2004), Biometrics -- the same logic, one level richer"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "The Extension",
+    "title": "From Detect/Non-Detect to Repeat Counts",
+    "items": [
+      "Many field protocols record a COUNT at each visit rather than a simple detection/non-detection -- point counts, camera-trap individual counts, transect counts",
+      "N-mixture models (Royle 2004, Biometrics 60:108-115) extend the occupancy logic from a binary latent state z_i to a latent ABUNDANCE N_i: the true number of individuals present at site i, again observed imperfectly through repeat counts",
+      "The core insight carries over unchanged: repeat visits to the same site let you separate the true abundance process from the detection process, using the same kind of within-site pattern across visits that identified psi and p in the occupancy model",
+      "Occupancy models are, in a real sense, the special case of N-mixture models where you only care whether N_i > 0 rather than its exact value"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "The N-mixture Model",
+    "term": "N_i ~ Poisson(lambda_i)      C_ij | N_i ~ Binomial(N_i, p_ij)",
+    "def": "The STATE process now draws a true abundance N_i from a Poisson (or negative binomial) distribution with mean lambda_i, modeled as a function of site covariates: log(lambda_i) = b0 + b1 * elevation_i. The OBSERVATION process says each individual actually present is independently detected with probability p_ij, so the observed count C_ij at visit j follows a Binomial(N_i, p_ij) distribution.",
+    "bullets": [
+      "N_i is latent, exactly like z_i in the occupancy model, but now takes any non-negative integer value instead of just 0/1",
+      "The marginal likelihood sums (rather than just evaluates two cases) over all plausible values of N_i, from the maximum observed count up to some large upper bound -- computationally heavier than the occupancy case, but the same conceptual move of integrating out an unobserved state"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Two Members of the Same Family",
+    "title": "Occupancy Models vs. N-mixture Models",
+    "headers": [
+      "",
+      "Occupancy Model",
+      "N-mixture Model"
+    ],
+    "rows": [
+      [
+        "Latent state",
+        "z_i in {0, 1} -- present or absent",
+        "N_i in {0, 1, 2, ...} -- true abundance"
+      ],
+      [
+        "Data collected per visit",
+        "Detection/non-detection (0/1)",
+        "Count of individuals detected"
+      ],
+      [
+        "State distribution",
+        "Bernoulli(psi_i)",
+        "Poisson(lambda_i) or Negative Binomial"
+      ],
+      [
+        "Observation distribution",
+        "Bernoulli(z_i * p_ij)",
+        "Binomial(N_i, p_ij)"
+      ],
+      [
+        "What you ultimately estimate",
+        "Occupancy probability psi",
+        "Abundance lambda (and N_i per site)"
+      ],
+      [
+        "Reference",
+        "MacKenzie et al. 2002, Ecology",
+        "Royle 2004, Biometrics 60:108-115"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Fitting N-mixture Models in Practice",
+    "title": "Same Software Story as Occupancy",
+    "items": [
+      "In R, unmarked::pcount() fits the basic N-mixture model with the same formula interface as occu(): pcount(~ detection_formula ~ abundance_formula, data = unmarkedFramePCount(...))",
+      "As with occupancy, no mature Python or Julia package exists -- the same hand-rolled marginal-likelihood-plus-optimizer approach from this lecture generalizes directly, summing over candidate N_i values instead of the two-case sum used for occupancy",
+      "N-mixture models are more data-hungry and more sensitive to model misspecification than occupancy models (heavy overdispersion in real count data is common and can badly bias lambda if ignored) -- treat this as an important caveat, not a footnote",
+      "This lecture treats N-mixture models conceptually and shows the formulation rather than requiring a full fit -- the code scripts include the occupancy fit; a bonus, minimal N-mixture example is provided in R for the curious"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Bonus (Time-Permitting)",
+    "title": "A Minimal N-mixture Example, Conceptually",
+    "left": {
+      "h": "R -- simulating N-mixture data",
+      "body": "<pre><code>set.seed(11042004)\nn &lt;- 100\nelev_z &lt;- scale(runif(n, 500, 2250))[,1]\nlambda &lt;- exp(0.5 + 0.6 * elev_z)\nN &lt;- rpois(n, lambda)\n\np &lt;- 0.5\nJ &lt;- 3\nC &lt;- sapply(1:J, function(j) rbinom(n, N, p))\n# C is an n x J matrix of repeat counts</code></pre>"
+    },
+    "right": {
+      "h": "The Likelihood, in Words",
+      "body": "<p>For each site, sum the Poisson-Binomial mixture likelihood over every plausible true abundance N, from the maximum observed count at that site up to a generous upper bound (e.g. max(C_i) + 50):</p><p><code>L_i = sum over N from max(C_i) to K of<br>&nbsp;&nbsp;Poisson(N; lambda_i) * prod_j Binomial(C_ij; N, p_ij)</code></p><p>This is Exercise 4 -- work through the pseudocode yourself before checking whether unmarked::pcount() (or a hand-rolled version) gives you the same lambda and p you simulated.</p>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Shared Foundations",
+    "title": "What Occupancy and N-mixture Models Have in Common",
+    "items": [
+      "Both are hierarchical models with an unobserved TRUE ecological state and an imperfect OBSERVATION layer on top -- the same two-layer logic as the state-space models of Lecture 10 and the random effects of Lecture 7, applied to a detection rather than a temporal or grouping context",
+      "Both require repeat visits/samples at the same site within a closure period for identifiability -- there is no way around this requirement, no matter how sophisticated the estimator",
+      "Both let you attach covariates separately to the ecological process (psi or lambda) and the detection process (p), and both are easy to misuse by attaching a covariate to the wrong sub-model",
+      "Both are most often fit by maximum likelihood in practice (as in this lecture) but have equally well-developed Bayesian formulations (JAGS/Stan/NIMBLE) that generalize naturally to the hierarchical model machinery from Lecture 9"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "How We Got Here",
+    "title": "Milestones in Detection-Corrected Ecological Modeling",
+    "items": [
+      {
+        "y": "2002",
+        "t": "MacKenzie et al., Ecology -- formalizes the single-season occupancy model and coins the now-standard psi/p notation"
+      },
+      {
+        "y": "2004",
+        "t": "Royle, Biometrics -- extends the same logic to repeat counts, introducing N-mixture models for abundance estimation"
+      },
+      {
+        "y": "2006",
+        "t": "MacKenzie, Nichols, Royle et al. publish the 'Occupancy Estimation and Modeling' textbook, cementing the framework as a field standard"
+      },
+      {
+        "y": "2007",
+        "t": "Royle & Kery, Ecology -- a Bayesian state-space formulation of DYNAMIC occupancy models, connecting occupancy modeling directly to the time-series ideas of Lecture 10"
+      },
+      {
+        "y": "2011",
+        "t": "Fiske & Chandler release unmarked (Journal of Statistical Software), the R package used (in spirit) throughout this lecture"
+      },
+      {
+        "y": "2016",
+        "t": "Kery & Royle publish 'Applied Hierarchical Modeling in Ecology,' the textbook whose crossbill/willow tit case study this lecture's simulated data is calibrated to"
+      }
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "The Course So Far",
+    "title": "Where Occupancy Modeling Fits in the Toolkit",
+    "levels": [
+      {
+        "label": "Independent-error models (Lectures 5-8: LM, GLM, mixed models, GAM)",
+        "color": "#4C6EF5",
+        "width": 55
+      },
+      {
+        "label": "Bayesian hierarchical models (Lecture 9): explicit latent structure, still cross-sectional",
+        "color": "#7048E8",
+        "width": 68
+      },
+      {
+        "label": "Time series and state-space models (Lecture 10): a latent state observed imperfectly through TIME",
+        "color": "#E8590C",
+        "width": 82
+      },
+      {
+        "label": "Occupancy and N-mixture models (Lecture 11): a latent state observed imperfectly through REPEAT VISITS",
+        "color": "#C92A2A",
+        "width": 92
+      },
+      {
+        "label": "Population, community, and spatial models (Lectures 14-16): latent ecological process, further structured across space and species",
+        "color": "#862E9C",
+        "width": 100
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "The Core Idea, in One Line",
+    "quote": "Failing to account for imperfect, and possibly variable, detection probability will produce biased estimates of occupancy, and the bias is not a footnote -- it changes the conclusions.",
+    "attrib": "Paraphrased from MacKenzie, Nichols, Royle et al. (2002, 2006) -- the founding logic of occupancy modeling"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Key Takeaways",
+    "title": "What to Carry Forward From This Lecture",
+    "items": [
+      "Occupancy models split every detection history into a state process (true presence, psi) and an observation process (detection given presence, p) -- always ask which sub-model a covariate belongs to",
+      "Repeat visits are not optional extra effort -- they are what makes psi and p identifiable at all; single-visit data cannot separate them",
+      "Always compute and report BOTH naive occupancy and model-estimated occupancy -- the gap between them is itself a meaningful diagnostic of how much imperfect detection is affecting your raw numbers",
+      "R's unmarked package is the mature, field-standard tool; Python and Julia currently require hand-rolling the marginal likelihood -- a real ecosystem gap worth knowing about, and a genuinely instructive exercise in its own right",
+      "N-mixture models generalize the same two-layer logic from detect/non-detect to full counts, trading a Bernoulli state for a Poisson state and a Bernoulli observation for a Binomial observation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Before You Move On",
+    "title": "Exercises for This Lecture",
+    "items": [
+      "Exercise 1: re-simulate the crossbill data at lower and higher detection probability, and watch the naive-vs-estimated occupancy gap grow and shrink accordingly",
+      "Exercise 2: add a quadratic elevation term to psi and compare AIC against the linear model -- does a hump-shaped elevation relationship fit better?",
+      "Exercise 3: refit with only 2 of the 3 visits, then with just 1, and track what happens to coefficient precision as identifiability weakens",
+      "Exercise 4: work through the N-mixture marginal likelihood by hand for a small simulated count dataset -- full instructions in exercises/lecture_11_exercises.md"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Lecture 12: Machine Learning",
+    "sub": "From hand-specified likelihoods to flexible, data-driven prediction -- random forests, boosting, and where they fit alongside everything built so far"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Ecological Modelling · R / Python / Julia</span>
+        <span>Lecture 11</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

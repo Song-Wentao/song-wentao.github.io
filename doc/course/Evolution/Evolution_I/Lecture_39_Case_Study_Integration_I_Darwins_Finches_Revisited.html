@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 39: Case Study Integration I: Darwin's Finches Revisited — Selection, Drift, Heritability, and Genomics Together</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION I — BIOL 2XX — LECTURE 39",
+    "title": "Case Study Integration I: Darwin's Finches Revisited",
+    "sub": "Selection, Heritability, Drift, Gene Flow, and Genomics — One System, Every Mechanism",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed. — Applied & Synthesis Unit (lecture 5 of 11)"
+  },
+  {
+    "type": "section",
+    "tag": "SYNTHESIS",
+    "title": "One System, Every Mechanism",
+    "sub": "Why we return to the Galapagos finches one last time — to watch every tool from this course operate in a single, real population"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "TODAY'S AGENDA",
+    "title": "What We're Integrating",
+    "items": [
+      "Natural selection in action: the Grants' 40+ year study and the 1977 drought (callback L20, L24)",
+      "Heritability and the breeder's equation: why beak size can respond to selection at all (callback L15, L24)",
+      "Genetic drift on small islands: chance events in tiny founder populations (callback L19)",
+      "Gene flow and hybridization: species boundaries that leak, and the 'Big Bird' lineage (callback L16)",
+      "The genomic basis of beak shape: ALX1 and HMGA2 (21st-century genome sequencing)",
+      "Evo-devo: BMP4 and calmodulin signaling sculpt the developing beak (callback L34)",
+      "A synthesis map: one case study, every chapter of this course"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BACKGROUND",
+    "title": "Darwin's Finches and the Galapagos",
+    "items": [
+      "13-18 recognized species (taxonomy still debated) descended from a single South American ancestral finch that colonized the archipelago roughly 1-2 million years ago",
+      "Adaptive radiation: one lineage diversified into forms exploiting seeds, insects, cactus flowers, blood (vampire finch), and even tool use (woodpecker finch)",
+      "Beak size and shape is the single most consequential trait — it determines what food a bird can crack, probe, or manipulate",
+      "Named 'Darwin's finches' by ornithologist Percy Lowe in 1936; Darwin himself barely noticed them as a group during the 1835 voyage",
+      "David Lack's 1947 book Darwin's Finches first framed them as a textbook case of adaptive radiation and character displacement"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "BACKGROUND",
+    "title": "Why This System Keeps Coming Back",
+    "items": [
+      "Small, isolated islands with sharp environmental swings (El Niño floods, La Niña droughts) create strong, measurable selection episodes",
+      "Individually marked, banded populations allow lifetime tracking of survival and reproduction for thousands of birds",
+      "Short generation times and manageable population sizes make multi-decade pedigree studies feasible",
+      "You have already met this system piecemeal: as an example of adaptive radiation (L5), of selection (L20/L24), of drift (L19), of gene flow (L16), and of evo-devo (L34)",
+      "Today we assemble those pieces into one coherent story"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK: SELECTION, L20 / L24",
+    "title": "The Grants' Long-Term Study",
+    "left": {
+      "h": "The setup",
+      "body": "<p>Peter and Rosemary Grant began studying medium ground finches (<i>Geospiza fortis</i>) on the tiny island of Daphne Major in 1973.</p><ul><li>Every bird on the island captured, measured, and individually banded</li><li>Beak depth, length, width; body mass; survival; offspring all recorded across generations</li><li>One of the longest continuous studies of natural selection on wild vertebrates ever conducted</li></ul>"
+    },
+    "right": {
+      "h": "Why it matters",
+      "body": "<p>Daphne Major is small enough to census completely and isolated enough that immigration is limited — an unusually clean natural experiment.</p><ul><li>Allowed direct measurement of selection differentials generation by generation</li><li>Turned natural selection from an inference into an observed, quantified process</li></ul>"
+    }
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK: SELECTION, L20 / L24",
+    "title": "The 1977 Drought: Selection Caught in the Act",
+    "left": {
+      "h": "What happened",
+      "body": "<p>A severe drought in 1977 eliminated most small, soft seeds. Only large, hard seeds (mostly from <i>Tribulus</i>) remained.</p><ul><li>Population of <i>G. fortis</i> crashed from about 1,400 to roughly 200 birds</li><li>Birds with larger, deeper beaks could crack the remaining hard seeds; small-beaked birds starved</li><li>Average beak depth in survivors was measurably larger than in the pre-drought population</li></ul>"
+    },
+    "right": {
+      "h": "What it demonstrated",
+      "body": "<p>This was directional selection observed directly, with a measured selection differential (S) — the difference in mean beak depth between survivors and the original population.</p><ul><li>The offspring generation showed a corresponding shift in mean beak depth</li><li>A 1984-85 El Niño flood reversed the pressure — small seeds became abundant again and beak size shifted back down, showing selection can flip direction with the environment</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "RECAP",
+    "title": "Selection Differential",
+    "term": "Selection Differential (S)",
+    "def": "The difference between the mean phenotype of individuals that survive/reproduce (the selected group) and the mean phenotype of the population before selection.",
+    "bullets": [
+      "In the 1977 drought, S for beak depth was strongly positive — survivors had deeper beaks than the pre-drought average",
+      "S measures the strength of selection in a single generation; it says nothing yet about whether the trait will actually evolve"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "DATA",
+    "title": "Beak Depth Before and After the 1977 Drought (Daphne Major, G. fortis)",
+    "headers": [
+      "Measure",
+      "1976 (pre-drought)",
+      "1978 (post-drought survivors)"
+    ],
+    "rows": [
+      [
+        "Mean beak depth",
+        "~9.4 mm",
+        "~9.7-9.9 mm"
+      ],
+      [
+        "Population size",
+        "~1,400 birds",
+        "~180-220 birds"
+      ],
+      [
+        "Dominant seed type available",
+        "Small, soft seeds abundant",
+        "Large, hard Tribulus seeds only"
+      ],
+      [
+        "Direction of selection",
+        "Weak/stabilizing",
+        "Strong directional, favoring larger beaks"
+      ]
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK: HERITABILITY, L15 / L24",
+    "title": "Why Beak Size Could Respond to Selection",
+    "left": {
+      "h": "The missing ingredient",
+      "body": "<p>Selection alone does not guarantee evolutionary change. A trait must also be heritable — offspring must resemble their parents for a reason rooted in shared genes, not just shared environment.</p><ul><li>The Grants measured parent-offspring regressions of beak depth</li><li>Heritability (h²) for beak depth in <i>G. fortis</i> was estimated around 0.7-0.9 — very high</li></ul>"
+    },
+    "right": {
+      "h": "The breeder's equation",
+      "body": "<p>R = h²S connects the pieces: the response to selection (R, the change in mean trait value across a generation) equals heritability times the selection differential.</p><ul><li>High h² and strong S in 1977 predicted a large R — and the observed shift in offspring beak depth matched the prediction closely</li><li>This was one of the first field validations of the breeder's equation in a wild population</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CALLBACK: HERITABILITY, L15 / L24",
+    "title": "The Breeder's Equation Applied",
+    "items": [
+      "R = h² × S, where R is the response to selection (change in offspring generation mean), h² is narrow-sense heritability, and S is the selection differential",
+      "Daphne Major 1976-1978: S for beak depth was roughly +0.4-0.6 mm; h² was roughly 0.7-0.8; predicted R closely matched the observed increase in offspring beak depth",
+      "This quantitative match is a landmark result: it showed selection and heritability together, not selection alone, predict evolutionary change",
+      "The same equation explains why artificial selection on livestock and crops (L15) works — the logic is identical, only the selecting agent differs (humans vs. drought)",
+      "Because h² was high, the population could evolve quickly — a low-heritability trait under the same selection pressure would barely shift"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK: DRIFT, L19",
+    "title": "Genetic Drift on Small Islands",
+    "term": "Genetic Drift",
+    "def": "Random, chance-driven change in allele frequencies from one generation to the next, caused by sampling error in which individuals happen to survive and reproduce — independent of any fitness advantage.",
+    "bullets": [
+      "Drift is strongest in small populations — and many Galapagos islands host finch populations of only tens to a few hundred breeding pairs",
+      "The 1977 drought bottleneck (1,400 to ~200 birds) is itself a textbook population bottleneck, a drift-amplifying event layered on top of selection"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK: DRIFT, L19",
+    "title": "Untangling Selection from Drift in the Finches",
+    "left": {
+      "h": "The challenge",
+      "body": "<p>A population bottleneck like the 1977 crash changes allele frequencies for two reasons at once: selection (survivors are non-random with respect to beak depth) and drift (survivors are also a small, chance sample of the original gene pool).</p><ul><li>Small marginal populations on tiny islets (e.g., some Geospiza populations under 100 birds) show trait shifts too large or too erratic to be explained by selection alone</li></ul>"
+    },
+    "right": {
+      "h": "How researchers separate them",
+      "body": "<p>Long-term, individually tracked pedigrees let researchers compare observed trait shifts to null models of drift alone.</p><ul><li>Where the shift closely tracks known food-supply changes and matches breeder's-equation predictions (as in 1977), selection is implicated</li><li>Where shifts appear on islets with very small populations and no clear food-supply signal, drift is likely contributing or dominant</li><li>Both processes act simultaneously in real populations — this is a core lesson of the whole course</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK: GENE FLOW, L16",
+    "title": "Gene Flow and Hybridization",
+    "term": "Gene Flow",
+    "def": "The movement of alleles between populations (or, here, between closely related species) via migration and interbreeding, which tends to homogenize allele frequencies and can introduce novel genetic variation.",
+    "bullets": [
+      "Darwin's finch species are young and incompletely reproductively isolated — hybridization between species still occurs, especially in unusual environmental conditions",
+      "Song and beak morphology, not strict genetic incompatibility, are the primary barriers to interbreeding, so those barriers can fail"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK: GENE FLOW, L16",
+    "title": "The 'Big Bird' Lineage: Speciation Observed in Real Time",
+    "left": {
+      "h": "The event",
+      "body": "<p>In 1981, an unusually large male <i>Geospiza fortis</i>/<i>G. conirostris</i> hybrid immigrant (nicknamed the 'Big Bird' founder) arrived on Daphne Major and bred with a resident <i>G. fortis</i> female.</p><ul><li>His offspring were reproductively isolated from both parent species by song and beak size — they preferentially mated with each other</li><li>By the sixth generation, the lineage bred true as a distinct, self-perpetuating population</li></ul>"
+    },
+    "right": {
+      "h": "Why it matters",
+      "body": "<p>Grant, Grant, and colleagues (2017, using genomic data) documented this as speciation observed within a human lifetime — a new lineage arising from a single hybridization event followed by reproductive isolation.</p><ul><li>Shows gene flow can be a creative force, injecting new allele combinations that found new lineages, not just a homogenizing one</li><li>Directly parallels the general principle from L16: hybrid zones can either erode species boundaries or, more rarely, spawn new ones</li></ul>"
+    }
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FROM THE LITERATURE",
+    "quote": "In the 40 years since the Big Bird lineage was founded, its members have remained reproductively isolated because of their distinctive song and larger body and beak size, and could be treated as a new species.",
+    "attrib": "Lamichhaney et al., Science (2018), on the Big Bird lineage, Daphne Major"
+  },
+  {
+    "type": "term",
+    "eyebrow": "GENOMICS",
+    "title": "The Genomic Basis of Beak Shape",
+    "term": "ALX1 and HMGA2",
+    "def": "Two genes identified through whole-genome sequencing of Darwin's finches (Lamichhaney et al., Nature 2015) as major contributors to variation in beak shape and size across species.",
+    "bullets": [
+      "ALX1 encodes a transcription factor controlling craniofacial development; variants at this locus track pointed vs. blunt beak shape",
+      "HMGA2 is associated with beak size; variants track large vs. small beak, and this same locus was the one that shifted rapidly during the 1977 drought selection episode",
+      "Sequencing 120 finch genomes revealed these loci as genomic 'hotspots' of divergence between species with different beak shapes"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "GENOMICS",
+    "title": "Key Genes Behind Beak Diversity",
+    "cards": [
+      {
+        "h": "ALX1",
+        "p": "Transcription factor gene; controls craniofacial (facial skeleton) development. Different alleles associate with pointed beaks (seed-probing species) versus blunt, deep beaks (seed-crushing species)."
+      },
+      {
+        "h": "HMGA2",
+        "p": "Associated with overall beak and body size. The HMGA2 region showed one of the strongest genomic signatures of selection during the 1977 drought, directly linking genotype to the phenotypic shift the Grants measured."
+      },
+      {
+        "h": "Whole-genome resequencing",
+        "p": "Lamichhaney et al. (2015, 2016) sequenced genomes across the finch radiation, finding shared ancestral variation reused repeatedly by natural selection to build different beak shapes in different species and hybrid lineages."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "CALLBACK: EVO-DEVO, L34",
+    "title": "From Gene to Shape: BMP4 and Calmodulin",
+    "left": {
+      "h": "BMP4 — width and depth",
+      "body": "<p>Abzhanov et al. (2004) showed that Bone Morphogenetic Protein 4 (BMP4) is expressed earlier and at higher levels in the developing beak (neural-crest-derived facial mesenchyme) of species with wide, deep beaks, such as the large ground finch.</p><ul><li>Experimentally increasing BMP4 expression in chicken embryos produced wider, deeper beaks — a direct causal test</li></ul>"
+    },
+    "right": {
+      "h": "Calmodulin — length",
+      "body": "<p>Abzhanov et al. (2006) identified calmodulin (CaM), a calcium-signaling protein, as a driver of beak length — expressed more highly in the developing beak of long-billed species such as the cactus finch.</p><ul><li>These developmental signaling pathways sit downstream of genes like ALX1/HMGA2 and upstream of final adult morphology — evo-devo is the mechanistic bridge between genotype and the phenotypes selection acts on</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "CALLBACK: EVO-DEVO, L34",
+    "title": "Evo-Devo Recap",
+    "term": "Evolutionary Developmental Biology (Evo-Devo)",
+    "def": "The study of how changes in developmental gene regulation produce evolutionary changes in morphology — often through shifts in the timing, location, or level of expression of a small number of regulatory genes.",
+    "bullets": [
+      "In finches, small regulatory changes in BMP4 and calmodulin expression during early embryonic development translate into large, ecologically important differences in adult beak shape",
+      "This shows why relatively few genetic changes can produce the wide morphological diversity seen across the adaptive radiation"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SYNTHESIS",
+    "title": "How the Pieces Fit Together, Mechanistically",
+    "items": [
+      "Genomic variation at loci like ALX1 and HMGA2 provides the raw material — different alleles, different beak-development trajectories",
+      "Evo-devo pathways (BMP4, calmodulin) translate that genomic variation into measurable phenotypic variation in beak depth, width, and length",
+      "Heritability (h²) quantifies how faithfully that phenotypic variation is passed from parent to offspring",
+      "Selection (via droughts, floods, food supply shifts) determines which phenotypes survive and reproduce each generation, generating a selection differential (S)",
+      "The breeder's equation (R = h²S) predicts — and, on Daphne Major, correctly predicted — how much the population's mean beak depth will shift",
+      "Drift adds noise to this process, especially in small populations, sometimes reinforcing and sometimes obscuring the selective signal",
+      "Gene flow and hybridization occasionally scramble the whole system, introducing new allele combinations (Big Bird lineage) that can even found new lineages"
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "HISTORY OF THE RESEARCH PROGRAM",
+    "title": "Darwin's Finches: A Century and a Half of Discovery",
+    "items": [
+      {
+        "y": "1835",
+        "t": "Darwin collects finch specimens on the Beagle voyage; initially does not recognize their significance as a group"
+      },
+      {
+        "y": "1936",
+        "t": "Percy Lowe coins the term 'Darwin's finches'"
+      },
+      {
+        "y": "1947",
+        "t": "David Lack publishes Darwin's Finches, establishing them as a model of adaptive radiation"
+      },
+      {
+        "y": "1973",
+        "t": "Peter and Rosemary Grant begin the long-term Daphne Major study"
+      },
+      {
+        "y": "1977",
+        "t": "Severe drought produces a dramatic, measured episode of natural selection on beak depth"
+      },
+      {
+        "y": "1981-1990s",
+        "t": "'Big Bird' hybrid lineage founded and tracked across generations"
+      },
+      {
+        "y": "2004-2006",
+        "t": "Abzhanov et al. identify BMP4 and calmodulin as developmental drivers of beak shape"
+      },
+      {
+        "y": "2015-2018",
+        "t": "Whole-genome sequencing identifies ALX1 and HMGA2; Big Bird lineage confirmed genomically as an incipient species"
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "CONTEMPORARY EVOLUTION",
+    "title": "Evolution on Human Timescales",
+    "items": [
+      "The finches are a premier example of 'contemporary evolution' — measurable evolutionary change within years to decades, not just over geological time",
+      "This matters because it shows the mechanisms from this entire course are not purely historical inferences — they are directly observable, ongoing processes",
+      "Repeated reversals of selection direction (1977 drought favoring large beaks, 1980s floods favoring small beaks) show evolution is not always a one-way ratchet toward a fixed optimum",
+      "Fluctuating selection can maintain genetic variation in the population rather than eroding it, because no single phenotype is always favored"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Contemporary Evolution",
+    "term": "Contemporary Evolution",
+    "def": "Evolutionary change that occurs on ecological timescales (single generations to a few decades) and is fast enough to be directly measured within a research program, rather than inferred from the fossil record or phylogenetic comparison.",
+    "bullets": [
+      "The Grants' finch work, alongside guppy studies (Reznick), lizard studies (Losos), and Lenski's E. coli LTEE (previewed next lecture), are the classic demonstrations of contemporary evolution"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "SYNTHESIS TABLE",
+    "title": "One Case Study, Every Course Mechanism",
+    "headers": [
+      "Finch Phenomenon",
+      "Mechanism / Concept",
+      "Earlier Lecture Callback"
+    ],
+    "rows": [
+      [
+        "Adaptive radiation into 13-18 species",
+        "Adaptive radiation / speciation from a common ancestor",
+        "L5 — Intro to macroevolution"
+      ],
+      [
+        "1977 drought beak-depth shift",
+        "Natural selection; selection differential (S)",
+        "L20, L24 — Selection"
+      ],
+      [
+        "Parent-offspring beak resemblance",
+        "Heritability (h²); breeder's equation R = h²S",
+        "L15, L24 — Quantitative genetics"
+      ],
+      [
+        "Small-islet population trait shifts",
+        "Genetic drift; population bottlenecks",
+        "L19 — Drift"
+      ],
+      [
+        "Big Bird hybrid lineage",
+        "Gene flow, hybridization, reproductive isolation",
+        "L16 — Speciation and gene flow"
+      ],
+      [
+        "ALX1, HMGA2 allelic variation",
+        "Genomic basis of adaptive traits",
+        "Molecular evolution / genomics unit"
+      ],
+      [
+        "BMP4, calmodulin expression differences",
+        "Evo-devo: regulatory gene expression shapes morphology",
+        "L34 — Evo-devo"
+      ],
+      [
+        "Repeated drought/flood cycles",
+        "Fluctuating selection maintaining variation",
+        "L20, L24 — Selection dynamics"
+      ]
+    ]
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "SYNTHESIS",
+    "title": "From Genome to Population: The Levels That Connect",
+    "levels": [
+      {
+        "label": "Population-level outcome: allele & trait frequencies change",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Selection + drift + gene flow act on variation",
+        "color": "#6b2c39",
+        "width": "540px"
+      },
+      {
+        "label": "Heritability transmits variation across generations",
+        "color": "#8a3f4d",
+        "width": "460px"
+      },
+      {
+        "label": "Evo-devo (BMP4, calmodulin) builds the phenotype",
+        "color": "#a85a68",
+        "width": "380px"
+      },
+      {
+        "label": "Genomic variation (ALX1, HMGA2)",
+        "color": "#c47b87",
+        "width": "300px"
+      }
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SYNTHESIS",
+    "title": "Why the Finches Are the Ideal Capstone System",
+    "cards": [
+      {
+        "h": "Observable in real time",
+        "p": "Individually banded birds and multi-decade pedigrees let researchers watch selection, heritability, and drift operate within single research careers."
+      },
+      {
+        "h": "Mechanistically complete",
+        "p": "From DNA sequence (ALX1, HMGA2) through development (BMP4, calmodulin) to population genetics (selection, drift, gene flow), every level of biological organization is represented."
+      },
+      {
+        "h": "Ecologically grounded",
+        "p": "Every genetic and developmental detail connects back to a simple, tangible ecological variable: what size of seed is available to eat."
+      },
+      {
+        "h": "A living, ongoing story",
+        "p": "The Big Bird lineage shows speciation is not finished business from the deep past — it is happening now, and can be watched happening."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "WHAT GENOMICS ADDED",
+    "title": "From Phenotype to Genotype: The 21st-Century Upgrade",
+    "items": [
+      "Before genome sequencing, the Grants' work established the pattern (selection, heritability) but could not identify the underlying genes",
+      "Whole-genome sequencing of the full finch radiation revealed that a surprisingly small number of loci (including ALX1 and HMGA2) explain much of the morphological diversity across species",
+      "The same HMGA2 region implicated in the 1977 drought response also differs consistently between large- and small-beaked species — connecting a single-generation selection event to deep evolutionary divergence",
+      "This is a general lesson: standing genetic variation, present in ancestral populations, can be repeatedly reused by selection to build similar or different phenotypes in different lineages"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SYNTHESIS",
+    "title": "Standing Variation as a Shared Resource",
+    "left": {
+      "h": "The concept",
+      "body": "<p>Standing genetic variation — allelic diversity already present in a population before a new selective pressure appears — can be acted on immediately, without waiting for new mutations.</p><ul><li>ALX1 and HMGA2 variants appear to be ancestral, shared across multiple finch species via incomplete lineage sorting and past hybridization</li></ul>"
+    },
+    "right": {
+      "h": "Why it matters here",
+      "body": "<p>Because useful variation was already segregating in the ancestral gene pool, different finch lineages — and even the 1977 drought survivors within a single generation — could rapidly assemble the beak phenotypes favored by current conditions.</p><ul><li>This is faster than waiting for new mutations and helps explain how adaptive radiation can proceed so quickly on an evolutionary timescale</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "IMPLICATIONS",
+    "title": "What This Case Study Teaches About Evolutionary Theory",
+    "items": [
+      "Evolution is not a single mechanism but an interacting system — selection, heritability, drift, and gene flow act simultaneously, not one at a time",
+      "Microevolutionary change (within Daphne Major, within a few generations) and macroevolutionary pattern (the whole adaptive radiation) are connected by the same underlying processes, just extended over time",
+      "Genomic and developmental data do not replace classical population-genetic explanations — they complete them, showing the physical mechanisms behind statistical patterns like h² and S",
+      "Real populations are messy: multiple forces act on the same trait at the same time, and disentangling them requires long-term, quantitative fieldwork combined with modern genomics"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "COMMON MISCONCEPTIONS",
+    "title": "Things This Case Study Corrects",
+    "items": [
+      "Misconception: natural selection is too slow to observe. Correction: the 1977 drought produced a measurable evolutionary shift in a single generation",
+      "Misconception: species boundaries are always fixed and impermeable. Correction: the Big Bird lineage shows hybridization can found new lineages within decades",
+      "Misconception: genes 'determine' morphology in a simple one-to-one way. Correction: ALX1/HMGA2 act through developmental signaling pathways (BMP4, calmodulin) that integrate many inputs",
+      "Misconception: drift and selection are alternative, competing explanations. Correction: in real small populations, both operate together and must be statistically disentangled"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "METHODS SPOTLIGHT",
+    "title": "How We Know: Combining Field and Genomic Data",
+    "left": {
+      "h": "Field methods",
+      "body": "<p>Mist-netting and individual banding of essentially every bird on Daphne Major; calipers for beak measurements; long-term recapture records for survival and reproduction.</p><ul><li>Decades of data allow direct calculation of S, h², and R for real generations</li></ul>"
+    },
+    "right": {
+      "h": "Genomic methods",
+      "body": "<p>Whole-genome resequencing of over 100 individuals across species; genome-wide association and divergence scans (F<sub>ST</sub> outlier analysis) to find loci like ALX1 and HMGA2.</p><ul><li>Combining the two datasets let researchers link a specific genomic region to the exact drought-selection event the Grants measured phenotypically decades earlier</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY CHECKPOINT",
+    "title": "Can You Explain...",
+    "items": [
+      "Why the 1977 drought is considered direct, observed evidence for natural selection, and how the selection differential (S) was calculated",
+      "How heritability (h²) and the breeder's equation (R = h²S) let researchers predict the evolutionary response before it happened",
+      "Why genetic drift is expected to matter more on small islets than on larger, more populous islands",
+      "How the Big Bird lineage illustrates gene flow's potential to create, rather than only erode, biological diversity",
+      "What ALX1 and HMGA2 do, and how they relate developmentally to BMP4 and calmodulin",
+      "Why this single system can illustrate essentially every mechanism covered in this course"
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "RECAP",
+    "title": "Heritability, Precisely",
+    "term": "Narrow-Sense Heritability (h²)",
+    "def": "The proportion of total phenotypic variance in a trait attributable to additive genetic variance — the component of genetic variance that is reliably passed from parent to offspring and thus predicts response to selection.",
+    "bullets": [
+      "High h² for finch beak depth (~0.7-0.9) means most of the variation you see between birds reflects genetic differences transmissible to offspring, not just diet or developmental noise"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LIMITATIONS AND OPEN QUESTIONS",
+    "title": "What We Still Don't Fully Know",
+    "items": [
+      "The precise regulatory changes (which mutations, in which regulatory regions) that alter ALX1 and HMGA2 expression are still being characterized",
+      "How much of the finches' rapid diversification depended on standing variation versus new mutation remains an active research question",
+      "The long-term evolutionary fate of the Big Bird lineage — whether it will persist as a stable new species or be reabsorbed by further hybridization — is still being monitored",
+      "How climate change and altered El Niño/La Niña cycles will affect the balance of selection pressures on Galapagos finches going forward is an open conservation question"
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "SYNTHESIS",
+    "title": "Three Timescales, One Story",
+    "cards": [
+      {
+        "h": "Single generation",
+        "p": "The 1977 drought: selection differential measured, breeder's equation applied, response predicted and observed within a few years."
+      },
+      {
+        "h": "Decades",
+        "p": "The Grants' 40-year study and the Big Bird lineage's establishment as a reproductively isolated, self-perpetuating population."
+      },
+      {
+        "h": "Hundreds of thousands to millions of years",
+        "p": "The full adaptive radiation from a single mainland ancestor into the modern diversity of beak shapes and ecological niches across the archipelago."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "FROM THE LITERATURE",
+    "quote": "The classic example of speciation with subsequent radiation is that of Darwin's finches in the Galapagos Islands... natural selection, in the form of extreme drought, drove the evolution of increased beak size.",
+    "attrib": "Grant & Grant, Princeton monograph summary, on 40 years of Daphne Major research"
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "SYNTHESIS",
+    "title": "Selection and Drift Are Not Opposites — They Coexist",
+    "left": {
+      "h": "A common false dichotomy",
+      "body": "<p>Introductory treatments sometimes present selection (deterministic, fitness-driven) and drift (random, chance-driven) as competing explanations for evolutionary change, as if only one can be operating at a time.</p>"
+    },
+    "right": {
+      "h": "What the finches actually show",
+      "body": "<p>The 1977 bottleneck involved both simultaneously: survivors were non-random with respect to beak depth (selection) and were also a small, chance sample of the pre-drought gene pool (drift).</p><ul><li>Every real population experiences both forces at once; the question is always their relative strength, not which one is 'the' explanation</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LECTURE SUMMARY",
+    "title": "Key Takeaways",
+    "items": [
+      "Darwin's finches let us observe natural selection directly: the 1977 drought produced a measured, predictable shift in mean beak depth",
+      "High heritability of beak depth, combined with the breeder's equation (R = h²S), explained why that selective pressure translated into real evolutionary change",
+      "Genetic drift, especially in small island populations and during bottlenecks, adds a stochastic layer on top of selection",
+      "Gene flow and hybridization are not merely disruptive — the Big Bird lineage shows they can found new, reproductively isolated populations within a few generations",
+      "Genomic studies pinpointed ALX1 and HMGA2 as major loci underlying beak shape and size variation across the radiation",
+      "Evo-devo studies of BMP4 and calmodulin explain mechanistically how those genomic differences are translated into adult beak morphology during development",
+      "Together, these findings show that macroevolutionary pattern (an adaptive radiation) and microevolutionary process (selection, drift, gene flow within one population) are the same phenomenon viewed at different timescales"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "LOOKING AHEAD",
+    "title": "Preview: Lecture 40",
+    "items": [
+      "Next lecture continues the case-study integration series with two more classic systems: the peppered moth (Biston betularia) and Lenski's E. coli Long-Term Evolution Experiment (LTEE)",
+      "The peppered moth revisits selection and pigment genetics in a human-altered (industrial) environment, with modern genomic confirmation of the causal mutation",
+      "The LTEE demonstrates real-time observation of mutation, selection, and even the evolution of a genuinely new metabolic trait (citrate utilization) across tens of thousands of bacterial generations",
+      "Together, L39-41 form a three-part synthesis arc showing the same evolutionary toolkit applied across wildly different organisms and timescales"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "SPECIES IDENTITY",
+    "title": "Which 'Species' Are We Talking About?",
+    "items": [
+      "Geospiza fortis (medium ground finch) — the primary subject of the Daphne Major drought studies; a generalist seed-eater with intermediate beak depth",
+      "Geospiza scandens (cactus finch) — long, pointed beak adapted to probing Opuntia cactus flowers; involved in some hybridization events with G. fortis",
+      "Geospiza conirostris (large cactus finch) — contributed to the founding of the Big Bird lineage alongside G. fortis",
+      "Geospiza magnirostris (large ground finch) — largest-beaked ground finch; occasional immigrant to Daphne Major and a competitor for large seeds",
+      "Species boundaries among these ground and cactus finches are recent and, as the Big Bird lineage shows, still permeable"
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "ECOLOGICAL CONTEXT",
+    "title": "Competition and Character Displacement",
+    "left": {
+      "h": "The pattern",
+      "body": "<p>When G. fortis and G. magnirostris co-occur and compete for the same large, hard seeds, G. fortis beak depth tends to be smaller than on islands where G. magnirostris is absent — a classic character displacement pattern.</p>"
+    },
+    "right": {
+      "h": "Link to selection",
+      "body": "<p>The arrival of G. magnirostris on Daphne Major in the 2000s intensified competition for large seeds, and subsequent selection actually favored smaller-beaked G. fortis — the opposite direction from the 1977 drought.</p><ul><li>This shows selection pressure on the same trait can reverse direction depending on the biotic community, not just abiotic conditions like drought</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "TERMINOLOGY",
+    "title": "Character Displacement",
+    "term": "Character Displacement",
+    "def": "Divergence in a trait (such as beak size) between two competing species in sympatry (living together), relative to their trait values in allopatry (living apart), driven by competition for shared resources.",
+    "bullets": [
+      "In Darwin's finches, character displacement in beak size reduces niche overlap between co-occurring species and is itself a form of natural selection driven by interspecific competition"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "QUANTITATIVE GENETICS DEEPER DIVE",
+    "title": "Estimating Heritability in a Wild Population",
+    "items": [
+      "Heritability was estimated using parent-offspring regression: plotting mean parental beak depth against offspring beak depth across many families",
+      "The slope of that regression line is a direct estimate of h² under standard quantitative genetic assumptions",
+      "Cross-fostering and pedigree-based 'animal models' were later used to refine these estimates and control for shared environmental effects between parents and offspring",
+      "Consistently high h² estimates across studies gave researchers confidence that the breeder's equation predictions were not artifacts of a single method"
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "DATA",
+    "title": "Genomic Signatures at Beak-Shape Loci Across Species",
+    "headers": [
+      "Locus",
+      "Associated Trait",
+      "Pattern Across Species"
+    ],
+    "rows": [
+      [
+        "ALX1",
+        "Beak shape (pointed vs. blunt)",
+        "Two major haplotypes correlate with pointed (probing) vs. blunt (crushing) beak morphology across multiple species"
+      ],
+      [
+        "HMGA2",
+        "Beak and body size",
+        "Allele frequency shifted rapidly in G. fortis during the 1977 drought and differs consistently between large- and small-beaked species"
+      ],
+      [
+        "Non-coding regulatory regions near ALX1/HMGA2",
+        "Expression timing/level",
+        "Thought to alter when and how much these genes are expressed during craniofacial development, linking genotype to the BMP4/calmodulin developmental pathways"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "METHODS SPOTLIGHT",
+    "title": "F<sub>ST</sub> Outlier Scans: Finding the Genes That Matter",
+    "items": [
+      "Researchers compared allele frequencies at thousands of genomic sites between species (or between drought survivors and non-survivors) using a statistic called F<sub>ST</sub>, which measures genetic differentiation",
+      "Most of the genome shows low, background differentiation consistent with shared ancestry and ongoing gene flow",
+      "A small number of genomic regions — including those containing ALX1 and HMGA2 — stood out as extreme outliers with unusually high differentiation",
+      "These outlier regions are interpreted as targets of natural selection, distinguishing them from the neutral background of genetic drift and shared ancestry across the genome"
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "STUDY CHECKPOINT",
+    "title": "Practice: Predicting the Response to Selection",
+    "items": [
+      "Given a population with mean beak depth 9.4 mm, drought survivors averaging 9.9 mm, and h² = 0.75 — what is S? What is the predicted R, and what is the predicted mean beak depth in the offspring generation?",
+      "S = 9.9 − 9.4 = 0.5 mm; R = h²S = 0.75 × 0.5 = 0.375 mm; predicted offspring mean ≈ 9.4 + 0.375 = 9.775 mm",
+      "Now consider a trait with the same S but h² = 0.1 — how would the predicted response differ, and what does that imply about which traits evolve quickly under selection versus which barely respond at all?"
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "NEXT LECTURE",
+    "title": "Case Study Integration II",
+    "sub": "The Peppered Moth and the E. coli Long-Term Evolution Experiment — Lecture 40"
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution I · BIOL 2XX</span>
+        <span>Lecture 39</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>

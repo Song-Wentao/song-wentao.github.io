@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 24: Coevolutionary Networks and Chapter 15 Synthesis</title>
+<style>
+  :root{
+    --bg:#1a0e10;
+    --panel:#ffffff;
+    --ink:#2b1216;
+    --ink-soft:#6b4a4f;
+    --accent:#6b2c39;
+    --accent-2:#a8763a;
+    --accent-soft:#f3e6e9;
+    --line:#e8d5d9;
+    --danger:#b3452c;
+    --font-head: 'Georgia', 'Iowan Old Style', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow:hidden;
+  }
+  #deck{
+    position:relative;
+    width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .slide{
+    position:absolute;
+    width:min(94vw, 167vh);
+    height:min(52.9vw, 94vh);
+    aspect-ratio: 16/9;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 4.2% 5.5%;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+  .eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  h1.slide-title{
+    font-family: var(--font-head);
+    font-size: 2.05rem;
+    line-height: 1.15;
+    margin: 0 0 0.9rem 0;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  h2.slide-sub{
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: -0.5rem 0 1.2rem 0;
+  }
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    overflow:hidden;
+  }
+  ul.bullets{
+    margin:0; padding:0; list-style:none;
+  }
+  ul.bullets li{
+    position:relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.18rem;
+    line-height:1.45;
+    color: var(--ink);
+  }
+  ul.bullets li::before{
+    content:"";
+    position:absolute; left:0; top:0.55rem;
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius:50%;
+  }
+  ul.bullets li b, ul.bullets li strong{ color: var(--accent); }
+  ul.bullets.sub li{ font-size:1.0rem; color: var(--ink-soft); }
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.2rem;
+    flex:1;
+    align-items:center;
+  }
+  .col-box{
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+  }
+  .col-box h3{
+    margin:0 0 0.6rem 0;
+    font-family: var(--font-head);
+    font-size:1.15rem;
+    color: var(--accent);
+  }
+  .term-box{
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-left: 5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.4rem 1.7rem;
+    margin: 0.8rem 0;
+  }
+  .term-box .term{
+    font-family: var(--font-head);
+    font-weight:700;
+    font-size:1.3rem;
+    color: var(--accent);
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .term-box .def{
+    font-size:1.08rem;
+    line-height:1.5;
+    color: var(--ink);
+  }
+  .center-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .big-word{
+    font-family: var(--font-head);
+    font-size: 3.4rem;
+    color: var(--accent);
+    font-weight:700;
+    line-height:1.1;
+  }
+  .tag{
+    display:inline-block;
+    padding:0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color:white;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:1rem;
+  }
+  .tag.gold{ background: var(--accent-2); }
+  .tag.warn{ background: var(--danger); }
+  .footnote{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin-top:0.8rem;
+    font-style:italic;
+  }
+  .hier{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:0.55rem;
+  }
+  .hier-row{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .hier-bar{
+    height:2.6rem;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    padding:0 1.1rem;
+    color:white;
+    font-weight:700;
+    font-size:1.02rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .hier-desc{
+    color: var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .quote-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding: 0 3rem;
+  }
+  .quote-box p{
+    font-family: var(--font-head);
+    font-style:italic;
+    font-size:1.55rem;
+    color: var(--ink);
+    line-height:1.4;
+  }
+  .quote-box .attrib{
+    margin-top:1rem;
+    font-size:1rem;
+    color: var(--accent);
+    font-weight:700;
+    font-style:normal;
+  }
+  table.compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:1.02rem;
+  }
+  table.compare th{
+    text-align:left;
+    background: var(--accent);
+    color:white;
+    padding:0.6rem 0.9rem;
+    font-family: var(--font-head);
+  }
+  table.compare td{
+    padding:0.6rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.compare tr:nth-child(even) td{ background: #faf3f4; }
+  .timeline{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1rem;
+  }
+  .tl-item{
+    display:flex;
+    gap:1rem;
+    align-items:baseline;
+  }
+  .tl-year{
+    font-family: var(--font-head);
+    font-weight:700;
+    color:var(--accent-2);
+    font-size:1.2rem;
+    min-width:5.2rem;
+  }
+  .tl-text{ font-size:1.05rem; color:var(--ink); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:1.1rem;
+    flex:1;
+    align-content:center;
+  }
+  .card{
+    background: var(--accent-soft);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    border:1px solid var(--line);
+  }
+  .card h4{
+    margin:0 0 0.35rem 0;
+    color:var(--accent);
+    font-family: var(--font-head);
+    font-size:1.05rem;
+  }
+  .card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); line-height:1.4; }
+  footer.slide-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  #progress-bar{
+    position:fixed; top:0; left:0; height:4px;
+    background: var(--accent-2);
+    z-index:50;
+    transition: width 0.3s ease;
+  }
+  #counter{
+    position:fixed; bottom:18px; right:26px;
+    color:#e8cdd3; font-size:0.85rem;
+    font-family: var(--font-body);
+    z-index:50;
+    background:rgba(0,0,0,0.35);
+    padding:4px 12px;
+    border-radius:999px;
+  }
+  #nav-hint{
+    position:fixed; bottom:18px; left:26px;
+    color:#b89aa0; font-size:0.78rem;
+    z-index:50;
+  }
+  .navzone{
+    position:fixed; top:0; bottom:0; width:8%;
+    z-index:40; cursor:pointer;
+  }
+  #navzone-left{ left:0; }
+  #navzone-right{ right:0; }
+  .pyramid-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pyramid{ display:flex; flex-direction:column; align-items:center; }
+  .pyr-level{
+    color:white; font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; border-radius:6px; padding:0.6rem 1.2rem; font-size:0.95rem;
+    white-space:normal; text-align:center; line-height:1.3; box-sizing:border-box;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="counter">1 / 35</div>
+<div id="nav-hint">← → or space to navigate · Esc for overview</div>
+<div class="navzone" id="navzone-left"></div>
+<div class="navzone" id="navzone-right"></div>
+
+<div id="deck"></div>
+
+<script>
+// =====================================================================
+// SLIDE DATA — edit this array to change content. Each slide is one
+// object with a `type` (layout) and layout-specific fields.
+// =====================================================================
+const slides = [
+  {
+    "type": "title",
+    "eyebrow": "EVOLUTION II — BIOL 2XY — LECTURE 24",
+    "title": "Coevolutionary Networks and Chapter 15 Synthesis",
+    "sub": "From pairwise interactions to community-level webs — the geographic mosaic theory, coextinction risk, and tying together Chapter 15",
+    "footnote": "Zimmer & Emlen, Evolution: Making Sense of Life, 3rd ed., Chapter 15, \"Intimate Partnerships\" (lecture 4 of 4)"
+  },
+  {
+    "type": "section",
+    "tag": "Recap",
+    "title": "Where We've Been in Chapter 15",
+    "sub": "Three lectures of coevolution, one lecture to bring it all together"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Recap",
+    "title": "Chapter 15 So Far",
+    "items": [
+      "Lecture 21: What coevolution is — reciprocal evolutionary change driven by reciprocal selection; specific vs. diffuse coevolution; how to distinguish coevolution from simple co-occurrence.",
+      "Lecture 22: Antagonistic coevolution — arms races, escalation, the Red Queen hypothesis; predator-prey and host-parasite examples (rough-skinned newts and garter snakes; cuckoos and hosts).",
+      "Lecture 23: Mutualistic coevolution — pollination syndromes, seed dispersal, cleaning mutualisms, and the fig–fig wasp partnership; how mutualisms remain evolutionarily stable despite cheating.",
+      "Today: We zoom out from species pairs to entire communities — and ask how geography shapes coevolution, how networks respond to species loss, and what unifies the whole chapter."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Today's Agenda",
+    "title": "Lecture 24 Roadmap",
+    "items": [
+      "Part 1 — Coevolutionary networks: moving beyond pairwise interactions to many-species webs of pollinators, seed dispersers, and their plants.",
+      "Part 2 — Network architecture: nestedness and modularity, and why these structural patterns matter for coevolutionary dynamics.",
+      "Part 3 — The geographic mosaic theory of coevolution: Thompson's framework of selection mosaics, coevolutionary hotspots and coldspots, and trait remixing.",
+      "Part 4 — Coextinction risk and network robustness: what happens to coevolved communities when species disappear.",
+      "Part 5 — Chapter 15 synthesis: pulling coevolution types, antagonism, mutualism, and networks into one coherent picture.",
+      "Looking ahead — Chapter 16 begins next lecture: the evolution of brains and behavior."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 1",
+    "title": "Coevolutionary Networks",
+    "sub": "When coevolution stops being a story about two species"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Coevolutionary Network",
+    "term": "Coevolutionary network",
+    "def": "A web of reciprocal evolutionary interactions among many interacting species simultaneously — for example, dozens of plant species and dozens of pollinator species linked by who visits whom — rather than a single reciprocally adapted pair.",
+    "bullets": [
+      "Represented as a bipartite graph: two sets of species (e.g., plants and pollinators) connected by links representing interactions.",
+      "Selection on any one species is a composite of pressures from many partners at once, not from a single antagonist or mutualist.",
+      "Most plant-pollinator and plant-disperser mutualisms are diffuse in exactly this network sense — few species interact with only one partner."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Network Architecture",
+    "title": "Nestedness and Modularity",
+    "left": {
+      "h": "Nestedness",
+      "body": "<p>A nested network is one in which specialists tend to interact with a subset of the partners that generalists use — there is a core of generalist species interacting broadly, and specialists nest within that core rather than forming isolated pairs.</p><ul><li>Common in mutualistic networks (pollination, seed dispersal).</li><li>Creates asymmetric dependency: specialists depend heavily on generalists, but generalists depend only weakly on any one specialist.</li><li>Nested structure is thought to increase overall community persistence by spreading risk.</li></ul>"
+    },
+    "right": {
+      "h": "Modularity",
+      "body": "<p>A modular network is organized into semi-independent \"compartments\" or modules — clusters of species that interact densely with each other but weakly with species in other modules.</p><ul><li>Common in antagonistic networks (host-parasite, herbivore-plant).</li><li>Modules often correspond to phylogenetic or trait-based groupings (e.g., long-tongued pollinators clustering with long-tubed flowers).</li><li>Localizes the spread of a perturbation — a disturbance in one module is less likely to cascade through the whole network.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Network Structure",
+    "title": "Why Nestedness Evolves in Mutualisms",
+    "items": [
+      "Generalization is often favored when partners are unpredictable in space or time — a plant that only one pollinator visits risks zero reproduction if that pollinator is locally absent.",
+      "Nested architecture tends to minimize competition between mutualist partners: specialists that share a generalist core rarely compete directly for the same narrow resource.",
+      "Empirically, nestedness has been documented in dozens of plant-pollinator and plant-frugivore networks worldwide, from alpine meadows to tropical forests, suggesting it is a general emergent property rather than a one-off case.",
+      "Nestedness is a network-level pattern that no single pairwise coevolutionary study could ever reveal — it only appears when you map the whole community."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Network Structure",
+    "title": "Why Modularity Evolves in Antagonisms",
+    "items": [
+      "Specialization is often favored in antagonistic interactions because counter-adaptation to one enemy typically differs from counter-adaptation to another — a defense against one herbivore may not work against a second.",
+      "Coevolutionary arms races (Lecture 22) tend to sharpen trait matching between specific antagonist pairs, producing tight modules — e.g., particular parasitoid wasp lineages tracking particular host insect lineages.",
+      "Modularity can also emerge from phylogenetic conservatism: closely related hosts tend to share parasites, and closely related parasites tend to share hosts.",
+      "The contrast between nested mutualistic webs and modular antagonistic webs is one of the most robust generalizations in modern coevolutionary biology."
+    ]
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Generalization and Asymmetry in Networks",
+    "term": "Interaction asymmetry",
+    "def": "The common network pattern in which a specialist depends strongly on a generalist partner, while the generalist depends only weakly on that particular specialist — an asymmetric, rather than reciprocal, dependency.",
+    "bullets": [
+      "Predicted by nested network structure: specialists cluster around a shared generalist core.",
+      "Means that true \"tight\" reciprocal coevolution (as in figs and fig wasps) is the exception within networks, not the rule.",
+      "Has major consequences for extinction risk, covered later in this lecture."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Examples",
+    "title": "Real-World Coevolutionary Networks",
+    "cards": [
+      {
+        "h": "Pollination networks",
+        "p": "Temperate meadow networks can include 50+ plant species and 100+ insect visitor species, mapped by researchers such as Jordano, Bascompte, and Olesen into quantitative interaction matrices."
+      },
+      {
+        "h": "Seed-dispersal networks",
+        "p": "Frugivorous birds and mammals interacting with fleshy-fruited plants; tropical forest networks are typically highly nested, with a few generalist frugivores (e.g., toucans, monkeys) as hubs."
+      },
+      {
+        "h": "Cleaning-station networks",
+        "p": "Reef cleaner fish and shrimp interact with dozens of client fish species, forming networks with strong hub species and many peripheral specialist clients."
+      },
+      {
+        "h": "Ant-plant defense networks",
+        "p": "Multiple ant species patrolling multiple myrmecophyte plant species, with turnover in which ant occupies which plant across a landscape — a spatially structured network."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Comparing Network Types",
+    "title": "Mutualistic vs. Antagonistic Network Signatures",
+    "left": {
+      "h": "Mutualistic networks",
+      "body": "<ul><li>Tend toward high nestedness, low modularity.</li><li>Generalist hub species buffer the network.</li><li>Selection favors broad partner compatibility (e.g., generalized floral morphology).</li><li>Loss of a hub species can be catastrophic; loss of a peripheral specialist is usually tolerable.</li></ul>"
+    },
+    "right": {
+      "h": "Antagonistic networks",
+      "body": "<ul><li>Tend toward high modularity, lower nestedness.</li><li>Compartments correspond to coevolving lineage pairs or clusters.</li><li>Selection favors tight trait matching within a module (e.g., toxin-resistance matching).</li><li>Disturbance tends to stay contained within a module rather than spreading network-wide.</li></ul>"
+    }
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Scales of Coevolution",
+    "title": "Pairwise, Diffuse, and Network-Level Coevolution",
+    "headers": [
+      "Level",
+      "Number of interacting lineages",
+      "Typical dynamics",
+      "Example"
+    ],
+    "rows": [
+      [
+        "Pairwise (specific)",
+        "Two species, tightly reciprocal",
+        "Strong reciprocal selection, rapid trait matching, arms races or tight mutualisms",
+        "Yucca moth and yucca; newt tetrodotoxin and garter snake resistance"
+      ],
+      [
+        "Diffuse",
+        "One species and several partners, or vice versa",
+        "Selection is a blend of pressures from multiple partners; weaker per-partner reciprocity",
+        "A flower pollinated by several bee and fly species with overlapping but non-identical preferences"
+      ],
+      [
+        "Network-level",
+        "Many species on both sides, linked in a web",
+        "Emergent structural properties (nestedness, modularity) shape evolution community-wide; indirect effects propagate through shared partners",
+        "A montane meadow pollination web of dozens of plant and insect species"
+      ]
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 2",
+    "title": "The Geographic Mosaic Theory of Coevolution",
+    "sub": "John Thompson's framework: coevolution is not the same everywhere"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Geographic Mosaic Theory of Coevolution",
+    "term": "Geographic mosaic theory of coevolution",
+    "def": "John Thompson's framework proposing that coevolution is not a uniform, species-wide process but instead varies across a landscape as a mosaic of populations experiencing different selection pressures, different partner communities, and different local outcomes.",
+    "bullets": [
+      "Explains why the same species pair can show tight trait matching in one location and no matching at all in another.",
+      "Shifts the unit of coevolutionary analysis from 'the species' to 'the population,' embedded in a specific local community.",
+      "Synthesized in Thompson's books The Coevolutionary Process (1994) and The Geographic Mosaic of Coevolution (2005)."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Framework",
+    "title": "Three Components of the Geographic Mosaic",
+    "items": [
+      "1. Selection mosaics — the strength and even the direction of reciprocal selection differs from population to population, because local ecological conditions (climate, community composition, resource availability) differ.",
+      "2. Coevolutionary hotspots and coldspots — some populations experience strong reciprocal selection (hotspots) while others experience weak or no reciprocal selection (coldspots), often because one partner is rare, absent, or ecologically decoupled locally.",
+      "3. Trait remixing — gene flow, local extinction, and colonization continually reshuffle which combinations of traits occur together across the landscape, generating and dissolving local adaptation over time.",
+      "Together, these three processes mean coevolution is a dynamic, spatially heterogeneous process rather than a single fixed outcome for a species pair."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Hotspots and Coldspots",
+    "title": "Where Coevolution Is — and Isn't — Happening",
+    "left": {
+      "h": "Hotspots",
+      "body": "<p>Populations where both species are present, interact frequently, and reciprocal selection is strong.</p><ul><li>Trait matching (e.g., toxin level and resistance) tends to be tightest here.</li><li>Local coevolutionary 'arms races' or tight mutualisms can escalate over generations.</li><li>Example: sites where wild parsnip and the parsnip webworm co-occur at high density show tight matching between furanocoumarin chemistry and webworm detoxification enzymes.</li></ul>"
+    },
+    "right": {
+      "h": "Coldspots",
+      "body": "<p>Populations where one partner is rare, absent, or where other selective forces swamp the coevolutionary signal.</p><ul><li>Trait matching is weak, absent, or driven by other agents of selection.</li><li>The interaction may exist ecologically without evolving reciprocally.</li><li>Example: parsnip populations without webworms show little defensive chemical elaboration, since there is no local selection pressure to escalate.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Classic Case Studies",
+    "title": "Empirical Evidence for Hotspot/Coldspot Structure",
+    "items": [
+      "Wild parsnip (Pastinaca sativa) and the parsnip webworm (Depressaria pastinacella): geographic variation in furanocoumarin profiles tracks local webworm presence — a textbook geographic mosaic in a plant-herbivore antagonism.",
+      "Rough-skinned newts (Taricha granulosa) and garter snakes (Thamnophis sirtalis): tetrodotoxin resistance in snakes matches toxin levels in newts only in some populations (hotspots), while other populations show mismatched or 'stalled' arms races (coldspots) — studied extensively by Edmund Brodie Jr. and Edmund Brodie III.",
+      "Crossbills (Loxia curvirostra) and lodgepole pine (Pinus contorta): bill depth in crossbills tracks cone structure only where red squirrels — a competing seed predator — are absent; where squirrels are present, they preempt the coevolutionary interaction, creating a coldspot for the bird-pine pair.",
+      "Wild flax (Linum marginale) and the fungal pathogen Melampsora lini: resistance and virulence allele frequencies cycle asynchronously across populations, consistent with spatially varying host-pathogen 'Red Queen' dynamics."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Trait Remixing",
+    "title": "How Traits Get Reshuffled Across the Landscape",
+    "left": {
+      "h": "Mechanisms of remixing",
+      "body": "<ul><li>Gene flow — migrants carrying locally maladapted or novel trait combinations into a population.</li><li>Local extinction — loss of a hotspot population removes one particular trait combination from the landscape.</li><li>Recolonization — a population may be re-founded by colonists from a different source, importing a different trait combination.</li><li>Genetic drift in small populations, which can randomly shift local trait values regardless of selection.</li></ul>"
+    },
+    "right": {
+      "h": "Consequences",
+      "body": "<p>Trait remixing means the geographic mosaic is not static — it is constantly being generated, eroded, and regenerated.</p><ul><li>A coldspot today can become a hotspot after gene flow introduces a matching trait combination.</li><li>No single population's trait-matching pattern represents 'the' evolutionary state of the species.</li><li>Explains why coevolutionary outcomes can look wildly different in different published studies of the 'same' species pair.</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Coevolutionary Alternation",
+    "term": "Coevolutionary alternation (trait remixing outcome)",
+    "def": "The phenomenon in which the locally 'winning' trait combination shifts over time and space as gene flow, drift, and local extinction/recolonization continuously alter which populations are hotspots and which are coldspots.",
+    "bullets": [
+      "Prevents any one lineage from reaching a fixed, landscape-wide coevolutionary equilibrium.",
+      "Provides one explanation for how genetic variation for interaction traits (toxins, resistance, floral morphology) is maintained rather than being fixed by selection.",
+      "Connects directly to Red Queen dynamics from Lecture 22: alternation is one spatial mechanism generating perpetual coevolutionary change."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Case Studies in the Geographic Mosaic",
+    "title": "Four Systems, One Framework",
+    "cards": [
+      {
+        "h": "Newts and snakes",
+        "p": "Tetrodotoxin resistance and toxin levels are tightly matched at some Pacific Northwest sites and badly mismatched at others — a hotspot/coldspot mosaic studied over three decades."
+      },
+      {
+        "h": "Crossbills and pine",
+        "p": "Bill depth tracks cone armor only on squirrel-free 'islands,' showing how a third species can convert a hotspot into a coldspot."
+      },
+      {
+        "h": "Wild parsnip and webworm",
+        "p": "Defensive chemistry varies by an order of magnitude across populations depending on local webworm pressure."
+      },
+      {
+        "h": "Greya moths and Lithophragma",
+        "p": "A pollinating seed-parasite moth and its host plant show geographic shifts from mutualism to antagonism depending on the presence of alternative pollinators."
+      }
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "In Their Words",
+    "quote": "Coevolution is not one thing happening everywhere in the same way. It is a mosaic of local processes, some hot, some cold, linked together by the movement of genes across the landscape.",
+    "attrib": "paraphrased from John N. Thompson, The Geographic Mosaic of Coevolution (2005)"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Testing the Theory",
+    "title": "How Biologists Test the Geographic Mosaic Hypothesis",
+    "items": [
+      "Multi-population sampling — measuring trait matching (e.g., toxin dose vs. resistance dose) across many geographically distinct populations rather than a single site.",
+      "Reciprocal transplant and common-garden experiments — testing whether local trait combinations perform better in their home population than in foreign populations, a signature of local coevolutionary adaptation.",
+      "Population genetic surveys of gene flow — estimating migration rates between populations to assess how much remixing is plausible.",
+      "Comparing hotspot and coldspot population pairs directly for both trait matching intensity and the strength of reciprocal selection gradients measured in the field."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Broader Implications",
+    "title": "Why the Geographic Mosaic Matters",
+    "items": [
+      "It reframes species-level questions ('are species X and Y coevolving?') as necessarily population-level and context-dependent questions.",
+      "It helps explain conflicting results in the coevolution literature — apparent contradictions are often real geographic variation rather than methodological error.",
+      "It links microevolutionary process (selection, gene flow, drift within populations) to macroevolutionary pattern (diversification of interacting lineages across a landscape).",
+      "It sets the stage for understanding coevolutionary networks (Part 1) as themselves geographically variable — different regions can have different network structures for the 'same' set of species."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Part 3",
+    "title": "Coevolutionary Networks Under Disturbance",
+    "sub": "Coextinction risk and the robustness of coevolved communities"
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Coextinction",
+    "term": "Coextinction",
+    "def": "The loss of one species as a consequence of the prior or simultaneous loss of another species on which it depends — most commonly used for tightly dependent partners such as specialist pollinators, host-specific parasites, or obligate mutualists.",
+    "bullets": [
+      "First formalized as a conservation concern by Stork and Lyal (1993) for host-specific parasites and their hosts.",
+      "Coextinction is difficult to document directly because the dependent species often disappears quietly, without drawing the same attention as its host or partner.",
+      "Estimated to be a substantial, underappreciated component of the ongoing biodiversity crisis — some models suggest coextinctions could roughly double true extinction rates."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Structure and Vulnerability",
+    "title": "Network Robustness to Species Loss",
+    "left": {
+      "h": "What makes a network robust",
+      "body": "<ul><li>High nestedness provides redundancy: specialists can often shift to alternative generalist partners if their preferred partner is lost.</li><li>Many weak links, rather than few strong obligate links, spread risk across the network.</li><li>Generalist hub species buffer many peripheral specialists simultaneously as long as the hub itself persists.</li></ul>"
+    },
+    "right": {
+      "h": "What makes a network fragile",
+      "body": "<ul><li>Loss of a generalist hub species can trigger cascading secondary extinctions among the many specialists that depended on it.</li><li>Modular antagonistic networks can contain damage locally — but modules with only one or two species have no redundancy at all.</li><li>Obligate, tightly coevolved pairs (e.g., yucca and yucca moth, fig and fig wasp) have essentially zero buffering — losing one partner guarantees loss-linked decline of the other locally.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Mechanisms",
+    "title": "Why Nestedness Can Both Help and Hurt",
+    "items": [
+      "Nestedness increases robustness to random species loss — because most species are specialists connected to a resilient generalist core, randomly removing species rarely removes a keystone hub.",
+      "Nestedness decreases robustness to targeted loss of hub species — because so many specialists depend on the same few generalists, losing a hub has an outsized, disproportionate impact.",
+      "This asymmetry matters conservation-wise: human-driven extinction is rarely random — large-bodied, wide-ranging generalist frugivores and pollinators (often the hubs) are frequently the first species lost to hunting, habitat loss, or fragmentation.",
+      "Simulation studies (e.g., Memmott, Waser, and Price 2004) show that removing the most-connected pollinator species from a network causes far more secondary plant reproductive failure than removing an equal number of random species."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Documented and Inferred Cases",
+    "title": "Coextinction and Near-Coextinction in Practice",
+    "cards": [
+      {
+        "h": "Hawaiian honeycreepers and lobelias",
+        "p": "Extinction and decline of long-billed nectarivorous honeycreepers has left several specialized, tubular-flowered Hawaiian lobeliad plants with severely reduced pollination and, in some cases, no effective pollinator left."
+      },
+      {
+        "h": "Dodo and tambalacoque (debated)",
+        "p": "An early, now largely discredited hypothesis proposed that the Mauritian tambalacoque tree needed dodo gut passage to germinate; the case is now cited mainly as a cautionary example of overinterpreting coextinction from correlation."
+      },
+      {
+        "h": "Host-specific parasites and endangered hosts",
+        "p": "Conservation biology increasingly recognizes that saving an endangered host (e.g., a rare mammal) without considering its co-adapted, host-specific parasites and symbionts can itself cause quiet coextinctions of those dependents."
+      },
+      {
+        "h": "Fig wasps and habitat fragmentation",
+        "p": "Because individual fig wasp species are obligately tied to a single fig species and have short adult lifespans, fragmentation that increases distances between fig trees can locally collapse the wasp population even while the fig trees persist."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Disturbance",
+    "title": "How Habitat Fragmentation Reshapes Networks",
+    "items": [
+      "Fragmentation reduces population sizes, increasing the chance that rare, highly specialized interactions (thin links in the network) are lost first — networks tend to lose links before they lose entire species.",
+      "As specialist links disappear, remaining species often show 'rewiring' — persisting generalists partly replace lost partners, but often with lower efficiency (e.g., a generalist bee is a poorer pollinator than the specialist it replaces).",
+      "Fragment size and isolation both reduce network connectance (the proportion of possible links realized) and can reduce nestedness, making remaining fragments' networks more vulnerable to further loss.",
+      "Edge effects and altered species composition near fragment edges can also introduce novel interactions absent from continuous habitat, complicating simple 'loss of links' predictions."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Climate Change",
+    "title": "Phenological Mismatch as a Network-Level Disturbance",
+    "left": {
+      "h": "The problem",
+      "body": "<p>Climate change can shift the timing of flowering, emergence, or migration for different species at different rates, decoupling interactions that were previously synchronized.</p><ul><li>Warming can advance flowering time in plants faster than it advances emergence in their specialist pollinators.</li><li>Migratory frugivores may arrive after fruiting has already peaked.</li></ul>"
+    },
+    "right": {
+      "h": "Network consequences",
+      "body": "<p>Mismatch degrades specific links without necessarily causing outright species loss — a subtler, earlier-stage form of network disturbance than coextinction.</p><ul><li>Generalist species with broad phenological windows are more buffered against mismatch than specialists.</li><li>Repeated year-on-year mismatch can erode reproductive success enough to eventually drive local extinction, feeding back into the coextinction dynamics discussed above.</li></ul>"
+    }
+  },
+  {
+    "type": "term",
+    "eyebrow": "Key Concept",
+    "title": "Phenological Mismatch",
+    "term": "Phenological mismatch",
+    "def": "A temporal decoupling between interacting species caused by differential shifts in the timing of life-history events (such as flowering or emergence), typically driven by environmental change, which weakens or eliminates a previously functioning interaction.",
+    "bullets": [
+      "A leading mechanism by which anthropogenic climate change is expected to disrupt coevolved networks even without direct habitat destruction.",
+      "Best documented in temperate and Arctic pollination systems, where warming has advanced plant flowering more than insect emergence in some systems.",
+      "Illustrates that coevolutionary breakdown can be gradual and link-by-link rather than sudden and species-by-species."
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Network Vulnerability",
+    "title": "Robust vs. Fragile Network Characteristics",
+    "headers": [
+      "Feature",
+      "Robust network",
+      "Fragile network"
+    ],
+    "rows": [
+      [
+        "Connectivity",
+        "High connectance; many alternative links available",
+        "Low connectance; few, often obligate, links"
+      ],
+      [
+        "Structure",
+        "Highly nested with a strong generalist core",
+        "Highly modular with small, isolated compartments"
+      ],
+      [
+        "Hub species status",
+        "Generalist hubs abundant and secure",
+        "Generalist hubs rare, declining, or already lost"
+      ],
+      [
+        "Redundancy",
+        "Multiple species can perform similar functional roles",
+        "Single species performs an irreplaceable functional role"
+      ],
+      [
+        "Response to disturbance",
+        "Damage absorbed locally; network reorganizes via rewiring",
+        "Damage cascades; secondary coextinctions likely"
+      ]
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Conservation Applications",
+    "title": "Applying Network Thinking to Conservation",
+    "items": [
+      "Prioritizing protection of hub/generalist species can prevent disproportionate cascading losses, even when those species are not themselves rare or charismatic.",
+      "Restoring connectivity between habitat fragments can help re-establish rewired or lost links, partially restoring network function.",
+      "Network-based conservation complements, rather than replaces, traditional single-species conservation — a healthy population of an endangered plant is not sufficient if its pollinator network has already collapsed.",
+      "Assisted interaction restoration (e.g., reintroducing lost pollinators, hand-pollination programs) is increasingly used where coevolved partners cannot recover naturally — a direct practical outgrowth of understanding network structure."
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Synthesis Bridge",
+    "title": "From Geographic Mosaics to Network Robustness",
+    "left": {
+      "h": "The connection",
+      "body": "<p>The geographic mosaic theory and network robustness are two views of the same underlying reality: coevolution is spatially and structurally heterogeneous, not uniform.</p><ul><li>A network's structure (nestedness, modularity) is itself a hotspot/coldspot mosaic — some links are evolutionarily 'hot,' others essentially neutral.</li></ul>"
+    },
+    "right": {
+      "h": "Why it matters going forward",
+      "body": "<p>Disturbance does not act on an abstract 'species pair' — it acts on specific populations embedded in specific local networks.</p><ul><li>Predicting coextinction risk requires knowing both network position (hub vs. peripheral) and geographic context (hotspot vs. coldspot).</li></ul>"
+    }
+  },
+  {
+    "type": "section",
+    "tag": "Synthesis",
+    "title": "Chapter 15 Synthesis",
+    "sub": "Coevolution types, antagonism, mutualism, and networks — one coherent story"
+  },
+  {
+    "type": "pyramid",
+    "eyebrow": "Chapter 15 in One Diagram",
+    "title": "Building Up From Pairs to Communities",
+    "levels": [
+      {
+        "label": "Networks: community-level coevolution",
+        "color": "#4a1620",
+        "width": "620px"
+      },
+      {
+        "label": "Diffuse coevolution: many weak partners",
+        "color": "#6b2c39",
+        "width": "520px"
+      },
+      {
+        "label": "Mutualistic coevolution: reciprocal benefit",
+        "color": "#8a3f4d",
+        "width": "420px"
+      },
+      {
+        "label": "Antagonistic coevolution: arms races",
+        "color": "#a85a68",
+        "width": "320px"
+      },
+      {
+        "label": "Reciprocal selection between two species",
+        "color": "#c47b87",
+        "width": "220px"
+      }
+    ]
+  },
+  {
+    "type": "compare",
+    "eyebrow": "Chapter 15 Overview",
+    "title": "The Four Faces of Coevolution",
+    "headers": [
+      "Type",
+      "Fitness relationship",
+      "Typical dynamic",
+      "Key example from this chapter"
+    ],
+    "rows": [
+      [
+        "Antagonistic",
+        "One partner's gain is the other's loss",
+        "Escalating arms race; Red Queen dynamics",
+        "Newts and garter snakes; cuckoos and host birds"
+      ],
+      [
+        "Mutualistic",
+        "Both partners gain, though costs and cheating are possible",
+        "Trait matching that stabilizes exchange of benefits",
+        "Figs and fig wasps; pollination syndromes"
+      ],
+      [
+        "Diffuse",
+        "Selection from multiple partners simultaneously",
+        "Weaker, blended reciprocal selection per partner",
+        "A generalist-pollinated flower visited by several bee species"
+      ],
+      [
+        "Network-level",
+        "Emergent community-wide structure",
+        "Nestedness/modularity shape stability and coextinction risk",
+        "Meadow pollination webs; tropical seed-dispersal networks"
+      ]
+    ]
+  },
+  {
+    "type": "timeline",
+    "eyebrow": "Chapter 15 Arc",
+    "title": "How the Chapter Built Its Argument",
+    "items": [
+      {
+        "y": "L21",
+        "t": "Defined coevolution and distinguished specific from diffuse interactions."
+      },
+      {
+        "y": "L22",
+        "t": "Explored antagonistic coevolution: arms races, escalation, and the Red Queen hypothesis."
+      },
+      {
+        "y": "L23",
+        "t": "Explored mutualistic coevolution: pollination, dispersal, and cleaning symbioses, and their evolutionary stability."
+      },
+      {
+        "y": "L24",
+        "t": "Scaled up to networks, added geography via Thompson's mosaic theory, and examined coextinction and robustness."
+      }
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Big Ideas",
+    "title": "Five Threads That Run Through Chapter 15",
+    "items": [
+      "1. Reciprocity is the defining feature — coevolution requires that each partner's evolution shapes the other's selective environment, not just one-way adaptation.",
+      "2. Outcomes are not fixed — the same interaction can be antagonistic, mutualistic, or neutral depending on ecological context, and can shift over evolutionary time.",
+      "3. Scale matters — pairwise, diffuse, and network-level coevolution are not different phenomena but different resolutions of the same underlying process.",
+      "4. Geography matters — coevolution is a mosaic of hotspots and coldspots linked by gene flow, not a single species-wide state.",
+      "5. Structure has consequences — how a network is wired (nested vs. modular, hub-dependent vs. redundant) determines its vulnerability to disturbance and species loss."
+    ]
+  },
+  {
+    "type": "cards",
+    "eyebrow": "Key Takeaways",
+    "title": "What You Should Be Able to Do After Chapter 15",
+    "cards": [
+      {
+        "h": "Define and distinguish",
+        "p": "Explain the difference between pairwise, diffuse, and network-level coevolution, and between antagonistic and mutualistic dynamics."
+      },
+      {
+        "h": "Apply the geographic mosaic",
+        "p": "Predict how selection, trait matching, and gene flow could produce hotspot and coldspot populations for a given interaction."
+      },
+      {
+        "h": "Analyze network structure",
+        "p": "Interpret nestedness and modularity in a network diagram and predict which species loss would be most damaging."
+      },
+      {
+        "h": "Connect to conservation",
+        "p": "Explain why coextinction is an underappreciated conservation risk and how network thinking informs conservation priorities."
+      }
+    ]
+  },
+  {
+    "type": "twocol",
+    "eyebrow": "Looking Back, Looking Forward",
+    "title": "Coevolution's Place in the Bigger Picture of Evolution II",
+    "left": {
+      "h": "What coevolution teaches us",
+      "body": "<ul><li>Selection is often not a fixed, external force but a dynamic property of interacting, co-adapting lineages.</li><li>Ecological interactions (predation, mutualism, parasitism) are engines of diversification, not just outcomes of it.</li><li>Evolutionary and ecological timescales are tightly linked — coevolution can proceed on observable, even human, timescales (e.g., newt-snake studies over decades).</li></ul>"
+    },
+    "right": {
+      "h": "Where the course goes next",
+      "body": "<ul><li>Chapter 16 turns from species interactions to behavior itself as a phenotype under selection.</li><li>Many of the same logical tools apply: reciprocal selection reappears in the study of sexual conflict and communication.</li><li>Coevolutionary networks and social/behavioral networks share structural parallels worth watching for.</li></ul>"
+    }
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Open Questions",
+    "title": "What Coevolutionary Biology Hasn't Fully Resolved",
+    "items": [
+      "How general is the nested-mutualism / modular-antagonism pattern across taxa and biomes, and what determines exceptions?",
+      "How quickly can trait remixing regenerate a coevolutionary hotspot after local extinction — and can conservation interventions speed this process?",
+      "How well do network robustness models, largely built from static snapshots, predict real-world dynamic responses to ongoing, simultaneous climate and habitat disturbance?",
+      "To what extent can coevolutionary theory forecast, rather than just describe after the fact, which species pairs are at greatest coextinction risk?"
+    ]
+  },
+  {
+    "type": "quote",
+    "eyebrow": "Closing Thought",
+    "quote": "To understand a single vine and its pollinator is to understand a fragment of a story. To understand the whole web — and how it frays — is to understand how life on Earth actually holds itself together.",
+    "attrib": "course synthesis, adapted from themes in Zimmer & Emlen, Chapter 15"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Lecture Summary",
+    "title": "Lecture 24 in Six Points",
+    "items": [
+      "Coevolutionary networks extend pairwise and diffuse coevolution to whole communities of interacting species, revealing emergent structural patterns invisible at the species-pair level.",
+      "Mutualistic networks tend to be nested with generalist hubs; antagonistic networks tend to be modular with tightly matched compartments.",
+      "The geographic mosaic theory of coevolution (Thompson) explains why coevolutionary outcomes vary across space: selection mosaics, hotspots/coldspots, and trait remixing.",
+      "Coextinction is a real and likely underestimated component of biodiversity loss, driven especially by the loss of generalist hub species in nested networks.",
+      "Network robustness depends on connectivity, redundancy, and hub security — features directly relevant to conservation prioritization.",
+      "Chapter 15 as a whole shows that coevolution operates at multiple scales — pair, diffuse group, and network — all governed by the same core principle of reciprocal selection."
+    ]
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Study Guide",
+    "title": "Terms and Concepts to Know From Lecture 24",
+    "items": [
+      "Coevolutionary network, bipartite interaction graph, connectance",
+      "Nestedness, modularity, generalist hub species, interaction asymmetry",
+      "Geographic mosaic theory of coevolution, selection mosaic, coevolutionary hotspot, coevolutionary coldspot, trait remixing, coevolutionary alternation",
+      "Coextinction, network robustness, rewiring, phenological mismatch",
+      "Be ready to compare pairwise, diffuse, and network-level coevolution, and to explain why mutualistic networks tend to be nested while antagonistic networks tend to be modular."
+    ]
+  },
+  {
+    "type": "section",
+    "tag": "Next Lecture",
+    "title": "Chapter 16: Brains and Behavior",
+    "sub": "Lecture 25 — how natural selection shapes behavior, and why behavior evolves like any other trait"
+  },
+  {
+    "type": "bullets",
+    "eyebrow": "Preview",
+    "title": "What to Expect in Lecture 25",
+    "items": [
+      "We shift from interactions between species to the evolution of behavior itself — how brains and nervous systems evolve as adaptations.",
+      "Key questions: Can behavior be heritable? How does natural selection act on decision-making, learning, and instinct?",
+      "We will revisit some coevolutionary themes from Chapter 15 — communication, signaling, and manipulation — now viewed through the lens of behavioral evolution.",
+      "Reading: Zimmer & Emlen, Chapter 16, \"Brains, Cognition, and Behavior\" (sections on the evolution of nervous systems and behavioral genetics)."
+    ]
+  }
+];
+
+// =====================================================================
+// RENDER ENGINE
+// =====================================================================
+function esc(s){ return s; } // bullets allow inline <b> tags intentionally
+
+function renderSlide(s, idx){
+  let inner = "";
+  switch(s.type){
+
+    case "title":
+      inner = `
+        <div class="center-stage">
+          <span class="tag">${s.eyebrow||""}</span>
+          <div class="big-word">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+          <div class="footnote">${s.footnote||""}</div>
+        </div>`;
+      break;
+
+    case "section":
+      inner = `
+        <div class="center-stage">
+          <span class="tag gold">${s.tag||"Section"}</span>
+          <div class="big-word" style="font-size:2.6rem;">${s.title}</div>
+          <h2 class="slide-sub">${s.sub||""}</h2>
+        </div>`;
+      break;
+
+    case "bullets":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content"><ul class="bullets">
+          ${s.items.map(i=>`<li>${i}</li>`).join("")}
+        </ul></div>`;
+      break;
+
+    case "term":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <div class="term-box">
+            <span class="term">${s.term}</span>
+            <span class="def">${s.def}</span>
+          </div>
+          ${s.bullets ? `<ul class="bullets sub">${s.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>`;
+      break;
+
+    case "twocol":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="two-col">
+          <div class="col-box"><h3>${s.left.h}</h3><p>${s.left.body}</p></div>
+          <div class="col-box"><h3>${s.right.h}</h3><p>${s.right.body}</p></div>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "compare":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="content">
+          <table class="compare">
+            <tr>${s.headers.map(h=>`<th>${h}</th>`).join("")}</tr>
+            ${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+          </table>
+        </div>
+        ${s.footnote?`<div class="footnote">${s.footnote}</div>`:""}`;
+      break;
+
+    case "quote":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <div class="quote-box">
+          <p>"${s.quote}"</p>
+          <div class="attrib">${s.attrib||""}</div>
+        </div>`;
+      break;
+
+    case "cards":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="grid-cards">
+          ${s.cards.map(c=>`<div class="card"><h4>${c.h}</h4><p>${c.p}</p></div>`).join("")}
+        </div>`;
+      break;
+
+    case "timeline":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="timeline">
+          ${s.items.map(it=>`<div class="tl-item"><div class="tl-year">${it.y}</div><div class="tl-text">${it.t}</div></div>`).join("")}
+        </div>`;
+      break;
+
+    case "pyramid":
+      inner = `
+        <div class="eyebrow">${s.eyebrow||""}</div>
+        <h1 class="slide-title">${s.title}</h1>
+        <div class="pyramid-wrap">
+          <div class="pyramid">
+            ${s.levels.map(l=>`<div class="pyr-level" style="width:${l.width}; background:${l.color};">${l.label}</div>`).join("")}
+          </div>
+        </div>
+        ${s.footnote?`<div class="footnote" style="text-align:center;">${s.footnote}</div>`:""}`;
+      break;
+
+    default:
+      inner = `<h1 class="slide-title">${s.title||"Untitled"}</h1>`;
+  }
+
+  return `<div class="slide" data-idx="${idx}">
+      ${inner}
+      <footer class="slide-foot">
+        <span>Evolution II · BIOL 2XY</span>
+        <span>Lecture 24</span>
+      </footer>
+    </div>`;
+}
+
+const deck = document.getElementById("deck");
+deck.innerHTML = slides.map(renderSlide).join("");
+const slideEls = Array.from(document.querySelectorAll(".slide"));
+let current = 0;
+
+function show(i){
+  if(i<0) i=0;
+  if(i>=slideEls.length) i=slideEls.length-1;
+  slideEls[current].classList.remove("active");
+  current = i;
+  slideEls[current].classList.add("active");
+  document.getElementById("counter").textContent = (current+1)+" / "+slideEls.length;
+  document.getElementById("progress-bar").style.width = ((current+1)/slideEls.length*100)+"%";
+}
+show(0);
+
+document.addEventListener("keydown", (e)=>{
+  if(["ArrowRight","ArrowDown","PageDown"," "].includes(e.key)){ show(current+1); e.preventDefault(); }
+  if(["ArrowLeft","ArrowUp","PageUp"].includes(e.key)){ show(current-1); e.preventDefault(); }
+  if(e.key==="Home"){ show(0); }
+  if(e.key==="End"){ show(slideEls.length-1); }
+});
+document.getElementById("navzone-left").addEventListener("click", ()=>show(current-1));
+document.getElementById("navzone-right").addEventListener("click", ()=>show(current+1));
+</script>
+</body>
+</html>
