@@ -112,6 +112,8 @@ div.f input[type=text]{margin-top:4px}
 
 .btn.ghost.sy-ok{border-color:#8fe3ad}.btn.ghost.sy-err{border-color:#ff9c91;background:rgba(192,57,43,.35)}.btn.ghost.sy-needs{border-color:#ffd37a;background:rgba(240,170,0,.3)}
 
+.pick .pj{font-size:11px;padding:1px 7px;border-radius:9px;background:#efe7fb;color:#5b3a9a;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 </style>
 </head>
 <body>
@@ -389,7 +391,7 @@ function litSummary(l){ if(!l || !l.length) return ''; const last = l[l.length-1
 function toast(msg, bad){ const t = $('#toast'); t.innerHTML = `<div class="toast ${bad?'bad':''}">${esc(msg)}</div>`; clearTimeout(toast._t); toast._t = setTimeout(() => t.innerHTML = '', bad ? 6000 : 3000); }
 async function run(fn){ try { return await fn(); } catch(e){ console.error(e); toast('Save failed: ' + (e && e.message || e), true); return null; } }
 const upd = (col, id, data) => db.doc(`${col}/${id}`).update(data);
-async function logAct(action, detail){ try { await db.collection('log').add({ ts: Date.now(), projectId: S.pid, user: S.user || 'unknown', action, detail }); } catch(e){ console.error(e); } }
+async function logAct(action, detail, pid = S.pid){ try { await db.collection('log').add({ ts: Date.now(), projectId: pid, user: S.user || 'unknown', action, detail }); } catch(e){ console.error(e); } }
 
 function checkPlace(cage, incoming){
   if (cage.missing) return `Cage ${cage.number} is marked MISSING – mark it found before placing mice in it.`;
@@ -406,7 +408,7 @@ async function placeInCage(cid, cage, moved, mateDate){
   const existing = miceIn(cid).filter(m => !moved.some(x => x._id === m._id));
   const all = [...existing, ...moved];
   const stamp = cage.type === 'breeding' && mateDate && all.some(m => m.sex === 'M') && all.some(m => m.sex === 'F');
-  for (const m of moved) await upd('mice', m._id, { cageId: cid, ...(stamp ? { mateDate } : {}) });
+  for (const m of moved) await upd('mice', m._id, { cageId: cid, projectId: S.pid, ...(stamp ? { mateDate } : {}) });
   if (stamp) for (const m of existing) if (!m.mateDate) await upd('mice', m._id, { mateDate });
 }
 
@@ -634,47 +636,87 @@ const cageExtra = (type, c = {}) => type === 'breeding'
   ? fld('Breeding strategy (e.g. FB, FW)','strategy','text',c.strategy||'') + fld('Goal of this breeding','goal','text',c.goal||'')
   : fld('Researcher / owner','researcher','text',c.researcher||'');
 const cageExtraVals = (type, f) => type === 'breeding' ? { strategy: fv(f,'strategy'), goal: fv(f,'goal') } : { researcher: fv(f,'researcher') };
+/* ----- mouse picker (used by "+ New cage" and "Create breeding cage"); can reach mice of OTHER projects ----- */
+const projName = id => S.projects.find(p => p._id === id)?.name || '?';
+function pickRows(scope, includeCur, excl){
+  let list = S.mice.filter(m => isActive(m) && !cageById(m.cageId)?.missing);
+  if (scope === '__none') list = [];
+  else if (scope === '__cur') list = list.filter(m => m.projectId === S.pid);
+  else if (scope !== '__all') list = list.filter(m => m.projectId === scope);
+  if (!includeCur) list = list.filter(m => m.projectId !== S.pid);
+  if (excl) list = list.filter(m => m.cageId !== excl);                  // not the mice already in the target cage
+  list.sort((a,b) => (a.projectId === b.projectId ? 0 : (a.projectId === S.pid ? -1 : natural(projName(a.projectId), projName(b.projectId)))) || natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || midSort(a,b));
+  if (!list.length) return '<div class="empty">No live mice to show here.</div>';
+  return list.map(m => { const c = cageById(m.cageId); const other = m.projectId !== S.pid;
+    return `<label class="pick" data-t="${esc([projName(m.projectId), c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}">${other ? `<span class="pj" title="Project ${esc(projName(m.projectId))}">${esc(projName(m.projectId))}</span>` : ''}<span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${esc(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
+}
+function pickerHTML(includeCur, label){
+  const others = S.projects.filter(p => p._id !== S.pid).sort((a,b) => natural(a.name,b.name));
+  const opts = (includeCur ? '<option value="__cur">This project</option>' : '<option value="__none">— none (only the selected mice) —</option>')
+    + others.map(p => `<option value="${p._id}">Project: ${esc(p.name)}</option>`).join('')
+    + (others.length ? `<option value="__all">${includeCur ? 'All projects' : 'All other projects'}</option>` : '');
+  return `<div class="f"><span>${esc(label)}</span>
+    <select name="pscope">${opts}</select>
+    <input type="text" id="pickq" placeholder="Filter by project, cage, ID, genotype, sex…">
+    <div class="picklist">${pickRows(includeCur ? '__cur' : '__none', includeCur)}</div>
+    <div class="hint" id="picksum"></div></div>`;
+}
+/* wires the picker; returns {chosen()} (picks are remembered when you switch project) */
+function wirePicker(form, includeCur, onChange, excl){
+  const picked = new Set(); const list = form.querySelector('.picklist'), sel = form.elements.pscope, q = form.querySelector('#pickq');
+  const filter = () => { const t = q.value.toLowerCase().trim(); list.querySelectorAll('.pick').forEach(l => l.style.display = !t || l.dataset.t.includes(t) ? '' : 'none'); };
+  sel.onchange = () => { list.innerHTML = pickRows(sel.value, includeCur, excl && excl()); list.querySelectorAll('input[name=pick]').forEach(i => { i.checked = picked.has(i.value); }); filter(); };
+  list.addEventListener('change', e => { if (e.target.name === 'pick') { e.target.checked ? picked.add(e.target.value) : picked.delete(e.target.value); onChange(); } });
+  q.onkeydown = e => { if (e.key === 'Enter') e.preventDefault(); }; q.oninput = filter;
+  return { chosen: () => [...picked].map(id => S.mice.find(m => m._id === id)).filter(m => m && isActive(m)) };
+}
+/* mice coming from another project must not clash with IDs already used in this project */
+function crossProblem(ms){
+  const own = new Set(S.mice.filter(x => x.projectId === S.pid && x.mid).map(x => x.mid.toLowerCase()));
+  const bad = ms.filter(m => m.projectId !== S.pid && m.mid && own.has(m.mid.toLowerCase()));
+  if (bad.length) return `Mouse ID ${bad.map(m => m.mid).join(', ')} already exists in project “${cur().name}” – edit the ID first.`;
+  const seen = new Set(); for (const m of ms) if (m.mid) { const k = m.mid.toLowerCase(); if (seen.has(k)) return `Two chosen mice share the ID ${m.mid} – edit one of them first.`; seen.add(k); }
+  return null;
+}
+const fromTxt = ms => { const by = {}; ms.filter(m => m.projectId !== S.pid).forEach(m => (by[m.projectId] = by[m.projectId] || []).push(m)); const e = Object.entries(by); return e.length ? ' (from project ' + e.map(([p,l]) => `${projName(p)}: ${brief(l)}`).join('; ') + ')' : ''; };
+async function logCross(ms, where){           // also leave a trace in the projects the mice came from
+  const by = {}; ms.filter(m => m.projectId !== S.pid).forEach(m => (by[m.projectId] = by[m.projectId] || []).push(m));
+  for (const [pid, l] of Object.entries(by)) await logAct('Mice moved to another project', `${brief(l)} → project ${cur().name}, ${where}`, pid);
+}
+
 function newCage(){
-  const mice = S.mice.filter(m => m.projectId === S.pid && isActive(m) && !cageById(m.cageId)?.missing)
-    .sort((a,b) => natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || midSort(a,b));
-  const rows = mice.map(m => { const c = cageById(m.cageId);
-    return `<label class="pick" data-t="${esc([c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}"><span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${esc(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
   const form = openModal({ title:'New cage', ok:'Create', body: `
     <label class="f">Cage type<select name="type"><option value="inventory" ${S.type!=='breeding'?'selected':''}>Inventory</option><option value="breeding" ${S.type==='breeding'?'selected':''}>Breeding (1 male + females)</option></select></label>
     ${fld('Cage number / name','number','text','','required placeholder="e.g. 1024"')}${fld('Note (optional)','note')}
     <div id="xwrap">${cageExtra(S.type==='breeding'?'breeding':'inventory')}</div>
-    <div class="f"><span>Add existing mice to this cage (optional) – from breeding or inventory cages</span>
-      <input type="text" id="pickq" placeholder="Filter by cage, ID, genotype, sex…">
-      <div class="picklist">${rows || '<div class="empty">No live mice in this project.</div>'}</div>
-      <div class="hint" id="picksum"></div></div>
+    ${pickerHTML(true, 'Add existing mice to this cage (optional) – from breeding or inventory cages, of this or another project')}
     <div id="matewrap">${dateFld('Mate date (set automatically for the chosen mice)','mateDate',todayISO())}</div>`,
     onOk: async f => {
-      const type = fv(f,'type'), number = fv(f,'number');
-      const chosen = [...f.querySelectorAll('input[name=pick]:checked')].map(i => S.mice.find(m => m._id === i.value)).filter(Boolean);
+      const type = fv(f,'type'), number = fv(f,'number'); const chosen = picker.chosen();
       if (!number) return 'Enter a cage number.';
       if (pcages().some(c => c.number.toLowerCase() === number.toLowerCase())) return 'This cage number already exists in the project.';
-      const err = checkPlace({ type, number, _id:'__new' }, chosen); if (err) return err;
+      const err = checkPlace({ type, number, _id:'__new' }, chosen) || crossProblem(chosen); if (err) return err;
       await run(async () => {
         const r = await db.collection('cages').add({ projectId: S.pid, type, number, note: fv(f,'note'), ...cageExtraVals(type, f), createdAt: Date.now() });
         await placeInCage(r.id, { type }, chosen, fv(f,'mateDate'));
-        await logAct('Create cage', `${number} (${type})${chosen.length ? ' with ' + brief(chosen) : ''}`);
+        await logAct('Create cage', `${number} (${type})${chosen.length ? ' with ' + brief(chosen) + fromTxt(chosen) : ''}`);
+        await logCross(chosen, `cage ${number}`);
         chosen.forEach(m => S.sel.delete(m._id));
         if (type === 'breeding') { S.type = 'breeding'; S.tab = 'cages'; }
         render();
       });
     } });
   const sum = () => {
-    const type = form.elements.type.value; const ch = [...form.querySelectorAll('input[name=pick]:checked')].map(i => S.mice.find(m => m._id === i.value)).filter(Boolean);
+    const type = form.elements.type.value; const ch = picker.chosen();
     form.querySelector('#matewrap').style.display = type === 'breeding' && ch.length ? '' : 'none';
     if (form.querySelector('#xwrap').dataset.t !== type) { const w = form.querySelector('#xwrap'); w.innerHTML = cageExtra(type); w.dataset.t = type; }
     const el = form.querySelector('#picksum'); if (!ch.length) { el.textContent = 'No mice selected – an empty cage will be created.'; el.style.color = ''; return; }
-    const err = checkPlace({ type, number:'(new)', _id:'__new' }, ch);
-    el.textContent = `${ch.length} selected (${ch.filter(m=>m.sex==='M').length} ♂, ${ch.filter(m=>m.sex==='F').length} ♀)` + (err ? ' – ' + err : ''); el.style.color = err ? 'var(--danger)' : '';
+    const err = checkPlace({ type, number:'(new)', _id:'__new' }, ch) || crossProblem(ch);
+    const nOther = ch.filter(m => m.projectId !== S.pid).length;
+    el.textContent = `${ch.length} selected (${ch.filter(m=>m.sex==='M').length} ♂, ${ch.filter(m=>m.sex==='F').length} ♀${nOther ? `, ${nOther} from other projects – they will be moved into this project` : ''})` + (err ? ' – ' + err : ''); el.style.color = err ? 'var(--danger)' : '';
   };
-  form.addEventListener('change', e => { if (e.target.name === 'pick' || e.target.name === 'type') sum(); });
-  const q = form.querySelector('#pickq');
-  q.onkeydown = e => { if (e.key === 'Enter') e.preventDefault(); };
-  q.oninput = () => { const t = q.value.toLowerCase().trim(); form.querySelectorAll('.pick').forEach(l => l.style.display = !t || l.dataset.t.includes(t) ? '' : 'none'); };
+  const picker = wirePicker(form, true, sum);
+  form.addEventListener('change', e => { if (e.target.name === 'type') sum(); });
   sum();
 }
 function editCage(id){
@@ -728,18 +770,36 @@ function cageOptions(sel, filter){
 function addMouse(pre = {}){
   if (!pcages().length) return toast('Create a cage first.', true);
   const form = openModal({ title:'Add mice', ok:'Add', body: `
-    <div class="f"><span>Mouse ID</span>
-      <label class="chkl"><input type="checkbox" name="untagged" checked> Not ear-tagged yet (new mice – default)</label>
-      <input name="mid" type="text" placeholder="Ear-tag ID" disabled></div>
-    <div class="grid2">${fld('How many (tagged IDs get -1, -2…)','qty','number','1','min=1 max=5')}<label class="f">Sex<select name="sex"><option value="M">Male</option><option value="F">Female</option></select></label></div>
-    <div class="grid2">${fld('Genotype','genotype','text',pre.genotype||'')}${dateFld('Date of birth','dob',pre.dob||'')}</div>
-    <div class="grid2"><label class="f">Cage<select name="cage">${cageOptions(pre.cageId)}</select></label>${fld('Parent cage number','parentCage','text',pre.parentCage||'')}</div>
-    <div class="grid2">${dateFld('Mate date','mateDate','')}${fld('Label','label')}</div>
-    ${fld('Note','note')}`,
+    <label class="f">Cage<select name="cage">${cageOptions(pre.cageId)}</select></label>
+    <div id="modewrap" style="display:none"><label class="chkl"><input type="radio" name="mode" value="new"> Add new mice</label>
+      <label class="chkl"><input type="radio" name="mode" value="existing" checked> Add existing mice – from this or another project (default)</label></div>
+    <div id="newwrap2">
+      <div class="f"><span>Mouse ID</span>
+        <label class="chkl"><input type="checkbox" name="untagged" checked> Not ear-tagged yet (new mice – default)</label>
+        <input name="mid" type="text" placeholder="Ear-tag ID" disabled></div>
+      <div class="grid2">${fld('How many (tagged IDs get -1, -2…)','qty','number','1','min=1 max=5')}<label class="f">Sex<select name="sex"><option value="M">Male</option><option value="F">Female</option></select></label></div>
+      <div class="grid2">${fld('Genotype','genotype','text',pre.genotype||'')}${dateFld('Date of birth','dob',pre.dob||'')}</div>
+      <div class="grid2">${fld('Parent cage number','parentCage','text',pre.parentCage||'')}${dateFld('Mate date','mateDate','')}</div>
+      <div class="grid2">${fld('Label','label')}${fld('Note','note')}</div></div>
+    <div id="exwrap" style="display:none">${pickerHTML(true, 'Choose the mice to add to this breeding cage')}${dateFld('Mate date (applied to the cage’s mice)','exMate',todayISO())}</div>`,
     onOk: async f => {
+      const cage = cageById(fv(f,'cage')); if (!cage) return 'Choose a cage.';
+      /* --- existing mice (breeding cages): move them in, possibly from another project --- */
+      if (mode() === 'existing') {
+        const chosen = picker.chosen(); if (!chosen.length) return 'Tick at least one mouse to add.';
+        const err = checkPlace(cage, chosen) || crossProblem(chosen); if (err) return err;
+        await run(async () => {
+          await placeInCage(cage._id, cage, chosen, fv(f,'exMate'));
+          await logAct('Add existing mice', `${brief(chosen)}${fromTxt(chosen)} → cage ${cage.number}`);
+          await logCross(chosen, `cage ${cage.number}`);
+          chosen.forEach(m => S.sel.delete(m._id));
+        });
+        return;
+      }
+      /* --- brand-new mice --- */
       const untagged = f.elements.untagged.checked; const base = fv(f,'mid');
-      const qty = Math.max(1, Math.min(MAX, parseInt(fv(f,'qty')) || 1)); const sex = fv(f,'sex'); const cage = cageById(fv(f,'cage'));
-      if (!untagged && !base) return 'Enter the ear-tag ID, or tick “Not ear-tagged yet”.'; if (!cage) return 'Choose a cage.';
+      const qty = Math.max(1, Math.min(MAX, parseInt(fv(f,'qty')) || 1)); const sex = fv(f,'sex');
+      if (!untagged && !base) return 'Enter the ear-tag ID, or tick “Not ear-tagged yet”.';
       const ids = untagged ? Array(qty).fill('') : (qty === 1 ? [base] : Array.from({length:qty}, (_,i) => `${base}-${i+1}`));
       if (!untagged) {
         const existing = new Set(S.mice.filter(m => m.projectId === S.pid && m.mid).map(m => m.mid.toLowerCase()));
@@ -753,6 +813,27 @@ function addMouse(pre = {}){
     } });
   const midIn = form.elements.mid, cb = form.elements.untagged;
   cb.onchange = () => { midIn.disabled = cb.checked; if (!cb.checked) midIn.focus(); };
+  const mode = () => (form.querySelector('input[name=mode]:checked') || {}).value || 'new';
+  const exInfo = () => {
+    const cage = cageById(form.elements.cage.value); const ch = picker.chosen(); const el = form.querySelector('#picksum');
+    if (!ch.length) { el.textContent = 'Nothing selected yet.'; el.style.color = ''; return; }
+    const err = checkPlace(cage, ch) || crossProblem(ch); const nO = ch.filter(m => m.projectId !== S.pid).length;
+    el.textContent = `${ch.length} selected (${ch.filter(m=>m.sex==='M').length} ♂, ${ch.filter(m=>m.sex==='F').length} ♀${nO ? `, ${nO} from other projects – they will be moved into this project` : ''})` + (err ? ' – ' + err : ''); el.style.color = err ? 'var(--danger)' : '';
+  };
+  const picker = wirePicker(form, true, exInfo, () => form.elements.cage.value);
+  let wasBreeding = null;
+  const sync = () => {
+    const breeding = cageById(form.elements.cage.value)?.type === 'breeding';
+    form.querySelector('#modewrap').style.display = breeding ? '' : 'none';
+    if (!breeding) form.querySelector('input[name=mode][value=new]').checked = true;
+    else if (wasBreeding !== true) form.querySelector('input[name=mode][value=existing]').checked = true;   // breeding cage → existing mice by default
+    wasBreeding = breeding;
+    const ex = mode() === 'existing';
+    form.querySelector('#newwrap2').style.display = ex ? 'none' : ''; form.querySelector('#exwrap').style.display = ex ? '' : 'none';
+    if (ex) { form.elements.pscope.onchange(); exInfo(); }
+  };
+  form.addEventListener('change', e => { if (e.target.name === 'cage' || e.target.name === 'mode') sync(); });
+  sync();
 }
 function addPups(cid){
   const c = cageById(cid); const last = (c.litters || []).slice(-1)[0];
@@ -787,28 +868,37 @@ const selMice = () => [...S.sel].map(i => S.mice.find(m => m._id === i)).filter(
 const brief = ms => ms.map(mname).join(', ');
 
 function combine(){
-  const ms = selMice(); const males = ms.filter(m => m.sex==='M').length, females = ms.filter(m => m.sex==='F').length;
-  if (!males || !females) return toast('Select one male and at least one female to create a breeding cage.', true);
-  if (males > MAX_BREEDING_MALES) return toast(`A breeding cage can hold only ${MAX_BREEDING_MALES} male – you selected ${males}.`, true);
+  const ms = selMice(); if (!ms.length) return;
   const breeding = pcages().filter(c => c.type === 'breeding' && !c.missing);
-  const form = openModal({ title:'Create breeding cage', ok:'Create', body: `<div class="hint">${ms.length} mice selected (${males} ♂, ${females} ♀): ${esc(brief(ms))}</div>
+  const form = openModal({ title:'Create breeding cage', ok:'Create', body: `<div class="hint" id="selinfo"></div>
+    ${pickerHTML(false, 'Also add mice from another project (optional) – e.g. the missing male or female')}
     <label class="f">Target<select name="target"><option value="__new">New breeding cage…</option>${breeding.map(c=>`<option value="${c._id}">${esc(c.number)} · ${miceIn(c._id).length}/${MAX}</option>`).join('')}</select></label>
-    <div id="newwrap">${fld('New cage number / name','number','text','')}</div>${dateFld('Mate date (applied to the selected mice)','mateDate',todayISO())}`,
+    <div id="newwrap">${fld('New cage number / name','number','text','')}${fld('Breeding strategy (e.g. FB, FW)','strategy')}${fld('Goal of this breeding','goal')}</div>${dateFld('Mate date (applied to all these mice)','mateDate',todayISO())}`,
     onOk: async f => {
+      const all = [...ms, ...picker.chosen()];
       const t = fv(f,'target'); let cage;
+      if (!all.some(m => m.sex === 'M') || !all.some(m => m.sex === 'F')) return `A breeding cage needs one male and at least one female (you have ${all.filter(m=>m.sex==='M').length} ♂, ${all.filter(m=>m.sex==='F').length} ♀).`;
       if (t === '__new') { const number = fv(f,'number'); if (!number) return 'Enter a number for the new cage.'; if (pcages().some(c => c.number.toLowerCase() === number.toLowerCase())) return 'This cage number already exists.'; cage = { type:'breeding', number, _id:'__new' }; }
       else cage = cageById(t);
-      const err = checkPlace(cage, ms); if (err) return err;
+      const err = checkPlace(cage, all) || crossProblem(all); if (err) return err;
       await run(async () => {
         let cid = cage._id;
-        if (t === '__new') { const r = await db.collection('cages').add({ projectId: S.pid, type:'breeding', number: cage.number, note:'', createdAt: Date.now() }); cid = r.id; }
+        if (t === '__new') { const r = await db.collection('cages').add({ projectId: S.pid, type:'breeding', number: cage.number, note:'', strategy: fv(f,'strategy'), goal: fv(f,'goal'), createdAt: Date.now() }); cid = r.id; }
         const md = fv(f,'mateDate');
-        await placeInCage(cid, { type:'breeding' }, ms, md);
-        await logAct('Create breeding cage', `${brief(ms)} → cage ${cage.number}, mate date ${md}`);
+        await placeInCage(cid, { type:'breeding' }, all, md);
+        await logAct('Create breeding cage', `${brief(all)}${fromTxt(all)} → cage ${cage.number}, mate date ${md}`);
+        await logCross(all, `breeding cage ${cage.number}`);
         S.sel.clear(); S.type = 'breeding'; S.tab = 'cages'; render(); toast(`Breeding cage ${cage.number} ready – mate date ${md} set.`);
       });
     } });
-  const sync = () => { form.querySelector('#newwrap').style.display = form.elements.target.value === '__new' ? '' : 'none'; };
+  const info = () => {
+    const all = [...ms, ...picker.chosen()]; const el = form.querySelector('#selinfo'); const nO = all.length - ms.length;
+    const err = (cageSel() ? checkPlace(cageSel(), all) : checkPlace({ type:'breeding', number:'(new)', _id:'__new' }, all)) || crossProblem(all);
+    el.innerHTML = `${all.length} mice (${all.filter(m=>m.sex==='M').length} ♂, ${all.filter(m=>m.sex==='F').length} ♀): ${esc(brief(all))}${nO ? ` <i>– ${nO} from other projects will be moved into this project</i>` : ''}${err ? `<div style="color:var(--danger)">${esc(err)}</div>` : ''}`;
+  };
+  const cageSel = () => { const v = form.elements.target.value; return v === '__new' ? null : cageById(v); };
+  const picker = wirePicker(form, false, info);
+  const sync = () => { form.querySelector('#newwrap').style.display = form.elements.target.value === '__new' ? '' : 'none'; info(); };
   form.elements.target.onchange = sync; sync();
 }
 
