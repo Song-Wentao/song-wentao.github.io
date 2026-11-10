@@ -114,6 +114,10 @@ div.f input[type=text]{margin-top:4px}
 
 .pick .pj{font-size:11px;padding:1px 7px;border-radius:9px;background:#efe7fb;color:#5b3a9a;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+.colrow{display:flex;gap:6px;align-items:center;margin:6px 0}
+.colrow input{flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:inherit}
+.colrow .gt{color:var(--mute);font-size:12px;min-width:48px}
+
 </style>
 </head>
 <body>
@@ -408,7 +412,7 @@ async function placeInCage(cid, cage, moved, mateDate){
   const existing = miceIn(cid).filter(m => !moved.some(x => x._id === m._id));
   const all = [...existing, ...moved];
   const stamp = cage.type === 'breeding' && mateDate && all.some(m => m.sex === 'M') && all.some(m => m.sex === 'F');
-  for (const m of moved) await upd('mice', m._id, { cageId: cid, projectId: S.pid, ...(stamp ? { mateDate } : {}) });
+  for (const m of moved) await upd('mice', m._id, { cageId: cid, projectId: S.pid, ...(stamp ? { mateDate } : {}), ...(m.projectId !== S.pid ? carryCustom(m) : {}) });
   if (stamp) for (const m of existing) if (!m.mateDate) await upd('mice', m._id, { mateDate });
 }
 
@@ -417,6 +421,21 @@ const mname = m => m.mid || 'Untagged';
 const oldList = m => (m.oldIds || []).filter(Boolean);
 const idText = m => mname(m) + (oldList(m).length ? ` (${oldList(m).join(', ')})` : '');
 const idHTML = m => (m.mid ? `<b>${esc(m.mid)}</b>` : '<i class="untag">Untagged</i>') + (oldList(m).length ? ` <span class="old">(${esc(oldList(m).join(', '))})</span>` : '');
+/* ---------- custom (per-project) columns: project.customCols = [{id,name,type}], mouse.custom = {colId: value} ---------- */
+const customCols = () => cur()?.customCols || [];
+const cval = (m, col) => (m.custom && m.custom[col.id] != null) ? m.custom[col.id] : '';
+const customFields = (vals = {}) => customCols().map(c => c.type === 'date' ? dateFld(c.name, 'cf_' + c.id, vals[c.id] || '')
+  : fld(c.name, 'cf_' + c.id, c.type === 'number' ? 'number' : 'text', vals[c.id] ?? '', c.type === 'number' ? 'step="any"' : '')).join('');
+const customBlock = (vals) => customCols().length ? `<div class="hint" style="margin-top:10px">Custom columns</div><div class="grid2">${customFields(vals)}</div>` : '';
+const readCustom = f => { const o = {}; for (const c of customCols()) { const v = fv(f, 'cf_' + c.id); if (v !== '') o[c.id] = c.type === 'number' ? Number(v) : v; } return o; };
+function carryCustom(m){          // mouse moves to another project: map custom values by column name; leftovers go into the note
+  const src = S.projects.find(p => p._id === m.projectId), dst = cur(); const out = { custom: {} }; const extra = [];
+  for (const sc of (src?.customCols || [])) { const v = (m.custom || {})[sc.id]; if (v == null || v === '') continue;
+    const dc = (dst.customCols || []).find(c => c.name.toLowerCase() === sc.name.toLowerCase());
+    if (dc) out.custom[dc.id] = v; else extra.push(`${sc.name}: ${v}`); }
+  if (extra.length) out.note = [m.note, '[' + extra.join('; ') + ']'].filter(Boolean).join(' ');
+  return out;
+}
 const midSort = (a,b) => (a.mid ? 0 : 1) - (b.mid ? 0 : 1) || natural(a.mid, b.mid);
 
 /* ---------- date picker: Month → Day → Year, jumps to the next box after each choice ---------- */
@@ -528,7 +547,7 @@ function renderMain(){
   if (S.tab === 'cages') {
     const nMiss = cages.filter(c=>c.missing).length;
     h += ['all','breeding','inventory','missing'].filter(t => t !== 'missing' || nMiss || S.type === 'missing').map(t=>`<button class="pill ${S.type===t?'on':''} ${t==='missing'?'pmiss':''}" data-act="type" data-id="${t}">${{all:'All',breeding:'Breeding',inventory:'Inventory',missing:'Missing ('+nMiss+')'}[t]}</button>`).join('');
-    h += `<input type="search" id="q" placeholder="Search ID, genotype, label, note…" value="${esc(S.q)}"><span class="sp"></span><button class="btn primary" data-act="newCage">+ New cage</button><button class="btn" data-act="addMouse">+ Add mice</button>`;
+    h += `<input type="search" id="q" placeholder="Search ID, genotype, label, note…" value="${esc(S.q)}"><span class="sp"></span><button class="btn" data-act="cols" title="Add or edit extra columns for this project">⚙ Columns</button><button class="btn primary" data-act="newCage">+ New cage</button><button class="btn" data-act="addMouse">+ Add mice</button>`;
   } else h += '<span class="sp"></span>';
   h += '</div>';
 
@@ -538,9 +557,10 @@ function renderMain(){
   m.innerHTML = h;
 }
 
-function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.label,x.note,x.parentCage].some(v => String(v||'').toLowerCase().includes(q)); }
+function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.label,x.note,x.parentCage,...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
 
 function cagesHTML(cages){
+  const cc = customCols();
   const q = S.q.trim();
   const list = cages.filter(c => S.type === 'all' || (S.type === 'missing' ? c.missing : c.type === S.type));
   let out = '';
@@ -559,8 +579,8 @@ function cagesHTML(cages){
     if (c.missing) out += `<div class="miss-note">⚠ <b>Cage not found</b> – missing since ${esc(c.missingDate||'?')}${c.missingBy?` (reported by ${esc(c.missingBy)})`:''}${c.missingNote?`. ${esc(c.missingNote)}`:''}. These mice are listed but locked until the cage is found.</div>`;
     { const bits = [c.strategy && `Strategy: ${c.strategy}`, c.goal && `Goal: ${c.goal}`, c.researcher && `Researcher: ${c.researcher}`, c.note].filter(Boolean); if (bits.length) out += `<div class="cage-note">${esc(bits.join('  ·  '))}</div>`; }
     if (!ms.length) out += `<div class="empty">${all.length ? 'No mice match the search.' : 'Empty cage.'}</div>`;
-    else out += `<div class="tw"><table><thead><tr><th></th><th>ID</th><th>Genotype</th><th>Sex</th><th>DOB</th><th>Wk</th><th>Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Label</th><th>Note</th><th></th></tr></thead><tbody>` +
-      ms.map(x => `<tr class="${S.sel.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="sel" data-id="${x._id}" ${S.sel.has(x._id)?'checked':''} ${c.missing?'disabled':''}></td><td class="w">${idHTML(x)}</td><td class="w">${esc(x.genotype)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob)}</td><td>${ageMo(x.dob)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td><td><button class="btn sm" data-act="editMouse" data-id="${x._id}">Edit</button></td></tr>`).join('') + '</tbody></table></div>';
+    else out += `<div class="tw"><table><thead><tr><th></th><th>ID</th><th>Genotype</th><th>Sex</th><th>DOB</th><th>Wk</th><th>Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Label</th><th>Note</th>${cc.map(c => `<th>${esc(c.name)}</th>`).join('')}<th></th></tr></thead><tbody>` +
+      ms.map(x => `<tr class="${S.sel.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="sel" data-id="${x._id}" ${S.sel.has(x._id)?'checked':''} ${c.missing?'disabled':''}></td><td class="w">${idHTML(x)}</td><td class="w">${esc(x.genotype)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob)}</td><td>${ageMo(x.dob)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td>${cc.map(c => `<td class="w">${esc(cval(x,c))}</td>`).join('')}<td><button class="btn sm" data-act="editMouse" data-id="${x._id}">Edit</button></td></tr>`).join('') + '</tbody></table></div>';
     out += c.missing
       ? `<div class="cage-f"><button class="btn sm primary" data-act="found" data-id="${c._id}">✔ Mark found</button></div></div>`
       : `<div class="cage-f"><button class="btn sm" data-act="addMouse" data-id="${c._id}" ${all.length>=MAX?'disabled':''}>+ Mouse</button>` +
@@ -596,14 +616,14 @@ document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
   const a = t.dataset.act, id = t.dataset.id;
   if (a === 'sel' || a === 'selcage') return; // handled on change
-  const writeActs = ['missing','found','dismiss','restoreFile','newProject','renameProject','newCage','addMouse','editCage','editMouse','litter','pups','euthCage','delCage','combine','move','euthSel','restore'];
+  const writeActs = ['cols','missing','found','dismiss','restoreFile','newProject','renameProject','newCage','addMouse','editCage','editMouse','litter','pups','euthCage','delCage','combine','move','euthSel','restore'];
   if (!canWrite && writeActs.includes(a)) return toast('You have view-only access.', true);
   ({
     askName, tab: () => { S.tab = id; render(); }, type: () => { S.type = id; render(); }, clearSel: () => { S.sel.clear(); render(); },
     newProject, renameProject, newCage, addMouse: () => addMouse({cageId: id}), editCage: () => editCage(id), editMouse: () => editMouse(id),
     litter: () => recordLitter(id), pups: () => addPups(id), euthCage: () => euthanize(miceIn(id), `entire cage ${cageById(id)?.number}`),
     delCage: () => delCage(id), combine, move, euthSel: () => euthanize([...S.sel].map(i => S.mice.find(m => m._id === i)).filter(Boolean), 'selected mice'),
-    syncDlg, saveFile: saveDlg, dismiss: () => dismissCage(id), missing: () => markMissing(id), found: () => markFound(id), restore: () => restore(id), export: exportXlsx, backup: backupData, restoreFile: restoreData
+    syncDlg, cols: colsDlg, saveFile: saveDlg, dismiss: () => dismissCage(id), missing: () => markMissing(id), found: () => markFound(id), restore: () => restore(id), export: exportXlsx, backup: backupData, restoreFile: restoreData
   }[a] || (() => {}))();
 });
 document.addEventListener('change', e => {
@@ -732,6 +752,46 @@ function delCage(id){
 }
 
 
+
+/* ---------- custom columns dialog ---------- */
+function colsDlg(){
+  const p = cur(); let cols = (p.customCols || []).map(c => ({ ...c })); const removed = [];
+  const TYPES = { text:'Text', number:'Number', date:'Date' };
+  const form = openModal({ title:`Custom columns – ${p.name}`, ok:'Save', body: `
+    <div class="hint">Extra columns for this project. They appear after “Note” in every cage table, in the Edit / Add mouse forms, and at the end of both Excel sheets.</div>
+    <div id="colist"></div>
+    <div class="grid2" style="align-items:end"><label class="f">New column name<input id="newcol" type="text" placeholder="e.g. Treatment, Tail ID, Weight (g)"></label>
+      <label class="f">Type<select id="newtype">${Object.entries(TYPES).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}</select></label></div>
+    <button type="button" class="btn" id="addcol" style="margin-top:8px">+ Add column</button>`,
+    onOk: async () => {
+      const names = cols.map(c => c.name.trim()); if (names.some(n => !n)) return 'Every column needs a name.';
+      if (new Set(names.map(n => n.toLowerCase())).size !== names.length) return 'Column names must be different from each other.';
+      cols.forEach((c, i) => c.name = names[i]);
+      await run(async () => {
+        await upd('projects', p._id, { customCols: cols });
+        for (const id of removed) for (const m of S.mice.filter(x => x.projectId === p._id && x.custom && x.custom[id] !== undefined)) { const c = { ...m.custom }; delete c[id]; await upd('mice', m._id, { custom: c }); }
+        await logAct('Edit custom columns', cols.map(c => c.name).join(', ') || '(none)');
+      });
+    } });
+  const draw = () => {
+    const box = form.querySelector('#colist');
+    box.innerHTML = cols.length ? cols.map((c,i) => `<div class="colrow"><input type="text" data-i="${i}" value="${esc(c.name)}"><span class="gt">${TYPES[c.type]}</span>
+      <button type="button" class="btn sm" data-mv="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button><button type="button" class="btn sm" data-mv="${i}" data-d="1" ${i===cols.length-1?'disabled':''}>↓</button>
+      <button type="button" class="btn sm danger" data-rm="${i}" title="Delete column and its values">✕</button></div>`).join('') : '<div class="empty">No custom columns yet.</div>';
+    box.querySelectorAll('input[data-i]').forEach(inp => inp.oninput = () => { cols[+inp.dataset.i].name = inp.value; });
+    box.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const i = +b.dataset.mv, j = i + +b.dataset.d; [cols[i], cols[j]] = [cols[j], cols[i]]; draw(); });
+    box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const i = +b.dataset.rm; const used = S.mice.filter(m => m.projectId === p._id && m.custom && m.custom[cols[i].id] !== undefined).length;
+      if (used && !confirm(`Delete column “${cols[i].name}”? Its values on ${used} mice will be removed when you click Save.`)) return;
+      if ((p.customCols || []).some(c => c.id === cols[i].id)) removed.push(cols[i].id); cols.splice(i, 1); draw(); });
+  };
+  const add = () => { const inp = form.querySelector('#newcol'); const name = inp.value.trim(); if (!name) { inp.focus(); return; }
+    if (cols.some(c => c.name.toLowerCase() === name.toLowerCase())) { form.querySelector('#merr').textContent = 'A column with this name already exists.'; return; }
+    cols.push({ id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, type: form.querySelector('#newtype').value }); inp.value = ''; form.querySelector('#merr').textContent = ''; draw(); inp.focus(); };
+  form.querySelector('#addcol').onclick = add;
+  form.querySelector('#newcol').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); add(); } };
+  draw();
+}
+
 /* ---------- missing cages ---------- */
 function markMissing(id){
   const c = cageById(id);
@@ -780,7 +840,7 @@ function addMouse(pre = {}){
       <div class="grid2">${fld('How many (tagged IDs get -1, -2…)','qty','number','1','min=1 max=5')}<label class="f">Sex<select name="sex"><option value="M">Male</option><option value="F">Female</option></select></label></div>
       <div class="grid2">${fld('Genotype','genotype','text',pre.genotype||'')}${dateFld('Date of birth','dob',pre.dob||'')}</div>
       <div class="grid2">${fld('Parent cage number','parentCage','text',pre.parentCage||'')}${dateFld('Mate date','mateDate','')}</div>
-      <div class="grid2">${fld('Label','label')}${fld('Note','note')}</div></div>
+      <div class="grid2">${fld('Label','label')}${fld('Note','note')}</div>${customBlock({})}</div>
     <div id="exwrap" style="display:none">${pickerHTML(true, 'Choose the mice to add to this breeding cage')}${dateFld('Mate date (applied to the cage’s mice)','exMate',todayISO())}</div>`,
     onOk: async f => {
       const cage = cageById(fv(f,'cage')); if (!cage) return 'Choose a cage.';
@@ -807,7 +867,7 @@ function addMouse(pre = {}){
       }
       const err = checkPlace(cage, ids.map(() => ({ sex }))); if (err) return err;
       await run(async () => {
-        for (const mid of ids) await db.collection('mice').add({ projectId: S.pid, mid, oldIds: [], genotype: fv(f,'genotype'), sex, dob: fv(f,'dob'), cageId: cage._id, parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), litters: [], label: fv(f,'label'), note: fv(f,'note'), status: 'active', createdAt: Date.now() });
+        for (const mid of ids) await db.collection('mice').add({ projectId: S.pid, mid, oldIds: [], genotype: fv(f,'genotype'), sex, dob: fv(f,'dob'), cageId: cage._id, parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), litters: [], label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), status: 'active', createdAt: Date.now() });
         await logAct('Add mice', `${untagged ? qty + ' untagged' : ids.join(', ')} → cage ${cage.number}`);
       });
     } });
@@ -846,7 +906,7 @@ function editMouse(id){
     <div class="hint">Ear tag replaced? Just type the new ID above – the old ID is added to “Previous IDs” automatically and shown in ( ) next to the new one.</div>
     <div class="grid2">${fld('Genotype','genotype','text',m.genotype)}${dateFld('Date of birth','dob',m.dob)}</div>
     <div class="grid2">${fld('Parent cage number','parentCage','text',m.parentCage)}${dateFld('Mate date','mateDate',m.mateDate)}</div>
-    <div class="grid2">${fld('Label','label','text',m.label)}${fld('Note','note','text',m.note)}</div>
+    <div class="grid2">${fld('Label','label','text',m.label)}${fld('Note','note','text',m.note)}</div>${customBlock(m.custom)}
     <label class="f">Litter history (one per line: birth date | pups | wean date | note)<textarea name="litters" rows="3">${esc(fmtLit(m.litters))}</textarea></label>
     <div class="hint">Currently in cage ${esc(cage?.number)}. Use “Move to cage…” to change cages.</div>`,
     onOk: async f => {
@@ -857,7 +917,7 @@ function editMouse(id){
       if (prev && mid !== prev && !olds.includes(prev)) olds.push(prev);      // keep the replaced tag
       olds = [...new Set(olds)].filter(x => x !== mid);
       await run(async () => {
-        await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), litters: parseLit(f.elements.litters.value) });
+        await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), litters: parseLit(f.elements.litters.value) });
         await logAct(mid !== prev ? 'Change ear tag' : 'Edit mouse', mid !== prev ? `${prev || 'Untagged'} → ${mid || 'Untagged'}` : mname(m));
       });
     } });
@@ -1125,6 +1185,9 @@ async function exportXlsx(){
   /* ===== Sheet 1: Breeding ===== */
   const wsB = wb.addWorksheet('Breeding', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
   [12.7,17,10,17.7,14.5,12,15.7,10,9.5,16.5,11.5,12.7,12.5,12,33.7,14].forEach((w,i) => wsB.getColumn(i+1).width = w);
+  const cc = customCols(); const NB = 16 + cc.length, NI = 13 + cc.length;
+  cc.forEach((c,i) => { wsB.getColumn(17+i).width = 16; });
+  const setCustom = (cell, m, col) => { const v = cval(m, col); if (v === '') return; if (col.type === 'date') mdate(cell, v); else cell.value = v; };
   const bc = cages.filter(c => c.type === 'breeding');
   wsB.mergeCells('A1:O1'); Object.assign(wsB.getCell('A1'), { value: `${p.name} breedings` }); wsB.getCell('A1').font = { ...F, bold:true };
   ['Strategy','Start date','Stop date','Cage #','Female','Male','Goal'].forEach((h,i) => { const c = wsB.getCell(2, i+1); c.value = h; c.font = { ...F, bold:true }; });
@@ -1138,12 +1201,12 @@ async function exportXlsx(){
   }
   r++;                                                                    // blank row
   const h1 = r, h2 = r + 1;
-  const heads = ['# of cages','Breeding card#','Mouse ID','Genotype','Sex','DOB','Today','Age (weeks)','Age (months)','Parents','Mate date','Litter history',null,null,'Notes','Label'];
+  const heads = ['# of cages','Breeding card#','Mouse ID','Genotype','Sex','DOB','Today','Age (weeks)','Age (months)','Parents','Mate date','Litter history',null,null,'Notes','Label', ...cc.map(c => c.name)];
   heads.forEach((h,i) => { if (h) wsB.getCell(h1, i+1).value = h; });
-  [1,2,3,4,5,6,7,8,9,10,11,15,16].forEach(col => { if (col === 10) return; wsB.mergeCells(h1, col, h2, col); });
+  [1,2,3,4,5,6,7,8,9,10,11,15,16, ...cc.map((_,i) => 17+i)].forEach(col => { if (col === 10) return; wsB.mergeCells(h1, col, h2, col); });
   wsB.mergeCells(h1, 12, h1, 14); wsB.getCell(h2,10).value = 'cage#'; wsB.getCell(h2,12).value = 'DOB pups'; wsB.getCell(h2,13).value = 'Qnt pups'; wsB.getCell(h2,14).value = 'Wean pups';
-  for (let col = 1; col <= 16; col++) for (const rr of [h1,h2]) { const cell = wsB.getCell(rr,col); cell.font = { ...F, bold:true, ...(rr === h2 && [10,12,13,14].includes(col) ? { size:10 } : {}) }; cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } }; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true };
-    cell.border = { top: rr === h1 ? medium : undefined, bottom: rr === h2 ? medium : thin, left: col === 1 ? medium : thin, right: col === 16 ? medium : thin }; }
+  for (let col = 1; col <= NB; col++) for (const rr of [h1,h2]) { const cell = wsB.getCell(rr,col); cell.font = { ...F, bold:true, ...(rr === h2 && [10,12,13,14].includes(col) ? { size:10 } : {}) }; cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } }; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true };
+    cell.border = { top: rr === h1 ? medium : undefined, bottom: rr === h2 ? medium : thin, left: col === 1 ? medium : thin, right: col === NB ? medium : thin }; }
   wsB.getRow(h2).height = 25.5;
   r = h2 + 1; let cageCount = 0;
   for (const c of bc) {
@@ -1155,12 +1218,12 @@ async function exportXlsx(){
       if (m) {
         row.getCell(3).value = idCell(m); row.getCell(3).font = { ...F, bold:true }; row.getCell(4).value = m.genotype || '';
         row.getCell(5).value = m.sex; row.getCell(5).font = sexFont(m.sex); mdate(row.getCell(6), m.dob); ageCells(wsB, r, 6, 7, 8, 9, m.dob);
-        row.getCell(10).value = m.parentCage || ''; mdate(row.getCell(11), m.mateDate); row.getCell(15).value = m.note || ''; row.getCell(16).value = m.label || '';
+        row.getCell(10).value = m.parentCage || ''; mdate(row.getCell(11), m.mateDate); row.getCell(15).value = m.note || ''; row.getCell(16).value = m.label || ''; cc.forEach((col,j) => setCustom(row.getCell(17+j), m, col));
       }
       const l = ls[i]; if (l) { mdate(row.getCell(12), l.date); row.getCell(13).value = l.pups ?? ''; mdate(row.getCell(14), l.wean); if (l.note && !(m && m.note)) row.getCell(15).value = l.note; }
-      for (let k = 1; k <= 16; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : F; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 15 }; }
+      for (let k = 1; k <= NB; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : F; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 15 }; }
     }
-    if (c.missing) for (let rr = start; rr < r; rr++) for (let k = 1; k <= 16; k++) wsB.getCell(rr,k).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };
+    if (c.missing) for (let rr = start; rr < r; rr++) for (let k = 1; k <= NB; k++) wsB.getCell(rr,k).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };
     r++;                                                                  // blank row between cages
   }
   r++; wsB.getCell(r,1).value = { formula: bc.length ? `SUM(A${h2+1}:A${r-2})` : '0', result: cageCount }; wsB.getCell(r,2).value = 'total';
@@ -1168,8 +1231,8 @@ async function exportXlsx(){
 
   /* ===== Sheet 2: Inventory ===== */
   const wsI = wb.addWorksheet('Inventory', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
-  [9,14.9,14.5,8.69,17.7,6,14.5,15.2,9.5,10.2,21.7,35.9,16].forEach((w,i) => wsI.getColumn(i+1).width = w);
-  ['cage #','Researcher','Cage card #','Mouse ID','Genotype','Sex','DOB','Today','Age (wks)','Age (mons)','Parents (cage #)','Notes','Label'].forEach((h,i) => {
+  [9,14.9,14.5,8.69,17.7,6,14.5,15.2,9.5,10.2,21.7,35.9,16, ...cc.map(() => 16)].forEach((w,i) => wsI.getColumn(i+1).width = w);
+  ['cage #','Researcher','Cage card #','Mouse ID','Genotype','Sex','DOB','Today','Age (wks)','Age (mons)','Parents (cage #)','Notes','Label', ...cc.map(c => c.name)].forEach((h,i) => {
     const cell = wsI.getCell(1, i+1); cell.value = h; cell.font = { ...F, bold:true }; cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } }; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true }; cell.border = { top:medium, bottom:thin }; });
   r = 2; let invCount = 0;
   const ic = cages.filter(c => c.type === 'inventory');
@@ -1181,11 +1244,11 @@ async function exportXlsx(){
       if (m) {
         row.getCell(4).value = idCell(m); row.getCell(4).font = { ...F, bold:true }; row.getCell(5).value = m.genotype || '';
         row.getCell(6).value = m.sex; row.getCell(6).font = sexFont(m.sex); mdate(row.getCell(7), m.dob); ageCells(wsI, r, 7, 8, 9, 10, m.dob);
-        row.getCell(11).value = m.parentCage || ''; row.getCell(12).value = m.note || ''; row.getCell(13).value = m.label || '';
+        row.getCell(11).value = m.parentCage || ''; row.getCell(12).value = m.note || ''; row.getCell(13).value = m.label || ''; cc.forEach((col,j) => setCustom(row.getCell(14+j), m, col));
       }
-      for (let k = 1; k <= 13; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : F; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 12 }; }
+      for (let k = 1; k <= NI; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : F; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 12 }; }
     }
-    if (c.missing) for (let rr = start; rr < r; rr++) for (let k = 1; k <= 13; k++) wsI.getCell(rr,k).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };
+    if (c.missing) for (let rr = start; rr < r; rr++) for (let k = 1; k <= NI; k++) wsI.getCell(rr,k).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };
     r++;
   }
   wsI.getCell(r,1).value = { formula: ic.length ? `SUM(A2:A${r-1})` : '0', result: invCount }; wsI.getCell(r,2).value = 'TOTAL';
