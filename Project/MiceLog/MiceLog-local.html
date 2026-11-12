@@ -118,6 +118,13 @@ div.f input[type=text]{margin-top:4px}
 .colrow input{flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:inherit}
 .colrow .gt{color:var(--mute);font-size:12px;min-width:48px}
 
+.cage td.mh{white-space:normal;min-width:230px;max-width:360px;font-size:12px;line-height:1.35}
+
+.dmrow{display:grid;grid-template-columns:110px 1fr 150px;gap:8px;align-items:center;margin:6px 0}
+.dmrow select,.dmrow input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:inherit;min-width:0}
+
+.stat b small{font-size:13px;font-weight:500;color:var(--mute)}
+
 </style>
 </head>
 <body>
@@ -366,6 +373,9 @@ const ManualFile = (() => {
 </script>
 <script>
 "use strict";
+/* STATE — constants, tiny utilities, and the one global state object S.
+   Loaded first. Everything else reads/writes S and calls render(). */
+
 const MAX = 5;                 // max mice per cage
 const MAX_BREEDING_MALES = 1;  // max males in a breeding cage
 const $ = s => document.querySelector(s);
@@ -375,6 +385,13 @@ const ls = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null 
 
 let db = null, dl = null, canWrite = true;
 const S = { projects:[], cages:[], mice:[], logs:[], pid: ls.get('micelog.pid'), tab:'cages', type:'all', q:'', sel:new Set(), user: ls.get('micelog.user') || '', ready:{p:false,c:false,m:false}, slow:false, err:'' };
+
+
+</script>
+<script>
+"use strict";
+/* DATA HELPERS — look-ups, ages, litter text, toast, database writes + activity log.
+   Small pure-ish helpers used everywhere. */
 
 /* ---------- helpers ---------- */
 const snapList = s => s.docs.map(d => ({ _id: d.id, ...d.data() }));
@@ -397,6 +414,13 @@ async function run(fn){ try { return await fn(); } catch(e){ console.error(e); t
 const upd = (col, id, data) => db.doc(`${col}/${id}`).update(data);
 async function logAct(action, detail, pid = S.pid){ try { await db.collection('log').add({ ts: Date.now(), projectId: pid, user: S.user || 'unknown', action, detail }); } catch(e){ console.error(e); } }
 
+
+</script>
+<script>
+"use strict";
+/* CAGE RULES — what may go into a cage, and the one function that moves mice.
+   checkPlace() = validation (max 5, single sex, 1 male in breeding). placeInCage() = the move. */
+
 function checkPlace(cage, incoming){
   if (cage.missing) return `Cage ${cage.number} is marked MISSING – mark it found before placing mice in it.`;
   const ids = new Set(incoming.map(m => m._id).filter(Boolean));
@@ -412,15 +436,73 @@ async function placeInCage(cid, cage, moved, mateDate){
   const existing = miceIn(cid).filter(m => !moved.some(x => x._id === m._id));
   const all = [...existing, ...moved];
   const stamp = cage.type === 'breeding' && mateDate && all.some(m => m.sex === 'M') && all.some(m => m.sex === 'F');
-  for (const m of moved) await upd('mice', m._id, { cageId: cid, projectId: S.pid, ...(stamp ? { mateDate } : {}), ...(m.projectId !== S.pid ? carryCustom(m) : {}) });
+  const sources = [...new Set(moved.map(m => m.cageId).filter(x => x && x !== cid))];
+  const closedBy = new Map(moved.map(m => [m._id, closedMatings(m, todayISO(), `Moved to cage ${cage.number ?? ''}`.trim(), cid)]));
+  for (const m of moved) {
+    const patch = { cageId: cid, projectId: S.pid, ...(stamp ? { mateDate } : {}), ...(m.projectId !== S.pid ? carryCustom(m) : {}) };
+    if (cage.type === 'breeding') { const prev = cageById(m.cageId); if (prev && prev._id !== cid && prev.type === 'inventory') patch.origin = prev.projectId === S.pid ? { cageId: prev._id, number: prev.number } : ''; }   // where it came from (default when the breeding cage is dismissed)
+    else if (m.origin) patch.origin = '';
+    const closed = closedBy.get(m._id);   // leaving an old breeding cage ends that mating (and keeps it in the history)
+    if (closed) patch.matings = closed;
+    await upd('mice', m._id, patch);
+  }
   if (stamp) for (const m of existing) if (!m.mateDate) await upd('mice', m._id, { mateDate });
+  if (cage.type === 'breeding') await syncMatings(cid, mateDate);
+  for (const sc of sources) await checkBreeding(sc, todayISO());
 }
 
-/* ---------- mouse naming (untagged + previous ear-tag IDs) ---------- */
+
+
+</script>
+<script>
+"use strict";
+/* MOUSE INFO — display names, mating history, per-project custom columns.
+   Everything that describes a mouse beyond its basic fields. */
+
 const mname = m => m.mid || 'Untagged';
 const oldList = m => (m.oldIds || []).filter(Boolean);
 const idText = m => mname(m) + (oldList(m).length ? ` (${oldList(m).join(', ')})` : '');
 const idHTML = m => (m.mid ? `<b>${esc(m.mid)}</b>` : '<i class="untag">Untagged</i>') + (oldList(m).length ? ` <span class="old">(${esc(oldList(m).join(', '))})</span>` : '');
+
+/* ---------- mating history (recorded automatically; stored on each mouse as m.matings) ----------
+   entry = { cage, cageId, start, end, reason, partners:[names], litters:[{date,pups,wean}] }  (end '' = still together) */
+function closeOpen(list, date, reason, exceptCageId){          // returns the same array if nothing was open
+  let changed = false;
+  const out = (list || []).map(e => (!e.end && e.cageId !== exceptCageId) ? (changed = true, { ...e, end: date, reason }) : e);
+  return changed ? out : list;
+}
+function closedMatings(m, date, reason, exceptCageId){     // full history with the open mating(s) ended; null if nothing was open
+  const l = matingList(m); if (!l.some(e => !e.end && e.cageId !== exceptCageId)) return null;
+  return l.map(e => (!e.end && e.cageId !== exceptCageId) ? { ...e, end: date, reason } : e);
+}
+async function syncMatings(cid, date){        // make sure every member of a breeding cage with both sexes has an open entry + partner list
+  const c = cageById(cid); if (!c || c.type !== 'breeding') return;
+  const mem = miceIn(cid); if (!(mem.some(m => m.sex === 'M') && mem.some(m => m.sex === 'F'))) return;
+  for (const m of mem) {
+    const partners = mem.filter(x => x.sex !== m.sex).map(mname);
+    const list = (m.matings || []).slice(); const i = list.findIndex(e => !e.end && e.cageId === cid);
+    if (i < 0) list.push({ cage: c.number, cageId: cid, start: m.mateDate || date || todayISO(), end: '', reason: '', partners, litters: [] });
+    else { const np = [...new Set([...(list[i].partners || []), ...partners])]; if (np.length === (list[i].partners || []).length) continue; list[i] = { ...list[i], partners: np }; }
+    await upd('mice', m._id, { matings: list });
+  }
+}
+async function checkBreeding(cid, date){       // a breeding cage that lost its male or all females: the remaining mice's matings end
+  const c = cageById(cid); if (!c || c.type !== 'breeding') return;
+  const mem = miceIn(cid); if (mem.some(m => m.sex === 'M') && mem.some(m => m.sex === 'F')) return;
+  for (const m of mem) { const l = closedMatings(m, date, 'No partner left in cage'); if (l) await upd('mice', m._id, { matings: l }); }
+}
+function matingList(m){                       // stored history + (for older data) the current mating derived from the mate date
+  const l = (m.matings || []).slice(); const c = cageById(m.cageId);
+  if (c && c.type === 'breeding' && isActive(m) && m.mateDate && !l.some(e => e.cageId === c._id)) l.push({ cage: c.number, cageId: c._id, start: m.mateDate, end: '', reason: '', partners: miceIn(c._id).filter(x => x.sex !== m.sex).map(mname), litters: [] });
+  return l;
+}
+const matLine = e => `${e.cage}: ${e.start || '?'} → ${e.end || 'now'}${(e.partners||[]).length ? ` (with ${e.partners.join(', ')})` : ''}${(e.litters||[]).length ? ` · ${e.litters.length} litter${e.litters.length>1?'s':''} (${e.litters.map(l => l.pups ?? '?').join('+')} pups)` : ''}${e.end && e.reason ? ` · ${e.reason}` : ''}`;
+const matText = m => matingList(m).map(matLine).join('\n');
+const fmtMat = l => (l || []).map(e => `${e.cage||''} | ${e.start||''} | ${e.end||''} | ${(e.partners||[]).join(', ')} | ${e.reason||''}`).join('\n');
+const parseMat = (t, old) => String(t||'').split('\n').map(x => x.trim()).filter(Boolean).map(x => {
+  const p = x.split('|').map(y => y.trim()); const prev = (old || []).find(e => e.cage === p[0] && e.start === (p[1]||''));
+  return { cage: p[0]||'', cageId: prev?.cageId || '', start: p[1]||'', end: p[2]||'', reason: p[4]||'', partners: (p[3]||'').split(',').map(y => y.trim()).filter(Boolean), litters: prev?.litters || [] }; });
+
 /* ---------- custom (per-project) columns: project.customCols = [{id,name,type}], mouse.custom = {colId: value} ---------- */
 const customCols = () => cur()?.customCols || [];
 const cval = (m, col) => (m.custom && m.custom[col.id] != null) ? m.custom[col.id] : '';
@@ -437,6 +519,13 @@ function carryCustom(m){          // mouse moves to another project: map custom 
   return out;
 }
 const midSort = (a,b) => (a.mid ? 0 : 1) - (b.mid ? 0 : 1) || natural(a.mid, b.mid);
+
+
+</script>
+<script>
+"use strict";
+/* UI KIT — date picker, modal dialog, form-field helpers.
+   Generic building blocks; no knowledge of mice or cages. */
 
 /* ---------- date picker: Month → Day → Year, jumps to the next box after each choice ---------- */
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -479,33 +568,12 @@ const fld = (label, name, type='text', val='', extra='') => `<label class="f">${
 const fv = (form, n) => (form.elements[n]?.value ?? '').trim();
 
 
-/* ---------- init ---------- */
-(async function init(){
-  render();
-  db = LocalDB; dl = { save: localSave };
-  FileSync.onState = renderTop; ManualFile.onState = renderTop; FileSync.resume();
-  const slow = setTimeout(() => { if (!(S.ready.p && S.ready.c && S.ready.m)) { S.slow = true; render(); } }, 10000);
-  const onErr = e => { S.err = 'Database error: ' + (e && e.message || e); render(); };
-  db.collection('projects').onSnapshot(s => { S.projects = snapList(s); S.ready.p = true; onData(); }, onErr);
-  db.collection('cages').onSnapshot(s => { S.cages = snapList(s); S.ready.c = true; onData(); }, onErr);
-  db.collection('mice').onSnapshot(s => { S.mice = snapList(s); S.ready.m = true; onData(); }, onErr);
-  db.collection('log').orderBy('ts','desc').limit(300).onSnapshot(s => { S.logs = snapList(s); if (S.tab === 'log') render(); }, onErr);
-  if (ManualFile.active) openGate(() => { if (!S.user) askName(); }); else if (!S.user) askName();
-})();
+</script>
+<script>
+"use strict";
+/* RENDER — draws the header, the main list (cages / archive / log) and the bottom action bar.
+   Pure view code: reads S, writes HTML. Clicks are handled in 14-main.js. */
 
-function onData(){
-  if (!S.pid || !cur()) { S.pid = S.projects.length ? S.projects.slice().sort((a,b)=>natural(a.name,b.name))[0]._id : null; }
-  const actIds = new Set(S.mice.filter(isActive).map(m => m._id));
-  for (const id of [...S.sel]) if (!actIds.has(id)) S.sel.delete(id);
-  render();
-}
-
-function askName(){
-  openModal({ title:'Who are you?', ok:'Continue', body:`<div class="hint">Your name is attached to every change in the activity log. It is remembered in this browser.</div>${fld('Your name','name','text',S.user,'required')}`,
-    onOk: f => { const n = fv(f,'name'); if (!n) return 'Please enter a name.'; S.user = n; ls.set('micelog.user', n); render(); } });
-}
-
-/* ---------- render ---------- */
 function render(){
   const q = document.activeElement && document.activeElement.id === 'q';
   const pos = q ? document.activeElement.selectionStart : 0;
@@ -542,7 +610,7 @@ function renderMain(){
   const pm = S.mice.filter(x => x.projectId === S.pid);
   const act = pm.filter(isActive);
   const stat = (n,l) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`;
-  h += `<div class="stats">${stat(cages.filter(c=>c.type==='breeding').length,'Breeding cages')}${stat(cages.filter(c=>c.type==='inventory').length,'Inventory cages')}${stat(act.length,'Live mice')}${stat(act.filter(x=>x.sex==='M').length,'Males')}${stat(act.filter(x=>x.sex==='F').length,'Females')}${stat(pm.length-act.length,'Euthanized')}${cages.some(c=>c.missing)?`<div class="stat miss"><b>${cages.filter(c=>c.missing).length}</b><span>Missing cages (${act.filter(x=>cageById(x.cageId)?.missing).length} mice)</span></div>`:''}</div>`;
+  h += `<div class="stats">${cageStat(cages,'breeding','Breeding cages')}${cageStat(cages,'inventory','Inventory cages')}${stat(act.length,'Live mice')}${stat(act.filter(x=>x.sex==='M').length,'Males')}${stat(act.filter(x=>x.sex==='F').length,'Females')}${stat(pm.length-act.length,'Euthanized')}${cages.some(c=>c.missing)?`<div class="stat miss"><b>${cages.filter(c=>c.missing).length}</b><span>Missing cages (${act.filter(x=>cageById(x.cageId)?.missing).length} mice)</span></div>`:''}</div>`;
   h += `<div class="tools"><div class="tabs">${['cages','archive','log'].map(t=>`<button class="tab ${S.tab===t?'on':''}" data-act="tab" data-id="${t}">${{cages:'Cages',archive:'Archive',log:'Activity log'}[t]}</button>`).join('')}</div>`;
   if (S.tab === 'cages') {
     const nMiss = cages.filter(c=>c.missing).length;
@@ -557,8 +625,13 @@ function renderMain(){
   m.innerHTML = h;
 }
 
-function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.label,x.note,x.parentCage,...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
+function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.label,x.note,x.parentCage,matText(x),...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
 
+/* "15 (2 empty)" – number of cages of a type, and how many of them hold no live mice */
+function cageStat(cages, type, label){
+  const l = cages.filter(c => c.type === type), empty = l.filter(c => !miceIn(c._id).length).length;
+  return `<div class="stat"><b>${l.length}${l.length ? ` <small>(${empty} empty)</small>` : ''}</b><span>${label}</span></div>`;
+}
 function cagesHTML(cages){
   const cc = customCols();
   const q = S.q.trim();
@@ -579,8 +652,8 @@ function cagesHTML(cages){
     if (c.missing) out += `<div class="miss-note">⚠ <b>Cage not found</b> – missing since ${esc(c.missingDate||'?')}${c.missingBy?` (reported by ${esc(c.missingBy)})`:''}${c.missingNote?`. ${esc(c.missingNote)}`:''}. These mice are listed but locked until the cage is found.</div>`;
     { const bits = [c.strategy && `Strategy: ${c.strategy}`, c.goal && `Goal: ${c.goal}`, c.researcher && `Researcher: ${c.researcher}`, c.note].filter(Boolean); if (bits.length) out += `<div class="cage-note">${esc(bits.join('  ·  '))}</div>`; }
     if (!ms.length) out += `<div class="empty">${all.length ? 'No mice match the search.' : 'Empty cage.'}</div>`;
-    else out += `<div class="tw"><table><thead><tr><th></th><th>ID</th><th>Genotype</th><th>Sex</th><th>DOB</th><th>Wk</th><th>Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Label</th><th>Note</th>${cc.map(c => `<th>${esc(c.name)}</th>`).join('')}<th></th></tr></thead><tbody>` +
-      ms.map(x => `<tr class="${S.sel.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="sel" data-id="${x._id}" ${S.sel.has(x._id)?'checked':''} ${c.missing?'disabled':''}></td><td class="w">${idHTML(x)}</td><td class="w">${esc(x.genotype)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob)}</td><td>${ageMo(x.dob)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td>${cc.map(c => `<td class="w">${esc(cval(x,c))}</td>`).join('')}<td><button class="btn sm" data-act="editMouse" data-id="${x._id}">Edit</button></td></tr>`).join('') + '</tbody></table></div>';
+    else out += `<div class="tw"><table><thead><tr><th></th><th>ID</th><th>Genotype</th><th>Sex</th><th>DOB</th><th>Wk</th><th>Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Mate history</th><th>Label</th><th>Note</th>${cc.map(c => `<th>${esc(c.name)}</th>`).join('')}<th></th></tr></thead><tbody>` +
+      ms.map(x => `<tr class="${S.sel.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="sel" data-id="${x._id}" ${S.sel.has(x._id)?'checked':''} ${c.missing?'disabled':''}></td><td class="w">${idHTML(x)}</td><td class="w">${esc(x.genotype)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob)}</td><td>${ageMo(x.dob)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="mh">${matingList(x).map(e => esc(matLine(e))).join('<br>')}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td>${cc.map(c => `<td class="w">${esc(cval(x,c))}</td>`).join('')}<td><button class="btn sm" data-act="editMouse" data-id="${x._id}">Edit</button></td></tr>`).join('') + '</tbody></table></div>';
     out += c.missing
       ? `<div class="cage-f"><button class="btn sm primary" data-act="found" data-id="${c._id}">✔ Mark found</button></div></div>`
       : `<div class="cage-f"><button class="btn sm" data-act="addMouse" data-id="${c._id}" ${all.length>=MAX?'disabled':''}>+ Mouse</button>` +
@@ -611,31 +684,13 @@ function renderBar(){
   b.innerHTML = `<div class="bar"><b>${n} selected</b><button class="btn" data-act="combine">Create breeding cage</button><button class="btn" data-act="move">Move to cage…</button><button class="btn danger" data-act="euthSel">Euthanize selected</button><button class="btn" data-act="clearSel">Clear</button></div>`;
 }
 
-/* ---------- events ---------- */
-document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
-  const a = t.dataset.act, id = t.dataset.id;
-  if (a === 'sel' || a === 'selcage') return; // handled on change
-  const writeActs = ['cols','missing','found','dismiss','restoreFile','newProject','renameProject','newCage','addMouse','editCage','editMouse','litter','pups','euthCage','delCage','combine','move','euthSel','restore'];
-  if (!canWrite && writeActs.includes(a)) return toast('You have view-only access.', true);
-  ({
-    askName, tab: () => { S.tab = id; render(); }, type: () => { S.type = id; render(); }, clearSel: () => { S.sel.clear(); render(); },
-    newProject, renameProject, newCage, addMouse: () => addMouse({cageId: id}), editCage: () => editCage(id), editMouse: () => editMouse(id),
-    litter: () => recordLitter(id), pups: () => addPups(id), euthCage: () => euthanize(miceIn(id), `entire cage ${cageById(id)?.number}`),
-    delCage: () => delCage(id), combine, move, euthSel: () => euthanize([...S.sel].map(i => S.mice.find(m => m._id === i)).filter(Boolean), 'selected mice'),
-    syncDlg, cols: colsDlg, saveFile: saveDlg, dismiss: () => dismissCage(id), missing: () => markMissing(id), found: () => markFound(id), restore: () => restore(id), export: exportXlsx, backup: backupData, restoreFile: restoreData
-  }[a] || (() => {}))();
-});
-document.addEventListener('change', e => {
-  const t = e.target;
-  if (t.id === 'psel') { S.pid = t.value; ls.set('micelog.pid', S.pid); S.sel.clear(); render(); return; }
-  if (t.dataset.act === 'sel') { t.checked ? S.sel.add(t.dataset.id) : S.sel.delete(t.dataset.id); render(); }
-  if (t.dataset.act === 'selcage') {
-    const ms = miceIn(t.dataset.id).filter(matchQ);
-    ms.forEach(m => t.checked ? S.sel.add(m._id) : S.sel.delete(m._id)); render();
-  }
-});
-document.addEventListener('input', e => { if (e.target.id === 'q') { S.q = e.target.value; renderMain(); const el = $('#q'); if (el) { el.focus(); const l = el.value.length; el.setSelectionRange(l,l); } } });
+
+
+</script>
+<script>
+"use strict";
+/* PROJECTS & CAGES — new/rename project, new/edit/delete cage, custom-columns dialog, missing cages.
+   The mouse picker used by 'New cage' lives in 08-picker.js. */
 
 /* ---------- projects ---------- */
 function newProject(){
@@ -656,53 +711,6 @@ const cageExtra = (type, c = {}) => type === 'breeding'
   ? fld('Breeding strategy (e.g. FB, FW)','strategy','text',c.strategy||'') + fld('Goal of this breeding','goal','text',c.goal||'')
   : fld('Researcher / owner','researcher','text',c.researcher||'');
 const cageExtraVals = (type, f) => type === 'breeding' ? { strategy: fv(f,'strategy'), goal: fv(f,'goal') } : { researcher: fv(f,'researcher') };
-/* ----- mouse picker (used by "+ New cage" and "Create breeding cage"); can reach mice of OTHER projects ----- */
-const projName = id => S.projects.find(p => p._id === id)?.name || '?';
-function pickRows(scope, includeCur, excl){
-  let list = S.mice.filter(m => isActive(m) && !cageById(m.cageId)?.missing);
-  if (scope === '__none') list = [];
-  else if (scope === '__cur') list = list.filter(m => m.projectId === S.pid);
-  else if (scope !== '__all') list = list.filter(m => m.projectId === scope);
-  if (!includeCur) list = list.filter(m => m.projectId !== S.pid);
-  if (excl) list = list.filter(m => m.cageId !== excl);                  // not the mice already in the target cage
-  list.sort((a,b) => (a.projectId === b.projectId ? 0 : (a.projectId === S.pid ? -1 : natural(projName(a.projectId), projName(b.projectId)))) || natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || midSort(a,b));
-  if (!list.length) return '<div class="empty">No live mice to show here.</div>';
-  return list.map(m => { const c = cageById(m.cageId); const other = m.projectId !== S.pid;
-    return `<label class="pick" data-t="${esc([projName(m.projectId), c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}">${other ? `<span class="pj" title="Project ${esc(projName(m.projectId))}">${esc(projName(m.projectId))}</span>` : ''}<span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${esc(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
-}
-function pickerHTML(includeCur, label){
-  const others = S.projects.filter(p => p._id !== S.pid).sort((a,b) => natural(a.name,b.name));
-  const opts = (includeCur ? '<option value="__cur">This project</option>' : '<option value="__none">— none (only the selected mice) —</option>')
-    + others.map(p => `<option value="${p._id}">Project: ${esc(p.name)}</option>`).join('')
-    + (others.length ? `<option value="__all">${includeCur ? 'All projects' : 'All other projects'}</option>` : '');
-  return `<div class="f"><span>${esc(label)}</span>
-    <select name="pscope">${opts}</select>
-    <input type="text" id="pickq" placeholder="Filter by project, cage, ID, genotype, sex…">
-    <div class="picklist">${pickRows(includeCur ? '__cur' : '__none', includeCur)}</div>
-    <div class="hint" id="picksum"></div></div>`;
-}
-/* wires the picker; returns {chosen()} (picks are remembered when you switch project) */
-function wirePicker(form, includeCur, onChange, excl){
-  const picked = new Set(); const list = form.querySelector('.picklist'), sel = form.elements.pscope, q = form.querySelector('#pickq');
-  const filter = () => { const t = q.value.toLowerCase().trim(); list.querySelectorAll('.pick').forEach(l => l.style.display = !t || l.dataset.t.includes(t) ? '' : 'none'); };
-  sel.onchange = () => { list.innerHTML = pickRows(sel.value, includeCur, excl && excl()); list.querySelectorAll('input[name=pick]').forEach(i => { i.checked = picked.has(i.value); }); filter(); };
-  list.addEventListener('change', e => { if (e.target.name === 'pick') { e.target.checked ? picked.add(e.target.value) : picked.delete(e.target.value); onChange(); } });
-  q.onkeydown = e => { if (e.key === 'Enter') e.preventDefault(); }; q.oninput = filter;
-  return { chosen: () => [...picked].map(id => S.mice.find(m => m._id === id)).filter(m => m && isActive(m)) };
-}
-/* mice coming from another project must not clash with IDs already used in this project */
-function crossProblem(ms){
-  const own = new Set(S.mice.filter(x => x.projectId === S.pid && x.mid).map(x => x.mid.toLowerCase()));
-  const bad = ms.filter(m => m.projectId !== S.pid && m.mid && own.has(m.mid.toLowerCase()));
-  if (bad.length) return `Mouse ID ${bad.map(m => m.mid).join(', ')} already exists in project “${cur().name}” – edit the ID first.`;
-  const seen = new Set(); for (const m of ms) if (m.mid) { const k = m.mid.toLowerCase(); if (seen.has(k)) return `Two chosen mice share the ID ${m.mid} – edit one of them first.`; seen.add(k); }
-  return null;
-}
-const fromTxt = ms => { const by = {}; ms.filter(m => m.projectId !== S.pid).forEach(m => (by[m.projectId] = by[m.projectId] || []).push(m)); const e = Object.entries(by); return e.length ? ' (from project ' + e.map(([p,l]) => `${projName(p)}: ${brief(l)}`).join('; ') + ')' : ''; };
-async function logCross(ms, where){           // also leave a trace in the projects the mice came from
-  const by = {}; ms.filter(m => m.projectId !== S.pid).forEach(m => (by[m.projectId] = by[m.projectId] || []).push(m));
-  for (const [pid, l] of Object.entries(by)) await logAct('Mice moved to another project', `${brief(l)} → project ${cur().name}, ${where}`, pid);
-}
 
 function newCage(){
   const form = openModal({ title:'New cage', ok:'Create', body: `
@@ -823,7 +831,70 @@ function markFound(id){
     } });
 }
 
-/* ---------- mice ---------- */
+
+
+</script>
+<script>
+"use strict";
+/* MOUSE PICKER — choose existing mice (also from other projects) for a new breeding/inventory cage.
+   Used by newCage() and combine(). */
+
+/* ----- mouse picker (used by "+ New cage" and "Create breeding cage"); can reach mice of OTHER projects ----- */
+const projName = id => S.projects.find(p => p._id === id)?.name || '?';
+function pickRows(scope, includeCur, excl){
+  let list = S.mice.filter(m => isActive(m) && !cageById(m.cageId)?.missing);
+  if (scope === '__none') list = [];
+  else if (scope === '__cur') list = list.filter(m => m.projectId === S.pid);
+  else if (scope !== '__all') list = list.filter(m => m.projectId === scope);
+  if (!includeCur) list = list.filter(m => m.projectId !== S.pid);
+  if (excl) list = list.filter(m => m.cageId !== excl);                  // not the mice already in the target cage
+  list.sort((a,b) => (a.projectId === b.projectId ? 0 : (a.projectId === S.pid ? -1 : natural(projName(a.projectId), projName(b.projectId)))) || natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || midSort(a,b));
+  if (!list.length) return '<div class="empty">No live mice to show here.</div>';
+  return list.map(m => { const c = cageById(m.cageId); const other = m.projectId !== S.pid;
+    return `<label class="pick" data-t="${esc([projName(m.projectId), c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}">${other ? `<span class="pj" title="Project ${esc(projName(m.projectId))}">${esc(projName(m.projectId))}</span>` : ''}<span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${esc(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
+}
+function pickerHTML(includeCur, label){
+  const others = S.projects.filter(p => p._id !== S.pid).sort((a,b) => natural(a.name,b.name));
+  const opts = (includeCur ? '<option value="__cur">This project</option>' : '<option value="__none">— none (only the selected mice) —</option>')
+    + others.map(p => `<option value="${p._id}">Project: ${esc(p.name)}</option>`).join('')
+    + (others.length ? `<option value="__all">${includeCur ? 'All projects' : 'All other projects'}</option>` : '');
+  return `<div class="f"><span>${esc(label)}</span>
+    <select name="pscope">${opts}</select>
+    <input type="text" id="pickq" placeholder="Filter by project, cage, ID, genotype, sex…">
+    <div class="picklist">${pickRows(includeCur ? '__cur' : '__none', includeCur)}</div>
+    <div class="hint" id="picksum"></div></div>`;
+}
+/* wires the picker; returns {chosen()} (picks are remembered when you switch project) */
+function wirePicker(form, includeCur, onChange, excl){
+  const picked = new Set(); const list = form.querySelector('.picklist'), sel = form.elements.pscope, q = form.querySelector('#pickq');
+  const filter = () => { const t = q.value.toLowerCase().trim(); list.querySelectorAll('.pick').forEach(l => l.style.display = !t || l.dataset.t.includes(t) ? '' : 'none'); };
+  sel.onchange = () => { list.innerHTML = pickRows(sel.value, includeCur, excl && excl()); list.querySelectorAll('input[name=pick]').forEach(i => { i.checked = picked.has(i.value); }); filter(); };
+  list.addEventListener('change', e => { if (e.target.name === 'pick') { e.target.checked ? picked.add(e.target.value) : picked.delete(e.target.value); onChange(); } });
+  q.onkeydown = e => { if (e.key === 'Enter') e.preventDefault(); }; q.oninput = filter;
+  return { chosen: () => [...picked].map(id => S.mice.find(m => m._id === id)).filter(m => m && isActive(m)) };
+}
+/* mice coming from another project must not clash with IDs already used in this project */
+function crossProblem(ms){
+  const own = new Set(S.mice.filter(x => x.projectId === S.pid && x.mid).map(x => x.mid.toLowerCase()));
+  const bad = ms.filter(m => m.projectId !== S.pid && m.mid && own.has(m.mid.toLowerCase()));
+  if (bad.length) return `Mouse ID ${bad.map(m => m.mid).join(', ')} already exists in project “${cur().name}” – edit the ID first.`;
+  const seen = new Set(); for (const m of ms) if (m.mid) { const k = m.mid.toLowerCase(); if (seen.has(k)) return `Two chosen mice share the ID ${m.mid} – edit one of them first.`; seen.add(k); }
+  return null;
+}
+const fromTxt = ms => { const by = {}; ms.filter(m => m.projectId !== S.pid).forEach(m => (by[m.projectId] = by[m.projectId] || []).push(m)); const e = Object.entries(by); return e.length ? ' (from project ' + e.map(([p,l]) => `${projName(p)}: ${brief(l)}`).join('; ') + ')' : ''; };
+async function logCross(ms, where){           // also leave a trace in the projects the mice came from
+  const by = {}; ms.filter(m => m.projectId !== S.pid).forEach(m => (by[m.projectId] = by[m.projectId] || []).push(m));
+  for (const [pid, l] of Object.entries(by)) await logAct('Mice moved to another project', `${brief(l)} → project ${cur().name}, ${where}`, pid);
+}
+
+
+
+</script>
+<script>
+"use strict";
+/* MICE — add mouse, add pups, edit mouse.
+    */
+
 function cageOptions(sel, filter){
   return pcages().filter(filter || (c => !c.missing)).map(c => `<option value="${c._id}" ${c._id===sel?'selected':''}>${esc(c.number)} · ${c.type} · ${miceIn(c._id).length}/${MAX}</option>`).join('');
 }
@@ -868,6 +939,7 @@ function addMouse(pre = {}){
       const err = checkPlace(cage, ids.map(() => ({ sex }))); if (err) return err;
       await run(async () => {
         for (const mid of ids) await db.collection('mice').add({ projectId: S.pid, mid, oldIds: [], genotype: fv(f,'genotype'), sex, dob: fv(f,'dob'), cageId: cage._id, parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), litters: [], label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), status: 'active', createdAt: Date.now() });
+        if (cage.type === 'breeding') await syncMatings(cage._id, fv(f,'mateDate') || todayISO());
         await logAct('Add mice', `${untagged ? qty + ' untagged' : ids.join(', ')} → cage ${cage.number}`);
       });
     } });
@@ -907,8 +979,9 @@ function editMouse(id){
     <div class="grid2">${fld('Genotype','genotype','text',m.genotype)}${dateFld('Date of birth','dob',m.dob)}</div>
     <div class="grid2">${fld('Parent cage number','parentCage','text',m.parentCage)}${dateFld('Mate date','mateDate',m.mateDate)}</div>
     <div class="grid2">${fld('Label','label','text',m.label)}${fld('Note','note','text',m.note)}</div>${customBlock(m.custom)}
+    <label class="f">Mating history – recorded automatically (one per line: cage | start | end | partners | reason). Edit only to correct mistakes.<textarea name="matings" rows="3">${esc(fmtMat(m.matings))}</textarea></label>
     <label class="f">Litter history (one per line: birth date | pups | wean date | note)<textarea name="litters" rows="3">${esc(fmtLit(m.litters))}</textarea></label>
-    <div class="hint">Currently in cage ${esc(cage?.number)}. Use “Move to cage…” to change cages.</div>`,
+    <div class="hint">Currently in cage ${esc(cage?.number)}. Use “Move to cage…” to change cages.${m.origin?.number ? ` Origin cage: <b>${esc(m.origin.number)}</b> (default destination when its breeding cage is dismissed).` : ''}</div>`,
     onOk: async f => {
       const mid = fv(f,'mid'); const sex = fv(f,'sex'); const prev = m.mid || '';
       if (mid && S.mice.some(x => x._id !== id && x.projectId === m.projectId && (x.mid||'').toLowerCase() === mid.toLowerCase())) return 'This ID already exists.';
@@ -916,14 +989,23 @@ function editMouse(id){
       let olds = fv(f,'oldIds').split(',').map(x => x.trim()).filter(Boolean);
       if (prev && mid !== prev && !olds.includes(prev)) olds.push(prev);      // keep the replaced tag
       olds = [...new Set(olds)].filter(x => x !== mid);
+      const matTxt = f.elements.matings.value; let mats = parseMat(matTxt, m.matings);
+      if (matTxt === fmtMat(m.matings) && fv(f,'mateDate') && fv(f,'mateDate') !== m.mateDate) mats = mats.map(e => (!e.end && e.cageId === m.cageId) ? { ...e, start: fv(f,'mateDate') } : e);   // changing the mate date corrects the current mating
       await run(async () => {
-        await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), litters: parseLit(f.elements.litters.value) });
+        await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), litters: parseLit(f.elements.litters.value), matings: mats });
         await logAct(mid !== prev ? 'Change ear tag' : 'Edit mouse', mid !== prev ? `${prev || 'Untagged'} → ${mid || 'Untagged'}` : mname(m));
       });
     } });
 }
 
-/* ---------- bulk actions ---------- */
+
+
+</script>
+<script>
+"use strict";
+/* BULK ACTIONS — create breeding cage, move, dismiss breeding cage, euthanize, restore, record litter.
+    */
+
 const selMice = () => [...S.sel].map(i => S.mice.find(m => m._id === i)).filter(m => m && isActive(m) && !cageById(m.cageId)?.missing);
 const brief = ms => ms.map(mname).join(', ');
 
@@ -987,52 +1069,67 @@ function move(){
 
 /* Dismiss a breeding cage: send males / females to inventory cages (existing or new) */
 function dismissCage(cid){
-  const c = cageById(cid), ms = miceIn(cid);
+  const c = cageById(cid), ms = miceIn(cid).slice().sort((a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b));
   if (!ms.length) return toast('This breeding cage is empty – use “Delete empty cage”.', true);
-  const groups = [['M','Males'],['F','Females']].map(([sx,label]) => ({ sx, label, list: ms.filter(m => m.sex === sx) })).filter(g => g.list.length);
-  const invs = pcages().filter(x => x.type === 'inventory');
-  const sections = groups.map(g => {
-    const ok = invs.filter(x => !checkPlace(x, g.list));
-    return `<div class="f"><span><b>${g.label}</b> (${g.list.length}): ${esc(brief(g.list))}</span>
-      <select name="dest_${g.sx}"><option value="__new">New inventory cage…</option>${ok.map(x => `<option value="${x._id}">${esc(x.number)} · inventory · ${miceIn(x._id).length}/${MAX}</option>`).join('')}</select>
-      <input type="text" name="num_${g.sx}" placeholder="New cage number / name"></div>`; }).join('');
+  const invs = pcages().filter(x => x.type === 'inventory' && !x.missing);
+  /* default for each mouse = its origin cage, as long as the cage still exists and can take it (greedy, respects 5 mice / one sex) */
+  const planned = {}; const dflt = {};
+  for (const m of ms) {
+    const o = m.origin?.cageId && invs.find(x => x._id === m.origin.cageId);
+    if (o && !checkPlace(o, [...(planned[o._id] || []), m])) { (planned[o._id] = planned[o._id] || []).push(m); dflt[m._id] = o._id; } else dflt[m._id] = '__new';
+  }
+  const sexLabel = x => { const sx = new Set(miceIn(x._id).map(m => m.sex)); return sx.size > 1 ? '♂♀' : sx.has('M') ? '♂' : sx.has('F') ? '♀' : 'empty'; };
+  const rows = ms.map(m => { const og = m.origin?.cageId;
+    return `<div class="dmrow"><span class="dmid">${idHTML(m)} <span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span></span>
+      <select name="d_${m._id}"><option value="__new">New inventory cage…</option>${invs.slice().sort((x,y) => (y._id === og) - (x._id === og) || natural(x.number,y.number)).map(x => `<option value="${x._id}" ${dflt[m._id] === x._id ? 'selected' : ''}>${esc(x.number)} · ${miceIn(x._id).length}/${MAX} ${sexLabel(x)}${x._id === og ? ' · origin' : ''}</option>`).join('')}</select>
+      <input type="text" name="n_${m._id}" placeholder="New cage number"></div>`; }).join('');
+  const nOrigin = ms.filter(m => dflt[m._id] !== '__new').length;
   const form = openModal({ title:`Dismiss breeding cage ${c.number}`, ok:'Dismiss & reassign', danger:true,
-    body: `<div class="hint">Choose where the mice go. Only inventory cages that can take them (right sex, enough room) are listed.</div>${sections}
+    body: `<div class="hint">Each mouse goes back to its <b>origin cage</b> by default${nOrigin === ms.length ? '' : ` (${nOrigin} of ${ms.length} found; the others need a new cage or another choice)`}. Mice sent to the same new cage number share that cage.</div>${rows}
       <label class="chkl"><input type="checkbox" name="clearMate"> Clear the mate date on these mice</label>
       <label class="chkl"><input type="checkbox" name="delCage" checked> Delete breeding cage ${esc(c.number)} afterwards</label>`,
     onOk: async f => {
-      const used = new Set(), newNums = [];
-      for (const g of groups) {
-        const d = fv(f, 'dest_' + g.sx);
-        if (d === '__new') { const n = fv(f, 'num_' + g.sx); if (!n) return `Enter a cage number for the ${g.label.toLowerCase()}.`;
-          if (pcages().some(x => x.number.toLowerCase() === n.toLowerCase()) || newNums.includes(n.toLowerCase())) return `Cage number “${n}” is already used.`; newNums.push(n.toLowerCase()); }
-        else { if (used.has(d)) return 'Males and females cannot share an inventory cage.'; used.add(d); const err = checkPlace(cageById(d), g.list); if (err) return err; }
+      const plan = {};                                                       // destination key -> {cage|null, number, list}
+      for (const m of ms) {
+        const d = fv(f, 'd_' + m._id);
+        if (d === '__new') { const n = fv(f, 'n_' + m._id); if (!n) return `Choose a cage for ${mname(m)}, or type a number for the new cage.`;
+          if (pcages().some(x => x.number.toLowerCase() === n.toLowerCase())) return `Cage number “${n}” is already used.`;
+          (plan['new:' + n.toLowerCase()] = plan['new:' + n.toLowerCase()] || { cage: null, number: n, list: [] }).list.push(m); }
+        else (plan[d] = plan[d] || { cage: cageById(d), number: cageById(d).number, list: [] }).list.push(m);
       }
+      for (const p of Object.values(plan)) { const err = checkPlace(p.cage || { type:'inventory', number: p.number, _id:'__new' }, p.list); if (err) return err; }
       await run(async () => {
-        const moves = [];
-        for (const g of groups) {
-          const d = fv(f, 'dest_' + g.sx); let id = d, num;
-          if (d === '__new') { num = fv(f, 'num_' + g.sx); const r = await db.collection('cages').add({ projectId: S.pid, type:'inventory', number: num, note:'', createdAt: Date.now() }); id = r.id; } else num = cageById(d).number;
-          for (const m of g.list) await upd('mice', m._id, { cageId: id, ...(f.elements.clearMate.checked ? { mateDate: '' } : {}) });
-          moves.push(`${g.label.toLowerCase()} → ${num}`);
+        const moves = [], today = todayISO(); const closedBy = new Map(ms.map(m => [m._id, closedMatings(m, today, 'Breeding cage dismissed')]));
+        for (const p of Object.values(plan)) {
+          let id = p.cage?._id;
+          if (!id) { const r = await db.collection('cages').add({ projectId: S.pid, type:'inventory', number: p.number, note:'', createdAt: Date.now() }); id = r.id; }
+          for (const m of p.list) { const closed = closedBy.get(m._id);
+            await upd('mice', m._id, { cageId: id, origin: '', ...(f.elements.clearMate.checked ? { mateDate: '' } : {}), ...(closed ? { matings: closed } : {}) }); }
+          moves.push(`${brief(p.list)} → ${p.number}`);
         }
         if (f.elements.delCage.checked) await db.doc('cages/' + cid).delete();
         await logAct('Dismiss breeding cage', `${c.number}: ${moves.join('; ')}`);
         toast(`Breeding cage ${c.number} dismissed.`);
       });
     } });
-  groups.forEach(g => { const sel = form.elements['dest_' + g.sx], inp = form.elements['num_' + g.sx]; const sync = () => inp.style.display = sel.value === '__new' ? '' : 'none'; sel.onchange = sync; sync(); });
+  ms.forEach(m => { const sel = form.elements['d_' + m._id], inp = form.elements['n_' + m._id]; const sync = () => inp.style.display = sel.value === '__new' ? '' : 'none'; sel.onchange = sync; sync(); });
 }
 
 function euthanize(ms, what){
   ms = ms.filter(m => m && isActive(m)); if (!ms.length) return;
+  const emptied = [...new Set(ms.map(m => m.cageId))].map(cageById).filter(c => c && miceIn(c._id).every(x => ms.some(m => m._id === x._id)));   // cages that end up with no mice
   openModal({ title:`Euthanize ${what}?`, ok:`Euthanize ${ms.length} mouse${ms.length>1?'':''}`.replace('mouse','mice').replace('1 mice','1 mouse'), danger:true,
     body: `<div class="hint"><b>${ms.length}</b> mice will be removed from their cages and moved to the Archive: ${esc(brief(ms))}</div>
+    ${emptied.length ? `<div class="hint">Cage${emptied.length > 1 ? 's' : ''} <b>${esc(emptied.map(c => c.number).join(', '))}</b> will be empty afterwards and <b>removed</b> (not counted in the cage statistics).</div>` : ''}
     <div class="grid2">${dateFld('Date','date',todayISO())}<label class="f">Reason<select name="reason">${['Experimental endpoint','Tissue collection','Surplus / not needed','Genotype not wanted','Poor health / humane endpoint','Retired breeder','Other'].map(r=>`<option>${r}</option>`).join('')}</select></label></div>${fld('Note (optional)','note')}`,
     onOk: async f => {
       const date = fv(f,'date'); if (!date) return 'Enter a date.';
       await run(async () => {
-        for (const m of ms) await upd('mice', m._id, { status:'euthanized', euthDate: date, euthReason: fv(f,'reason'), euthNote: fv(f,'note'), euthBy: S.user || 'unknown', euthCage: cageById(m.cageId)?.number || '' });
+        const closedBy = new Map(ms.map(m => [m._id, closedMatings(m, date, 'Euthanized')]));
+        for (const m of ms) await upd('mice', m._id, { status:'euthanized', euthDate: date, euthReason: fv(f,'reason'), euthNote: fv(f,'note'), euthBy: S.user || 'unknown', euthCage: cageById(m.cageId)?.number || '', euthCageMeta: (({ type, strategy, goal, researcher, note }) => ({ type, strategy: strategy || '', goal: goal || '', researcher: researcher || '', note: note || '' }))(cageById(m.cageId) || {}), ...(closedBy.get(m._id) ? { matings: closedBy.get(m._id) } : {}) });
+        for (const sc of new Set(ms.map(m => m.cageId))) await checkBreeding(sc, date);
+        for (const c of emptied) await db.doc('cages/' + c._id).delete();                       // a cage with no mice left is removed
+        if (emptied.length) await logAct('Remove cage', `${emptied.map(c => c.number).join(', ')} (all mice euthanized)`);
         await logAct('Euthanize', `${what}: ${brief(ms)} (${fv(f,'reason')})`);
         ms.forEach(m => S.sel.delete(m._id));
       });
@@ -1040,10 +1137,16 @@ function euthanize(ms, what){
 }
 
 function restore(id){
-  const m = S.mice.find(x => x._id === id); const cage = cageById(m.cageId);
-  if (!cage) return toast('Original cage no longer exists. Create a cage and restore after editing is not supported.', true);
-  const err = checkPlace(cage, [m]); if (err) return toast('Cannot restore: ' + err, true);
-  run(async () => { await upd('mice', id, { status:'active', euthDate:{__delete__:true}, euthReason:{__delete__:true}, euthNote:{__delete__:true}, euthBy:{__delete__:true}, euthCage:{__delete__:true} }); await logAct('Restore mouse', `${mname(m)} → cage ${cage.number}`); toast(`${mname(m)} restored to cage ${cage.number}`); });
+  const m = S.mice.find(x => x._id === id); const num = m.euthCage; const meta = m.euthCageMeta || {};
+  let cage = cageById(m.cageId) || pcages().find(c => c.number.toLowerCase() === String(num || '').toLowerCase());       // cages are removed when their last mouse is euthanized
+  if (!cage && !num) return toast('The original cage is unknown – cannot restore.', true);
+  const err = checkPlace(cage || { type: meta.type || 'inventory', number: num, _id: '__new' }, [m]); if (err) return toast('Cannot restore: ' + err, true);
+  run(async () => {
+    let cid = cage?._id;
+    if (!cage) { const r = await db.collection('cages').add({ projectId: m.projectId, type: meta.type || 'inventory', number: num, note: meta.note || '', ...(meta.strategy ? { strategy: meta.strategy } : {}), ...(meta.goal ? { goal: meta.goal } : {}), ...(meta.researcher ? { researcher: meta.researcher } : {}), createdAt: Date.now() }); cid = r.id; }
+    await upd('mice', id, { status:'active', cageId: cid, euthDate:{__delete__:true}, euthReason:{__delete__:true}, euthNote:{__delete__:true}, euthBy:{__delete__:true}, euthCage:{__delete__:true}, euthCageMeta:{__delete__:true} });
+    await logAct('Restore mouse', `${mname(m)} → cage ${cage?.number || num}${cage ? '' : ' (cage re-created)'}`); toast(`${mname(m)} restored to cage ${cage?.number || num}`);
+  });
 }
 
 function recordLitter(cid){
@@ -1056,6 +1159,8 @@ function recordLitter(cid){
       await run(async () => {
         for (const d of dams) await upd('mice', d._id, { litters: [...(d.litters || []), entry] });
         await upd('cages', cid, { litters: [...(c.litters || []), entry] });
+        await syncMatings(cid, entry.date);                                   // litters are also written into this mating, for every member
+        for (const m of miceIn(cid)) { const l = (m.matings || []).map(e => (!e.end && e.cageId === cid) ? { ...e, litters: [...(e.litters || []), entry] } : e); if (l.length) await upd('mice', m._id, { matings: l }); }
         await logAct('Record litter', `cage ${c.number}: ${pups} pups born ${date}`);
       });
     } });
@@ -1063,7 +1168,14 @@ function recordLitter(cid){
 
 
 
-/* ---------- shared data file (automatic sync) ---------- */
+
+
+</script>
+<script>
+"use strict";
+/* SYNC & BACKUP UI — shared-file sync dialog, manual file mode (Firefox), JSON backup/restore.
+   The storage engines themselves are in storage.js. */
+
 function syncChip(){
   if (!FileSync.supported) return '';
   const y = FileSync.status;
@@ -1153,10 +1265,118 @@ function restoreData(){
   inp.click();
 }
 
-/* ---------- Excel export: two sheets (Breeding / Inventory), layout follows the lab's template ---------- */
+
+
+</script>
+<script>
+"use strict";
+/* EXCEL EXPORT — two sheets (Breeding / Inventory) following the lab template.
+    */
+
 const utcDate = iso => { if (!iso) return null; const [y,m,d] = iso.split('-').map(Number); return (y && m && d) ? new Date(Date.UTC(y, m-1, d)) : null; };
 function days360(a, b){ let d1 = a.getUTCDate(), d2 = b.getUTCDate(); if (d1 === 31) d1 = 30; if (d2 === 31 && d1 >= 30) d2 = 30; return (b.getUTCFullYear()-a.getUTCFullYear())*360 + (b.getUTCMonth()-a.getUTCMonth())*30 + (d2-d1); }
 
+/* ---------- shared look & helpers for both sheets ---------- */
+const XF = { name:'Calibri', size:12 };                    // font
+const XMEDIUM = { style:'medium' }, XTHIN = { style:'thin' };
+const GREY = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } };       // header fill
+const PINK = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };       // missing-cage fill
+const sexFont = sx => ({ ...XF, color:{ argb: sx === 'M' ? 'FF2B6CB0' : 'FFFF3FA4' } });
+const mdate = (cell, iso) => { const d = utcDate(iso); if (d) { cell.value = d; cell.numFmt = 'm/d/yyyy'; } };
+const cardName = c => c.number + (c.missing ? ' – MISSING' : '');
+const sortMice = ms => ms.slice().sort((a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b));
+const idCell = m => m.mid ? idText(m) : (oldList(m).length ? `(${oldList(m).join(', ')})` : '');
+const setCustom = (cell, m, col) => { const v = cval(m, col); if (v === '') return; if (col.type === 'date') mdate(cell, v); else cell.value = v; };
+const markMissingRows = (ws, from, to, ncols) => { for (let rr = from; rr < to; rr++) for (let k = 1; k <= ncols; k++) ws.getCell(rr,k).fill = PINK; };
+// litters of a breeding cage: the cage's own list, or (older data) the females' litters without duplicates
+const cageLitters = c => { let l = c.litters || []; if (!l.length) { const seen = new Set(); l = []; miceIn(c._id).filter(m => m.sex === 'F').forEach(m => (m.litters || []).forEach(x => { const k = x.date + '|' + x.pups; if (!seen.has(k)) { seen.add(k); l.push(x); } })); } return l; };
+// age columns as live formulas (lab template convention: DAYS360/7 weeks, weeks/4 months)
+function ageCells(ws, todayUTC, r, dobCol, todayCol, wkCol, moCol, iso){
+  const d = utcDate(iso); if (!d) return;
+  const wk = days360(d, todayUTC) / 7; const dc = ws.getCell(r, dobCol).address, tc = ws.getCell(r, todayCol).address;
+  const t = ws.getCell(r, todayCol); t.value = { formula:'TODAY()', result: todayUTC }; t.numFmt = 'm/d/yyyy';
+  const w = ws.getCell(r, wkCol); w.value = { formula:`(DAYS360(${dc},${tc})/7)`, result: wk }; w.numFmt = '0.00';
+  const m = ws.getCell(r, moCol); m.value = { formula:`(DAYS360(${dc},${tc})/7)/4`, result: wk / 4 }; m.numFmt = '0.00';
+}
+
+/* ---------- Sheet 1: Breeding ---------- */
+function buildBreedingSheet(wb, { p, cages, cc, todayUTC }){
+  const wsB = wb.addWorksheet('Breeding', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
+  [12.7,17,10,17.7,14.5,12,15.7,10,9.5,16.5,11.5,12.7,12.5,12,33.7,14,40].forEach((w,i) => wsB.getColumn(i+1).width = w);
+  const NB = 17 + cc.length;
+  cc.forEach((c,i) => { wsB.getColumn(18+i).width = 16; });
+  const setCustom = (cell, m, col) => { const v = cval(m, col); if (v === '') return; if (col.type === 'date') mdate(cell, v); else cell.value = v; };
+  const bc = cages.filter(c => c.type === 'breeding');
+  wsB.mergeCells('A1:O1'); Object.assign(wsB.getCell('A1'), { value: `${p.name} breedings` }); wsB.getCell('A1').font = { ...XF, bold:true };
+  ['Strategy','Start date','Stop date','Cage #','Female','Male','Goal'].forEach((h,i) => { const c = wsB.getCell(2, i+1); c.value = h; c.font = { ...XF, bold:true }; });
+  let r = 3;
+  for (const c of bc) {
+    const ms = miceIn(c._id); const starts = ms.map(m => m.mateDate).filter(Boolean).sort();
+    wsB.getCell(r,1).value = c.strategy || ''; mdate(wsB.getCell(r,2), starts[0]); mdate(wsB.getCell(r,3), c.stopDate);
+    wsB.getCell(r,4).value = cardName(c); wsB.getCell(r,5).value = ms.filter(m => m.sex === 'F').length; wsB.getCell(r,6).value = ms.filter(m => m.sex === 'M').length; wsB.getCell(r,7).value = c.goal || '';
+    for (let k = 1; k <= 7; k++) { const cell = wsB.getCell(r,k); cell.font = { ...XF, ...(c.missing ? { color:{ argb:'FFC0392B' }, bold:true } : {}) }; cell.alignment = { horizontal:'left' }; }
+    r++;
+  }
+  r++;                                                                    // blank row
+  const h1 = r, h2 = r + 1;
+  const heads = ['# of cages','Breeding card#','Mouse ID','Genotype','Sex','DOB','Today','Age (weeks)','Age (months)','Parents','Mate date','Litter history',null,null,'Notes','Label','Mate history', ...cc.map(c => c.name)];
+  heads.forEach((h,i) => { if (h) wsB.getCell(h1, i+1).value = h; });
+  [1,2,3,4,5,6,7,8,9,10,11,15,16,17, ...cc.map((_,i) => 18+i)].forEach(col => { if (col === 10) return; wsB.mergeCells(h1, col, h2, col); });
+  wsB.mergeCells(h1, 12, h1, 14); wsB.getCell(h2,10).value = 'cage#'; wsB.getCell(h2,12).value = 'DOB pups'; wsB.getCell(h2,13).value = 'Qnt pups'; wsB.getCell(h2,14).value = 'Wean pups';
+  for (let col = 1; col <= NB; col++) for (const rr of [h1,h2]) { const cell = wsB.getCell(rr,col); cell.font = { ...XF, bold:true, ...(rr === h2 && [10,12,13,14].includes(col) ? { size:10 } : {}) }; cell.fill = GREY; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true };
+    cell.border = { top: rr === h1 ? XMEDIUM : undefined, bottom: rr === h2 ? XMEDIUM : XTHIN, left: col === 1 ? XMEDIUM : XTHIN, right: col === NB ? XMEDIUM : XTHIN }; }
+  wsB.getRow(h2).height = 25.5;
+  r = h2 + 1; let cageCount = 0;
+  for (const c of bc) {
+    const ms = sortMice(miceIn(c._id)); const ls = cageLitters(c); const n = Math.max(ms.length, ls.length, 1); const start = r;
+    cageCount++;
+    for (let i = 0; i < n; i++, r++) {
+      const m = ms[i], row = wsB.getRow(r);
+      if (i === 0) { row.getCell(1).value = 1; row.getCell(2).value = cardName(c); row.getCell(2).font = { ...XF, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
+      if (m) {
+        row.getCell(3).value = idCell(m); row.getCell(3).font = { ...XF, bold:true }; row.getCell(4).value = m.genotype || '';
+        row.getCell(5).value = m.sex; row.getCell(5).font = sexFont(m.sex); mdate(row.getCell(6), m.dob); ageCells(wsB, todayUTC, r, 6, 7, 8, 9, m.dob);
+        row.getCell(10).value = m.parentCage || ''; mdate(row.getCell(11), m.mateDate); row.getCell(15).value = m.note || ''; row.getCell(16).value = m.label || ''; row.getCell(17).value = matText(m); cc.forEach((col,j) => setCustom(row.getCell(18+j), m, col));
+      }
+      const l = ls[i]; if (l) { mdate(row.getCell(12), l.date); row.getCell(13).value = l.pups ?? ''; mdate(row.getCell(14), l.wean); if (l.note && !(m && m.note)) row.getCell(15).value = l.note; }
+      for (let k = 1; k <= NB; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : XF; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 15 || k === 17 }; }
+    }
+    if (c.missing) markMissingRows(wsB, start, r, NB);
+    r++;                                                                  // blank row between cages
+  }
+  r++; wsB.getCell(r,1).value = { formula: bc.length ? `SUM(A${h2+1}:A${r-2})` : '0', result: cageCount }; wsB.getCell(r,2).value = 'total';
+  wsB.getCell(r,1).font = wsB.getCell(r,2).font = { ...XF, bold:true };
+}
+
+/* ---------- Sheet 2: Inventory ---------- */
+function buildInventorySheet(wb, { cages, cc, todayUTC }){
+  const wsI = wb.addWorksheet('Inventory', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
+  const NI = 14 + cc.length;
+  [9,14.9,14.5,8.69,17.7,6,14.5,15.2,9.5,10.2,21.7,35.9,16,40, ...cc.map(() => 16)].forEach((w,i) => wsI.getColumn(i+1).width = w);
+  ['cage #','Researcher','Cage card #','Mouse ID','Genotype','Sex','DOB','Today','Age (wks)','Age (mons)','Parents (cage #)','Notes','Label','Mate history', ...cc.map(c => c.name)].forEach((h,i) => {
+    const cell = wsI.getCell(1, i+1); cell.value = h; cell.font = { ...XF, bold:true }; cell.fill = GREY; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true }; cell.border = { top:XMEDIUM, bottom:XTHIN }; });
+  let r = 2, invCount = 0;
+  const ic = cages.filter(c => c.type === 'inventory');
+  for (const c of ic) {
+    const ms = sortMice(miceIn(c._id)); const n = Math.max(ms.length, 1); const start = r; invCount++;
+    for (let i = 0; i < n; i++, r++) {
+      const m = ms[i], row = wsI.getRow(r);
+      if (i === 0) { row.getCell(1).value = 1; row.getCell(2).value = c.researcher || ''; row.getCell(3).value = cardName(c); row.getCell(3).font = { ...XF, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
+      if (m) {
+        row.getCell(4).value = idCell(m); row.getCell(4).font = { ...XF, bold:true }; row.getCell(5).value = m.genotype || '';
+        row.getCell(6).value = m.sex; row.getCell(6).font = sexFont(m.sex); mdate(row.getCell(7), m.dob); ageCells(wsI, todayUTC, r, 7, 8, 9, 10, m.dob);
+        row.getCell(11).value = m.parentCage || ''; row.getCell(12).value = m.note || ''; row.getCell(13).value = m.label || ''; row.getCell(14).value = matText(m); cc.forEach((col,j) => setCustom(row.getCell(15+j), m, col));
+      }
+      for (let k = 1; k <= NI; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : XF; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 12 || k === 14 }; }
+    }
+    if (c.missing) markMissingRows(wsI, start, r, NI);
+    r++;
+  }
+  wsI.getCell(r,1).value = { formula: ic.length ? `SUM(A2:A${r-1})` : '0', result: invCount }; wsI.getCell(r,2).value = 'TOTAL';
+  wsI.getCell(r,1).font = wsI.getCell(r,2).font = { ...XF, bold:true };
+}
+
+/* ---------- export button ---------- */
 async function exportXlsx(){
   if (!window.ExcelJS) return toast('The Excel library could not be loaded.', true);
   if (!dl) return toast('Downloads are unavailable in this view.', true);
@@ -1164,95 +1384,9 @@ async function exportXlsx(){
   const wb = new ExcelJS.Workbook(); wb.creator = S.user || 'MiceLog';
   wb.calcProperties = { fullCalcOnLoad: true };                       // keep TODAY()/age formulas fresh when opened
   const now = new Date(); const todayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-  const cages = pcages();
-  const F = { name:'Calibri', size:12 };
-  const medium = { style:'medium' }, thin = { style:'thin' };
-  const sexFont = sx => ({ ...F, color:{ argb: sx === 'M' ? 'FF2B6CB0' : 'FFFF3FA4' } });
-  const lit = c => { let l = c.litters || []; if (!l.length) { const seen = new Set(); l = []; miceIn(c._id).filter(m => m.sex === 'F').forEach(m => (m.litters || []).forEach(x => { const k = x.date + '|' + x.pups; if (!seen.has(k)) { seen.add(k); l.push(x); } })); } return l; };
-  const mdate = (cell, iso) => { const d = utcDate(iso); if (d) { cell.value = d; cell.numFmt = 'm/d/yyyy'; } };
-  const cardName = c => c.number + (c.missing ? ' – MISSING' : '');
-  // shared: age columns as live formulas (same convention as the lab template: DAYS360/7 weeks, weeks/4 months)
-  const ageCells = (ws, r, dobCol, todayCol, wkCol, moCol, iso) => {
-    const d = utcDate(iso); if (!d) return;
-    const wk = days360(d, todayUTC) / 7; const dc = ws.getCell(r, dobCol).address, tc = ws.getCell(r, todayCol).address;
-    const t = ws.getCell(r, todayCol); t.value = { formula:'TODAY()', result: todayUTC }; t.numFmt = 'm/d/yyyy';
-    const w = ws.getCell(r, wkCol); w.value = { formula:`(DAYS360(${dc},${tc})/7)`, result: wk }; w.numFmt = '0.00';
-    const m = ws.getCell(r, moCol); m.value = { formula:`(DAYS360(${dc},${tc})/7)/4`, result: wk / 4 }; m.numFmt = '0.00';
-  };
-  const sortMice = ms => ms.slice().sort((a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b));
-  const idCell = m => m.mid ? idText(m) : (oldList(m).length ? `(${oldList(m).join(', ')})` : '');
-
-  /* ===== Sheet 1: Breeding ===== */
-  const wsB = wb.addWorksheet('Breeding', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
-  [12.7,17,10,17.7,14.5,12,15.7,10,9.5,16.5,11.5,12.7,12.5,12,33.7,14].forEach((w,i) => wsB.getColumn(i+1).width = w);
-  const cc = customCols(); const NB = 16 + cc.length, NI = 13 + cc.length;
-  cc.forEach((c,i) => { wsB.getColumn(17+i).width = 16; });
-  const setCustom = (cell, m, col) => { const v = cval(m, col); if (v === '') return; if (col.type === 'date') mdate(cell, v); else cell.value = v; };
-  const bc = cages.filter(c => c.type === 'breeding');
-  wsB.mergeCells('A1:O1'); Object.assign(wsB.getCell('A1'), { value: `${p.name} breedings` }); wsB.getCell('A1').font = { ...F, bold:true };
-  ['Strategy','Start date','Stop date','Cage #','Female','Male','Goal'].forEach((h,i) => { const c = wsB.getCell(2, i+1); c.value = h; c.font = { ...F, bold:true }; });
-  let r = 3;
-  for (const c of bc) {
-    const ms = miceIn(c._id); const starts = ms.map(m => m.mateDate).filter(Boolean).sort();
-    wsB.getCell(r,1).value = c.strategy || ''; mdate(wsB.getCell(r,2), starts[0]); mdate(wsB.getCell(r,3), c.stopDate);
-    wsB.getCell(r,4).value = cardName(c); wsB.getCell(r,5).value = ms.filter(m => m.sex === 'F').length; wsB.getCell(r,6).value = ms.filter(m => m.sex === 'M').length; wsB.getCell(r,7).value = c.goal || '';
-    for (let k = 1; k <= 7; k++) { const cell = wsB.getCell(r,k); cell.font = { ...F, ...(c.missing ? { color:{ argb:'FFC0392B' }, bold:true } : {}) }; cell.alignment = { horizontal:'left' }; }
-    r++;
-  }
-  r++;                                                                    // blank row
-  const h1 = r, h2 = r + 1;
-  const heads = ['# of cages','Breeding card#','Mouse ID','Genotype','Sex','DOB','Today','Age (weeks)','Age (months)','Parents','Mate date','Litter history',null,null,'Notes','Label', ...cc.map(c => c.name)];
-  heads.forEach((h,i) => { if (h) wsB.getCell(h1, i+1).value = h; });
-  [1,2,3,4,5,6,7,8,9,10,11,15,16, ...cc.map((_,i) => 17+i)].forEach(col => { if (col === 10) return; wsB.mergeCells(h1, col, h2, col); });
-  wsB.mergeCells(h1, 12, h1, 14); wsB.getCell(h2,10).value = 'cage#'; wsB.getCell(h2,12).value = 'DOB pups'; wsB.getCell(h2,13).value = 'Qnt pups'; wsB.getCell(h2,14).value = 'Wean pups';
-  for (let col = 1; col <= NB; col++) for (const rr of [h1,h2]) { const cell = wsB.getCell(rr,col); cell.font = { ...F, bold:true, ...(rr === h2 && [10,12,13,14].includes(col) ? { size:10 } : {}) }; cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } }; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true };
-    cell.border = { top: rr === h1 ? medium : undefined, bottom: rr === h2 ? medium : thin, left: col === 1 ? medium : thin, right: col === NB ? medium : thin }; }
-  wsB.getRow(h2).height = 25.5;
-  r = h2 + 1; let cageCount = 0;
-  for (const c of bc) {
-    const ms = sortMice(miceIn(c._id)); const ls = lit(c); const n = Math.max(ms.length, ls.length, 1); const start = r;
-    cageCount++;
-    for (let i = 0; i < n; i++, r++) {
-      const m = ms[i], row = wsB.getRow(r);
-      if (i === 0) { row.getCell(1).value = 1; row.getCell(2).value = cardName(c); row.getCell(2).font = { ...F, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
-      if (m) {
-        row.getCell(3).value = idCell(m); row.getCell(3).font = { ...F, bold:true }; row.getCell(4).value = m.genotype || '';
-        row.getCell(5).value = m.sex; row.getCell(5).font = sexFont(m.sex); mdate(row.getCell(6), m.dob); ageCells(wsB, r, 6, 7, 8, 9, m.dob);
-        row.getCell(10).value = m.parentCage || ''; mdate(row.getCell(11), m.mateDate); row.getCell(15).value = m.note || ''; row.getCell(16).value = m.label || ''; cc.forEach((col,j) => setCustom(row.getCell(17+j), m, col));
-      }
-      const l = ls[i]; if (l) { mdate(row.getCell(12), l.date); row.getCell(13).value = l.pups ?? ''; mdate(row.getCell(14), l.wean); if (l.note && !(m && m.note)) row.getCell(15).value = l.note; }
-      for (let k = 1; k <= NB; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : F; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 15 }; }
-    }
-    if (c.missing) for (let rr = start; rr < r; rr++) for (let k = 1; k <= NB; k++) wsB.getCell(rr,k).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };
-    r++;                                                                  // blank row between cages
-  }
-  r++; wsB.getCell(r,1).value = { formula: bc.length ? `SUM(A${h2+1}:A${r-2})` : '0', result: cageCount }; wsB.getCell(r,2).value = 'total';
-  wsB.getCell(r,1).font = wsB.getCell(r,2).font = { ...F, bold:true };
-
-  /* ===== Sheet 2: Inventory ===== */
-  const wsI = wb.addWorksheet('Inventory', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
-  [9,14.9,14.5,8.69,17.7,6,14.5,15.2,9.5,10.2,21.7,35.9,16, ...cc.map(() => 16)].forEach((w,i) => wsI.getColumn(i+1).width = w);
-  ['cage #','Researcher','Cage card #','Mouse ID','Genotype','Sex','DOB','Today','Age (wks)','Age (mons)','Parents (cage #)','Notes','Label', ...cc.map(c => c.name)].forEach((h,i) => {
-    const cell = wsI.getCell(1, i+1); cell.value = h; cell.font = { ...F, bold:true }; cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } }; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true }; cell.border = { top:medium, bottom:thin }; });
-  r = 2; let invCount = 0;
-  const ic = cages.filter(c => c.type === 'inventory');
-  for (const c of ic) {
-    const ms = sortMice(miceIn(c._id)); const n = Math.max(ms.length, 1); const start = r; invCount++;
-    for (let i = 0; i < n; i++, r++) {
-      const m = ms[i], row = wsI.getRow(r);
-      if (i === 0) { row.getCell(1).value = 1; row.getCell(2).value = c.researcher || ''; row.getCell(3).value = cardName(c); row.getCell(3).font = { ...F, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
-      if (m) {
-        row.getCell(4).value = idCell(m); row.getCell(4).font = { ...F, bold:true }; row.getCell(5).value = m.genotype || '';
-        row.getCell(6).value = m.sex; row.getCell(6).font = sexFont(m.sex); mdate(row.getCell(7), m.dob); ageCells(wsI, r, 7, 8, 9, 10, m.dob);
-        row.getCell(11).value = m.parentCage || ''; row.getCell(12).value = m.note || ''; row.getCell(13).value = m.label || ''; cc.forEach((col,j) => setCustom(row.getCell(14+j), m, col));
-      }
-      for (let k = 1; k <= NI; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : F; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 12 }; }
-    }
-    if (c.missing) for (let rr = start; rr < r; rr++) for (let k = 1; k <= NI; k++) wsI.getCell(rr,k).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };
-    r++;
-  }
-  wsI.getCell(r,1).value = { formula: ic.length ? `SUM(A2:A${r-1})` : '0', result: invCount }; wsI.getCell(r,2).value = 'TOTAL';
-  wsI.getCell(r,1).font = wsI.getCell(r,2).font = { ...F, bold:true };
+  const ctx = { p, cages: pcages(), cc: customCols(), todayUTC };
+  buildBreedingSheet(wb, ctx);
+  buildInventorySheet(wb, ctx);
 
   try {
     const buf = await wb.xlsx.writeBuffer();
@@ -1262,6 +1396,66 @@ async function exportXlsx(){
     logAct('Export Excel', p.name);
   } catch(e){ if (e && e.code === 'declined') return; toast('Export failed: ' + (e && e.message || e), true); }
 }
+
+
+</script>
+<script>
+"use strict";
+/* MAIN — start-up, data subscriptions, and the global event handlers. Loaded last.
+    */
+
+(async function init(){
+  render();
+  db = LocalDB; dl = { save: localSave };
+  FileSync.onState = renderTop; ManualFile.onState = renderTop; FileSync.resume();
+  const slow = setTimeout(() => { if (!(S.ready.p && S.ready.c && S.ready.m)) { S.slow = true; render(); } }, 10000);
+  const onErr = e => { S.err = 'Database error: ' + (e && e.message || e); render(); };
+  db.collection('projects').onSnapshot(s => { S.projects = snapList(s); S.ready.p = true; onData(); }, onErr);
+  db.collection('cages').onSnapshot(s => { S.cages = snapList(s); S.ready.c = true; onData(); }, onErr);
+  db.collection('mice').onSnapshot(s => { S.mice = snapList(s); S.ready.m = true; onData(); }, onErr);
+  db.collection('log').orderBy('ts','desc').limit(300).onSnapshot(s => { S.logs = snapList(s); if (S.tab === 'log') render(); }, onErr);
+  if (ManualFile.active) openGate(() => { if (!S.user) askName(); }); else if (!S.user) askName();
+})();
+
+function onData(){
+  if (!S.pid || !cur()) { S.pid = S.projects.length ? S.projects.slice().sort((a,b)=>natural(a.name,b.name))[0]._id : null; }
+  const actIds = new Set(S.mice.filter(isActive).map(m => m._id));
+  for (const id of [...S.sel]) if (!actIds.has(id)) S.sel.delete(id);
+  render();
+}
+
+function askName(){
+  openModal({ title:'Who are you?', ok:'Continue', body:`<div class="hint">Your name is attached to every change in the activity log. It is remembered in this browser.</div>${fld('Your name','name','text',S.user,'required')}`,
+    onOk: f => { const n = fv(f,'name'); if (!n) return 'Please enter a name.'; S.user = n; ls.set('micelog.user', n); render(); } });
+}
+
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
+  const a = t.dataset.act, id = t.dataset.id;
+  if (a === 'sel' || a === 'selcage') return; // handled on change
+  const writeActs = ['cols','missing','found','dismiss','restoreFile','newProject','renameProject','newCage','addMouse','editCage','editMouse','litter','pups','euthCage','delCage','combine','move','euthSel','restore'];
+  if (!canWrite && writeActs.includes(a)) return toast('You have view-only access.', true);
+  ({
+    askName, tab: () => { S.tab = id; render(); }, type: () => { S.type = id; render(); }, clearSel: () => { S.sel.clear(); render(); },
+    newProject, renameProject, newCage, addMouse: () => addMouse({cageId: id}), editCage: () => editCage(id), editMouse: () => editMouse(id),
+    litter: () => recordLitter(id), pups: () => addPups(id), euthCage: () => euthanize(miceIn(id), `entire cage ${cageById(id)?.number}`),
+    delCage: () => delCage(id), combine, move, euthSel: () => euthanize([...S.sel].map(i => S.mice.find(m => m._id === i)).filter(Boolean), 'selected mice'),
+    syncDlg, cols: colsDlg, saveFile: saveDlg, dismiss: () => dismissCage(id), missing: () => markMissing(id), found: () => markFound(id), restore: () => restore(id), export: exportXlsx, backup: backupData, restoreFile: restoreData
+  }[a] || (() => {}))();
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'psel') { S.pid = t.value; ls.set('micelog.pid', S.pid); S.sel.clear(); render(); return; }
+  if (t.dataset.act === 'sel') { t.checked ? S.sel.add(t.dataset.id) : S.sel.delete(t.dataset.id); render(); }
+  if (t.dataset.act === 'selcage') {
+    const ms = miceIn(t.dataset.id).filter(matchQ);
+    ms.forEach(m => t.checked ? S.sel.add(m._id) : S.sel.delete(m._id)); render();
+  }
+});
+document.addEventListener('input', e => { if (e.target.id === 'q') { S.q = e.target.value; renderMain(); const el = $('#q'); if (el) { el.focus(); const l = el.value.length; el.setSelectionRange(l,l); } } });
+
+
 
 </script>
 </body>
