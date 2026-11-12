@@ -125,6 +125,12 @@ div.f input[type=text]{margin-top:4px}
 
 .stat b small{font-size:13px;font-weight:500;color:var(--mute)}
 
+/* genotype colour code: +/+ pink, +/- orange, -/- (wild type) black */
+.geno.hom{color:#e0218a;font-weight:700}
+.geno.het{color:#e67e22;font-weight:700}
+.geno.wt{color:#000;font-weight:700}
+.cage td.gtc{white-space:nowrap}   /* genotype always on one line */
+
 </style>
 </head>
 <body>
@@ -464,6 +470,28 @@ const oldList = m => (m.oldIds || []).filter(Boolean);
 const idText = m => mname(m) + (oldList(m).length ? ` (${oldList(m).join(', ')})` : '');
 const idHTML = m => (m.mid ? `<b>${esc(m.mid)}</b>` : '<i class="untag">Untagged</i>') + (oldList(m).length ? ` <span class="old">(${esc(oldList(m).join(', '))})</span>` : '');
 
+/* ---------- genotype colour code + confirming experiment ----------
+   hom (pink)   = both alleles carry the modification   e.g. "Flox/Flox", "CDK13flox/flox", "+/+"
+   het (orange) = one allele                            e.g. "Flox/-", "Flox/WT", "+/-"
+   wt  (black)  = none                                  e.g. "WT/WT", "WT", "-/-"
+   An allele counts as "unmodified" when it is WT or "-"; anything else (flox, fl, +…) is "modified".
+   Several genes may be listed (separated by ; , or spaces): the first non-Cre pair decides, e.g.
+   "Myh6-Cre;CDK13flox/flox" → hom. Cre is never colour-coded: a Cre-only genotype ("Cre/-") stays plain.
+   m.genotype = text, m.genoExp = ID of the experiment that confirmed it. */
+function genoClass(g){
+  const t = String(g || '').toLowerCase().replace(/[−–—]/g, '-').replace(/\s*\/\s*/g, '/').trim();
+  if (!t) return '';
+  const segs = t.split(/[;,\s]+/).filter(Boolean);
+  const pairs = segs.filter(x => x.includes('/'));
+  const pair = pairs.find(x => !x.includes('cre'));              // Cre pairs are ignored
+  if (!pair) return !pairs.length && segs.includes('wt') ? 'wt' : '';
+  const modified = a => a !== 'wt' && a !== '-' && a !== '';
+  const n = pair.split('/').filter(Boolean).filter(modified).length;
+  return n >= 2 ? 'hom' : n === 1 ? 'het' : 'wt';
+}
+const GENO_COLOR = { hom:'FFE0218A', het:'FFE67E22', wt:'FF000000' };      // Excel font colours (CSS in styles.css)
+const genoHTML = g => `<span class="geno ${genoClass(g)}">${esc(g)}</span>`;
+
 /* ---------- mating history (recorded automatically; stored on each mouse as m.matings) ----------
    entry = { cage, cageId, start, end, reason, partners:[names], litters:[{date,pups,wean}] }  (end '' = still together) */
 function closeOpen(list, date, reason, exceptCageId){          // returns the same array if nothing was open
@@ -625,7 +653,7 @@ function renderMain(){
   m.innerHTML = h;
 }
 
-function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.label,x.note,x.parentCage,matText(x),...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
+function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.genoExp,x.label,x.note,x.parentCage,matText(x),...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
 
 /* "15 (2 empty)" – number of cages of a type, and how many of them hold no live mice */
 function cageStat(cages, type, label){
@@ -652,8 +680,8 @@ function cagesHTML(cages){
     if (c.missing) out += `<div class="miss-note">⚠ <b>Cage not found</b> – missing since ${esc(c.missingDate||'?')}${c.missingBy?` (reported by ${esc(c.missingBy)})`:''}${c.missingNote?`. ${esc(c.missingNote)}`:''}. These mice are listed but locked until the cage is found.</div>`;
     { const bits = [c.strategy && `Strategy: ${c.strategy}`, c.goal && `Goal: ${c.goal}`, c.researcher && `Researcher: ${c.researcher}`, c.note].filter(Boolean); if (bits.length) out += `<div class="cage-note">${esc(bits.join('  ·  '))}</div>`; }
     if (!ms.length) out += `<div class="empty">${all.length ? 'No mice match the search.' : 'Empty cage.'}</div>`;
-    else out += `<div class="tw"><table><thead><tr><th></th><th>ID</th><th>Genotype</th><th>Sex</th><th>DOB</th><th>Wk</th><th>Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Mate history</th><th>Label</th><th>Note</th>${cc.map(c => `<th>${esc(c.name)}</th>`).join('')}<th></th></tr></thead><tbody>` +
-      ms.map(x => `<tr class="${S.sel.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="sel" data-id="${x._id}" ${S.sel.has(x._id)?'checked':''} ${c.missing?'disabled':''}></td><td class="w">${idHTML(x)}</td><td class="w">${esc(x.genotype)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob)}</td><td>${ageMo(x.dob)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="mh">${matingList(x).map(e => esc(matLine(e))).join('<br>')}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td>${cc.map(c => `<td class="w">${esc(cval(x,c))}</td>`).join('')}<td><button class="btn sm" data-act="editMouse" data-id="${x._id}">Edit</button></td></tr>`).join('') + '</tbody></table></div>';
+    else out += `<div class="tw"><table><thead><tr><th></th><th>ID</th><th>Genotype</th><th>Geno. exp. ID</th><th>Sex</th><th>DOB</th><th>Wk</th><th>Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Mate history</th><th>Label</th><th>Note</th>${cc.map(c => `<th>${esc(c.name)}</th>`).join('')}<th></th></tr></thead><tbody>` +
+      ms.map(x => `<tr class="${S.sel.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="sel" data-id="${x._id}" ${S.sel.has(x._id)?'checked':''} ${c.missing?'disabled':''}></td><td class="w">${idHTML(x)}</td><td class="gtc">${genoHTML(x.genotype)}</td><td class="w">${esc(x.genoExp)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob)}</td><td>${ageMo(x.dob)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="mh">${matingList(x).map(e => esc(matLine(e))).join('<br>')}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td>${cc.map(c => `<td class="w">${esc(cval(x,c))}</td>`).join('')}<td><button class="btn sm" data-act="editMouse" data-id="${x._id}">Edit</button></td></tr>`).join('') + '</tbody></table></div>';
     out += c.missing
       ? `<div class="cage-f"><button class="btn sm primary" data-act="found" data-id="${c._id}">✔ Mark found</button></div></div>`
       : `<div class="cage-f"><button class="btn sm" data-act="addMouse" data-id="${c._id}" ${all.length>=MAX?'disabled':''}>+ Mouse</button>` +
@@ -667,8 +695,8 @@ function cagesHTML(cages){
 function archiveHTML(list){
   list = list.filter(matchQ).sort((a,b) => String(b.euthDate||'').localeCompare(String(a.euthDate||'')));
   if (!list.length) return '<div class="welcome">No euthanized mice recorded for this project.</div>';
-  return `<div class="tw logw"><table><thead><tr><th>ID</th><th>Genotype</th><th>Sex</th><th>DOB</th><th>Last cage</th><th>Euthanized</th><th>Reason</th><th>By</th><th>Note</th><th></th></tr></thead><tbody>` +
-    list.map(x => `<tr><td>${idHTML(x)}</td><td>${esc(x.genotype)}</td><td class="${x.sex}">${esc(x.sex)}</td><td>${esc(x.dob)}</td><td>${esc(x.euthCage)}</td><td>${esc(x.euthDate)}</td><td>${esc(x.euthReason)}</td><td>${esc(x.euthBy)}</td><td class="wrap">${esc(x.euthNote)}</td><td><button class="btn sm" data-act="restore" data-id="${x._id}">Restore</button></td></tr>`).join('') + '</tbody></table></div>';
+  return `<div class="tw logw"><table><thead><tr><th>ID</th><th>Genotype</th><th>Geno. exp. ID</th><th>Sex</th><th>DOB</th><th>Last cage</th><th>Euthanized</th><th>Reason</th><th>By</th><th>Note</th><th></th></tr></thead><tbody>` +
+    list.map(x => `<tr><td>${idHTML(x)}</td><td>${genoHTML(x.genotype)}</td><td>${esc(x.genoExp)}</td><td class="${x.sex}">${esc(x.sex)}</td><td>${esc(x.dob)}</td><td>${esc(x.euthCage)}</td><td>${esc(x.euthDate)}</td><td>${esc(x.euthReason)}</td><td>${esc(x.euthBy)}</td><td class="wrap">${esc(x.euthNote)}</td><td><button class="btn sm" data-act="restore" data-id="${x._id}">Restore</button></td></tr>`).join('') + '</tbody></table></div>';
 }
 
 function logHTML(){
@@ -851,7 +879,7 @@ function pickRows(scope, includeCur, excl){
   list.sort((a,b) => (a.projectId === b.projectId ? 0 : (a.projectId === S.pid ? -1 : natural(projName(a.projectId), projName(b.projectId)))) || natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || midSort(a,b));
   if (!list.length) return '<div class="empty">No live mice to show here.</div>';
   return list.map(m => { const c = cageById(m.cageId); const other = m.projectId !== S.pid;
-    return `<label class="pick" data-t="${esc([projName(m.projectId), c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}">${other ? `<span class="pj" title="Project ${esc(projName(m.projectId))}">${esc(projName(m.projectId))}</span>` : ''}<span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${esc(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
+    return `<label class="pick" data-t="${esc([projName(m.projectId), c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.genoExp, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}">${other ? `<span class="pj" title="Project ${esc(projName(m.projectId))}">${esc(projName(m.projectId))}</span>` : ''}<span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${genoHTML(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
 }
 function pickerHTML(includeCur, label){
   const others = S.projects.filter(p => p._id !== S.pid).sort((a,b) => natural(a.name,b.name));
@@ -909,7 +937,8 @@ function addMouse(pre = {}){
         <label class="chkl"><input type="checkbox" name="untagged" checked> Not ear-tagged yet (new mice – default)</label>
         <input name="mid" type="text" placeholder="Ear-tag ID" disabled></div>
       <div class="grid2">${fld('How many (tagged IDs get -1, -2…)','qty','number','1','min=1 max=5')}<label class="f">Sex<select name="sex"><option value="M">Male</option><option value="F">Female</option></select></label></div>
-      <div class="grid2">${fld('Genotype','genotype','text',pre.genotype||'')}${dateFld('Date of birth','dob',pre.dob||'')}</div>
+      <div class="grid2">${fld('Genotype','genotype','text',pre.genotype||'','placeholder="e.g. Flox/Flox, Flox/WT, WT"')}${fld('Experiment ID that confirmed the genotype','genoExp','text',pre.genoExp||'')}</div>
+      <div class="grid2">${dateFld('Date of birth','dob',pre.dob||'')}</div>
       <div class="grid2">${fld('Parent cage number','parentCage','text',pre.parentCage||'')}${dateFld('Mate date','mateDate','')}</div>
       <div class="grid2">${fld('Label','label')}${fld('Note','note')}</div>${customBlock({})}</div>
     <div id="exwrap" style="display:none">${pickerHTML(true, 'Choose the mice to add to this breeding cage')}${dateFld('Mate date (applied to the cage’s mice)','exMate',todayISO())}</div>`,
@@ -938,7 +967,7 @@ function addMouse(pre = {}){
       }
       const err = checkPlace(cage, ids.map(() => ({ sex }))); if (err) return err;
       await run(async () => {
-        for (const mid of ids) await db.collection('mice').add({ projectId: S.pid, mid, oldIds: [], genotype: fv(f,'genotype'), sex, dob: fv(f,'dob'), cageId: cage._id, parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), litters: [], label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), status: 'active', createdAt: Date.now() });
+        for (const mid of ids) await db.collection('mice').add({ projectId: S.pid, mid, oldIds: [], genotype: fv(f,'genotype'), genoExp: fv(f,'genoExp'), sex, dob: fv(f,'dob'), cageId: cage._id, parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), litters: [], label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), status: 'active', createdAt: Date.now() });
         if (cage.type === 'breeding') await syncMatings(cage._id, fv(f,'mateDate') || todayISO());
         await logAct('Add mice', `${untagged ? qty + ' untagged' : ids.join(', ')} → cage ${cage.number}`);
       });
@@ -976,7 +1005,8 @@ function editMouse(id){
   openModal({ title:`Edit mouse ${mname(m)}`, body: `<div class="grid2">${fld('Mouse ID (leave empty = not tagged)','mid','text',m.mid||'')}<label class="f">Sex<select name="sex"><option value="M" ${m.sex==='M'?'selected':''}>Male</option><option value="F" ${m.sex==='F'?'selected':''}>Female</option></select></label></div>
     ${fld('Previous IDs (comma-separated)','oldIds','text',oldList(m).join(', '))}
     <div class="hint">Ear tag replaced? Just type the new ID above – the old ID is added to “Previous IDs” automatically and shown in ( ) next to the new one.</div>
-    <div class="grid2">${fld('Genotype','genotype','text',m.genotype)}${dateFld('Date of birth','dob',m.dob)}</div>
+    <div class="grid2">${fld('Genotype','genotype','text',m.genotype,'placeholder="e.g. Flox/Flox, Flox/WT, WT"')}${fld('Experiment ID that confirmed the genotype','genoExp','text',m.genoExp)}</div>
+    <div class="grid2">${dateFld('Date of birth','dob',m.dob)}</div>
     <div class="grid2">${fld('Parent cage number','parentCage','text',m.parentCage)}${dateFld('Mate date','mateDate',m.mateDate)}</div>
     <div class="grid2">${fld('Label','label','text',m.label)}${fld('Note','note','text',m.note)}</div>${customBlock(m.custom)}
     <label class="f">Mating history – recorded automatically (one per line: cage | start | end | partners | reason). Edit only to correct mistakes.<textarea name="matings" rows="3">${esc(fmtMat(m.matings))}</textarea></label>
@@ -992,7 +1022,7 @@ function editMouse(id){
       const matTxt = f.elements.matings.value; let mats = parseMat(matTxt, m.matings);
       if (matTxt === fmtMat(m.matings) && fv(f,'mateDate') && fv(f,'mateDate') !== m.mateDate) mats = mats.map(e => (!e.end && e.cageId === m.cageId) ? { ...e, start: fv(f,'mateDate') } : e);   // changing the mate date corrects the current mating
       await run(async () => {
-        await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), litters: parseLit(f.elements.litters.value), matings: mats });
+        await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), genoExp: fv(f,'genoExp'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), litters: parseLit(f.elements.litters.value), matings: mats });
         await logAct(mid !== prev ? 'Change ear tag' : 'Edit mouse', mid !== prev ? `${prev || 'Untagged'} → ${mid || 'Untagged'}` : mname(m));
       });
     } });
@@ -1259,7 +1289,7 @@ function restoreData(){
     const rd = new FileReader();
     rd.onload = () => openModal({ title:'Restore from backup?', ok:'Replace my data', danger:true,
       body:`<p>This <b>replaces all data currently in this browser</b> with the contents of <b>${esc(f.name)}</b>. Consider clicking 💾 Backup first.</p>`,
-      onOk: async () => { try { LocalDB.importAll(rd.result); S.pid = null; S.sel.clear(); toast('Backup restored.'); } catch(e){ return e.message; } } });
+      onOk: async () => { try { LocalDB.importAll(rd.result); S.pid = null; S.sel.clear(); onData(); toast('Backup restored.');   /* onData() picks the first restored project */  } catch(e){ return e.message; } } });
     rd.readAsText(f);
   };
   inp.click();
@@ -1282,6 +1312,7 @@ const XMEDIUM = { style:'medium' }, XTHIN = { style:'thin' };
 const GREY = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF2F2F2' } };       // header fill
 const PINK = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFDECEA' } };       // missing-cage fill
 const sexFont = sx => ({ ...XF, color:{ argb: sx === 'M' ? 'FF2B6CB0' : 'FFFF3FA4' } });
+const genoFont = (cell, g) => { const k = genoClass(g); if (k) cell.font = { ...XF, bold:true, color:{ argb: GENO_COLOR[k] } }; };
 const mdate = (cell, iso) => { const d = utcDate(iso); if (d) { cell.value = d; cell.numFmt = 'm/d/yyyy'; } };
 const cardName = c => c.number + (c.missing ? ' – MISSING' : '');
 const sortMice = ms => ms.slice().sort((a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b));
@@ -1302,9 +1333,9 @@ function ageCells(ws, todayUTC, r, dobCol, todayCol, wkCol, moCol, iso){
 /* ---------- Sheet 1: Breeding ---------- */
 function buildBreedingSheet(wb, { p, cages, cc, todayUTC }){
   const wsB = wb.addWorksheet('Breeding', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
-  [12.7,17,10,17.7,14.5,12,15.7,10,9.5,16.5,11.5,12.7,12.5,12,33.7,14,40].forEach((w,i) => wsB.getColumn(i+1).width = w);
-  const NB = 17 + cc.length;
-  cc.forEach((c,i) => { wsB.getColumn(18+i).width = 16; });
+  [12.7,16,17,10,17.7,14.5,12,15.7,10,9.5,16.5,11.5,12.7,12.5,12,33.7,14,40].forEach((w,i) => wsB.getColumn(i+1).width = w);
+  const NB = 18 + cc.length;
+  cc.forEach((c,i) => { wsB.getColumn(19+i).width = 16; });
   const setCustom = (cell, m, col) => { const v = cval(m, col); if (v === '') return; if (col.type === 'date') mdate(cell, v); else cell.value = v; };
   const bc = cages.filter(c => c.type === 'breeding');
   wsB.mergeCells('A1:O1'); Object.assign(wsB.getCell('A1'), { value: `${p.name} breedings` }); wsB.getCell('A1').font = { ...XF, bold:true };
@@ -1319,11 +1350,11 @@ function buildBreedingSheet(wb, { p, cages, cc, todayUTC }){
   }
   r++;                                                                    // blank row
   const h1 = r, h2 = r + 1;
-  const heads = ['# of cages','Breeding card#','Mouse ID','Genotype','Sex','DOB','Today','Age (weeks)','Age (months)','Parents','Mate date','Litter history',null,null,'Notes','Label','Mate history', ...cc.map(c => c.name)];
+  const heads = ['# of cages','Genotype exp. ID','Breeding card#','Mouse ID','Genotype','Sex','DOB','Today','Age (weeks)','Age (months)','Parents','Mate date','Litter history',null,null,'Notes','Label','Mate history', ...cc.map(c => c.name)];
   heads.forEach((h,i) => { if (h) wsB.getCell(h1, i+1).value = h; });
-  [1,2,3,4,5,6,7,8,9,10,11,15,16,17, ...cc.map((_,i) => 18+i)].forEach(col => { if (col === 10) return; wsB.mergeCells(h1, col, h2, col); });
-  wsB.mergeCells(h1, 12, h1, 14); wsB.getCell(h2,10).value = 'cage#'; wsB.getCell(h2,12).value = 'DOB pups'; wsB.getCell(h2,13).value = 'Qnt pups'; wsB.getCell(h2,14).value = 'Wean pups';
-  for (let col = 1; col <= NB; col++) for (const rr of [h1,h2]) { const cell = wsB.getCell(rr,col); cell.font = { ...XF, bold:true, ...(rr === h2 && [10,12,13,14].includes(col) ? { size:10 } : {}) }; cell.fill = GREY; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true };
+  [1,2,3,4,5,6,7,8,9,10,11,12,16,17,18, ...cc.map((_,i) => 19+i)].forEach(col => { if (col === 11) return; wsB.mergeCells(h1, col, h2, col); });
+  wsB.mergeCells(h1, 13, h1, 15); wsB.getCell(h2,11).value = 'cage#'; wsB.getCell(h2,13).value = 'DOB pups'; wsB.getCell(h2,14).value = 'Qnt pups'; wsB.getCell(h2,15).value = 'Wean pups';
+  for (let col = 1; col <= NB; col++) for (const rr of [h1,h2]) { const cell = wsB.getCell(rr,col); cell.font = { ...XF, bold:true, ...(rr === h2 && [11,13,14,15].includes(col) ? { size:10 } : {}) }; cell.fill = GREY; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true };
     cell.border = { top: rr === h1 ? XMEDIUM : undefined, bottom: rr === h2 ? XMEDIUM : XTHIN, left: col === 1 ? XMEDIUM : XTHIN, right: col === NB ? XMEDIUM : XTHIN }; }
   wsB.getRow(h2).height = 25.5;
   r = h2 + 1; let cageCount = 0;
@@ -1332,28 +1363,29 @@ function buildBreedingSheet(wb, { p, cages, cc, todayUTC }){
     cageCount++;
     for (let i = 0; i < n; i++, r++) {
       const m = ms[i], row = wsB.getRow(r);
-      if (i === 0) { row.getCell(1).value = 1; row.getCell(2).value = cardName(c); row.getCell(2).font = { ...XF, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
+      if (i === 0) { row.getCell(1).value = 1; row.getCell(3).value = cardName(c); row.getCell(3).font = { ...XF, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
       if (m) {
-        row.getCell(3).value = idCell(m); row.getCell(3).font = { ...XF, bold:true }; row.getCell(4).value = m.genotype || '';
-        row.getCell(5).value = m.sex; row.getCell(5).font = sexFont(m.sex); mdate(row.getCell(6), m.dob); ageCells(wsB, todayUTC, r, 6, 7, 8, 9, m.dob);
-        row.getCell(10).value = m.parentCage || ''; mdate(row.getCell(11), m.mateDate); row.getCell(15).value = m.note || ''; row.getCell(16).value = m.label || ''; row.getCell(17).value = matText(m); cc.forEach((col,j) => setCustom(row.getCell(18+j), m, col));
+        row.getCell(2).value = m.genoExp || '';
+        row.getCell(4).value = idCell(m); row.getCell(4).font = { ...XF, bold:true }; row.getCell(5).value = m.genotype || ''; genoFont(row.getCell(5), m.genotype);
+        row.getCell(6).value = m.sex; row.getCell(6).font = sexFont(m.sex); mdate(row.getCell(7), m.dob); ageCells(wsB, todayUTC, r, 7, 8, 9, 10, m.dob);
+        row.getCell(11).value = m.parentCage || ''; mdate(row.getCell(12), m.mateDate); row.getCell(16).value = m.note || ''; row.getCell(17).value = m.label || ''; row.getCell(18).value = matText(m); cc.forEach((col,j) => setCustom(row.getCell(19+j), m, col));
       }
-      const l = ls[i]; if (l) { mdate(row.getCell(12), l.date); row.getCell(13).value = l.pups ?? ''; mdate(row.getCell(14), l.wean); if (l.note && !(m && m.note)) row.getCell(15).value = l.note; }
-      for (let k = 1; k <= NB; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : XF; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 15 || k === 17 }; }
+      const l = ls[i]; if (l) { mdate(row.getCell(13), l.date); row.getCell(14).value = l.pups ?? ''; mdate(row.getCell(15), l.wean); if (l.note && !(m && m.note)) row.getCell(16).value = l.note; }
+      for (let k = 1; k <= NB; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : XF; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 16 || k === 18 }; }
     }
     if (c.missing) markMissingRows(wsB, start, r, NB);
     r++;                                                                  // blank row between cages
   }
-  r++; wsB.getCell(r,1).value = { formula: bc.length ? `SUM(A${h2+1}:A${r-2})` : '0', result: cageCount }; wsB.getCell(r,2).value = 'total';
-  wsB.getCell(r,1).font = wsB.getCell(r,2).font = { ...XF, bold:true };
+  r++; wsB.getCell(r,1).value = { formula: bc.length ? `SUM(A${h2+1}:A${r-2})` : '0', result: cageCount }; wsB.getCell(r,3).value = 'total';
+  wsB.getCell(r,1).font = wsB.getCell(r,3).font = { ...XF, bold:true };
 }
 
 /* ---------- Sheet 2: Inventory ---------- */
 function buildInventorySheet(wb, { cages, cc, todayUTC }){
   const wsI = wb.addWorksheet('Inventory', { pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
-  const NI = 14 + cc.length;
-  [9,14.9,14.5,8.69,17.7,6,14.5,15.2,9.5,10.2,21.7,35.9,16,40, ...cc.map(() => 16)].forEach((w,i) => wsI.getColumn(i+1).width = w);
-  ['cage #','Researcher','Cage card #','Mouse ID','Genotype','Sex','DOB','Today','Age (wks)','Age (mons)','Parents (cage #)','Notes','Label','Mate history', ...cc.map(c => c.name)].forEach((h,i) => {
+  const NI = 15 + cc.length;
+  [9,14.9,14.5,8.69,17.7,6,14.5,15.2,9.5,10.2,21.7,35.9,16,40,16, ...cc.map(() => 16)].forEach((w,i) => wsI.getColumn(i+1).width = w);
+  ['cage #','Genotype exp. ID','Cage card #','Mouse ID','Genotype','Sex','DOB','Today','Age (wks)','Age (mons)','Parents (cage #)','Notes','Label','Mate history','Researcher', ...cc.map(c => c.name)].forEach((h,i) => {
     const cell = wsI.getCell(1, i+1); cell.value = h; cell.font = { ...XF, bold:true }; cell.fill = GREY; cell.alignment = { horizontal:'left', vertical:'center', wrapText:true }; cell.border = { top:XMEDIUM, bottom:XTHIN }; });
   let r = 2, invCount = 0;
   const ic = cages.filter(c => c.type === 'inventory');
@@ -1361,19 +1393,20 @@ function buildInventorySheet(wb, { cages, cc, todayUTC }){
     const ms = sortMice(miceIn(c._id)); const n = Math.max(ms.length, 1); const start = r; invCount++;
     for (let i = 0; i < n; i++, r++) {
       const m = ms[i], row = wsI.getRow(r);
-      if (i === 0) { row.getCell(1).value = 1; row.getCell(2).value = c.researcher || ''; row.getCell(3).value = cardName(c); row.getCell(3).font = { ...XF, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
+      if (i === 0) { row.getCell(1).value = 1; row.getCell(15).value = c.researcher || ''; row.getCell(3).value = cardName(c); row.getCell(3).font = { ...XF, bold:true, ...(c.missing ? { color:{ argb:'FFC0392B' } } : {}) }; }
       if (m) {
-        row.getCell(4).value = idCell(m); row.getCell(4).font = { ...XF, bold:true }; row.getCell(5).value = m.genotype || '';
+        row.getCell(2).value = m.genoExp || '';
+        row.getCell(4).value = idCell(m); row.getCell(4).font = { ...XF, bold:true }; row.getCell(5).value = m.genotype || ''; genoFont(row.getCell(5), m.genotype);
         row.getCell(6).value = m.sex; row.getCell(6).font = sexFont(m.sex); mdate(row.getCell(7), m.dob); ageCells(wsI, todayUTC, r, 7, 8, 9, 10, m.dob);
-        row.getCell(11).value = m.parentCage || ''; row.getCell(12).value = m.note || ''; row.getCell(13).value = m.label || ''; row.getCell(14).value = matText(m); cc.forEach((col,j) => setCustom(row.getCell(15+j), m, col));
+        row.getCell(11).value = m.parentCage || ''; row.getCell(12).value = m.note || ''; row.getCell(13).value = m.label || ''; row.getCell(14).value = matText(m); cc.forEach((col,j) => setCustom(row.getCell(16+j), m, col));
       }
       for (let k = 1; k <= NI; k++) { const cell = row.getCell(k); cell.font = cell.font && cell.font.name ? cell.font : XF; cell.alignment = { horizontal:'left', vertical:'top', wrapText: k === 12 || k === 14 }; }
     }
     if (c.missing) markMissingRows(wsI, start, r, NI);
     r++;
   }
-  wsI.getCell(r,1).value = { formula: ic.length ? `SUM(A2:A${r-1})` : '0', result: invCount }; wsI.getCell(r,2).value = 'TOTAL';
-  wsI.getCell(r,1).font = wsI.getCell(r,2).font = { ...XF, bold:true };
+  wsI.getCell(r,1).value = { formula: ic.length ? `SUM(A2:A${r-1})` : '0', result: invCount }; wsI.getCell(r,3).value = 'TOTAL';
+  wsI.getCell(r,1).font = wsI.getCell(r,3).font = { ...XF, bold:true };
 }
 
 /* ---------- export button ---------- */
