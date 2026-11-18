@@ -390,7 +390,7 @@ const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + St
 const ls = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }, set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} } };
 
 let db = null, dl = null, canWrite = true;
-const S = { projects:[], cages:[], mice:[], logs:[], pid: ls.get('micelog.pid'), tab:'cages', type:'all', q:'', sel:new Set(), user: ls.get('micelog.user') || '', ready:{p:false,c:false,m:false}, slow:false, err:'' };
+const S = { projects:[], cages:[], mice:[], logs:[], pid: ls.get('micelog.pid'), tab:'cages', type:'all', q:'', sel:new Set(), selA:new Set(), user: ls.get('micelog.user') || '', ready:{p:false,c:false,m:false}, slow:false, err:'' };
 
 
 </script>
@@ -407,9 +407,9 @@ const natural = (a,b) => String(a).localeCompare(String(b), undefined, {numeric:
 const pcages = () => S.cages.filter(c => c.projectId === S.pid).sort((a,b) => (a.type===b.type?0:(a.type==='breeding'?-1:1)) || natural(a.number,b.number));
 const miceIn = cid => S.mice.filter(m => m.cageId === cid && isActive(m));
 const cageById = id => S.cages.find(c => c._id === id);
-function ageDays(dob){ if(!dob) return null; const t = new Date(dob + 'T00:00:00'); if(isNaN(t)) return null; const n = new Date(); n.setHours(0,0,0,0); return Math.max(0, Math.round((n - t) / 86400000)); }
-const ageWk = dob => { const d = ageDays(dob); return d == null ? '' : Math.floor(d / 7); };
-const ageMo = dob => { const d = ageDays(dob); return d == null ? '' : (d / 30.4375).toFixed(1); };
+function ageDays(dob, on){ if(!dob) return null; const t = new Date(dob + 'T00:00:00'); if(isNaN(t)) return null; const n = on ? new Date(on + 'T00:00:00') : new Date(); if (isNaN(n)) return null; n.setHours(0,0,0,0); return Math.max(0, Math.round((n - t) / 86400000)); }
+const ageWk = (dob, on) => { const d = ageDays(dob, on); return d == null ? '' : Math.floor(d / 7); };
+const ageMo = (dob, on) => { const d = ageDays(dob, on); return d == null ? '' : (d / 30.4375).toFixed(1); };
 function fmtLit(l){ return (l || []).map(x => `${x.date||'?'} | ${x.pups ?? ''} | ${x.wean||''} | ${x.note||''}`).join('\n'); }
 function parseLit(t){ return String(t||'').split('\n').map(s => s.trim()).filter(Boolean).map(s => {
   const p = s.split('|').map(x => x.trim()); const old = p.length === 3;      // old 3-part lines: date | pups | note
@@ -531,6 +531,63 @@ const parseMat = (t, old) => String(t||'').split('\n').map(x => x.trim()).filter
   const p = x.split('|').map(y => y.trim()); const prev = (old || []).find(e => e.cage === p[0] && e.start === (p[1]||''));
   return { cage: p[0]||'', cageId: prev?.cageId || '', start: p[1]||'', end: p[2]||'', reason: p[4]||'', partners: (p[3]||'').split(',').map(y => y.trim()).filter(Boolean), litters: prev?.litters || [] }; });
 
+/* ---------- keeping partners' mating histories consistent ----------
+   1) reconcileMatings(): after a mouse's history was corrected by hand (or its ear tag renamed), the same change is
+      mirrored into the histories of the partners named in it.
+   2) reopenMatings(): a mouse restored from the archive into a breeding cage picks up its old mating again, and the
+      partners whose mating had been closed with "No partner left in cage" / "Euthanized" are re-opened. */
+async function reconcileMatings(m, oldList, newList, oldName){
+  const me = mname(m), pid = m.projectId;
+  const patches = new Map();                                                         // mouse id → new matings array
+  const listOf = x => { if (!patches.has(x._id)) patches.set(x._id, (x.matings || []).map(e => ({ ...e, partners: [...(e.partners || [])] }))); return patches.get(x._id); };
+  const others = S.mice.filter(x => x._id !== m._id && x.projectId === pid);
+  if (oldName && oldName !== me)                                                     // ear tag renamed: fix the name inside partners' entries
+    for (const x of others) if ((x.matings || []).some(e => (e.partners || []).includes(oldName)))
+      listOf(x).forEach(e => { e.partners = e.partners.map(n => n === oldName ? me : n); });
+  const partnerOf = name => others.find(x => x.mid && x.mid.toLowerCase() === String(name).toLowerCase());
+  const same = (a, b) => a.cage === b.cage && a.start === b.start;
+  const mirror = (list, ent) => {                                                    // the partner's entry that corresponds to ent
+    const cand = list.filter(x => x.cage === ent.cage && (x.partners || []).includes(me));
+    return cand.find(x => x.start === ent.start) || (cand.length === 1 ? cand[0] : null);
+  };
+  const dropMe = (p, ent) => {                                                       // me no longer a partner in ent
+    const list = listOf(p), t = mirror(list, ent); if (!t) return;
+    t.partners = t.partners.filter(n => n !== me);
+    if (!t.partners.length && !(t.litters || []).length) list.splice(list.indexOf(t), 1);
+  };
+  const used = new Set();
+  newList.forEach((e, i) => {
+    const o = oldList.find(x => !used.has(x) && same(x, e)) || (oldList.length === newList.length && !used.has(oldList[i]) ? oldList[i] : null);
+    if (o) used.add(o);
+    const ref = o || e;
+    for (const name of (e.partners || [])) {
+      const p = partnerOf(name); if (!p) continue;
+      const list = listOf(p), t = mirror(list, ref);
+      if (t) { t.cage = e.cage; t.start = e.start; t.end = e.end; t.reason = e.reason; if (e.cageId) t.cageId = e.cageId; }
+      else list.push({ cage: e.cage, cageId: e.cageId || '', start: e.start, end: e.end, reason: e.reason, partners: [me], litters: [] });
+    }
+    if (o) for (const name of (o.partners || [])) if (!(e.partners || []).includes(name)) { const p = partnerOf(name); if (p) dropMe(p, o); }
+  });
+  for (const o of oldList) if (!used.has(o)) for (const name of (o.partners || [])) { const p = partnerOf(name); if (p) dropMe(p, o); }
+  for (const [id, list] of patches) await upd('mice', id, { matings: list });
+}
+async function reopenMatings(cid){          // call after mice were put (back) into breeding cage cid
+  const c = cageById(cid); if (!c || c.type !== 'breeding') return;
+  const mem = miceIn(cid); if (!(mem.some(m => m.sex === 'M') && mem.some(m => m.sex === 'F'))) return;
+  for (const x of mem) {
+    const list = (x.matings || []).map(e => ({ ...e })); let changed = false;
+    for (let i = list.length - 1; i >= 0; i--) {                                      // only the latest entry of this cage is considered
+      const e = list[i]; if (e.cage !== c.number && e.cageId !== cid) continue;
+      if (e.end && (e.reason === 'No partner left in cage' || e.reason === 'Euthanized')) {
+        const partners = mem.filter(y => y.sex !== x.sex).map(mname);
+        list[i] = { ...e, cageId: cid, end: '', reason: '', partners: [...new Set([...(e.partners || []), ...partners])] }; changed = true;
+      }
+      break;
+    }
+    if (changed) await upd('mice', x._id, { matings: list });
+  }
+}
+
 /* ---------- custom (per-project) columns: project.customCols = [{id,name,type}], mouse.custom = {colId: value} ---------- */
 const customCols = () => cur()?.customCols || [];
 const cval = (m, col) => (m.custom && m.custom[col.id] != null) ? m.custom[col.id] : '';
@@ -547,6 +604,7 @@ function carryCustom(m){          // mouse moves to another project: map custom 
   return out;
 }
 const midSort = (a,b) => (a.mid ? 0 : 1) - (b.mid ? 0 : 1) || natural(a.mid, b.mid);
+const bySexThenId = (a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b);     // males first, then females
 
 
 </script>
@@ -644,7 +702,8 @@ function renderMain(){
     const nMiss = cages.filter(c=>c.missing).length;
     h += ['all','breeding','inventory','missing'].filter(t => t !== 'missing' || nMiss || S.type === 'missing').map(t=>`<button class="pill ${S.type===t?'on':''} ${t==='missing'?'pmiss':''}" data-act="type" data-id="${t}">${{all:'All',breeding:'Breeding',inventory:'Inventory',missing:'Missing ('+nMiss+')'}[t]}</button>`).join('');
     h += `<input type="search" id="q" placeholder="Search ID, genotype, label, note…" value="${esc(S.q)}"><span class="sp"></span><button class="btn" data-act="cols" title="Add or edit extra columns for this project">⚙ Columns</button><button class="btn primary" data-act="newCage">+ New cage</button><button class="btn" data-act="addMouse">+ Add mice</button>`;
-  } else h += '<span class="sp"></span>';
+  } else if (S.tab === 'archive') h += `<input type="search" id="q" placeholder="Search ID, genotype, reason, note…" value="${esc(S.q)}"><span class="sp"></span>`;
+  else h += '<span class="sp"></span>';
   h += '</div>';
 
   if (S.tab === 'cages') h += cagesHTML(cages);
@@ -653,7 +712,7 @@ function renderMain(){
   m.innerHTML = h;
 }
 
-function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.genoExp,x.label,x.note,x.parentCage,matText(x),...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
+function matchQ(x){ const q = S.q.toLowerCase(); if (!q) return true; return [x.mid,(x.oldIds||[]).join(' '),x.mid?'':'untagged',x.genotype,x.genoExp,x.label,x.note,x.parentCage,x.euthReason,x.euthNote,x.euthCage,x.euthBy,matText(x),...Object.values(x.custom||{})].some(v => String(v||'').toLowerCase().includes(q)); }
 
 /* "15 (2 empty)" – number of cages of a type, and how many of them hold no live mice */
 function cageStat(cages, type, label){
@@ -667,7 +726,7 @@ function cagesHTML(cages){
   let out = '';
   for (const c of list) {
     const all = miceIn(c._id);
-    const ms = all.filter(matchQ).sort((a,b) => midSort(a,b));
+    const ms = all.filter(matchQ).sort(bySexThenId);                  // males first, then females
     if (q && !ms.length) continue;
     const sexes = new Set(all.map(x => x.sex));
     const sexTxt = !all.length ? '' : sexes.size > 1 ? '<span class="M">♂</span><span class="F">♀</span>' : sexes.has('M') ? '<span class="M">♂ males</span>' : '<span class="F">♀ females</span>';
@@ -692,11 +751,14 @@ function cagesHTML(cages){
   return `<div class="cages">${out}</div>`;
 }
 
+/* Archive: every field of the euthanized mouse (age = age at euthanasia) + how/when it ended. Rows can be selected and exported. */
 function archiveHTML(list){
-  list = list.filter(matchQ).sort((a,b) => String(b.euthDate||'').localeCompare(String(a.euthDate||'')));
+  const cc = customCols();
+  list = list.filter(matchQ).sort((a,b) => String(b.euthDate||'').localeCompare(String(a.euthDate||'')) || bySexThenId(a,b));
   if (!list.length) return '<div class="welcome">No euthanized mice recorded for this project.</div>';
-  return `<div class="tw logw"><table><thead><tr><th>ID</th><th>Genotype</th><th>Geno. exp. ID</th><th>Sex</th><th>DOB</th><th>Last cage</th><th>Euthanized</th><th>Reason</th><th>By</th><th>Note</th><th></th></tr></thead><tbody>` +
-    list.map(x => `<tr><td>${idHTML(x)}</td><td>${genoHTML(x.genotype)}</td><td>${esc(x.genoExp)}</td><td class="${x.sex}">${esc(x.sex)}</td><td>${esc(x.dob)}</td><td>${esc(x.euthCage)}</td><td>${esc(x.euthDate)}</td><td>${esc(x.euthReason)}</td><td>${esc(x.euthBy)}</td><td class="wrap">${esc(x.euthNote)}</td><td><button class="btn sm" data-act="restore" data-id="${x._id}">Restore</button></td></tr>`).join('') + '</tbody></table></div>';
+  const allSel = list.every(x => S.selA.has(x._id));
+  return `<div class="tw logw archive"><table><thead><tr><th><input type="checkbox" class="chk" data-act="aselall" ${allSel?'checked':''} title="Select all"></th><th>ID</th><th>Genotype</th><th>Geno. exp. ID</th><th>Sex</th><th>DOB</th><th title="Age at euthanasia">Wk</th><th title="Age at euthanasia">Mo</th><th>Parent cage</th><th>Mate date</th><th>Litter history</th><th>Mate history</th><th>Label</th><th>Note</th>${cc.map(c => `<th>${esc(c.name)}</th>`).join('')}<th>Last cage</th><th>Euthanized</th><th>Reason</th><th>By</th><th>Euthanasia note</th><th></th></tr></thead><tbody>` +
+    list.map(x => `<tr class="${S.selA.has(x._id)?'sel':''}"><td><input type="checkbox" class="chk" data-act="asel" data-id="${x._id}" ${S.selA.has(x._id)?'checked':''}></td><td class="w">${idHTML(x)}</td><td class="gtc">${genoHTML(x.genotype)}</td><td class="w">${esc(x.genoExp)}</td><td class="${x.sex}">${x.sex==='M'?'♂ M':'♀ F'}</td><td>${esc(x.dob)}</td><td>${ageWk(x.dob, x.euthDate)}</td><td>${ageMo(x.dob, x.euthDate)}</td><td>${esc(x.parentCage)}</td><td>${esc(x.mateDate)}</td><td class="w" title="${esc(fmtLit(x.litters))}">${esc(litSummary(x.litters))}</td><td class="mh">${matingList(x).map(e => esc(matLine(e))).join('<br>')}</td><td class="w">${esc(x.label)}</td><td class="wrap">${esc(x.note)}</td>${cc.map(c => `<td class="w">${esc(cval(x,c))}</td>`).join('')}<td>${esc(x.euthCage)}</td><td>${esc(x.euthDate)}</td><td class="w">${esc(x.euthReason)}</td><td>${esc(x.euthBy)}</td><td class="wrap">${esc(x.euthNote)}</td><td><button class="btn sm" data-act="restore" data-id="${x._id}">Restore</button></td></tr>`).join('') + '</tbody></table></div>';
 }
 
 function logHTML(){
@@ -708,6 +770,7 @@ function logHTML(){
 
 function renderBar(){
   const n = S.sel.size, b = $('#bar');
+  if (S.tab === 'archive' && S.selA.size) { b.innerHTML = `<div class="bar"><b>${S.selA.size} selected</b><button class="btn primary" data-act="exportArch">⬇ Export selected to Excel</button><button class="btn" data-act="clearArch">Clear</button></div>`; return; }
   if (!n || S.tab !== 'cages') { b.innerHTML = ''; return; }
   b.innerHTML = `<div class="bar"><b>${n} selected</b><button class="btn" data-act="combine">Create breeding cage</button><button class="btn" data-act="move">Move to cage…</button><button class="btn danger" data-act="euthSel">Euthanize selected</button><button class="btn" data-act="clearSel">Clear</button></div>`;
 }
@@ -876,7 +939,7 @@ function pickRows(scope, includeCur, excl){
   else if (scope !== '__all') list = list.filter(m => m.projectId === scope);
   if (!includeCur) list = list.filter(m => m.projectId !== S.pid);
   if (excl) list = list.filter(m => m.cageId !== excl);                  // not the mice already in the target cage
-  list.sort((a,b) => (a.projectId === b.projectId ? 0 : (a.projectId === S.pid ? -1 : natural(projName(a.projectId), projName(b.projectId)))) || natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || midSort(a,b));
+  list.sort((a,b) => (a.projectId === b.projectId ? 0 : (a.projectId === S.pid ? -1 : natural(projName(a.projectId), projName(b.projectId)))) || natural(cageById(a.cageId)?.number, cageById(b.cageId)?.number) || bySexThenId(a,b));
   if (!list.length) return '<div class="empty">No live mice to show here.</div>';
   return list.map(m => { const c = cageById(m.cageId); const other = m.projectId !== S.pid;
     return `<label class="pick" data-t="${esc([projName(m.projectId), c?.number, c?.type, m.mid, (m.oldIds||[]).join(' '), m.mid?'':'untagged', m.genotype, m.genoExp, m.sex].join(' ').toLowerCase())}"><input type="checkbox" name="pick" value="${m._id}">${other ? `<span class="pj" title="Project ${esc(projName(m.projectId))}">${esc(projName(m.projectId))}</span>` : ''}<span class="cg ${c?.type}">${esc(c?.number)}</span>${idHTML(m)}<span class="${m.sex}">${m.sex==='M'?'♂':'♀'}</span><span class="gt">${genoHTML(m.genotype)}</span><span class="gt">${ageWk(m.dob)!==''?ageWk(m.dob)+' wk':''}</span></label>`; }).join('');
@@ -1023,6 +1086,7 @@ function editMouse(id){
       if (matTxt === fmtMat(m.matings) && fv(f,'mateDate') && fv(f,'mateDate') !== m.mateDate) mats = mats.map(e => (!e.end && e.cageId === m.cageId) ? { ...e, start: fv(f,'mateDate') } : e);   // changing the mate date corrects the current mating
       await run(async () => {
         await upd('mice', id, { mid, oldIds: olds, sex, genotype: fv(f,'genotype'), genoExp: fv(f,'genoExp'), dob: fv(f,'dob'), parentCage: fv(f,'parentCage'), mateDate: fv(f,'mateDate'), label: fv(f,'label'), note: fv(f,'note'), custom: readCustom(f), litters: parseLit(f.elements.litters.value), matings: mats });
+        if (fmtMat(mats) !== fmtMat(m.matings) || (prev && mid !== prev)) await reconcileMatings({ ...m, mid }, m.matings || [], mats, prev);   // mirror into partners' histories
         await logAct(mid !== prev ? 'Change ear tag' : 'Edit mouse', mid !== prev ? `${prev || 'Untagged'} → ${mid || 'Untagged'}` : mname(m));
       });
     } });
@@ -1099,7 +1163,7 @@ function move(){
 
 /* Dismiss a breeding cage: send males / females to inventory cages (existing or new) */
 function dismissCage(cid){
-  const c = cageById(cid), ms = miceIn(cid).slice().sort((a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b));
+  const c = cageById(cid), ms = miceIn(cid).slice().sort(bySexThenId);
   if (!ms.length) return toast('This breeding cage is empty – use “Delete empty cage”.', true);
   const invs = pcages().filter(x => x.type === 'inventory' && !x.missing);
   /* default for each mouse = its origin cage, as long as the cage still exists and can take it (greedy, respects 5 mice / one sex) */
@@ -1175,6 +1239,7 @@ function restore(id){
     let cid = cage?._id;
     if (!cage) { const r = await db.collection('cages').add({ projectId: m.projectId, type: meta.type || 'inventory', number: num, note: meta.note || '', ...(meta.strategy ? { strategy: meta.strategy } : {}), ...(meta.goal ? { goal: meta.goal } : {}), ...(meta.researcher ? { researcher: meta.researcher } : {}), createdAt: Date.now() }); cid = r.id; }
     await upd('mice', id, { status:'active', cageId: cid, euthDate:{__delete__:true}, euthReason:{__delete__:true}, euthNote:{__delete__:true}, euthBy:{__delete__:true}, euthCage:{__delete__:true}, euthCageMeta:{__delete__:true} });
+    await reopenMatings(cid); await syncMatings(cid, todayISO());              // breeding cage: partners' matings are re-opened, not left as "No partner left in cage"
     await logAct('Restore mouse', `${mname(m)} → cage ${cage?.number || num}${cage ? '' : ' (cage re-created)'}`); toast(`${mname(m)} restored to cage ${cage?.number || num}`);
   });
 }
@@ -1315,7 +1380,7 @@ const sexFont = sx => ({ ...XF, color:{ argb: sx === 'M' ? 'FF2B6CB0' : 'FFFF3FA
 const genoFont = (cell, g) => { const k = genoClass(g); if (k) cell.font = { ...XF, bold:true, color:{ argb: GENO_COLOR[k] } }; };
 const mdate = (cell, iso) => { const d = utcDate(iso); if (d) { cell.value = d; cell.numFmt = 'm/d/yyyy'; } };
 const cardName = c => c.number + (c.missing ? ' – MISSING' : '');
-const sortMice = ms => ms.slice().sort((a,b) => (a.sex === b.sex ? 0 : a.sex === 'M' ? -1 : 1) || midSort(a,b));
+const sortMice = ms => ms.slice().sort(bySexThenId);
 const idCell = m => m.mid ? idText(m) : (oldList(m).length ? `(${oldList(m).join(', ')})` : '');
 const setCustom = (cell, m, col) => { const v = cval(m, col); if (v === '') return; if (col.type === 'date') mdate(cell, v); else cell.value = v; };
 const markMissingRows = (ws, from, to, ncols) => { for (let rr = from; rr < to; rr++) for (let k = 1; k <= ncols; k++) ws.getCell(rr,k).fill = PINK; };
@@ -1431,6 +1496,44 @@ async function exportXlsx(){
 }
 
 
+/* ---------- Archive export: the ticked euthanized mice, every field, one sheet ---------- */
+async function exportArchiveXlsx(){
+  if (!window.ExcelJS) return toast('The Excel library could not be loaded.', true);
+  if (!dl) return toast('Downloads are unavailable in this view.', true);
+  const p = cur(); if (!p) return;
+  const ms = S.mice.filter(m => S.selA.has(m._id) && !isActive(m)).sort((a,b) => String(b.euthDate||'').localeCompare(String(a.euthDate||'')) || bySexThenId(a,b));
+  if (!ms.length) return toast('Select at least one archived mouse first.', true);
+  const cc = customCols();
+  const wb = new ExcelJS.Workbook(); wb.creator = S.user || 'MiceLog';
+  const ws = wb.addWorksheet('Archive', { views:[{ state:'frozen', ySplit:1 }], pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
+  const cols = [   // [header, width, value(m), kind]
+    ['Mouse ID', 14, m => idCell(m)], ['Genotype', 20, m => m.genotype || ''], ['Genotype exp. ID', 16, m => m.genoExp || ''], ['Sex', 6, m => m.sex],
+    ['DOB', 12, m => m.dob, 'date'], ['Age at euthanasia (weeks)', 12, m => { const d = ageDays(m.dob, m.euthDate); return d == null ? '' : Math.floor(d / 7); }],
+    ['Age at euthanasia (months)', 12, m => { const d = ageDays(m.dob, m.euthDate); return d == null ? '' : +(d / 30.4375).toFixed(1); }],
+    ['Parents (cage #)', 12, m => m.parentCage || ''], ['Mate date', 12, m => m.mateDate, 'date'], ['Litter history', 30, m => fmtLit(m.litters).replace(/\n/g, '; ')],
+    ['Mate history', 45, m => matText(m)], ['Label', 14, m => m.label || ''], ['Notes', 30, m => m.note || ''],
+    ...cc.map(c => [c.name, 16, m => cval(m, c), c.type === 'date' ? 'date' : '']),
+    ['Last cage', 10, m => m.euthCage || ''], ['Cage type', 11, m => (m.euthCageMeta || {}).type || ''], ['Euthanized', 12, m => m.euthDate, 'date'],
+    ['Reason', 24, m => m.euthReason || ''], ['Euthanized by', 14, m => m.euthBy || ''], ['Euthanasia note', 30, m => m.euthNote || ''],
+  ];
+  cols.forEach(([h, w], i) => { const c = ws.getCell(1, i+1); c.value = h; c.font = { ...XF, bold:true }; c.fill = GREY; c.alignment = { horizontal:'left', vertical:'center', wrapText:true }; c.border = { top:XMEDIUM, bottom:XMEDIUM }; ws.getColumn(i+1).width = w; });
+  ws.getRow(1).height = 32;
+  ms.forEach((m, r) => cols.forEach(([h, w, get, kind], i) => {
+    const cell = ws.getCell(r + 2, i + 1), v = get(m);
+    if (kind === 'date') mdate(cell, v); else cell.value = v;
+    cell.font = XF; cell.alignment = { horizontal:'left', vertical:'top', wrapText: h === 'Mate history' || h === 'Notes' || h === 'Euthanasia note' };
+    if (h === 'Mouse ID') cell.font = { ...XF, bold:true };
+    if (h === 'Sex') cell.font = sexFont(m.sex);
+    if (h === 'Genotype') genoFont(cell, m.genotype);
+  }));
+  ws.autoFilter = { from:{ row:1, column:1 }, to:{ row:1, column:cols.length } };
+  try {
+    const buf = await wb.xlsx.writeBuffer();
+    await dl.save({ filename: `${p.name.replace(/[^\w\-]+/g,'_')}_archive_${todayISO()}.xlsx`, data: buf });
+    toast(`Exported ${ms.length} archived mice.`); logAct('Export archive', `${ms.length} mice`);
+  } catch(e){ if (e && e.code === 'declined') return; toast('Export failed: ' + (e && e.message || e), true); }
+}
+
 </script>
 <script>
 "use strict";
@@ -1454,6 +1557,8 @@ function onData(){
   if (!S.pid || !cur()) { S.pid = S.projects.length ? S.projects.slice().sort((a,b)=>natural(a.name,b.name))[0]._id : null; }
   const actIds = new Set(S.mice.filter(isActive).map(m => m._id));
   for (const id of [...S.sel]) if (!actIds.has(id)) S.sel.delete(id);
+  const archIds = new Set(S.mice.filter(m => !isActive(m)).map(m => m._id));
+  for (const id of [...S.selA]) if (!archIds.has(id)) S.selA.delete(id);
   render();
 }
 
@@ -1466,11 +1571,11 @@ function askName(){
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
   const a = t.dataset.act, id = t.dataset.id;
-  if (a === 'sel' || a === 'selcage') return; // handled on change
+  if (a === 'sel' || a === 'selcage' || a === 'asel' || a === 'aselall') return; // handled on change
   const writeActs = ['cols','missing','found','dismiss','restoreFile','newProject','renameProject','newCage','addMouse','editCage','editMouse','litter','pups','euthCage','delCage','combine','move','euthSel','restore'];
   if (!canWrite && writeActs.includes(a)) return toast('You have view-only access.', true);
   ({
-    askName, tab: () => { S.tab = id; render(); }, type: () => { S.type = id; render(); }, clearSel: () => { S.sel.clear(); render(); },
+    askName, tab: () => { S.tab = id; render(); }, type: () => { S.type = id; render(); }, clearSel: () => { S.sel.clear(); render(); }, clearArch: () => { S.selA.clear(); render(); }, exportArch: exportArchiveXlsx,
     newProject, renameProject, newCage, addMouse: () => addMouse({cageId: id}), editCage: () => editCage(id), editMouse: () => editMouse(id),
     litter: () => recordLitter(id), pups: () => addPups(id), euthCage: () => euthanize(miceIn(id), `entire cage ${cageById(id)?.number}`),
     delCage: () => delCage(id), combine, move, euthSel: () => euthanize([...S.sel].map(i => S.mice.find(m => m._id === i)).filter(Boolean), 'selected mice'),
@@ -1479,8 +1584,10 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.id === 'psel') { S.pid = t.value; ls.set('micelog.pid', S.pid); S.sel.clear(); render(); return; }
+  if (t.id === 'psel') { S.pid = t.value; ls.set('micelog.pid', S.pid); S.sel.clear(); S.selA.clear(); render(); return; }
   if (t.dataset.act === 'sel') { t.checked ? S.sel.add(t.dataset.id) : S.sel.delete(t.dataset.id); render(); }
+  if (t.dataset.act === 'asel') { t.checked ? S.selA.add(t.dataset.id) : S.selA.delete(t.dataset.id); render(); }
+  if (t.dataset.act === 'aselall') { S.mice.filter(m => m.projectId === S.pid && !isActive(m) && matchQ(m)).forEach(m => t.checked ? S.selA.add(m._id) : S.selA.delete(m._id)); render(); }
   if (t.dataset.act === 'selcage') {
     const ms = miceIn(t.dataset.id).filter(matchQ);
     ms.forEach(m => t.checked ? S.sel.add(m._id) : S.sel.delete(m._id)); render();
